@@ -2,7 +2,11 @@
     $usertag = Auth::user()->tag_id;
     $rq1 = \App\Models\Request::where('tag_id', $usertag)->where('status_id', '!=', 4)->get();
 @endphp
-<aside class="w-64 bg-white border-r border-slate-200 flex flex-col h-full shrink-0 z-20">
+
+<!-- Mobile overlay -->
+<div x-show="sidebarOpen" class="fixed inset-0 bg-slate-900/50 z-40 md:hidden" @click="sidebarOpen = false" x-transition.opacity style="display: none;"></div>
+
+<aside class="w-64 bg-white border-r border-slate-200 flex flex-col h-full shrink-0 z-50 fixed md:static inset-y-0 left-0 transform transition-transform duration-300 md:translate-x-0" :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'">
     <!-- Logo -->
     <div class="h-16 flex items-center px-6 border-b border-transparent">
         <a href="{{ route('dashboard') }}" class="flex items-center">

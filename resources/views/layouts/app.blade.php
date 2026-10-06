@@ -38,7 +38,7 @@
         </style>
     </head>
     <body class="font-sans antialiased text-slate-800">
-        <div class="flex h-screen overflow-hidden">
+        <div class="flex h-screen overflow-hidden" x-data="{ sidebarOpen: false }">
             <!-- Sidebar -->
             @include('layouts.sidebar')
 

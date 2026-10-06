@@ -1,8 +1,13 @@
 @php
     $notifications = Auth::user()->unreadNotifications;
 @endphp
-<header class="h-16 bg-white/80 backdrop-blur-md border-b border-slate-200 flex items-center justify-between px-8 shrink-0 z-50 sticky top-0 w-full">
-    <h1 class="font-bold text-[15px] text-slate-800 capitalize">{{ request()->routeIs('dashboard') ? 'Dashboard Laporan & Penilaian Kinerja CS' : (request()->routeIs('daftartiket') ? 'Daftar Tiket Helpdesk CS' : (request()->routeIs('inbox') ? 'Inbox & Manajemen Tiket' : (request()->is('createrq') ? 'Buat Tiket Baru' : (request()->is('detailrequest/*') ? 'Detail Workspace Pengerjaan Tiket' : (str_replace('-', ' ', request()->path()) == '/' ? 'Dashboard' : str_replace('-', ' ', request()->path())))))) }}</h1>
+<header class="h-16 bg-white/80 backdrop-blur-md border-b border-slate-200 flex items-center justify-between px-4 md:px-8 shrink-0 z-30 sticky top-0 w-full">
+    <div class="flex items-center gap-3">
+        <button @click="sidebarOpen = true" class="md:hidden p-2 -ml-2 text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors">
+            <i class="fa-solid fa-bars text-lg"></i>
+        </button>
+        <h1 class="font-bold text-[14px] md:text-[15px] text-slate-800 capitalize truncate max-w-[180px] sm:max-w-xs md:max-w-none">{{ request()->routeIs('dashboard') ? 'Dashboard Laporan & Penilaian Kinerja CS' : (request()->routeIs('daftartiket') ? 'Daftar Tiket Helpdesk CS' : (request()->routeIs('inbox') ? 'Inbox & Manajemen Tiket' : (request()->is('createrq') ? 'Buat Tiket Baru' : (request()->is('detailrequest/*') ? 'Detail Workspace Pengerjaan Tiket' : (str_replace('-', ' ', request()->path()) == '/' ? 'Dashboard' : str_replace('-', ' ', request()->path())))))) }}</h1>
+    </div>
     <div class="flex items-center gap-4">
         <!-- Notification Dropdown -->
         <div class="dropdown dropdown-end">
