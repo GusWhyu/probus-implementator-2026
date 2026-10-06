@@ -6,101 +6,219 @@ use App\Models\RequestLog;
 use App\Models\UpdateSystem;
 use Illuminate\Http\Request;
 use RealRashid\SweetAlert\Facades\Alert;
+use App\Models\Ticket;
+use App\Models\PerformanceReview;
+use App\Models\PerformanceCategory;
+use App\Models\PerformanceReviewDetail;
+use App\Models\PerformanceReviewModuleDetail;
+use App\Models\ModuleSystem;
+use App\Models\User;
 
 class HomeController extends Controller
 {
     public function index(){
-        $urgent_count = \App\Models\Request::where('status_id', 1)->count();
-        $open_count = \App\Models\Request::where('status_id', 2)->count();
-        $progress_count = \App\Models\Request::where('status_id', 3)->count();
-        $closed_count = \App\Models\Request::where('status_id', 4)->count();
-        $total_count = \App\Models\Request::count();
+        $urgent_count = Ticket::where('status', 'URGENT')->count();
+        $open_count = Ticket::where('status', 'OPEN')->count();
+        $progress_count = Ticket::where('status', 'PROGRESS')->count();
+        $closed_count = Ticket::where('status', 'CLOSED')->count();
+        $total_count = Ticket::count();
         
-        $urgent = \App\Models\Request::where('status_id',1)->latest()->take(5)->get();
-        $open = \App\Models\Request::where('status_id', 2)->latest()->take(5)->get();
-        $progress = \App\Models\Request::where('status_id', 3)->latest()->take(5)->get();
-        $closed = \App\Models\Request::where('status_id', 4)->latest()->take(5)->get();
+        $urgent = Ticket::where('status', 'URGENT')->latest()->take(5)->get();
+        $open = Ticket::where('status', 'OPEN')->latest()->take(5)->get();
+        $progress = Ticket::where('status', 'PROGRESS')->latest()->take(5)->get();
+        $closed = Ticket::where('status', 'CLOSED')->latest()->take(5)->get();
         $us = UpdateSystem::latest()->take(4)->get();
 
-        $all_tickets = \App\Models\Request::latest()->paginate(9);
+        $all_tickets = Ticket::latest()->paginate(9);
 
         return view('dashboard', compact('urgent', 'open', 'progress', 'closed', 'us', 'urgent_count', 'open_count', 'progress_count', 'closed_count', 'total_count', 'all_tickets'));
     }
 
     public function daftartiket(Request $request){
-        $urgent_count = \App\Models\Request::where('status_id', 1)->count();
-        $open_count = \App\Models\Request::where('status_id', 2)->count();
-        $progress_count = \App\Models\Request::where('status_id', 3)->count();
-        $closed_count = \App\Models\Request::where('status_id', 4)->count();
-        $total_count = \App\Models\Request::count();
+        $urgent_count = Ticket::where('status', 'URGENT')->count();
+        $open_count = Ticket::where('status', 'OPEN')->count();
+        $progress_count = Ticket::where('status', 'PROGRESS')->count();
+        $closed_count = Ticket::where('status', 'CLOSED')->count();
+        $total_count = Ticket::count();
         
-        $urgent = \App\Models\Request::where('status_id',1)->latest()->take(5)->get();
-        $open = \App\Models\Request::where('status_id', 2)->latest()->take(5)->get();
-        $progress = \App\Models\Request::where('status_id', 3)->latest()->take(5)->get();
-        $closed = \App\Models\Request::where('status_id', 4)->latest()->take(5)->get();
-        $us = UpdateSystem::latest()->take(4)->get();
+        $urgent = Ticket::where('status', 'URGENT')->latest()->take(5)->get();
+        $open = Ticket::where('status', 'OPEN')->latest()->take(5)->get();
+        $progress = Ticket::where('status', 'PROGRESS')->latest()->take(5)->get();
+        $closed = Ticket::where('status', 'CLOSED')->latest()->take(5)->get();
+        $us = UpdateSystem::latest()->take(4)->get(); 
         
-        $query = \App\Models\Request::query();
+        $query = Ticket::query();
 
         // Apply Search Filter
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function($q) use ($search) {
-                $q->where('judul', 'like', "%{$search}%")
-                  ->orWhere('id', 'like', "%{$search}%")
-                  ->orWhereHas('user', function($q) use ($search) {
+                $q->where('title', 'like', "%{$search}%")
+                  ->orWhere('ticket_number', 'like', "%{$search}%")
+                  ->orWhereHas('client', function($q) use ($search) {
                       $q->where('name', 'like', "%{$search}%");
-                  })
-                  ->orWhereHas('outlet', function($q) use ($search) {
-                      $q->where('nm_out', 'like', "%{$search}%");
                   });
             });
         }
 
-        // Apply Status Filter
         if ($request->filled('status')) {
-            $query->where('status_id', $request->status);
+            $statusStr = '';
+            if ($request->status == 1) $statusStr = 'URGENT';
+            if ($request->status == 2) $statusStr = 'OPEN';
+            if ($request->status == 3) $statusStr = 'PROGRESS';
+            if ($request->status == 4) $statusStr = 'CLOSED';
+            
+            if ($statusStr) {
+                $query->where('status', $statusStr);
+            }
         }
 
-        // Apply System (Tag) Filter
-        if ($request->filled('system')) {
-            $query->where('tag_id', $request->system);
-        }
-
-        // Apply Module (Kategori) Filter
+        // Apply Module Filter
         if ($request->filled('module')) {
-            $query->where('kategori_id', $request->module);
+            $query->where('module_system_id', $request->module);
         }
 
-        $all_tickets = $query->latest()->paginate(10)->withQueryString();
+        $all_tickets = $query->latest()->paginate(10)->appends(request()->query());
         
-        // Data for dropdowns
         $statuses = \App\Models\Status::all();
-        $systems = \App\Models\Tag::all();
-        $modules = \App\Models\Kategori::all();
+        $systems = \App\Models\Tag::all(); // keeping it for view compatibility
+        $modules = ModuleSystem::all();
 
         return view('daftartiket', compact('urgent', 'open', 'progress', 'closed', 'us', 'urgent_count', 'open_count', 'progress_count', 'closed_count', 'total_count', 'all_tickets', 'statuses', 'systems', 'modules'));
     }
 
+    public function laporan(Request $request){
+        $month = date('m');
+        $year = date('Y');
+        $users = User::with(['performanceReviews' => function($q) use ($month, $year) {
+            $q->whereMonth('periode', $month)->whereYear('periode', $year);
+        }])->get();
+
+        return view('laporan', compact('users', 'month', 'year'));
+    }
+
+    public function penilaian($id){
+        $user = User::findOrFail($id);
+        
+        // Count user tickets for current month
+        $tiket_ditangani = Ticket::where('assignee_id', $id)->whereMonth('created_at', date('m'))->count();
+        $tiket_selesai = Ticket::where('assignee_id', $id)->where('status', 'closed')->whereMonth('created_at', date('m'))->count();
+        
+        $nilai_tiket = $tiket_ditangani > 0 ? round(($tiket_selesai / $tiket_ditangani) * 100) : 80;
+
+        return view('penilaian', compact('user', 'tiket_ditangani', 'tiket_selesai', 'nilai_tiket'));
+    }
+
+    public function storePenilaian(Request $request, $id) {
+        $request->validate([
+            'produktivitas' => 'required|numeric|min:1|max:5',
+            'kualitas_solving' => 'required|numeric|min:1|max:5',
+            'kecepatan_respon' => 'required|numeric|min:1|max:5',
+            'sikap_cs' => 'required|numeric|min:1|max:5',
+            'kepuasan_pelanggan' => 'required|numeric|min:1|max:5',
+            'nilai_tiket' => 'required|numeric',
+        ]);
+
+        $n_t = $request->nilai_tiket;
+        $avg_kualitas = (($request->produktivitas + $request->kualitas_solving + $request->kecepatan_respon + $request->sikap_cs) / 20) * 100;
+        $n_k = ($request->kepuasan_pelanggan / 5) * 100;
+
+        $n_akhir = ($n_t * 0.3) + ($avg_kualitas * 0.4) + ($n_k * 0.3);
+
+        $review = PerformanceReview::create([
+            'user_id' => $id,
+            'reviewer_id' => auth()->id() ?? 1,
+            'periode' => date('Y-m-01'),
+            'total_score' => $n_akhir,
+            'status' => 'PUBLISHED',
+            'catatan' => $request->catatan,
+            'saran' => $request->saran,
+        ]);
+
+        // Insert Details matching the old static categories to the new dynamic ones
+        $categories = PerformanceCategory::all();
+        foreach($categories as $cat) {
+            $score = 0;
+            if (stripos($cat->name, 'Produktivitas') !== false) {
+                $score = $n_t; 
+            } elseif (stripos($cat->name, 'Kualitas') !== false) {
+                $score = $avg_kualitas;
+            } elseif (stripos($cat->name, 'Kecepatan') !== false) {
+                $score = ($request->kecepatan_respon / 5) * 100;
+            } elseif (stripos($cat->name, 'Sikap') !== false) {
+                $score = ($request->sikap_cs / 5) * 100;
+            } elseif (stripos($cat->name, 'Kepuasan') !== false) {
+                $score = $n_k;
+            } else {
+                $score = 80;
+            }
+
+            PerformanceReviewDetail::create([
+                'performance_review_id' => $review->id,
+                'performance_category_id' => $cat->id,
+                'score' => $score
+            ]);
+        }
+
+        // Insert Module Details
+        $modules = ModuleSystem::all();
+        foreach($modules as $mod) {
+            $count = Ticket::where('assignee_id', $id)
+                           ->where('module_system_id', $mod->id)
+                           ->whereMonth('created_at', date('m'))
+                           ->count();
+            if ($count > 0) {
+                PerformanceReviewModuleDetail::create([
+                    'performance_review_id' => $review->id,
+                    'module_system_id' => $mod->id,
+                    'ticket_count' => $count,
+                    'module_score' => $n_t // simplify
+                ]);
+            }
+        }
+
+        return redirect()->route('laporan')->with('success', 'Penilaian berhasil disimpan dengan struktur baru!');
+    }
+
+    public function rapor($id){
+        $user = User::findOrFail($id);
+        $rapor = PerformanceReview::with(['details.category', 'moduleDetails.moduleSystem'])->where('user_id', $id)->orderBy('periode', 'desc')->first();
+        $history = PerformanceReview::where('user_id', $id)->orderBy('periode', 'asc')->take(4)->get();
+        
+        return view('rapor', compact('user', 'rapor', 'history'));
+    }
+
+    public function downloadRapor($id){
+        $user = User::findOrFail($id);
+        $rapor = PerformanceReview::with(['details.category', 'moduleDetails.moduleSystem'])->where('user_id', $id)->orderBy('periode', 'desc')->first();
+        $history = PerformanceReview::where('user_id', $id)->orderBy('periode', 'asc')->take(4)->get();
+        
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('rapor_pdf', compact('user', 'rapor', 'history'))
+                ->setPaper('a4', 'portrait');
+                
+        return $pdf->stream('Rapor_Kinerja_CS_' . str_replace(' ', '_', $user->name) . '_' . date('M_Y') . '.pdf');
+    }
+
+    public function riwayat($id){
+        $user = User::findOrFail($id);
+        $riwayat = PerformanceReview::where('user_id', $id)->orderBy('periode', 'desc')->get();
+        
+        return view('riwayat', compact('user', 'riwayat'));
+    }
+
     public function inbox(Request $request){
-        $query = \App\Models\Request::query();
+        $query = Ticket::query();
 
-        // Apply System (Tag) Filter
-        if ($request->filled('system')) {
-            $query->where('tag_id', $request->system);
-        }
-
-        // Apply Module (Kategori) Filter
         if ($request->filled('module')) {
-            $query->where('kategori_id', $request->module);
+            $query->where('module_system_id', $request->module);
         }
 
-        $open = (clone $query)->whereIn('status_id', [1, 2])->latest()->get();
-        $progress = (clone $query)->where('status_id', 3)->latest()->get();
-        $closed = (clone $query)->where('status_id', 4)->latest()->get();
+        $open = (clone $query)->whereIn('status', ['URGENT', 'OPEN'])->latest()->get();
+        $progress = (clone $query)->where('status', 'PROGRESS')->latest()->get();
+        $closed = (clone $query)->where('status', 'CLOSED')->latest()->get();
 
         $systems = \App\Models\Tag::all();
-        $modules = \App\Models\Kategori::all();
+        $modules = ModuleSystem::all();
 
         return view('inbox', compact('open', 'progress', 'closed', 'systems', 'modules'));
     }

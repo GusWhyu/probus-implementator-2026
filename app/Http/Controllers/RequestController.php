@@ -52,10 +52,11 @@ class RequestController extends Controller
     }
 
     public function createrq(){
-        $tag = Tag::all();
-        $kategori = Kategori::all();
-        $status = Status::all();
-        return view('tablerq.createrq', compact('tag', 'kategori','status'));
+        $tag = \App\Models\Departemen::all(); // Reusing $tag variable name in view, but passing Departemen
+        $kategori = \App\Models\Modul::all(); // Reusing $kategori variable name in view, but passing Modul
+        $outlets = \App\Models\Outlet::orderBy('nm_out')->get();
+        $users = \App\Models\User::orderBy('name')->get();
+        return view('tablerq.createrq', compact('tag', 'kategori', 'outlets', 'users'));
     }
 
     public function editrq($id){
@@ -71,26 +72,27 @@ class RequestController extends Controller
         $request->validate([
             'title' => 'required|max:255',
             'body' => 'required',
-            'startdate' => 'required|date|before:enddate',
-            'enddate' => 'required|date|after:startdate',
             'tag' => 'required',
             'category' => 'required',
-            'outlet' => 'required',
-            'status' => 'required',
+            'client' => 'required',
+            'tipe_penanganan' => 'required',
+            'advisor' => 'required',
             'images' => 'array|max:6',
             'images.*' => 'image|mimes:jpg,jpeg,png|max:200'
         ]);
 
-        $data = \App\Models\Request::create([
-            'judul' => $request->title,
-            'deskripsi' => $request->body,
-            'start_date' => $request->startdate,
-            'end_date' => $request->enddate,
+        $data = \App\Models\Ticket::create([
+            'ticket_number' => 'TK-' . strtoupper(\Illuminate\Support\Str::random(6)),
+            'title' => $request->title,
+            'description' => $request->body,
             'kategori_id' => $request->category,
             'tag_id' => $request->tag,
+            'outlet_id' => $request->client,
+            'tipe_penanganan' => $request->tipe_penanganan,
+            'assignee_id' => $request->advisor,
             'user_id' => Auth::user()->id,
-            'status_id' => $request->status,
-            'outlet_id' => $request->outlet,
+            'status' => 'OPEN',
+            'priority' => 'High',
         ]);
         
         $imagedata = [];
@@ -100,18 +102,18 @@ class RequestController extends Controller
                 $filename = $extension;
                 $image->move('img/',$filename);
                 $imagedata[]=[
-                    'request_id' => $data->id,
+                    'request_id' => $data->id, // NOTE: you may want to change this to ticket_id later, but right now DataImage uses request_id
                     'image' => $filename
                 ];
             }
         }
         DataImage::insert($imagedata);
-        Alert::success('Create Request Success!');
-        return redirect()->route('detailrequest', ['id' => $data->id]);
+        Alert::success('Create Ticket Success!');
+        return redirect()->route('daftartiket')->with('success','Tiket berhasil dibuat');
     }
 
     public function updaterq(Request $request,$id){
-        $rq = \App\Models\Request::find($id);
+        $rq = \App\Models\Ticket::find($id);
         $request->validate([
             'title' => 'required|max:255',
             'body' => 'required',
@@ -119,8 +121,6 @@ class RequestController extends Controller
             'enddate' => 'required|date|after:startdate',
             'tag' => 'required',
             'category' => 'required',
-            'outlet' => 'required',
-            'status' => 'required',
             'images' => 'array|max:6',
             'images.*' => 'image|mimes:jpg,jpeg,png|max:200'
         ]);
@@ -137,14 +137,11 @@ class RequestController extends Controller
         }
 
         $rq->update([
-            'judul' => $request->title,
-            'deskripsi' => $request->body,
-            'start_date' => $request->startdate,
-            'end_date' => $request->enddate,
+            'title' => $request->title,
+            'description' => $request->body,
+            'due_date' => $request->enddate,
             'kategori_id' => $request->category,
             'tag_id' => $request->tag,
-            'status_id' => $request->status,
-            'outlet_id' => $request->outlet,
         ]);
         $imagedata = [];
         if($request->hasfile('images')){

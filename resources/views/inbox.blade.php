@@ -45,18 +45,18 @@
                         <a href="/detailrequest/{{ $rq->id }}" class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm hover:shadow-md hover:border-blue-300 transition-all cursor-pointer flex flex-col group shrink-0 relative">
                             <div class="flex justify-between items-center mb-4">
                                 <div class="flex items-center gap-2 flex-wrap">
-                                    <span class="bg-blue-50 text-blue-600 text-[11px] font-bold px-2.5 py-1.5 rounded-md">TK-{{ $rq->id }}</span>
+                                    <span class="bg-blue-50 text-blue-600 text-[11px] font-bold px-2.5 py-1.5 rounded-md">{{ $rq->ticket_number }}</span>
                                     <span class="bg-slate-100 text-slate-500 text-[10px] font-semibold px-2.5 py-1.5 rounded-md max-w-[80px] truncate" title="{{ $rq->tag->name ?? '' }}">{{ $rq->tag->name ?? '-' }}</span>
                                     <span class="bg-slate-100 text-slate-500 text-[10px] font-semibold px-2.5 py-1.5 rounded-md max-w-[80px] truncate" title="{{ $rq->kategori->name ?? '' }}">{{ $rq->kategori->name ?? '-' }}</span>
                                 </div>
-                                <span class="bg-blue-50 text-blue-600 text-[10px] font-bold px-3 py-1.5 rounded-full uppercase tracking-wider border border-blue-100 shrink-0">OPEN</span>
+                                <span class="bg-blue-50 text-blue-600 text-[10px] font-bold px-3 py-1.5 rounded-full uppercase tracking-wider border border-blue-100 shrink-0">{{ $rq->status }}</span>
                             </div>
-                            <h3 class="font-extrabold text-slate-800 text-lg mb-5 leading-snug line-clamp-2 group-hover:text-blue-600 transition-colors" title="{{ $rq->judul }}">{{ $rq->judul }}</h3>
+                            <h3 class="font-extrabold text-slate-800 text-lg mb-5 leading-snug line-clamp-2 group-hover:text-blue-600 transition-colors" title="{{ $rq->title }}">{{ $rq->title }}</h3>
                             
                             <div class="grid grid-cols-2 gap-y-4 gap-x-4 mt-auto border-t border-slate-100 pt-4">
                                 <div>
-                                    <div class="text-[10px] font-semibold text-slate-400 uppercase mb-1 tracking-wider">Client</div>
-                                    <div class="text-sm font-medium text-slate-700 truncate" title="{{ $rq->outlet->nm_out ?? '-' }}">{{ $rq->outlet->nm_out ?? '-' }}</div>
+                                    <div class="text-[10px] font-semibold text-slate-400 uppercase mb-1 tracking-wider">Departemen</div>
+                                    <div class="text-sm font-medium text-slate-700 truncate" title="{{ $rq->user->departemen->name ?? '-' }}">{{ $rq->user->departemen->name ?? '-' }}</div>
                                 </div>
                                 <div>
                                     <div class="text-[10px] font-semibold text-slate-400 uppercase mb-1 tracking-wider">Tipe Penanganan</div>
@@ -68,7 +68,7 @@
                                 </div>
                                 <div>
                                     <div class="text-[10px] font-semibold text-slate-400 uppercase mb-1 tracking-wider">Advisor</div>
-                                    <div class="text-sm font-medium text-slate-700 truncate" title="{{ $rq->approver->name ?? '-' }}">{{ $rq->approver->name ?? '-' }}</div>
+                                    <div class="text-sm font-medium text-slate-700 truncate" title="{{ $rq->assignee->name ?? '-' }}">{{ $rq->assignee->name ?? '-' }}</div>
                                 </div>
                                 <div>
                                     <div class="text-[10px] font-semibold text-slate-400 uppercase mb-1 tracking-wider">Created At</div>
@@ -96,18 +96,18 @@
                         <a href="/detailrequest/{{ $rq->id }}" class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm hover:shadow-md hover:border-orange-300 transition-all cursor-pointer flex flex-col group shrink-0 relative">
                             <div class="flex justify-between items-center mb-4">
                                 <div class="flex items-center gap-2 flex-wrap">
-                                    <span class="bg-blue-50 text-blue-600 text-[11px] font-bold px-2.5 py-1.5 rounded-md">TK-{{ $rq->id }}</span>
+                                    <span class="bg-blue-50 text-blue-600 text-[11px] font-bold px-2.5 py-1.5 rounded-md">{{ $rq->ticket_number }}</span>
                                     <span class="bg-slate-100 text-slate-500 text-[10px] font-semibold px-2.5 py-1.5 rounded-md max-w-[80px] truncate" title="{{ $rq->tag->name ?? '' }}">{{ $rq->tag->name ?? '-' }}</span>
                                     <span class="bg-slate-100 text-slate-500 text-[10px] font-semibold px-2.5 py-1.5 rounded-md max-w-[80px] truncate" title="{{ $rq->kategori->name ?? '' }}">{{ $rq->kategori->name ?? '-' }}</span>
                                 </div>
-                                <span class="bg-orange-50 text-orange-600 text-[10px] font-bold px-3 py-1.5 rounded-full uppercase tracking-wider border border-orange-100 shrink-0">PROGRESS</span>
+                                <span class="bg-orange-50 text-orange-600 text-[10px] font-bold px-3 py-1.5 rounded-full uppercase tracking-wider border border-orange-100 shrink-0">{{ $rq->status }}</span>
                             </div>
-                            <h3 class="font-extrabold text-slate-800 text-lg mb-5 leading-snug line-clamp-2 group-hover:text-blue-600 transition-colors" title="{{ $rq->judul }}">{{ $rq->judul }}</h3>
+                            <h3 class="font-extrabold text-slate-800 text-lg mb-5 leading-snug line-clamp-2 group-hover:text-blue-600 transition-colors" title="{{ $rq->title }}">{{ $rq->title }}</h3>
                             
                             <div class="grid grid-cols-2 gap-y-4 gap-x-4 mt-auto border-t border-slate-100 pt-4">
                                 <div>
-                                    <div class="text-[10px] font-semibold text-slate-400 uppercase mb-1 tracking-wider">Client</div>
-                                    <div class="text-sm font-medium text-slate-700 truncate" title="{{ $rq->outlet->nm_out ?? '-' }}">{{ $rq->outlet->nm_out ?? '-' }}</div>
+                                    <div class="text-[10px] font-semibold text-slate-400 uppercase mb-1 tracking-wider">Departemen</div>
+                                    <div class="text-sm font-medium text-slate-700 truncate" title="{{ $rq->user->departemen->name ?? '-' }}">{{ $rq->user->departemen->name ?? '-' }}</div>
                                 </div>
                                 <div>
                                     <div class="text-[10px] font-semibold text-slate-400 uppercase mb-1 tracking-wider">Tipe Penanganan</div>
@@ -119,7 +119,7 @@
                                 </div>
                                 <div>
                                     <div class="text-[10px] font-semibold text-slate-400 uppercase mb-1 tracking-wider">Advisor</div>
-                                    <div class="text-sm font-medium text-slate-700 truncate" title="{{ $rq->approver->name ?? '-' }}">{{ $rq->approver->name ?? '-' }}</div>
+                                    <div class="text-sm font-medium text-slate-700 truncate" title="{{ $rq->assignee->name ?? '-' }}">{{ $rq->assignee->name ?? '-' }}</div>
                                 </div>
                                 <div>
                                     <div class="text-[10px] font-semibold text-slate-400 uppercase mb-1 tracking-wider">Created At</div>
@@ -147,18 +147,18 @@
                         <a href="/detailrequest/{{ $rq->id }}" class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm hover:shadow-md hover:border-emerald-300 transition-all cursor-pointer flex flex-col group shrink-0 relative">
                             <div class="flex justify-between items-center mb-4">
                                 <div class="flex items-center gap-2 flex-wrap">
-                                    <span class="bg-blue-50 text-blue-600 text-[11px] font-bold px-2.5 py-1.5 rounded-md">TK-{{ $rq->id }}</span>
+                                    <span class="bg-blue-50 text-blue-600 text-[11px] font-bold px-2.5 py-1.5 rounded-md">{{ $rq->ticket_number }}</span>
                                     <span class="bg-slate-100 text-slate-500 text-[10px] font-semibold px-2.5 py-1.5 rounded-md max-w-[80px] truncate" title="{{ $rq->tag->name ?? '' }}">{{ $rq->tag->name ?? '-' }}</span>
                                     <span class="bg-slate-100 text-slate-500 text-[10px] font-semibold px-2.5 py-1.5 rounded-md max-w-[80px] truncate" title="{{ $rq->kategori->name ?? '' }}">{{ $rq->kategori->name ?? '-' }}</span>
                                 </div>
-                                <span class="bg-emerald-50 text-emerald-600 text-[10px] font-bold px-3 py-1.5 rounded-full uppercase tracking-wider border border-emerald-100 shrink-0">CLOSED</span>
+                                <span class="bg-emerald-50 text-emerald-600 text-[10px] font-bold px-3 py-1.5 rounded-full uppercase tracking-wider border border-emerald-100 shrink-0">{{ $rq->status }}</span>
                             </div>
-                            <h3 class="font-extrabold text-slate-800 text-lg mb-5 leading-snug line-clamp-2 group-hover:text-blue-600 transition-colors" title="{{ $rq->judul }}">{{ $rq->judul }}</h3>
+                            <h3 class="font-extrabold text-slate-800 text-lg mb-5 leading-snug line-clamp-2 group-hover:text-blue-600 transition-colors" title="{{ $rq->title }}">{{ $rq->title }}</h3>
                             
                             <div class="grid grid-cols-2 gap-y-4 gap-x-4 mt-auto border-t border-slate-100 pt-4">
                                 <div>
-                                    <div class="text-[10px] font-semibold text-slate-400 uppercase mb-1 tracking-wider">Client</div>
-                                    <div class="text-sm font-medium text-slate-700 truncate" title="{{ $rq->outlet->nm_out ?? '-' }}">{{ $rq->outlet->nm_out ?? '-' }}</div>
+                                    <div class="text-[10px] font-semibold text-slate-400 uppercase mb-1 tracking-wider">Departemen</div>
+                                    <div class="text-sm font-medium text-slate-700 truncate" title="{{ $rq->user->departemen->name ?? '-' }}">{{ $rq->user->departemen->name ?? '-' }}</div>
                                 </div>
                                 <div>
                                     <div class="text-[10px] font-semibold text-slate-400 uppercase mb-1 tracking-wider">Tipe Penanganan</div>
@@ -170,7 +170,7 @@
                                 </div>
                                 <div>
                                     <div class="text-[10px] font-semibold text-slate-400 uppercase mb-1 tracking-wider">Advisor</div>
-                                    <div class="text-sm font-medium text-slate-700 truncate" title="{{ $rq->approver->name ?? '-' }}">{{ $rq->approver->name ?? '-' }}</div>
+                                    <div class="text-sm font-medium text-slate-700 truncate" title="{{ $rq->assignee->name ?? '-' }}">{{ $rq->assignee->name ?? '-' }}</div>
                                 </div>
                                 <div>
                                     <div class="text-[10px] font-semibold text-slate-400 uppercase mb-1 tracking-wider">Created At</div>

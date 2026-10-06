@@ -104,6 +104,7 @@
             </div>
         </form>
         
+        @if(request('view', 'list') == 'list')
         {{-- Table Section --}}
         <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
             <div class="w-full">
@@ -125,17 +126,17 @@
                         @forelse($all_tickets as $rq)
                             <tr class="hover:bg-slate-50/80 transition-colors group">
                                 <td class="py-3 px-3 sm:px-4 align-top">
-                                    <a href="/detailrequest/{{ $rq->id }}" class="text-sm font-bold text-blue-600 hover:text-blue-800 whitespace-nowrap">TK-{{ $rq->id }}</a>
+                                    <a href="/detailrequest/{{ $rq->id }}" class="text-sm font-bold text-blue-600 hover:text-blue-800 whitespace-nowrap">{{ $rq->ticket_number }}</a>
                                 </td>
                                 <td class="py-3 px-3 sm:px-4 align-top">
                                     <div class="text-sm font-semibold text-slate-800">{{ $rq->user->name ?? '-' }}</div>
-                                    <div class="text-[11px] text-slate-400 mt-0.5 font-medium leading-tight">Client: <br/>{{ $rq->outlet->nm_out ?? '-' }}</div>
+                                    <div class="text-[11px] text-slate-400 mt-0.5 font-medium leading-tight">Departemen: <br/>{{ $rq->user->departemen->name ?? '-' }}</div>
                                 </td>
                                 <td class="py-3 px-3 sm:px-4 align-top">
-                                    <div class="text-sm font-bold text-slate-800 leading-snug">{{ $rq->judul }}</div>
+                                    <div class="text-sm font-bold text-slate-800 leading-snug">{{ $rq->title }}</div>
                                 </td>
                                 <td class="py-3 px-3 sm:px-4 align-top">
-                                    <div class="text-xs text-slate-500 leading-relaxed line-clamp-2">{{ strip_tags($rq->keterangan ?? 'Tidak ada deskripsi') }}</div>
+                                    <div class="text-xs text-slate-500 leading-relaxed line-clamp-2">{{ strip_tags($rq->description ?? 'Tidak ada deskripsi') }}</div>
                                 </td>
                                 <td class="py-3 px-3 sm:px-4 align-top">
                                     <span class="inline-flex items-center px-2 py-1 rounded text-[11px] font-semibold bg-slate-100 text-slate-600 border border-slate-200 whitespace-nowrap">{{ $rq->tag->name ?? 'N/A' }}</span>
@@ -146,15 +147,15 @@
                                 <td class="py-3 px-3 sm:px-4 align-top text-center">
                                     @php
                                         $statusClass = 'bg-slate-100 text-slate-600 border-slate-200';
-                                        $statusName = $rq->status->name ?? 'UNKNOWN';
+                                        $statusName = $rq->status;
                                         
-                                        if ($rq->status_id == 1) { // Urgent
+                                        if ($rq->status == 'URGENT') {
                                             $statusClass = 'bg-red-50 text-red-600 border-red-200';
-                                        } elseif ($rq->status_id == 2) { // Open
+                                        } elseif ($rq->status == 'OPEN') {
                                             $statusClass = 'bg-blue-50 text-blue-600 border-blue-200';
-                                        } elseif ($rq->status_id == 3) { // Progress
+                                        } elseif ($rq->status == 'PROGRESS') {
                                             $statusClass = 'bg-amber-50 text-amber-600 border-amber-200';
-                                        } elseif ($rq->status_id == 4) { // Closed
+                                        } elseif ($rq->status == 'CLOSED') {
                                             $statusClass = 'bg-emerald-50 text-emerald-600 border-emerald-200';
                                         }
                                     @endphp
@@ -177,7 +178,7 @@
                                         </button>
                                         <ul tabindex="0" class="dropdown-content z-[50] menu p-2 shadow-lg bg-white rounded-xl w-36 border border-slate-100">
                                             <li><a href="/detailrequest/{{ $rq->id }}" class="text-xs font-medium text-slate-700 hover:bg-slate-50 hover:text-blue-600"><i class="fa-regular fa-eye mr-2"></i> Detail</a></li>
-                                            @if($rq->status_id != 4)
+                                            @if($rq->status != 'CLOSED')
                                                 <li><a href="/editrq/{{ $rq->id }}" class="text-xs font-medium text-slate-700 hover:bg-slate-50 hover:text-blue-600"><i class="fa-regular fa-pen-to-square mr-2"></i> Edit</a></li>
                                             @endif
                                         </ul>
@@ -206,6 +207,80 @@
                 {{ $all_tickets->links() }}
             </div>
         </div>
+        @else
+        {{-- Grid Section --}}
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 mb-6">
+            @forelse($all_tickets as $rq)
+                @php
+                    $statusClass = 'bg-slate-100 text-slate-600 border-slate-200';
+                    $statusName = $rq->status;
+                    
+                    if ($rq->status == 'URGENT') {
+                        $statusClass = 'bg-red-50 text-red-600 border-red-200';
+                    } elseif ($rq->status == 'OPEN') {
+                        $statusClass = 'bg-blue-50 text-blue-600 border-blue-200';
+                    } elseif ($rq->status == 'PROGRESS') {
+                        $statusClass = 'bg-amber-50 text-amber-600 border-amber-200';
+                    } elseif ($rq->status == 'CLOSED') {
+                        $statusClass = 'bg-emerald-50 text-emerald-600 border-emerald-200';
+                    }
+                @endphp
+                <a href="/detailrequest/{{ $rq->id }}" class="bg-white rounded-xl p-5 border border-slate-200 shadow-sm hover:shadow-md transition-shadow cursor-pointer flex flex-col group relative">
+                    <div class="flex justify-between items-center mb-3">
+                        <div class="flex items-center gap-2">
+                            <span class="bg-blue-50 text-blue-600 text-xs font-bold px-2 py-1 rounded">{{ $rq->ticket_number }}</span>
+                            <span class="bg-slate-100 text-slate-500 text-[10px] font-semibold px-2 py-1 rounded">{{ $rq->tag->name ?? '-' }}</span>
+                            <span class="bg-slate-100 text-slate-500 text-[10px] font-semibold px-2 py-1 rounded">{{ $rq->kategori->name ?? '-' }}</span>
+                        </div>
+                        <span class="text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider border {{ $statusClass }}">{{ $statusName }}</span>
+                    </div>
+                    <h3 class="font-bold text-slate-800 text-base mb-4 leading-tight line-clamp-2 group-hover:text-blue-600 transition-colors">{{ $rq->title }}</h3>
+                    
+                    <div class="grid grid-cols-2 gap-y-4 gap-x-2 mt-auto text-sm border-t border-slate-100 pt-4">
+                        <div>
+                            <div class="text-[10px] font-semibold text-slate-400 uppercase mb-0.5">Departemen</div>
+                            <div class="font-medium text-slate-700 truncate" title="{{ $rq->user->departemen->name ?? '-' }}">{{ $rq->user->departemen->name ?? '-' }}</div>
+                        </div>
+                        <div>
+                            <div class="text-[10px] font-semibold text-slate-400 uppercase mb-0.5">Tipe Penanganan</div>
+                            <div class="font-medium text-slate-700 truncate" title="{{ $rq->kategori->name ?? '-' }}">{{ $rq->kategori->name ?? '-' }}</div>
+                        </div>
+                        <div>
+                            <div class="text-[10px] font-semibold text-slate-400 uppercase mb-0.5">User</div>
+                            <div class="text-slate-600 truncate" title="{{ $rq->user->name ?? '-' }}">{{ $rq->user->name ?? '-' }}</div>
+                        </div>
+                        <div>
+                            <div class="text-[10px] font-semibold text-slate-400 uppercase mb-0.5">Advisor</div>
+                            <div class="font-medium text-slate-700 truncate" title="{{ $rq->assignee->name ?? '-' }}">{{ $rq->assignee->name ?? '-' }}</div>
+                        </div>
+                        <div>
+                            <div class="text-[10px] font-semibold text-slate-400 uppercase mb-0.5">Created At</div>
+                            <div class="text-slate-600 text-xs">{{ $rq->created_at ? $rq->created_at->format('d/m/Y') : '-' }}</div>
+                        </div>
+                        <div>
+                            <div class="text-[10px] font-semibold text-slate-400 uppercase mb-0.5">Closed At</div>
+                            <div class="text-slate-600 text-xs">{{ $rq->status == 'CLOSED' && $rq->updated_at ? $rq->updated_at->format('d/m/Y') : '-' }}</div>
+                        </div>
+                    </div>
+                </a>
+            @empty
+                <div class="col-span-full py-12 text-center bg-white border border-slate-200 rounded-xl shadow-sm">
+                    <div class="flex flex-col items-center">
+                        <div class="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-4">
+                            <i class="fa-solid fa-inbox text-slate-300 text-3xl"></i>
+                        </div>
+                        <h3 class="text-lg font-bold text-slate-700 mb-1">Belum ada tiket</h3>
+                        <p class="text-sm text-slate-500 max-w-sm">Tiket yang masuk atau dibuat akan ditampilkan di sini.</p>
+                    </div>
+                </div>
+            @endforelse
+        </div>
+        
+        {{-- Pagination for Grid --}}
+        <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm">
+            {{ $all_tickets->links() }}
+        </div>
+        @endif
 
     </div>
 </x-app-layout>
