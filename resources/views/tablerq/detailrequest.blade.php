@@ -191,6 +191,31 @@
                 <!-- Right Content (Sidebar Info) -->
                 <div class="w-full lg:w-5/12 xl:w-4/12 shrink-0 space-y-6">
                     
+                    @if ($datarq->pending_advisor_id == $aid)
+                    <!-- Pending Take Over Approval Banner -->
+                    <div class="bg-blue-50 border border-blue-200 rounded-3xl p-5 relative overflow-hidden shadow-sm mb-6">
+                        <div class="flex items-start gap-4 relative z-10">
+                            <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center text-blue-600 shrink-0 shadow-sm">
+                                <i class="fa-solid fa-handshake text-lg"></i>
+                            </div>
+                            <div class="flex-1">
+                                <p class="font-bold text-blue-900 text-sm mb-1">Permintaan Alih Tiket</p>
+                                <p class="text-xs font-medium text-blue-700/80 mb-3">Seseorang meminta Anda untuk mengambil alih dan menyelesaikan tiket ini. Apakah Anda bersedia?</p>
+                                <div class="flex gap-2">
+                                    <form action="{{ route('ticket.takeover.reject', $datarq->id) }}" method="POST" class="inline">
+                                        @csrf
+                                        <button type="submit" class="px-4 py-2 bg-white text-rose-600 font-bold text-xs rounded-xl hover:bg-rose-50 transition-colors border border-rose-200">Tolak</button>
+                                    </form>
+                                    <form action="{{ route('ticket.takeover.accept', $datarq->id) }}" method="POST" class="inline">
+                                        @csrf
+                                        <button type="submit" class="px-4 py-2 bg-blue-600 text-white font-bold text-xs rounded-xl hover:bg-blue-700 transition-colors shadow-sm shadow-blue-500/20">Terima</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    @endif
+
                     <!-- Status & Meta Card -->
                     <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 md:p-7 relative overflow-hidden">
                         
@@ -204,19 +229,6 @@
                             </span>
                         </div>
                         
-                        <!-- SLA Countdown Banner (For OPEN Tickets) -->
-                        @if ($datarq->status == 'OPEN' && $datarq->advisor_id != null)
-                        <div class="mb-6 bg-rose-50 border border-rose-100 rounded-xl p-3.5 flex items-center gap-3">
-                            <div class="w-8 h-8 rounded-full bg-rose-100 flex items-center justify-center text-rose-500 shrink-0">
-                                <i class="fa-solid fa-stopwatch text-sm animate-pulse"></i>
-                            </div>
-                            <div class="flex-1">
-                                <p class="text-[9px] font-extrabold text-rose-400 uppercase tracking-wider mb-0.5">SLA Waktu Respons</p>
-                                <p class="text-rose-600 font-bold text-sm font-mono leading-none" id="sla-countdown">--:--:--</p>
-                            </div>
-                        </div>
-                        @endif
-
                         <!-- Info Grid -->
                         <div class="grid grid-cols-2 gap-y-6 gap-x-4">
                             <!-- Row 1 -->
@@ -261,6 +273,12 @@
                         </div>
                     </div>
 
+                    @php
+                        $isOwner = ($datarq->user_id == $aid || $datarq->advisor_id == $aid);
+                        $isAdminOrSpv = ($ust == 'admin' || $ust == 'supervisor');
+                        $canSeeActions = $isAdminOrSpv || $isOwner;
+                    @endphp
+                    @if($canSeeActions)
                     <!-- Action Buttons -->
                     <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6">
                         <h3 class="text-[11px] font-extrabold text-slate-800 uppercase tracking-wider mb-4 text-center">Tindakan Tiket</h3>
@@ -285,7 +303,7 @@
 
                             <div class="grid grid-cols-2 gap-3 mt-1">
                                 <!-- Button 2 (Orange) - Alihkan/Ambil Alih -->
-                                <button type="button" class="w-full flex flex-col items-center justify-center bg-amber-50 text-amber-600 hover:bg-amber-500 hover:text-white border border-amber-200 py-3 rounded-xl font-bold text-xs shadow-sm transition-all active:scale-95 gap-1 text-center">
+                                <button type="button" onclick="takeOverModal.showModal()" class="w-full flex flex-col items-center justify-center bg-amber-50 text-amber-600 hover:bg-amber-500 hover:text-white border border-amber-200 py-3 rounded-xl font-bold text-xs shadow-sm transition-all active:scale-95 gap-1 text-center">
                                     <i class="fa-solid fa-right-left text-sm"></i> Alihkan/Ambil
                                 </button>
 
@@ -302,6 +320,7 @@
                             </div>
                         </div>
                     </div>
+                    @endif
                     
                 </div>
             </div>
@@ -309,6 +328,29 @@
     </div>
 
     <!-- Modals -->
+    <dialog id="takeOverModal" class="modal">
+        <div class="modal-box w-11/12 max-w-sm rounded-3xl p-6">
+            <h3 class="font-extrabold text-lg text-slate-800 mb-4">Alihkan Tiket</h3>
+            <form action="{{ route('ticket.takeover', $datarq->id) }}" method="POST">
+                @csrf
+                <div class="mb-6">
+                    <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wide mb-2">Pilih Advisor Tujuan</label>
+                    <select name="target_advisor_id" class="w-full bg-slate-50 border border-slate-200 text-slate-800 text-sm rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white p-3.5 outline-none font-medium" required>
+                        <option value="" disabled selected>Pilih advisor...</option>
+                        @foreach(\App\Models\User::where('id', '!=', $datarq->advisor_id)->whereIn('usertype', ['admin', 'supervisor', 'user'])->get() as $adv)
+                            <option value="{{ $adv->id }}">{{ $adv->name }} ({{ ucfirst($adv->usertype) }})</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="flex justify-end gap-3">
+                    <button type="button" class="px-5 py-2.5 bg-slate-100 text-slate-600 font-bold text-xs rounded-xl hover:bg-slate-200 transition-colors" onclick="takeOverModal.close()">Batal</button>
+                    <button type="submit" class="px-5 py-2.5 bg-blue-600 text-white font-bold text-xs rounded-xl hover:bg-blue-700 transition-colors shadow-sm shadow-blue-500/20">Alihkan</button>
+                </div>
+            </form>
+        </div>
+        <form method="dialog" class="modal-backdrop bg-slate-900/60 backdrop-blur-sm"><button>close</button></form>
+    </dialog>
+
     <dialog id="my_modal_3" class="modal">
         <div class="modal-box w-11/12 max-w-5xl rounded-3xl p-0 overflow-hidden bg-transparent shadow-none">
             <form method="dialog">
@@ -358,36 +400,4 @@
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background-color: #94a3b8; }
     </style>
 
-    <!-- SLA Timer Script -->
-    @if ($datarq->status == 'OPEN' && $datarq->advisor_id != null)
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Get creation time and add 1 hour
-            const createdAt = new Date("{{ Carbon::parse($datarq->created_at)->toISOString() }}").getTime();
-            const slaDeadline = createdAt + (60 * 60 * 1000); // 1 hour in ms
-            const countdownEl = document.getElementById('sla-countdown');
-            
-            const timer = setInterval(function() {
-                const now = new Date().getTime();
-                const distance = slaDeadline - now;
-                
-                if (distance < 0) {
-                    clearInterval(timer);
-                    countdownEl.textContent = "WAKTU HABIS!";
-                    countdownEl.classList.add('text-rose-600', 'animate-bounce');
-                    countdownEl.parentElement.parentElement.classList.replace('bg-rose-50', 'bg-rose-100');
-                    return;
-                }
-                
-                // Calculate minutes and seconds
-                const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-                const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-                
-                countdownEl.textContent = 
-                    String(minutes).padStart(2, '0') + "m : " + 
-                    String(seconds).padStart(2, '0') + "s";
-            }, 1000);
-        });
-    </script>
-    @endif
 </x-app-layout>

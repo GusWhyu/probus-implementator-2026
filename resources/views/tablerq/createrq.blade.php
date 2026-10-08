@@ -134,7 +134,14 @@
                                     <label class="flex items-center gap-1.5 text-xs font-bold text-slate-600 mb-2">
                                         <i class="fa-regular fa-calendar text-slate-400 text-[10px]"></i> Deadline (Due Date)
                                     </label>
-                                    <input type="datetime-local" name="due_date" value="{{ old('due_date') }}" class="w-full bg-slate-50 border border-slate-200 text-slate-800 text-sm rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white block p-3.5 transition-all outline-none" required>
+                                    @php
+                                        $now = \Carbon\Carbon::now('Asia/Makassar');
+                                        $defaultDeadline = $now->copy()->addDay()->format('Y-m-d H:i');
+                                    @endphp
+                                    <div class="relative">
+                                        <input type="text" id="due-date-picker" name="due_date" value="{{ old('due_date', $defaultDeadline) }}" class="w-full bg-slate-50 border border-slate-200 text-slate-800 text-sm rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white block p-3.5 transition-all outline-none pl-10 cursor-pointer" placeholder="Pilih tanggal dan waktu" required>
+                                        <i class="fa-regular fa-calendar-days absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -204,6 +211,12 @@
         </div>
     </div>
     
+    <!-- Flatpickr CSS & JS for premium 24h datetime picker -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" type="text/css" href="https://npmcdn.com/flatpickr/dist/themes/airbnb.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://npmcdn.com/flatpickr/dist/l10n/id.js"></script>
+
     <style>
         /* Customizing Trix Editor to match Tailwind premium look */
         trix-toolbar .trix-button-group {
@@ -408,5 +421,18 @@
                 if(e.target === overlay) closeModal();
             });
         }
+
+        // Initialize Flatpickr for 24-hour format
+        document.addEventListener('DOMContentLoaded', function() {
+            flatpickr("#due-date-picker", {
+                enableTime: true,
+                dateFormat: "Y-m-d H:i",
+                time_24hr: true,
+                minDate: new Date(), // This automatically prevents selecting a time in the past for today
+                locale: "id",
+                defaultHour: new Date().getHours(),
+                defaultMinute: new Date().getMinutes(),
+            });
+        });
     </script>
 </x-app-layout>

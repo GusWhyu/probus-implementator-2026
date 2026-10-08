@@ -58,6 +58,9 @@ Route::delete('/deletekomen/{id}',[RequestController::class, 'deletekomen'])->mi
 Route::delete('/deletereq/{id}',[RequestController::class, 'delete'])->middleware(['auth'])->name('deletereq');
 Route::post('/request/{id}/approve', [RequestController::class, 'approveRequest'])->middleware(['auth'])->name('request.approve');
 Route::post('/request/{id}/reject', [RequestController::class, 'rejectRequest'])->middleware(['auth'])->name('request.reject');
+Route::post('/request/{id}/takeover', [RequestController::class, 'takeover'])->middleware(['auth'])->name('ticket.takeover');
+Route::post('/request/{id}/takeover/accept', [RequestController::class, 'takeoverAccept'])->middleware(['auth'])->name('ticket.takeover.accept');
+Route::post('/request/{id}/takeover/reject', [RequestController::class, 'takeoverReject'])->middleware(['auth'])->name('ticket.takeover.reject');
 
 //Route Update System
 Route::get('/detailus/{id}', [UpdateSystemController::class, 'detailus'])->middleware(['auth'])->name('detailus');

@@ -256,4 +256,54 @@ class RequestController extends Controller
         Alert::success('Request Rejected!');
         return redirect()->back();
     }
+
+    public function takeover(Request $request, $id) {
+        $request->validate([
+            'target_advisor_id' => 'required|exists:users,id'
+        ]);
+
+        $ticket = \App\Models\Ticket::findOrFail($id);
+        $currentUser = Auth::user();
+        $targetUserId = $request->target_advisor_id;
+
+        // If current user is Admin or SPV, force assign directly
+        if (in_array($currentUser->usertype, ['admin', 'supervisor'])) {
+            $ticket->update([
+                'advisor_id' => $targetUserId,
+                'pending_advisor_id' => null
+            ]);
+            Alert::success('Berhasil!', 'Tiket telah dialihkan.');
+        } else {
+            // User asks another user -> Need approval
+            $ticket->update([
+                'pending_advisor_id' => $targetUserId
+            ]);
+            Alert::success('Terkirim!', 'Permintaan pengalihan tiket telah dikirim dan menunggu persetujuan.');
+        }
+        
+        return redirect()->back();
+    }
+
+    public function takeoverAccept($id) {
+        $ticket = \App\Models\Ticket::findOrFail($id);
+        if ($ticket->pending_advisor_id == Auth::id()) {
+            $ticket->update([
+                'advisor_id' => Auth::id(),
+                'pending_advisor_id' => null
+            ]);
+            Alert::success('Berhasil!', 'Anda telah mengambil alih tiket ini.');
+        }
+        return redirect()->back();
+    }
+
+    public function takeoverReject($id) {
+        $ticket = \App\Models\Ticket::findOrFail($id);
+        if ($ticket->pending_advisor_id == Auth::id()) {
+            $ticket->update([
+                'pending_advisor_id' => null
+            ]);
+            Alert::info('Ditolak!', 'Anda telah menolak permintaan alih tiket.');
+        }
+        return redirect()->back();
+    }
 }

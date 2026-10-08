@@ -11,7 +11,7 @@ class Ticket extends Model
 
     protected $fillable = [
         'ticket_number', 'title', 'description', 'status', 'priority', 
-        'tipe_penanganan', 'user_id', 'client_id', 'advisor_id', 'module_system_id', 
+        'tipe_penanganan', 'user_id', 'client_id', 'advisor_id', 'pending_advisor_id', 'module_system_id', 
         'system', 'due_date', 'closed_at', 'link_id'
     ];
 
@@ -28,6 +28,11 @@ class Ticket extends Model
     public function advisor()
     {
         return $this->belongsTo(User::class, 'advisor_id');
+    }
+
+    public function pendingAdvisor()
+    {
+        return $this->belongsTo(User::class, 'pending_advisor_id');
     }
 
     public function kategoriSystem()

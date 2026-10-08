@@ -122,6 +122,10 @@ class HomeController extends Controller
     }
 
     public function laporan(Request $request){
+        if (auth()->user()->usertype == 'user') {
+            return redirect()->route('dashboard')->with('error', 'Akses ditolak. Anda tidak memiliki izin untuk melihat modul Laporan.');
+        }
+
         $month = date('m');
         $year = date('Y');
         $users = User::with(['performanceReviews' => function($q) use ($month, $year) {
@@ -241,7 +245,10 @@ class HomeController extends Controller
     }
 
     public function inbox(Request $request){
-        $query = Ticket::query();
+        $query = Ticket::query()->where(function($q) {
+            $q->where('user_id', auth()->id())
+              ->orWhere('advisor_id', auth()->id());
+        });
 
         if ($request->filled('module')) {
             $query->where('module_system_id', $request->module);
