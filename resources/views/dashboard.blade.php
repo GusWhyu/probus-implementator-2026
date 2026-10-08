@@ -25,21 +25,21 @@
             <div class="absolute top-1/2 right-1/3 w-40 h-40 bg-white/[0.03] rounded-full blur-2xl"></div>
 
             {{-- Title row --}}
-            <div class="flex items-center justify-between mb-8 relative z-10">
+            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-8 relative z-10">
                 <div>
                     <h2 class="text-2xl md:text-3xl font-bold text-white flex items-center gap-2">
                         Selamat Datang, {{ Auth::user()->name }}! <span class="text-2xl">👋</span>
                     </h2>
                     <p class="text-blue-200 text-sm mt-1.5">Berikut ringkasan data tiket Anda hari ini.</p>
                 </div>
-                <div class="flex items-center gap-3">
-                    <div class="relative group">
-                        <i class="fa-regular fa-calendar absolute left-4 top-1/2 -translate-y-1/2 text-white pointer-events-none"></i>
+                <div class="flex flex-row items-center gap-2 sm:gap-3 w-full lg:w-auto mt-2 lg:mt-0">
+                    <div class="relative group flex-1 sm:flex-none">
+                        <i class="fa-regular fa-calendar absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 text-white pointer-events-none text-[10px] sm:text-xs"></i>
                         <input type="text" id="dateRangePicker" 
-                               class="bg-white/15 backdrop-blur-sm text-white border border-white/20 pl-10 pr-4 py-2.5 rounded-xl text-xs font-bold hover:bg-white/25 transition-all cursor-pointer focus:outline-none focus:border-white/40 focus:ring-2 focus:ring-white/20 w-56 lg:w-64 placeholder-white/80"
+                               class="bg-white/15 backdrop-blur-sm text-white border border-white/20 pl-8 sm:pl-10 pr-3 sm:pr-4 py-2 sm:py-2.5 rounded-xl text-[10px] sm:text-xs font-bold hover:bg-white/25 transition-all cursor-pointer focus:outline-none focus:border-white/40 focus:ring-2 focus:ring-white/20 w-full sm:w-56 lg:w-64 placeholder-white/80"
                                value="{{ now()->format('M d, Y') }} to {{ now()->format('M d, Y') }}" readonly>
                     </div>
-                    <button class="bg-white text-blue-600 px-5 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 hover:bg-blue-50 transition-colors shadow-lg shadow-blue-900/20">
+                    <button class="bg-white text-blue-600 px-3 sm:px-5 py-2 sm:py-2.5 rounded-xl text-[10px] sm:text-xs font-bold flex items-center justify-center gap-1.5 sm:gap-2 hover:bg-blue-50 transition-colors shadow-lg shadow-blue-900/20 shrink-0">
                         <i class="fa-solid fa-download"></i>
                         Export
                     </button>
@@ -99,15 +99,15 @@
                     </div>
                 </div>
 
-                {{-- Card 4: Menunggu --}}
+                {{-- Card 4: Terbuka --}}
                 <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 hover:shadow-md transition-shadow group">
                     <div class="flex items-center justify-between mb-3">
-                        <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Menunggu</span>
+                        <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Terbuka</span>
                         <div class="w-9 h-9 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600 group-hover:bg-blue-100 transition-colors">
                             <i class="fa-solid fa-percent text-sm"></i>
                         </div>
                     </div>
-                    <div class="text-3xl font-extrabold text-slate-800 mb-1">{{ ($urgent_count ?? 0) + ($open_count ?? 0) }}</div>
+                    <div class="text-3xl font-extrabold text-slate-800 mb-1">{{ $open_count ?? 0 }}</div>
                     <div class="flex items-center gap-1 text-[10px] font-bold text-emerald-500">
                         <i class="fa-solid fa-arrow-trend-up"></i> 8.4%
                         <span class="text-emerald-500 font-semibold ml-1">↑ 6.4%</span>
@@ -165,10 +165,6 @@
                             <div class="flex items-center gap-2"><div class="w-2.5 h-2.5 rounded-full bg-indigo-400"></div> <span class="font-semibold text-slate-700">Terbuka</span></div>
                             <span class="font-bold text-slate-800">{{ $open_count ?? 0 }}</span>
                         </div>
-                        <div class="flex items-center justify-between text-xs">
-                            <div class="flex items-center gap-2"><div class="w-2.5 h-2.5 rounded-full bg-indigo-900"></div> <span class="font-semibold text-slate-700">Urgent</span></div>
-                            <span class="font-bold text-slate-800">{{ $urgent_count ?? 0 }}</span>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -209,18 +205,18 @@
                         <canvas id="clientDonutChart" class="max-h-[160px]"></canvas>
                     </div>
                     <div class="mt-4 flex flex-col gap-2">
+                        @foreach(array_slice($clientDonutLabels ?? [], 0, 3) as $index => $label)
                         <div class="flex items-center justify-between text-[11px]">
-                            <div class="flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-blue-600"></div> <span class="font-semibold text-slate-600">DINAM RIVERSIDE</span></div>
-                            <span class="font-bold text-slate-700">28%</span>
+                            <div class="flex items-center gap-2">
+                                @php
+                                    $bgColors = ['bg-blue-600', 'bg-sky-500', 'bg-indigo-500'];
+                                @endphp
+                                <div class="w-2 h-2 rounded-full {{ $bgColors[$index] }}"></div> 
+                                <span class="font-semibold text-slate-600">{{ $label }}</span>
+                            </div>
+                            <span class="font-bold text-slate-700">{{ $clientDonutData[$index] ?? 0 }} Tiket</span>
                         </div>
-                        <div class="flex items-center justify-between text-[11px]">
-                            <div class="flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-sky-500"></div> <span class="font-semibold text-slate-600">JATIDIRI REST.</span></div>
-                            <span class="font-bold text-slate-700">22%</span>
-                        </div>
-                        <div class="flex items-center justify-between text-[11px]">
-                            <div class="flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-indigo-500"></div> <span class="font-semibold text-slate-600">ANDALI RESORT</span></div>
-                            <span class="font-bold text-slate-700">18%</span>
-                        </div>
+                        @endforeach
                     </div>
                     <a href="#" class="text-[11px] font-bold text-blue-600 hover:text-blue-700 mt-3 inline-flex items-center gap-1 transition-colors">View full report <i class="fa-solid fa-chevron-right text-[8px]"></i></a>
                 </div>
@@ -279,10 +275,9 @@
                                             4 => 'bg-emerald-100 text-emerald-700',
                                         ];
                                         $statusNames = [
-                                            1 => 'Urgent',
-                                            2 => 'Open',
-                                            3 => 'Progress',
-                                            4 => 'Closed',
+                                            1 => 'Open',
+                                            2 => 'Progress',
+                                            3 => 'Closed',
                                         ];
                                     @endphp
                                     <span class="px-2.5 py-1 rounded-lg text-[10px] font-bold {{ $statusColors[$ticket->status_id] ?? 'bg-slate-100 text-slate-600' }}">
@@ -375,10 +370,10 @@
             new Chart(overviewCtx, {
                 type: 'line',
                 data: {
-                    labels: ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'],
+                    labels: {!! json_encode($chartLabels ?? []) !!},
                     datasets: [{
                         label: 'Tiket Masuk',
-                        data: [25, 40, 30, 55, 45, 65, 50],
+                        data: {!! json_encode($masukData ?? []) !!},
                         borderColor: '#2563eb', // blue-600
                         backgroundColor: gradient1,
                         borderWidth: 2.5,
@@ -391,7 +386,7 @@
                         tension: 0.4
                     }, {
                         label: 'Tiket Selesai',
-                        data: [20, 35, 25, 50, 40, 55, 45],
+                        data: {!! json_encode($selesaiData ?? []) !!},
                         borderColor: '#14b8a6', // teal-500
                         borderWidth: 2,
                         borderDash: [6, 4],
@@ -427,10 +422,10 @@
             new Chart(document.getElementById('statusChart').getContext('2d'), {
                 type: 'doughnut',
                 data: {
-                    labels: ['Selesai', 'Proses', 'Terbuka', 'Urgent'],
+                    labels: ['Selesai', 'Proses', 'Terbuka'],
                     datasets: [{
-                        data: [{{ $closed_count ?? 0 }}, {{ $progress_count ?? 0 }}, {{ $open_count ?? 0 }}, {{ $urgent_count ?? 0 }}],
-                        backgroundColor: ['#2563eb', '#0ea5e9', '#818cf8', '#312e81'], // blue, sky, indigo-400, indigo-900
+                        data: [{{ $closed_count ?? 0 }}, {{ $progress_count ?? 0 }}, {{ $open_count ?? 0 }}],
+                        backgroundColor: ['#2563eb', '#0ea5e9', '#818cf8'], // blue, sky, indigo-400
                         borderWidth: 0,
                         cutout: '72%',
                         borderRadius: 3
@@ -449,9 +444,9 @@
             new Chart(document.getElementById('agentChart').getContext('2d'), {
                 type: 'bar',
                 data: {
-                    labels: ['Andi S.', 'Rina W.', 'Dimas P.', 'Siti R.', 'Budi S.'],
+                    labels: {!! json_encode($agentLabels ?? []) !!},
                     datasets: [{
-                        data: [150, 142, 125, 110, 95],
+                        data: {!! json_encode($agentData ?? []) !!},
                         backgroundColor: function(ctx) {
                             // Monochromatic blues for harmony: blue-800 to blue-400
                             const colors = ['#1e40af', '#1d4ed8', '#2563eb', '#3b82f6', '#60a5fa']; 
@@ -480,9 +475,9 @@
             new Chart(document.getElementById('volumeChart').getContext('2d'), {
                 type: 'bar',
                 data: {
-                    labels: ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'],
+                    labels: {!! json_encode($chartLabels ?? []) !!},
                     datasets: [{
-                        data: [65, 85, 45, 90, 75, 110, 120],
+                        data: {!! json_encode($masukData ?? []) !!},
                         backgroundColor: function(ctx) {
                             return ctx.dataIndex === 5 ? '#2563eb' : '#bfdbfe'; // blue-600 for highlight, blue-200 for rest
                         },
@@ -509,9 +504,9 @@
             new Chart(document.getElementById('clientDonutChart').getContext('2d'), {
                 type: 'doughnut',
                 data: {
-                    labels: ['DINAM RIVERSIDE', 'JATIDIRI REST.', 'ANDALI RESORT', 'Lainnya'],
+                    labels: {!! json_encode($clientDonutLabels ?? []) !!},
                     datasets: [{
-                        data: [28, 22, 18, 32],
+                        data: {!! json_encode($clientDonutData ?? []) !!},
                         backgroundColor: ['#2563eb', '#0ea5e9', '#6366f1', '#cbd5e1'], // blue, sky, indigo, slate
                         borderWidth: 0,
                         cutout: '68%',
@@ -529,9 +524,9 @@
             new Chart(document.getElementById('topClientBarChart').getContext('2d'), {
                 type: 'bar',
                 data: {
-                    labels: ['DRIAM\nRIVERSIDE', 'JARD\'OR\nRESTAURANT', 'ANDAU DIVE\nRESORT', 'MINA\nBEDUGUL', 'ALINN\nVILLAS', 'ECO TREE\nO\'TEL', 'SANTORINI\nBEACH', 'WASABI\nHOTEL', 'PINKCOCO\nULUWATU', 'BAPAK\nBAKERY'],
+                    labels: {!! json_encode($clientBarLabels ?? []) !!},
                     datasets: [{
-                        data: [120, 100, 95, 80, 75, 65, 60, 50, 45, 30],
+                        data: {!! json_encode($clientBarData ?? []) !!},
                         backgroundColor: function(ctx) { return ctx.dataIndex === 0 ? '#2563eb' : '#eff6ff'; },
                         borderRadius: 4,
                         barPercentage: 0.5
@@ -563,9 +558,9 @@
             new Chart(document.getElementById('kendalaChart').getContext('2d'), {
                 type: 'bar',
                 data: {
-                    labels: ['FO', 'POS', 'E-Commerce', 'Database', 'Modify Report', 'Accounting', 'IT'],
+                    labels: {!! json_encode($kendalaLabels ?? []) !!},
                     datasets: [{
-                        data: [200, 180, 150, 120, 100, 80, 60],
+                        data: {!! json_encode($kendalaData ?? []) !!},
                         backgroundColor: function(ctx) { return ctx.dataIndex === 0 ? '#2563eb' : '#eff6ff'; },
                         borderRadius: 4,
                         barPercentage: 0.6

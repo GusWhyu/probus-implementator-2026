@@ -10,7 +10,7 @@ class PerformanceReview extends Model
     use HasFactory;
 
     protected $fillable = [
-        'user_id', 'reviewer_id', 'periode', 'total_score', 'status', 'catatan', 'saran'
+        'user_id', 'reviewer_id', 'periode', 'total_score', 'module_score', 'performance_score', 'review_score', 'status', 'catatan', 'saran'
     ];
 
     public function user()

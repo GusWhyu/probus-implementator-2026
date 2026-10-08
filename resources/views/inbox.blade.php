@@ -28,13 +28,13 @@
             </div>
         </form>
         
-        <!-- Kanban Board -->
+            <!-- Kanban Board -->
         <div class="flex-1 min-h-0 w-full pb-2">
             <!-- Grid layout splits 3 columns perfectly. NO items-start so they stretch full height -->
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6 h-full w-full">
+            <div class="flex lg:grid lg:grid-cols-3 gap-4 lg:gap-6 h-full w-full overflow-x-auto lg:overflow-x-visible snap-x snap-mandatory pb-4 lg:pb-0 custom-scrollbar">
                 
                 <!-- OPEN Column -->
-                <div class="flex flex-col h-full min-h-0 w-full">
+                <div class="flex flex-col h-full min-h-0 w-[85vw] sm:w-[400px] lg:w-auto shrink-0 snap-center">
                     <div class="flex items-center justify-between mb-4 px-1 shrink-0">
                         <h3 class="font-bold text-sm text-slate-800 tracking-wider uppercase">OPEN</h3>
                         <span class="text-sm font-bold text-slate-400">{{ count($open) }}</span>
@@ -46,8 +46,8 @@
                             <div class="flex justify-between items-center mb-4">
                                 <div class="flex items-center gap-2 flex-wrap">
                                     <span class="bg-blue-50 text-blue-600 text-[11px] font-bold px-2.5 py-1.5 rounded-md">{{ $rq->ticket_number }}</span>
-                                    <span class="bg-slate-100 text-slate-500 text-[10px] font-semibold px-2.5 py-1.5 rounded-md max-w-[80px] truncate" title="{{ $rq->tag->name ?? '' }}">{{ $rq->tag->name ?? '-' }}</span>
-                                    <span class="bg-slate-100 text-slate-500 text-[10px] font-semibold px-2.5 py-1.5 rounded-md max-w-[80px] truncate" title="{{ $rq->kategori->name ?? '' }}">{{ $rq->kategori->name ?? '-' }}</span>
+                                    <span class="bg-slate-100 text-slate-500 text-[10px] font-semibold px-2.5 py-1.5 rounded-md max-w-[80px] truncate" title="{{ $rq->kategoriSystem->name ?? '' }}">{{ $rq->kategoriSystem->name ?? '-' }}</span>
+                                    <span class="bg-slate-100 text-slate-500 text-[10px] font-semibold px-2.5 py-1.5 rounded-md max-w-[80px] truncate" title="{{ $rq->moduleSystem->name ?? '' }}">{{ $rq->moduleSystem->name ?? '-' }}</span>
                                 </div>
                                 <span class="bg-blue-50 text-blue-600 text-[10px] font-bold px-3 py-1.5 rounded-full uppercase tracking-wider border border-blue-100 shrink-0">{{ $rq->status }}</span>
                             </div>
@@ -55,20 +55,20 @@
                             
                             <div class="grid grid-cols-2 gap-y-4 gap-x-4 mt-auto border-t border-slate-100 pt-4">
                                 <div>
-                                    <div class="text-[10px] font-semibold text-slate-400 uppercase mb-1 tracking-wider">Departemen</div>
-                                    <div class="text-sm font-medium text-slate-700 truncate" title="{{ $rq->user->departemen->name ?? '-' }}">{{ $rq->user->departemen->name ?? '-' }}</div>
+                                    <div class="text-[10px] font-semibold text-slate-400 uppercase mb-1 tracking-wider">Client</div>
+                                    <div class="text-sm font-medium text-slate-700 truncate" title="{{ $rq->client->nm_out ?? '-' }}">{{ $rq->client->nm_out ?? '-' }}</div>
                                 </div>
                                 <div>
                                     <div class="text-[10px] font-semibold text-slate-400 uppercase mb-1 tracking-wider">Tipe Penanganan</div>
-                                    <div class="text-sm font-medium text-slate-700 truncate" title="{{ $rq->kategori->name ?? '-' }}">{{ $rq->kategori->name ?? '-' }}</div>
+                                    <div class="text-sm font-medium text-slate-700 truncate" title="{{ $rq->tipe_penanganan ?? '-' }}">{{ $rq->tipe_penanganan ?? '-' }}</div>
                                 </div>
                                 <div>
-                                    <div class="text-[10px] font-semibold text-slate-400 uppercase mb-1 tracking-wider">User</div>
+                                    <div class="text-[10px] font-semibold text-slate-400 uppercase mb-1 tracking-wider">Reporter</div>
                                     <div class="text-sm text-slate-600 truncate" title="{{ $rq->user->name ?? '-' }}">{{ $rq->user->name ?? '-' }}</div>
                                 </div>
                                 <div>
                                     <div class="text-[10px] font-semibold text-slate-400 uppercase mb-1 tracking-wider">Advisor</div>
-                                    <div class="text-sm font-medium text-slate-700 truncate" title="{{ $rq->assignee->name ?? '-' }}">{{ $rq->assignee->name ?? '-' }}</div>
+                                    <div class="text-sm font-medium text-slate-700 truncate" title="{{ $rq->advisor->name ?? '-' }}">{{ $rq->advisor->name ?? '-' }}</div>
                                 </div>
                                 <div>
                                     <div class="text-[10px] font-semibold text-slate-400 uppercase mb-1 tracking-wider">Created At</div>
@@ -85,7 +85,7 @@
                 </div>
 
                 <!-- PROGRESS Column -->
-                <div class="flex flex-col h-full min-h-0 w-full">
+                <div class="flex flex-col h-full min-h-0 w-[85vw] sm:w-[400px] lg:w-auto shrink-0 snap-center">
                     <div class="flex items-center justify-between mb-4 px-1 shrink-0">
                         <h3 class="font-bold text-sm text-slate-800 tracking-wider uppercase">PROGRESS</h3>
                         <span class="text-sm font-bold text-slate-400">{{ count($progress) }}</span>
@@ -97,8 +97,8 @@
                             <div class="flex justify-between items-center mb-4">
                                 <div class="flex items-center gap-2 flex-wrap">
                                     <span class="bg-blue-50 text-blue-600 text-[11px] font-bold px-2.5 py-1.5 rounded-md">{{ $rq->ticket_number }}</span>
-                                    <span class="bg-slate-100 text-slate-500 text-[10px] font-semibold px-2.5 py-1.5 rounded-md max-w-[80px] truncate" title="{{ $rq->tag->name ?? '' }}">{{ $rq->tag->name ?? '-' }}</span>
-                                    <span class="bg-slate-100 text-slate-500 text-[10px] font-semibold px-2.5 py-1.5 rounded-md max-w-[80px] truncate" title="{{ $rq->kategori->name ?? '' }}">{{ $rq->kategori->name ?? '-' }}</span>
+                                    <span class="bg-slate-100 text-slate-500 text-[10px] font-semibold px-2.5 py-1.5 rounded-md max-w-[80px] truncate" title="{{ $rq->kategoriSystem->name ?? '' }}">{{ $rq->kategoriSystem->name ?? '-' }}</span>
+                                    <span class="bg-slate-100 text-slate-500 text-[10px] font-semibold px-2.5 py-1.5 rounded-md max-w-[80px] truncate" title="{{ $rq->moduleSystem->name ?? '' }}">{{ $rq->moduleSystem->name ?? '-' }}</span>
                                 </div>
                                 <span class="bg-orange-50 text-orange-600 text-[10px] font-bold px-3 py-1.5 rounded-full uppercase tracking-wider border border-orange-100 shrink-0">{{ $rq->status }}</span>
                             </div>
@@ -106,20 +106,20 @@
                             
                             <div class="grid grid-cols-2 gap-y-4 gap-x-4 mt-auto border-t border-slate-100 pt-4">
                                 <div>
-                                    <div class="text-[10px] font-semibold text-slate-400 uppercase mb-1 tracking-wider">Departemen</div>
-                                    <div class="text-sm font-medium text-slate-700 truncate" title="{{ $rq->user->departemen->name ?? '-' }}">{{ $rq->user->departemen->name ?? '-' }}</div>
+                                    <div class="text-[10px] font-semibold text-slate-400 uppercase mb-1 tracking-wider">Client</div>
+                                    <div class="text-sm font-medium text-slate-700 truncate" title="{{ $rq->client->nm_out ?? '-' }}">{{ $rq->client->nm_out ?? '-' }}</div>
                                 </div>
                                 <div>
                                     <div class="text-[10px] font-semibold text-slate-400 uppercase mb-1 tracking-wider">Tipe Penanganan</div>
-                                    <div class="text-sm font-medium text-slate-700 truncate" title="{{ $rq->kategori->name ?? '-' }}">{{ $rq->kategori->name ?? '-' }}</div>
+                                    <div class="text-sm font-medium text-slate-700 truncate" title="{{ $rq->tipe_penanganan ?? '-' }}">{{ $rq->tipe_penanganan ?? '-' }}</div>
                                 </div>
                                 <div>
-                                    <div class="text-[10px] font-semibold text-slate-400 uppercase mb-1 tracking-wider">User</div>
+                                    <div class="text-[10px] font-semibold text-slate-400 uppercase mb-1 tracking-wider">Reporter</div>
                                     <div class="text-sm text-slate-600 truncate" title="{{ $rq->user->name ?? '-' }}">{{ $rq->user->name ?? '-' }}</div>
                                 </div>
                                 <div>
                                     <div class="text-[10px] font-semibold text-slate-400 uppercase mb-1 tracking-wider">Advisor</div>
-                                    <div class="text-sm font-medium text-slate-700 truncate" title="{{ $rq->assignee->name ?? '-' }}">{{ $rq->assignee->name ?? '-' }}</div>
+                                    <div class="text-sm font-medium text-slate-700 truncate" title="{{ $rq->advisor->name ?? '-' }}">{{ $rq->advisor->name ?? '-' }}</div>
                                 </div>
                                 <div>
                                     <div class="text-[10px] font-semibold text-slate-400 uppercase mb-1 tracking-wider">Created At</div>
@@ -136,7 +136,7 @@
                 </div>
 
                 <!-- CLOSED Column -->
-                <div class="flex flex-col h-full min-h-0 w-full">
+                <div class="flex flex-col h-full min-h-0 w-[85vw] sm:w-[400px] lg:w-auto shrink-0 snap-center">
                     <div class="flex items-center justify-between mb-4 px-1 shrink-0">
                         <h3 class="font-bold text-sm text-slate-800 tracking-wider uppercase">CLOSED</h3>
                         <span class="text-sm font-bold text-slate-400">{{ count($closed) }}</span>
@@ -148,8 +148,8 @@
                             <div class="flex justify-between items-center mb-4">
                                 <div class="flex items-center gap-2 flex-wrap">
                                     <span class="bg-blue-50 text-blue-600 text-[11px] font-bold px-2.5 py-1.5 rounded-md">{{ $rq->ticket_number }}</span>
-                                    <span class="bg-slate-100 text-slate-500 text-[10px] font-semibold px-2.5 py-1.5 rounded-md max-w-[80px] truncate" title="{{ $rq->tag->name ?? '' }}">{{ $rq->tag->name ?? '-' }}</span>
-                                    <span class="bg-slate-100 text-slate-500 text-[10px] font-semibold px-2.5 py-1.5 rounded-md max-w-[80px] truncate" title="{{ $rq->kategori->name ?? '' }}">{{ $rq->kategori->name ?? '-' }}</span>
+                                    <span class="bg-slate-100 text-slate-500 text-[10px] font-semibold px-2.5 py-1.5 rounded-md max-w-[80px] truncate" title="{{ $rq->kategoriSystem->name ?? '' }}">{{ $rq->kategoriSystem->name ?? '-' }}</span>
+                                    <span class="bg-slate-100 text-slate-500 text-[10px] font-semibold px-2.5 py-1.5 rounded-md max-w-[80px] truncate" title="{{ $rq->moduleSystem->name ?? '' }}">{{ $rq->moduleSystem->name ?? '-' }}</span>
                                 </div>
                                 <span class="bg-emerald-50 text-emerald-600 text-[10px] font-bold px-3 py-1.5 rounded-full uppercase tracking-wider border border-emerald-100 shrink-0">{{ $rq->status }}</span>
                             </div>
@@ -157,20 +157,20 @@
                             
                             <div class="grid grid-cols-2 gap-y-4 gap-x-4 mt-auto border-t border-slate-100 pt-4">
                                 <div>
-                                    <div class="text-[10px] font-semibold text-slate-400 uppercase mb-1 tracking-wider">Departemen</div>
-                                    <div class="text-sm font-medium text-slate-700 truncate" title="{{ $rq->user->departemen->name ?? '-' }}">{{ $rq->user->departemen->name ?? '-' }}</div>
+                                    <div class="text-[10px] font-semibold text-slate-400 uppercase mb-1 tracking-wider">Client</div>
+                                    <div class="text-sm font-medium text-slate-700 truncate" title="{{ $rq->client->nm_out ?? '-' }}">{{ $rq->client->nm_out ?? '-' }}</div>
                                 </div>
                                 <div>
                                     <div class="text-[10px] font-semibold text-slate-400 uppercase mb-1 tracking-wider">Tipe Penanganan</div>
-                                    <div class="text-sm font-medium text-slate-700 truncate" title="{{ $rq->kategori->name ?? '-' }}">{{ $rq->kategori->name ?? '-' }}</div>
+                                    <div class="text-sm font-medium text-slate-700 truncate" title="{{ $rq->tipe_penanganan ?? '-' }}">{{ $rq->tipe_penanganan ?? '-' }}</div>
                                 </div>
                                 <div>
-                                    <div class="text-[10px] font-semibold text-slate-400 uppercase mb-1 tracking-wider">User</div>
+                                    <div class="text-[10px] font-semibold text-slate-400 uppercase mb-1 tracking-wider">Reporter</div>
                                     <div class="text-sm text-slate-600 truncate" title="{{ $rq->user->name ?? '-' }}">{{ $rq->user->name ?? '-' }}</div>
                                 </div>
                                 <div>
                                     <div class="text-[10px] font-semibold text-slate-400 uppercase mb-1 tracking-wider">Advisor</div>
-                                    <div class="text-sm font-medium text-slate-700 truncate" title="{{ $rq->assignee->name ?? '-' }}">{{ $rq->assignee->name ?? '-' }}</div>
+                                    <div class="text-sm font-medium text-slate-700 truncate" title="{{ $rq->advisor->name ?? '-' }}">{{ $rq->advisor->name ?? '-' }}</div>
                                 </div>
                                 <div>
                                     <div class="text-[10px] font-semibold text-slate-400 uppercase mb-1 tracking-wider">Created At</div>

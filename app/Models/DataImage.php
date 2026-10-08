@@ -11,5 +11,9 @@ class DataImage extends Model
 
     protected $table = 'dataimage';
 
-    protected $fillable = ['request_id', 'updatesystem_id', 'image'];
+    protected $fillable = ['ticket_id', 'request_id', 'updatesystem_id', 'image'];
+
+    public function ticket() {
+        return $this->belongsTo(Ticket::class);
+    }
 }

@@ -9,15 +9,15 @@ class PerformanceReviewModuleDetail extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['performance_review_id', 'module_system_id', 'ticket_count', 'module_score'];
+    protected $fillable = ['performance_review_id', 'module_id', 'score', 'bobot', 'total_ticket'];
 
     public function review()
     {
         return $this->belongsTo(PerformanceReview::class, 'performance_review_id');
     }
 
-    public function moduleSystem()
+    public function module()
     {
-        return $this->belongsTo(ModuleSystem::class, 'module_system_id');
+        return $this->belongsTo(PerformanceCategory::class, 'module_id');
     }
 }

@@ -15,7 +15,7 @@ class TicketSeeder extends Seeder
         DB::statement('SET FOREIGN_KEY_CHECKS=0;');
         $users = [3, 4, 6, 9]; // CS Users
         
-        $statuses = ['OPEN', 'PROGRESS', 'CLOSED', 'URGENT'];
+        $statuses = ['OPEN', 'PROGRESS', 'CLOSED'];
 
         // Generate tickets for the last 30 days
         for ($i = 0; $i < 25; $i++) {
@@ -27,7 +27,7 @@ class TicketSeeder extends Seeder
                 'title' => 'Permasalahan koneksi / error fitur ' . Str::random(4),
                 'description' => 'Pelanggan melaporkan kendala pada aplikasi. Mohon segera dicek dan diselesaikan.',
                 'status' => $status,
-                'priority' => ($status == 'URGENT') ? 'High' : 'Normal',
+                'priority' => 'Normal',
                 'tipe_penanganan' => 'Remote',
                 'user_id' => 2, // Client user ID (dummy)
                 'assignee_id' => $users[array_rand($users)], // Assigned to CS

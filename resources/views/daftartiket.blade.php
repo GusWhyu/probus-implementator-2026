@@ -32,7 +32,7 @@
             <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center justify-between hover:shadow-md transition-shadow">
                 <div>
                     <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Belum Ditangani</div>
-                    <div class="text-3xl font-extrabold text-slate-800">{{ $open_count + $urgent_count }}</div>
+                    <div class="text-3xl font-extrabold text-slate-800">{{ $open_count }}</div>
                 </div>
                 <div class="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center text-blue-500">
                     <i class="fa-regular fa-clock text-xl"></i>
@@ -64,6 +64,7 @@
         
         {{-- Filters & Search --}}
         <form method="GET" action="{{ route('daftartiket') }}" class="flex flex-col lg:flex-row gap-4 mb-6">
+            <input type="hidden" name="view" value="{{ request('view', 'list') }}">
             <div class="relative flex-1">
                 <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
                 <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari ID tiket, judul, user, atau pelanggan..." class="w-full pl-11 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all shadow-sm">
@@ -74,8 +75,8 @@
             <div class="flex items-center gap-3">
                 <select name="status" onchange="this.form.submit()" class="px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 shadow-sm min-w-[150px] appearance-none cursor-pointer" style="background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2394a3b8%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E'); background-repeat: no-repeat; background-position: right 1rem top 50%; background-size: 0.65rem auto;">
                     <option value="">Semua Status</option>
-                    @foreach($statuses as $st)
-                        <option value="{{ $st->id }}" {{ request('status') == $st->id ? 'selected' : '' }}>{{ $st->name }}</option>
+                    @foreach(['OPEN', 'PROGRESS', 'CLOSED'] as $st)
+                        <option value="{{ $st }}" {{ request('status') == $st ? 'selected' : '' }}>{{ ucfirst(strtolower($st)) }}</option>
                     @endforeach
                 </select>
                 
@@ -107,14 +108,15 @@
         @if(request('view', 'list') == 'list')
         {{-- Table Section --}}
         <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
-            <div class="w-full">
-                <table class="w-full text-left border-collapse">
+            <div class="w-full overflow-x-auto custom-scrollbar">
+                <table class="w-full text-left border-collapse min-w-[800px]">
                     <thead class="bg-slate-50/50 border-b border-slate-200">
                         <tr>
                             <th class="py-3 px-3 sm:px-4 text-[10px] font-extrabold text-slate-500 uppercase tracking-widest whitespace-nowrap">No. Tiket</th>
                             <th class="py-3 px-3 sm:px-4 text-[10px] font-extrabold text-slate-500 uppercase tracking-widest">User Pembuat</th>
                             <th class="py-3 px-3 sm:px-4 text-[10px] font-extrabold text-slate-500 uppercase tracking-widest">Judul</th>
                             <th class="py-3 px-3 sm:px-4 text-[10px] font-extrabold text-slate-500 uppercase tracking-widest">Deskripsi</th>
+                            <th class="py-3 px-3 sm:px-4 text-[10px] font-extrabold text-slate-500 uppercase tracking-widest whitespace-nowrap">Tipe Penanganan</th>
                             <th class="py-3 px-3 sm:px-4 text-[10px] font-extrabold text-slate-500 uppercase tracking-widest whitespace-nowrap">System</th>
                             <th class="py-3 px-3 sm:px-4 text-[10px] font-extrabold text-slate-500 uppercase tracking-widest whitespace-nowrap">Module</th>
                             <th class="py-3 px-3 sm:px-4 text-[10px] font-extrabold text-slate-500 uppercase tracking-widest text-center whitespace-nowrap">Status</th>
@@ -129,8 +131,8 @@
                                     <a href="/detailrequest/{{ $rq->id }}" class="text-sm font-bold text-blue-600 hover:text-blue-800 whitespace-nowrap">{{ $rq->ticket_number }}</a>
                                 </td>
                                 <td class="py-3 px-3 sm:px-4 align-top">
-                                    <div class="text-sm font-semibold text-slate-800">{{ $rq->user->name ?? '-' }}</div>
-                                    <div class="text-[11px] text-slate-400 mt-0.5 font-medium leading-tight">Departemen: <br/>{{ $rq->user->departemen->name ?? '-' }}</div>
+                                    <div class="text-sm font-semibold text-slate-800">{{ $rq->client->name ?? '-' }}</div>
+                                    <div class="text-[11px] text-slate-400 mt-0.5 font-medium leading-tight">Departemen: <br/>{{ $rq->client->departemen->name ?? '-' }}</div>
                                 </td>
                                 <td class="py-3 px-3 sm:px-4 align-top">
                                     <div class="text-sm font-bold text-slate-800 leading-snug">{{ $rq->title }}</div>
@@ -139,19 +141,20 @@
                                     <div class="text-xs text-slate-500 leading-relaxed line-clamp-2">{{ strip_tags($rq->description ?? 'Tidak ada deskripsi') }}</div>
                                 </td>
                                 <td class="py-3 px-3 sm:px-4 align-top">
-                                    <span class="inline-flex items-center px-2 py-1 rounded text-[11px] font-semibold bg-slate-100 text-slate-600 border border-slate-200 whitespace-nowrap">{{ $rq->tag->name ?? 'N/A' }}</span>
+                                    <span class="inline-flex items-center px-2 py-1 rounded text-[11px] font-semibold bg-slate-100 text-slate-600 border border-slate-200 whitespace-nowrap">{{ $rq->tipe_penanganan ?? 'N/A' }}</span>
                                 </td>
                                 <td class="py-3 px-3 sm:px-4 align-top">
-                                    <span class="inline-flex items-center px-2 py-1 rounded text-[11px] font-semibold bg-slate-100 text-slate-600 border border-slate-200 whitespace-nowrap">{{ $rq->kategori->name ?? 'N/A' }}</span>
+                                    <span class="inline-flex items-center px-2 py-1 rounded text-[11px] font-semibold bg-slate-100 text-slate-600 border border-slate-200 whitespace-nowrap">{{ $rq->kategoriSystem->name ?? 'N/A' }}</span>
+                                </td>
+                                <td class="py-3 px-3 sm:px-4 align-top">
+                                    <span class="inline-flex items-center px-2 py-1 rounded text-[11px] font-semibold bg-slate-100 text-slate-600 border border-slate-200 whitespace-nowrap">{{ $rq->moduleSystem->name ?? 'N/A' }}</span>
                                 </td>
                                 <td class="py-3 px-3 sm:px-4 align-top text-center">
                                     @php
                                         $statusClass = 'bg-slate-100 text-slate-600 border-slate-200';
                                         $statusName = $rq->status;
                                         
-                                        if ($rq->status == 'URGENT') {
-                                            $statusClass = 'bg-red-50 text-red-600 border-red-200';
-                                        } elseif ($rq->status == 'OPEN') {
+                                        if ($rq->status == 'OPEN') {
                                             $statusClass = 'bg-blue-50 text-blue-600 border-blue-200';
                                         } elseif ($rq->status == 'PROGRESS') {
                                             $statusClass = 'bg-amber-50 text-amber-600 border-amber-200';
@@ -215,9 +218,7 @@
                     $statusClass = 'bg-slate-100 text-slate-600 border-slate-200';
                     $statusName = $rq->status;
                     
-                    if ($rq->status == 'URGENT') {
-                        $statusClass = 'bg-red-50 text-red-600 border-red-200';
-                    } elseif ($rq->status == 'OPEN') {
+                    if ($rq->status == 'OPEN') {
                         $statusClass = 'bg-blue-50 text-blue-600 border-blue-200';
                     } elseif ($rq->status == 'PROGRESS') {
                         $statusClass = 'bg-amber-50 text-amber-600 border-amber-200';
@@ -229,8 +230,8 @@
                     <div class="flex justify-between items-center mb-3">
                         <div class="flex items-center gap-2">
                             <span class="bg-blue-50 text-blue-600 text-xs font-bold px-2 py-1 rounded">{{ $rq->ticket_number }}</span>
-                            <span class="bg-slate-100 text-slate-500 text-[10px] font-semibold px-2 py-1 rounded">{{ $rq->tag->name ?? '-' }}</span>
-                            <span class="bg-slate-100 text-slate-500 text-[10px] font-semibold px-2 py-1 rounded">{{ $rq->kategori->name ?? '-' }}</span>
+                            <span class="bg-slate-100 text-slate-500 text-[10px] font-semibold px-2 py-1 rounded">{{ $rq->kategoriSystem->name ?? '-' }}</span>
+                            <span class="bg-slate-100 text-slate-500 text-[10px] font-semibold px-2 py-1 rounded">{{ $rq->moduleSystem->name ?? '-' }}</span>
                         </div>
                         <span class="text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider border {{ $statusClass }}">{{ $statusName }}</span>
                     </div>
@@ -239,19 +240,19 @@
                     <div class="grid grid-cols-2 gap-y-4 gap-x-2 mt-auto text-sm border-t border-slate-100 pt-4">
                         <div>
                             <div class="text-[10px] font-semibold text-slate-400 uppercase mb-0.5">Departemen</div>
-                            <div class="font-medium text-slate-700 truncate" title="{{ $rq->user->departemen->name ?? '-' }}">{{ $rq->user->departemen->name ?? '-' }}</div>
+                            <div class="font-medium text-slate-700 truncate" title="{{ $rq->client->departemen->name ?? '-' }}">{{ $rq->client->departemen->name ?? '-' }}</div>
                         </div>
                         <div>
                             <div class="text-[10px] font-semibold text-slate-400 uppercase mb-0.5">Tipe Penanganan</div>
-                            <div class="font-medium text-slate-700 truncate" title="{{ $rq->kategori->name ?? '-' }}">{{ $rq->kategori->name ?? '-' }}</div>
+                            <div class="font-medium text-slate-700 truncate" title="{{ $rq->tipe_penanganan ?? '-' }}">{{ $rq->tipe_penanganan ?? '-' }}</div>
                         </div>
                         <div>
                             <div class="text-[10px] font-semibold text-slate-400 uppercase mb-0.5">User</div>
-                            <div class="text-slate-600 truncate" title="{{ $rq->user->name ?? '-' }}">{{ $rq->user->name ?? '-' }}</div>
+                            <div class="text-slate-600 truncate" title="{{ $rq->client->name ?? '-' }}">{{ $rq->client->name ?? '-' }}</div>
                         </div>
                         <div>
                             <div class="text-[10px] font-semibold text-slate-400 uppercase mb-0.5">Advisor</div>
-                            <div class="font-medium text-slate-700 truncate" title="{{ $rq->assignee->name ?? '-' }}">{{ $rq->assignee->name ?? '-' }}</div>
+                            <div class="font-medium text-slate-700 truncate" title="{{ $rq->advisor->name ?? '-' }}">{{ $rq->advisor->name ?? '-' }}</div>
                         </div>
                         <div>
                             <div class="text-[10px] font-semibold text-slate-400 uppercase mb-0.5">Created At</div>

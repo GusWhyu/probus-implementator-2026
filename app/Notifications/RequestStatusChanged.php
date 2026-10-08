@@ -42,8 +42,8 @@ class RequestStatusChanged extends Notification
     public function toDatabase($notifiable)
     {
         return [
-            'title' => 'Request Status Updated',
-            'message' => "The status of your request '{$this->request->judul}' has been updated to '{$this->request->status->name}'.",
+            'title' => 'Ticket Status Updated',
+            'message' => "The status of your ticket '{$this->request->title}' has been updated to '{$this->request->status}'.",
             'request_id' => $this->request->id,
             'updated_by' => auth()->user()->name,
         ];

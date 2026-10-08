@@ -9,7 +9,7 @@ class PerformanceCategory extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['name', 'weight', 'description'];
+    protected $fillable = ['name', 'bobot'];
 
     public function details()
     {

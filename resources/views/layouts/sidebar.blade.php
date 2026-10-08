@@ -44,6 +44,25 @@
             </ul>
         </div>
 
+        <div>
+            <div class="px-3 mb-3 text-[11px] font-bold text-slate-400 uppercase tracking-wider">Pengaturan</div>
+            <ul class="space-y-1">
+                <li>
+                    <a href="{{ route('soft-skill.index') }}" class="flex items-center px-3 py-2 text-sm {{ request()->routeIs('soft-skill.*') ? 'text-blue-600 bg-blue-50 font-medium' : 'text-slate-600 hover:bg-slate-50' }} rounded-lg transition-colors">
+                        <i class="fa-solid fa-gear w-5 text-center mr-2 {{ request()->routeIs('soft-skill.*') ? 'text-blue-600' : 'text-slate-400' }}"></i> 
+                        Pengaturan
+                    </a>
+                    @if(request()->routeIs('soft-skill.*'))
+                    <ul class="ml-8 mt-2 space-y-1 relative before:absolute before:left-[-13px] before:top-0 before:bottom-2 before:w-px before:bg-slate-200">
+                        <li class="relative before:absolute before:left-[-13px] before:top-1/2 before:w-3 before:h-px before:bg-slate-200">
+                            <a href="{{ route('soft-skill.index') }}" class="block px-3 py-1.5 text-xs text-blue-600 font-medium">Penilaian Soft Skill</a>
+                        </li>
+                    </ul>
+                    @endif
+                </li>
+            </ul>
+        </div>
+
         @can('aspv')
         <div>
             <div class="px-3 mb-3 text-[11px] font-bold text-slate-400 uppercase tracking-wider">Advanced Settings</div>

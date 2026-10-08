@@ -10,14 +10,20 @@
     </div>
     <div class="flex items-center gap-4">
         <!-- Notification Dropdown -->
-        <div class="dropdown dropdown-end">
-            <div tabindex="0" role="button" class="w-10 h-10 rounded-xl hover:bg-slate-100 flex items-center justify-center text-slate-500 transition-colors relative cursor-pointer">
+        <div class="relative" x-data="{ notifOpen: false }" @click.outside="notifOpen = false">
+            <div @click="notifOpen = !notifOpen" role="button" class="w-10 h-10 rounded-xl hover:bg-slate-100 flex items-center justify-center text-slate-500 transition-colors relative cursor-pointer">
                 <i class="fa-regular fa-bell text-lg"></i>
                 @if ($notifications->count() > 0)
                     <span class="absolute top-2 right-2 w-2.5 h-2.5 bg-rose-500 rounded-full border-2 border-white shadow-sm animate-pulse"></span>
                 @endif
             </div>
-            <div tabindex="0" class="dropdown-content z-[100] menu p-0 shadow-xl shadow-slate-200/50 bg-white rounded-2xl w-[340px] mt-4 border border-slate-200 overflow-hidden">
+            <div x-show="notifOpen" style="display: none;" class="absolute right-0 z-[100] flex flex-col p-0 shadow-xl shadow-slate-200/50 bg-white rounded-2xl w-[300px] sm:w-[340px] mt-4 border border-slate-200 overflow-hidden"
+                 x-transition:enter="transition ease-out duration-100"
+                 x-transition:enter-start="transform opacity-0 scale-95"
+                 x-transition:enter-end="transform opacity-100 scale-100"
+                 x-transition:leave="transition ease-in duration-75"
+                 x-transition:leave-start="transform opacity-100 scale-100"
+                 x-transition:leave-end="transform opacity-0 scale-95">
                 <div class="px-5 py-4 bg-slate-50/80 backdrop-blur-sm border-b border-slate-100 flex justify-between items-center">
                     <div class="flex items-center gap-2">
                         <h2 class="font-extrabold text-slate-800 text-sm">Notifikasi</h2>

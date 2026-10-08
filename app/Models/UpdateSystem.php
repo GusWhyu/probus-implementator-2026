@@ -34,6 +34,6 @@ class UpdateSystem extends Model
     }
 
     public function request(){
-        return $this->belongsTo(Request::class);
+        return $this->belongsTo(Ticket::class, 'request_id');
     }
 }

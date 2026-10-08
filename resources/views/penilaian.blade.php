@@ -21,24 +21,24 @@
             </div>
 
             <!-- Profile Card -->
-            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 mb-6 flex items-center justify-between gap-4">
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-6 mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div class="flex items-center gap-4">
                     <div class="w-14 h-14 rounded-full bg-gradient-to-br from-blue-400 to-indigo-600 flex items-center justify-center text-white shrink-0 shadow-md shadow-blue-500/20 ring-4 ring-blue-100 overflow-hidden">
                         <!-- Use a profile image if available, else fallback to icon -->
                         <img src="https://ui-avatars.com/api/?name={{ urlencode($user->name ?? 'Siti Rahma') }}&background=6366f1&color=fff" alt="Avatar" class="w-full h-full object-cover">
                     </div>
-                    <div>
-                        <h2 class="text-lg font-extrabold text-slate-800">{{ $user->name ?? 'Siti Rahma' }}</h2>
-                        <p class="text-sm font-medium text-slate-400">{{ $user->usertype ?? 'Customer Support' }}</p>
+                    <div class="truncate">
+                        <h2 class="text-lg font-extrabold text-slate-800 truncate">{{ $user->name ?? 'Siti Rahma' }}</h2>
+                        <p class="text-sm font-medium text-slate-400 truncate">{{ $user->usertype ?? 'Customer Support' }}</p>
                     </div>
                 </div>
-                <div class="flex items-center gap-1">
+                <div class="flex items-center gap-1 shrink-0">
                     <i class="fa-solid fa-star text-blue-500 text-lg"></i>
                     <i class="fa-solid fa-star text-blue-500 text-lg"></i>
                     <i class="fa-solid fa-star text-blue-500 text-lg"></i>
                     <i class="fa-solid fa-star text-blue-500 text-lg"></i>
                     <i class="fa-solid fa-star text-slate-200 text-lg"></i>
-                    <span class="text-sm font-medium text-slate-500 ml-3">4.0</span>
+                    <span class="text-sm font-medium text-slate-500 ml-2">4.0</span>
                 </div>
             </div>
 

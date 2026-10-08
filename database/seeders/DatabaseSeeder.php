@@ -70,9 +70,6 @@ class DatabaseSeeder extends Seeder
 
         //Status
         Status::create([
-            'name' => 'Urgent'
-        ]);
-        Status::create([
             'name' => 'Open'
         ]);
         Status::create([

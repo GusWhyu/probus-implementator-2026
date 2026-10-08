@@ -24,7 +24,7 @@ class UpdateSystemController extends Controller
     }
 
     public function createus($id){
-        $req = \App\Models\Request::find($id);
+        $req = \App\Models\Ticket::findOrFail($id);
         $kategori = Kategori::all();
         $outlet = Outlet::all();
         return view('tableus.createus', compact('kategori','outlet','req'));

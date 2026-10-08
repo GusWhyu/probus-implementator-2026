@@ -17,13 +17,11 @@ use App\Models\User;
 class HomeController extends Controller
 {
     public function index(){
-        $urgent_count = Ticket::where('status', 'URGENT')->count();
         $open_count = Ticket::where('status', 'OPEN')->count();
         $progress_count = Ticket::where('status', 'PROGRESS')->count();
         $closed_count = Ticket::where('status', 'CLOSED')->count();
         $total_count = Ticket::count();
         
-        $urgent = Ticket::where('status', 'URGENT')->latest()->take(5)->get();
         $open = Ticket::where('status', 'OPEN')->latest()->take(5)->get();
         $progress = Ticket::where('status', 'PROGRESS')->latest()->take(5)->get();
         $closed = Ticket::where('status', 'CLOSED')->latest()->take(5)->get();
@@ -31,17 +29,58 @@ class HomeController extends Controller
 
         $all_tickets = Ticket::latest()->paginate(9);
 
-        return view('dashboard', compact('urgent', 'open', 'progress', 'closed', 'us', 'urgent_count', 'open_count', 'progress_count', 'closed_count', 'total_count', 'all_tickets'));
+        // Chart Data Calculation
+        $chartLabels = [];
+        $masukData = [];
+        $selesaiData = [];
+        for ($i = 6; $i >= 0; $i--) {
+            $date = \Carbon\Carbon::now()->subDays($i);
+            $chartLabels[] = $date->translatedFormat('D');
+            $masukData[] = Ticket::whereDate('created_at', $date->toDateString())->count();
+            $selesaiData[] = Ticket::whereDate('updated_at', $date->toDateString())->where('status', 'CLOSED')->count();
+        }
+
+        $topAgents = User::whereHas('advisedTickets', function($q) {
+                $q->where('status', 'CLOSED');
+            })
+            ->withCount(['advisedTickets as closed_count' => function($q) {
+                $q->where('status', 'CLOSED');
+            }])
+            ->orderByDesc('closed_count')
+            ->take(5)->get();
+        $agentLabels = $topAgents->pluck('name')->toArray();
+        $agentData = $topAgents->pluck('closed_count')->toArray();
+
+        $topClients = User::whereHas('clientTickets')
+            ->withCount('clientTickets as ticket_count')
+            ->orderByDesc('ticket_count')
+            ->take(10)->get();
+        $clientDonutLabels = $topClients->take(4)->pluck('name')->toArray();
+        $clientDonutData = $topClients->take(4)->pluck('ticket_count')->toArray();
+        
+        $clientBarLabels = $topClients->pluck('name')->map(function($name) {
+            return wordwrap($name, 10, "\\n", true);
+        })->toArray();
+        $clientBarData = $topClients->pluck('ticket_count')->toArray();
+
+        $topModules = ModuleSystem::withCount('tickets')
+            ->orderByDesc('tickets_count')
+            ->take(7)->get();
+        $kendalaLabels = $topModules->pluck('name')->toArray();
+        $kendalaData = $topModules->pluck('tickets_count')->toArray();
+
+        return view('dashboard', compact(
+            'open', 'progress', 'closed', 'us', 'open_count', 'progress_count', 'closed_count', 'total_count', 'all_tickets',
+            'chartLabels', 'masukData', 'selesaiData', 'agentLabels', 'agentData', 'clientDonutLabels', 'clientDonutData', 'clientBarLabels', 'clientBarData', 'kendalaLabels', 'kendalaData'
+        ));
     }
 
     public function daftartiket(Request $request){
-        $urgent_count = Ticket::where('status', 'URGENT')->count();
         $open_count = Ticket::where('status', 'OPEN')->count();
         $progress_count = Ticket::where('status', 'PROGRESS')->count();
         $closed_count = Ticket::where('status', 'CLOSED')->count();
         $total_count = Ticket::count();
         
-        $urgent = Ticket::where('status', 'URGENT')->latest()->take(5)->get();
         $open = Ticket::where('status', 'OPEN')->latest()->take(5)->get();
         $progress = Ticket::where('status', 'PROGRESS')->latest()->take(5)->get();
         $closed = Ticket::where('status', 'CLOSED')->latest()->take(5)->get();
@@ -62,15 +101,11 @@ class HomeController extends Controller
         }
 
         if ($request->filled('status')) {
-            $statusStr = '';
-            if ($request->status == 1) $statusStr = 'URGENT';
-            if ($request->status == 2) $statusStr = 'OPEN';
-            if ($request->status == 3) $statusStr = 'PROGRESS';
-            if ($request->status == 4) $statusStr = 'CLOSED';
-            
-            if ($statusStr) {
-                $query->where('status', $statusStr);
-            }
+            $query->where('status', $request->status);
+        }
+
+        if ($request->filled('system')) {
+            $query->where('system', $request->system);
         }
 
         // Apply Module Filter
@@ -80,11 +115,10 @@ class HomeController extends Controller
 
         $all_tickets = $query->latest()->paginate(10)->appends(request()->query());
         
-        $statuses = \App\Models\Status::all();
-        $systems = \App\Models\Tag::all(); // keeping it for view compatibility
+        $systems = \App\Models\Kategori::all(); 
         $modules = ModuleSystem::all();
 
-        return view('daftartiket', compact('urgent', 'open', 'progress', 'closed', 'us', 'urgent_count', 'open_count', 'progress_count', 'closed_count', 'total_count', 'all_tickets', 'statuses', 'systems', 'modules'));
+        return view('daftartiket', compact('open', 'progress', 'closed', 'us', 'open_count', 'progress_count', 'closed_count', 'total_count', 'all_tickets', 'systems', 'modules'));
     }
 
     public function laporan(Request $request){
@@ -101,8 +135,8 @@ class HomeController extends Controller
         $user = User::findOrFail($id);
         
         // Count user tickets for current month
-        $tiket_ditangani = Ticket::where('assignee_id', $id)->whereMonth('created_at', date('m'))->count();
-        $tiket_selesai = Ticket::where('assignee_id', $id)->where('status', 'closed')->whereMonth('created_at', date('m'))->count();
+        $tiket_ditangani = Ticket::where('advisor_id', $id)->whereMonth('created_at', date('m'))->count();
+        $tiket_selesai = Ticket::where('advisor_id', $id)->where('status', 'closed')->whereMonth('created_at', date('m'))->count();
         
         $nilai_tiket = $tiket_ditangani > 0 ? round(($tiket_selesai / $tiket_ditangani) * 100) : 80;
 
@@ -163,7 +197,7 @@ class HomeController extends Controller
         // Insert Module Details
         $modules = ModuleSystem::all();
         foreach($modules as $mod) {
-            $count = Ticket::where('assignee_id', $id)
+            $count = Ticket::where('advisor_id', $id)
                            ->where('module_system_id', $mod->id)
                            ->whereMonth('created_at', date('m'))
                            ->count();
@@ -213,7 +247,7 @@ class HomeController extends Controller
             $query->where('module_system_id', $request->module);
         }
 
-        $open = (clone $query)->whereIn('status', ['URGENT', 'OPEN'])->latest()->get();
+        $open = (clone $query)->where('status', 'OPEN')->latest()->get();
         $progress = (clone $query)->where('status', 'PROGRESS')->latest()->get();
         $closed = (clone $query)->where('status', 'CLOSED')->latest()->get();
 

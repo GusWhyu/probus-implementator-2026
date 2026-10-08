@@ -1,26 +1,22 @@
 @php
     use Carbon\Carbon;
     Carbon::setLocale('en');
-    $rentang = Carbon::parse($datarq->start_date)->diffInDays(Carbon::parse($datarq->end_date));
     $rqid = $datarq->user_id;
     $aid = Auth::user()->id;
-    $ait = Auth::user()->tag_id;
-    $stid = $datarq->status_id;
+    // $ait = Auth::user()->tag_id; // Tag handling may need adjustment if user tags changed
+    $stid = $datarq->status;
     $ust = Auth::user()->usertype;
 
     // Status Styling
-    if ($stid == 1) {
+    if ($stid == 'CLOSED') {
         $bg = "bg-emerald-50 text-emerald-600 border-emerald-200";
-        $icon = "fa-door-open";
-    } elseif ($stid == 2) {
-        $bg = "bg-rose-50 text-rose-600 border-rose-200";
-        $icon = "fa-fire";
-    } elseif ($stid == 3) {
+        $icon = "fa-circle-check";
+    } elseif ($stid == 'PROGRESS') {
         $bg = "bg-amber-50 text-amber-600 border-amber-200";
         $icon = "fa-bars-progress";
     } else {
-        $bg = "bg-slate-50 text-slate-600 border-slate-200";
-        $icon = "fa-circle-check";
+        $bg = "bg-blue-50 text-blue-600 border-blue-200";
+        $icon = "fa-door-open";
     }
 @endphp
 
@@ -35,7 +31,7 @@
                         <i class="fa-solid fa-arrow-left"></i>
                     </a>
                     <div>
-                        <h1 class="text-2xl font-extrabold text-slate-800 tracking-tight">Detail Tiket <span class="text-blue-600">#TK-{{ $datarq->id }}</span></h1>
+                        <h1 class="text-2xl font-extrabold text-slate-800 tracking-tight">Detail Tiket <span class="text-blue-600">#{{ $datarq->ticket_number }}</span></h1>
                         <p class="text-sm text-slate-500 font-medium mt-1">Pantau deskripsi, progres, dan diskusi terkait tiket ini.</p>
                     </div>
                 </div>
@@ -65,12 +61,12 @@
                     
                     <!-- Main Ticket Detail -->
                     <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 md:p-8">
-                        <h2 class="text-2xl md:text-3xl font-extrabold text-slate-800 mb-6 leading-tight">{{ $datarq->judul }}</h2>
+                        <h2 class="text-2xl md:text-3xl font-extrabold text-slate-800 mb-6 leading-tight">{{ $datarq->title }}</h2>
                         
                         <div>
                             <h3 class="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider mb-3">Deskripsi Masalah</h3>
                             <div class="text-slate-700 text-sm font-medium leading-relaxed prose max-w-none prose-p:my-2 prose-headings:text-slate-800">
-                                {!! $datarq->deskripsi !!}
+                                {!! $datarq->description !!}
                             </div>
                         </div>
                         
@@ -93,38 +89,7 @@
                         </div>
                         @endif
                         
-                        <!-- Approval Info Details -->
-                        @if ($datarq->approval_status == 'approved' || $datarq->approval_status == 'rejected')
-                        <div class="mt-8 border-t border-slate-100 pt-8">
-                            @if ($datarq->approval_status == 'approved')
-                            <div class="bg-emerald-50 border border-emerald-100 text-emerald-800 p-5 rounded-2xl flex items-start gap-4">
-                                <div class="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-600 shrink-0 shadow-sm">
-                                    <i class="fa-solid fa-circle-check text-xl"></i>
-                                </div>
-                                <div>
-                                    <p class="font-extrabold text-sm text-emerald-900">Tiket Disetujui</p>
-                                    <p class="text-xs font-medium text-emerald-700 mt-1">Oleh: {{ $datarq->approver->name ?? 'Admin' }} — {{ $datarq->approval_date ? Carbon::parse($datarq->approval_date)->translatedFormat('l, d M Y - H:i') : '' }}</p>
-                                </div>
-                            </div>
-                            @elseif ($datarq->approval_status == 'rejected')
-                            <div class="bg-rose-50 border border-rose-100 text-rose-800 p-5 rounded-2xl flex items-start gap-4">
-                                <div class="w-10 h-10 bg-rose-100 rounded-full flex items-center justify-center text-rose-600 shrink-0 shadow-sm">
-                                    <i class="fa-solid fa-triangle-exclamation text-xl"></i>
-                                </div>
-                                <div class="flex-1">
-                                    <p class="font-extrabold text-sm text-rose-900">Tiket Ditolak</p>
-                                    <p class="text-xs font-medium text-rose-700 mt-1 mb-3">Oleh: {{ $datarq->approver->name ?? 'Admin' }} — {{ $datarq->approval_date ? Carbon::parse($datarq->approval_date)->translatedFormat('l, d M Y - H:i') : '' }}</p>
-                                    @if ($datarq->approval_note)
-                                    <div class="bg-white/60 border border-rose-100 rounded-xl p-3 text-xs font-medium text-rose-800 shadow-sm">
-                                        <span class="font-bold text-rose-900 block mb-1">Alasan Penolakan:</span>
-                                        {{ $datarq->approval_note }}
-                                    </div>
-                                    @endif
-                                </div>
-                            </div>
-                            @endif
-                        </div>
-                        @endif
+
                     </div>
 
                     <!-- Update System List -->
@@ -227,71 +192,71 @@
                 <div class="w-full lg:w-5/12 xl:w-4/12 shrink-0 space-y-6">
                     
                     <!-- Status & Meta Card -->
-                    <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 relative overflow-hidden">
+                    <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 md:p-7 relative overflow-hidden">
                         
-                        <!-- Status Header -->
-                        <div class="flex items-center justify-between mb-8 pb-6 border-b border-slate-100">
-                            <div>
-                                <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1">Tiket ID</p>
-                                <span class="text-blue-600 font-bold text-xl font-mono">TK-{{ $datarq->id }}</span>
-                            </div>
-                            <span class="px-3.5 py-1.5 rounded-xl text-xs font-extrabold uppercase tracking-wider border {{ $bg }} flex items-center gap-1.5 shadow-sm">
-                                <i class="fa-solid {{ $icon }}"></i> {{ $datarq->status->name }}
+                        <h3 class="text-sm font-extrabold text-slate-800 mb-6">Informasi Tiket</h3>
+                        
+                        <!-- Ticket ID & Status Header -->
+                        <div class="flex items-center justify-between mb-8">
+                            <span class="text-blue-500 font-bold text-lg font-mono">{{ $datarq->ticket_number }}</span>
+                            <span class="px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider {{ $bg }}">
+                                {{ $datarq->status }}
                             </span>
                         </div>
-
-                        <!-- Info Grid -->
-                        <div class="space-y-5">
-                            <div class="flex items-start gap-4">
-                                <div class="w-8 h-8 rounded-lg bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-400 shrink-0">
-                                    <i class="fa-solid fa-laptop-code text-xs"></i>
-                                </div>
-                                <div>
-                                    <div class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-0.5">System & Module</div>
-                                    <div class="font-bold text-slate-800 text-sm">{{ $datarq->tag->name }} <span class="text-slate-300 mx-1">•</span> <span class="text-blue-600">{{ $datarq->kategori->name }}</span></div>
-                                </div>
+                        
+                        <!-- SLA Countdown Banner (For OPEN Tickets) -->
+                        @if ($datarq->status == 'OPEN' && $datarq->advisor_id != null)
+                        <div class="mb-6 bg-rose-50 border border-rose-100 rounded-xl p-3.5 flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-full bg-rose-100 flex items-center justify-center text-rose-500 shrink-0">
+                                <i class="fa-solid fa-stopwatch text-sm animate-pulse"></i>
                             </div>
-                            
-                            <div class="flex items-start gap-4">
-                                <div class="w-8 h-8 rounded-lg bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-400 shrink-0">
-                                    <i class="fa-regular fa-building text-xs"></i>
-                                </div>
-                                <div>
-                                    <div class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-0.5">Client / Outlet</div>
-                                    <div class="font-bold text-slate-800 text-sm">{{ $datarq->outlet->nm_out }}</div>
-                                </div>
-                            </div>
-
-                            <div class="flex items-start gap-4">
-                                <div class="w-8 h-8 rounded-lg bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-400 shrink-0">
-                                    <i class="fa-regular fa-calendar-xmark text-xs"></i>
-                                </div>
-                                <div>
-                                    <div class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-0.5">Deadline Pengerjaan</div>
-                                    <div class="font-bold text-rose-600 text-sm">{{ Carbon::parse($datarq->end_date)->translatedFormat('d F Y') }}</div>
-                                </div>
-                            </div>
-
-                            <div class="flex items-start gap-4">
-                                <div class="w-8 h-8 rounded-lg bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-400 shrink-0">
-                                    <i class="fa-solid fa-user-tie text-xs"></i>
-                                </div>
-                                <div>
-                                    <div class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-0.5">User Reporter</div>
-                                    <div class="font-bold text-slate-800 text-sm truncate" title="{{ $datarq->user->name }}">{{ $datarq->user->name }}</div>
-                                </div>
+                            <div class="flex-1">
+                                <p class="text-[9px] font-extrabold text-rose-400 uppercase tracking-wider mb-0.5">SLA Waktu Respons</p>
+                                <p class="text-rose-600 font-bold text-sm font-mono leading-none" id="sla-countdown">--:--:--</p>
                             </div>
                         </div>
+                        @endif
 
-                        <!-- Timestamps Footer -->
-                        <div class="mt-8 pt-6 border-t border-slate-100 flex justify-between">
+                        <!-- Info Grid -->
+                        <div class="grid grid-cols-2 gap-y-6 gap-x-4">
+                            <!-- Row 1 -->
                             <div>
-                                <div class="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider mb-0.5">Created At</div>
-                                <div class="font-semibold text-slate-600 text-xs">{{ Carbon::parse($datarq->created_at)->translatedFormat('d M Y') }}</div>
+                                <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wide mb-1.5">System</p>
+                                <p class="font-bold text-slate-800 text-sm">{{ $datarq->kategoriSystem->name ?? '-' }}</p>
                             </div>
-                            <div class="text-right">
-                                <div class="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider mb-0.5">Updated At</div>
-                                <div class="font-semibold text-slate-600 text-xs">{{ Carbon::parse($datarq->updated_at)->translatedFormat('d M Y') }}</div>
+                            <div>
+                                <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wide mb-1.5">Module</p>
+                                <p class="font-bold text-slate-800 text-sm">{{ $datarq->moduleSystem->name ?? '-' }}</p>
+                            </div>
+                            
+                            <!-- Row 2 -->
+                            <div>
+                                <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wide mb-1.5">Client</p>
+                                <p class="font-bold text-slate-800 text-sm">{{ $datarq->client->nm_out ?? '-' }}</p>
+                            </div>
+                            <div>
+                                <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wide mb-1.5">Tipe Penanganan</p>
+                                <p class="font-bold text-slate-800 text-sm">{{ $datarq->tipe_penanganan ?? 'Office' }}</p>
+                            </div>
+
+                            <!-- Row 3 -->
+                            <div>
+                                <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wide mb-1.5">Reporter</p>
+                                <p class="font-bold text-slate-800 text-sm truncate" title="{{ $datarq->user->name ?? '-' }}">{{ $datarq->user->name ?? '-' }}</p>
+                            </div>
+                            <div>
+                                <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wide mb-1.5">Advisor</p>
+                                <p class="font-bold text-slate-800 text-sm truncate" title="{{ $datarq->advisor->name ?? '-' }}">{{ $datarq->advisor->name ?? '-' }}</p>
+                            </div>
+
+                            <!-- Row 4 -->
+                            <div>
+                                <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wide mb-1.5">Created At</p>
+                                <p class="font-bold text-slate-800 text-sm">{{ Carbon::parse($datarq->created_at)->format('d/m/Y') }}</p>
+                            </div>
+                            <div>
+                                <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wide mb-1.5">{{ $datarq->closed_at ? 'Closed At' : 'Updated At' }}</p>
+                                <p class="font-bold text-slate-800 text-sm">{{ Carbon::parse($datarq->closed_at ?? $datarq->updated_at)->format('d/m/Y') }}</p>
                             </div>
                         </div>
                     </div>
@@ -301,53 +266,37 @@
                         <h3 class="text-[11px] font-extrabold text-slate-800 uppercase tracking-wider mb-4 text-center">Tindakan Tiket</h3>
                         
                         <div class="grid grid-cols-1 gap-3">
-                            <!-- Button 1 (Blue) - Proses Tiket / Approve / Selesaikan -->
-                            @if (Auth::user()->usertype === 'admin' && in_array($datarq->status_id, [1, 2]))
-                                @if ($datarq->approval_status != 'approved' && $datarq->approval_status != 'rejected')
-                                    <button type="button" onclick="approve_modal.showModal()" class="w-full flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white py-3.5 rounded-xl font-bold text-sm shadow-md shadow-blue-500/20 transition-all active:scale-95 gap-2">
-                                        <i class="fa-solid fa-check-double text-blue-200"></i> Approve Tiket
-                                    </button>
-                                @else
-                                    <button disabled class="w-full flex items-center justify-center bg-slate-100 text-slate-400 py-3.5 rounded-xl font-bold text-sm transition-all cursor-not-allowed gap-2">
-                                        <i class="fa-solid fa-spinner"></i> Proses Tiket
-                                    </button>
-                                @endif
-                            @elseif ($stid != 4 && $ait == $datarq->tag_id)
-                                @if ($datarq->status_id == 1 || $datarq->status_id == 2)
-                                    <a href="/updatestatus/{{ $datarq->id }}/3" class="w-full flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white py-3.5 rounded-xl font-bold text-sm shadow-md shadow-blue-500/20 transition-all active:scale-95 gap-2">
+                            <!-- Button 1 (Blue) - Proses Tiket / Selesaikan -->
+                            @if ($stid != 'CLOSED')
+                                @if ($datarq->status == 'OPEN')
+                                    <a href="/updatestatus/{{ $datarq->id }}/PROGRESS" class="w-full flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white py-3.5 rounded-xl font-bold text-sm shadow-md shadow-blue-500/20 transition-all active:scale-95 gap-2">
                                         <i class="fa-solid fa-gears text-blue-200"></i> Proses Tiket
                                     </a>
                                 @else
-                                    <a href="/updatestatus/{{ $datarq->id }}/4" class="w-full flex items-center justify-center bg-emerald-500 hover:bg-emerald-600 text-white py-3.5 rounded-xl font-bold text-sm shadow-md shadow-emerald-500/20 transition-all active:scale-95 gap-2">
+                                    <a href="/updatestatus/{{ $datarq->id }}/CLOSED" class="w-full flex items-center justify-center bg-emerald-500 hover:bg-emerald-600 text-white py-3.5 rounded-xl font-bold text-sm shadow-md shadow-emerald-500/20 transition-all active:scale-95 gap-2">
                                         <i class="fa-solid fa-check text-emerald-100"></i> Selesaikan Tiket
                                     </a>
                                 @endif
                             @else
                                 <button disabled class="w-full flex items-center justify-center bg-slate-100 text-slate-400 py-3.5 rounded-xl font-bold text-sm transition-all cursor-not-allowed gap-2">
-                                    <i class="fa-solid fa-gears"></i> Proses Tiket
+                                    <i class="fa-solid fa-check-circle"></i> Tiket Selesai
                                 </button>
                             @endif
 
-                            <div class="grid grid-cols-2 gap-3">
-                                <!-- Button 2 (Orange) - Alihkan/Ambil Alih / Reject -->
-                                @if (Auth::user()->usertype === 'admin' && in_array($datarq->status_id, [1, 2]) && $datarq->approval_status != 'rejected')
-                                    <button type="button" onclick="reject_modal.showModal()" class="w-full flex flex-col items-center justify-center bg-rose-50 text-rose-600 hover:bg-rose-500 hover:text-white border border-rose-200 py-3 rounded-xl font-bold text-xs shadow-sm transition-all active:scale-95 gap-1">
-                                        <i class="fa-solid fa-ban text-sm"></i> Tolak Tiket
-                                    </button>
-                                @else
-                                    <button type="button" class="w-full flex flex-col items-center justify-center bg-amber-50 text-amber-600 hover:bg-amber-500 hover:text-white border border-amber-200 py-3 rounded-xl font-bold text-xs shadow-sm transition-all active:scale-95 gap-1 text-center">
-                                        <i class="fa-solid fa-right-left text-sm"></i> Alihkan/Ambil
-                                    </button>
-                                @endif
+                            <div class="grid grid-cols-2 gap-3 mt-1">
+                                <!-- Button 2 (Orange) - Alihkan/Ambil Alih -->
+                                <button type="button" class="w-full flex flex-col items-center justify-center bg-amber-50 text-amber-600 hover:bg-amber-500 hover:text-white border border-amber-200 py-3 rounded-xl font-bold text-xs shadow-sm transition-all active:scale-95 gap-1 text-center">
+                                    <i class="fa-solid fa-right-left text-sm"></i> Alihkan/Ambil
+                                </button>
 
                                 <!-- Button 3 (Green) - Buat Request (Update System) -->
-                                @if ($stid == 3 && $datarq->user_id != $aid && $ait == $datarq->tag_id)
+                                @if ($stid == 'PROGRESS' && $datarq->user_id != $aid)
                                     <a href="/createus/{{ $datarq->id }}" class="w-full flex flex-col items-center justify-center bg-emerald-50 text-emerald-600 hover:bg-emerald-500 hover:text-white border border-emerald-200 py-3 rounded-xl font-bold text-xs shadow-sm transition-all active:scale-95 gap-1 text-center">
-                                        <i class="fa-solid fa-laptop-medical text-sm"></i> Buat Request
+                                        <i class="fa-solid fa-laptop-medical text-sm"></i> Buat Update Sys
                                     </a>
                                 @else
-                                    <button type="button" class="w-full flex flex-col items-center justify-center bg-emerald-50 text-emerald-600 hover:bg-emerald-500 hover:text-white border border-emerald-200 py-3 rounded-xl font-bold text-xs shadow-sm transition-all active:scale-95 gap-1 text-center">
-                                        <i class="fa-solid fa-laptop-medical text-sm"></i> Buat Request
+                                    <button disabled type="button" class="w-full flex flex-col items-center justify-center bg-slate-50 text-slate-400 border border-slate-200 py-3 rounded-xl font-bold text-xs transition-all cursor-not-allowed gap-1 text-center">
+                                        <i class="fa-solid fa-laptop-medical text-sm"></i> Buat Update Sys
                                     </button>
                                 @endif
                             </div>
@@ -372,48 +321,7 @@
         <form method="dialog" class="modal-backdrop bg-slate-900/80 backdrop-blur-sm"><button>close</button></form>
     </dialog>
 
-    @if (Auth::user()->usertype === 'admin' && in_array($datarq->status_id, [1, 2]))
-    <dialog id="approve_modal" class="modal">
-        <div class="modal-box rounded-3xl max-w-md bg-white p-8">
-            <form method="dialog"><button class="btn btn-sm btn-circle btn-ghost absolute right-4 top-4 text-slate-400">✕</button></form>
-            <div class="flex items-center justify-center mb-6">
-                <div class="w-20 h-20 rounded-full bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-500 shrink-0">
-                    <i class="fa-solid fa-check-double text-4xl"></i>
-                </div>
-            </div>
-            <h3 class="font-extrabold text-2xl text-slate-800 text-center mb-2">Setujui Request</h3>
-            <p class="text-sm font-medium text-slate-500 text-center mb-8 px-4">Apakah Anda yakin ingin menyetujui tiket ini? Tiket akan diproses ke tahap selanjutnya oleh tim terkait.</p>
-            <form action="/request/{{ $datarq->id }}/approve" method="POST" class="flex gap-4 justify-center">
-                @csrf
-                <button type="button" onclick="approve_modal.close()" class="px-6 py-3 w-1/2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-sm transition-colors text-center">Batal</button>
-                <button type="submit" class="px-6 py-3 w-1/2 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-xl text-sm transition-colors shadow-md shadow-emerald-500/20 text-center">Ya, Setujui</button>
-            </form>
-        </div>
-        <form method="dialog" class="modal-backdrop bg-slate-900/60 backdrop-blur-sm"><button>close</button></form>
-    </dialog>
 
-    <dialog id="reject_modal" class="modal">
-        <div class="modal-box rounded-3xl max-w-md bg-white p-8">
-            <form method="dialog"><button class="btn btn-sm btn-circle btn-ghost absolute right-4 top-4 text-slate-400">✕</button></form>
-            <div class="flex items-center justify-center mb-6">
-                <div class="w-20 h-20 rounded-full bg-rose-50 border border-rose-100 flex items-center justify-center text-rose-500 shrink-0">
-                    <i class="fa-solid fa-triangle-exclamation text-4xl"></i>
-                </div>
-            </div>
-            <h3 class="font-extrabold text-2xl text-slate-800 text-center mb-2">Tolak Request</h3>
-            <p class="text-sm font-medium text-slate-500 text-center mb-6">Silakan masukkan alasan yang jelas mengenai penolakan tiket ini:</p>
-            <form action="/request/{{ $datarq->id }}/reject" method="POST">
-                @csrf
-                <textarea name="reason" rows="3" class="w-full p-4 border border-slate-200 bg-slate-50 rounded-2xl focus:outline-none focus:border-rose-500 focus:ring-4 focus:ring-rose-500/10 mb-6 text-sm font-medium text-slate-700 transition-all" placeholder="Tuliskan alasan penolakan di sini..." required></textarea>
-                <div class="flex gap-4 justify-center">
-                    <button type="button" onclick="reject_modal.close()" class="px-6 py-3 w-1/2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-sm transition-colors text-center">Batal</button>
-                    <button type="submit" class="px-6 py-3 w-1/2 bg-rose-500 hover:bg-rose-600 text-white font-bold rounded-xl text-sm transition-colors shadow-md shadow-rose-500/20 text-center">Tolak Tiket</button>
-                </div>
-            </form>
-        </div>
-        <form method="dialog" class="modal-backdrop bg-slate-900/60 backdrop-blur-sm"><button>close</button></form>
-    </dialog>
-    @endif
 
     <script>
         document.querySelectorAll('.image-container img').forEach(image =>{
@@ -449,4 +357,37 @@
         .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 20px; }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background-color: #94a3b8; }
     </style>
+
+    <!-- SLA Timer Script -->
+    @if ($datarq->status == 'OPEN' && $datarq->advisor_id != null)
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Get creation time and add 1 hour
+            const createdAt = new Date("{{ Carbon::parse($datarq->created_at)->toISOString() }}").getTime();
+            const slaDeadline = createdAt + (60 * 60 * 1000); // 1 hour in ms
+            const countdownEl = document.getElementById('sla-countdown');
+            
+            const timer = setInterval(function() {
+                const now = new Date().getTime();
+                const distance = slaDeadline - now;
+                
+                if (distance < 0) {
+                    clearInterval(timer);
+                    countdownEl.textContent = "WAKTU HABIS!";
+                    countdownEl.classList.add('text-rose-600', 'animate-bounce');
+                    countdownEl.parentElement.parentElement.classList.replace('bg-rose-50', 'bg-rose-100');
+                    return;
+                }
+                
+                // Calculate minutes and seconds
+                const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+                
+                countdownEl.textContent = 
+                    String(minutes).padStart(2, '0') + "m : " + 
+                    String(seconds).padStart(2, '0') + "s";
+            }, 1000);
+        });
+    </script>
+    @endif
 </x-app-layout>

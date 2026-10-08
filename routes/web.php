@@ -145,5 +145,14 @@ Route::get('/demo-tiket', function () {
     return view('demo_tiket');
 });
 
+// Settings -> Penilaian Soft Skill
+Route::middleware(['auth'])->group(function () {
+    Route::get('/pengaturan/soft-skill', [\App\Http\Controllers\PerformanceCategoryController::class, 'index'])->name('soft-skill.index');
+    Route::get('/pengaturan/soft-skill/create', [\App\Http\Controllers\PerformanceCategoryController::class, 'create'])->name('soft-skill.create');
+    Route::post('/pengaturan/soft-skill', [\App\Http\Controllers\PerformanceCategoryController::class, 'store'])->name('soft-skill.store');
+    Route::put('/pengaturan/soft-skill/{id}', [\App\Http\Controllers\PerformanceCategoryController::class, 'update'])->name('soft-skill.update');
+    Route::delete('/pengaturan/soft-skill/{id}', [\App\Http\Controllers\PerformanceCategoryController::class, 'destroy'])->name('soft-skill.destroy');
+});
+
 require __DIR__.'/auth.php';
 

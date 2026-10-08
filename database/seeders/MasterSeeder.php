@@ -18,14 +18,21 @@ class MasterSeeder extends Seeder
         Ticket::truncate();
         PerformanceCategory::truncate();
         ModuleSystem::truncate();
+        \App\Models\DataImage::truncate();
+        \App\Models\Komentar::truncate();
+        \App\Models\UpdateSystem::truncate();
+        \App\Models\RequestLog::truncate();
 
         // 1. Module Systems
         $modules = [
-            ['name' => 'Front Office (FO)', 'description' => 'Modul Resepsionis & Reservasi'],
-            ['name' => 'Point of Sales (POS)', 'description' => 'Modul Kasir & Resto'],
-            ['name' => 'Accounting', 'description' => 'Modul Keuangan & Akuntansi'],
-            ['name' => 'Inventory', 'description' => 'Modul Gudang & Stok'],
-            ['name' => 'HRIS', 'description' => 'Modul Kepegawaian & Payroll'],
+            ['name' => 'FO', 'description' => 'Front Office'],
+            ['name' => 'POS', 'description' => 'Point of Sales'],
+            ['name' => 'STORE', 'description' => 'Store / Gudang'],
+            ['name' => 'Cost Control', 'description' => 'Cost Control'],
+            ['name' => 'Accounting', 'description' => 'Keuangan & Akuntansi'],
+            ['name' => 'Ezzy', 'description' => 'Ezzy'],
+            ['name' => 'PR/PO Online', 'description' => 'Purchasing Online'],
+            ['name' => 'OT', 'description' => 'Overtime'],
         ];
         foreach ($modules as $m) {
             ModuleSystem::create($m);
@@ -33,11 +40,13 @@ class MasterSeeder extends Seeder
 
         // 2. Performance Categories
         $categories = [
-            ['name' => 'Produktivitas & Resolusi Tiket', 'weight' => 30.00, 'description' => 'Kuantitas penyelesaian masalah'],
-            ['name' => 'Kualitas Solusi', 'weight' => 20.00, 'description' => 'Ketepatan pemecahan masalah'],
-            ['name' => 'Kecepatan Respon', 'weight' => 20.00, 'description' => 'Waktu tanggap terhadap keluhan'],
-            ['name' => 'Sikap & Komunikasi', 'weight' => 15.00, 'description' => 'Etika pelayanan'],
-            ['name' => 'Kepuasan Klien (Survey)', 'weight' => 15.00, 'description' => 'Rating dari pengguna langsung'],
+            ['name' => 'Jujur', 'weight' => 0.00, 'description' => 'Kejujuran dan integritas'],
+            ['name' => 'Tanggung Jawab', 'weight' => 0.00, 'description' => 'Tanggung jawab terhadap tugas'],
+            ['name' => 'Visioner', 'weight' => 0.00, 'description' => 'Kemampuan berinovasi dan berpikir maju'],
+            ['name' => 'Disiplin', 'weight' => 0.00, 'description' => 'Ketaatan aturan dan kedisiplinan'],
+            ['name' => 'Kerjasama', 'weight' => 0.00, 'description' => 'Bekerja sama dalam tim'],
+            ['name' => 'Adil', 'weight' => 0.00, 'description' => 'Bersikap objektif dan tidak memihak'],
+            ['name' => 'Peduli', 'weight' => 0.00, 'description' => 'Kepedulian dan empati'],
         ];
         foreach ($categories as $c) {
             PerformanceCategory::create($c);
@@ -45,23 +54,39 @@ class MasterSeeder extends Seeder
 
         // 3. Dummy Tickets
         $users = [3, 4, 6, 9]; // CS Users
-        $statuses = ['OPEN', 'PROGRESS', 'CLOSED', 'URGENT'];
+        $statuses = ['OPEN', 'PROGRESS', 'CLOSED'];
         $mod_ids = ModuleSystem::pluck('id')->toArray();
+        $sys_ids = \App\Models\Kategori::pluck('id')->toArray();
+        
+        $titles = [
+            'Tidak bisa login ke sistem',
+            'Data laporan tidak sinkron',
+            'Printer kasir tidak merespon',
+            'Fitur ekspor Excel error',
+            'Sistem terasa lambat saat jam sibuk',
+            'Lupa password akun administrator',
+            'Error 500 saat simpan data',
+            'Tampilan modul rusak di mobile',
+            'Request penambahan hak akses',
+            'Gagal cetak struk pembayaran'
+        ];
 
         for ($i = 0; $i < 30; $i++) {
-            $created_at = Carbon::now()->subDays(rand(0, 30));
+            $created_at = Carbon::now()->subDays(rand(0, 30))->subHours(rand(0, 23));
             $status = $statuses[array_rand($statuses)];
+            $tipe = ['Remote', 'On Site', 'Office', 'Piket'];
             
             Ticket::create([
                 'ticket_number' => 'TCK-' . date('Ym') . '-' . str_pad($i + 1, 4, '0', STR_PAD_LEFT),
-                'title' => 'Permasalahan error ' . Str::random(4),
-                'description' => 'Terdapat kendala dari pihak klien. Segera ditangani.',
+                'title' => $titles[array_rand($titles)] . ' - ' . Str::random(3),
+                'description' => 'Mohon bantuannya, saat ini pengguna melaporkan kendala pada modul terkait. Detail lebih lanjut akan disampaikan via remote atau telepon. Harap segera dicek karena mengganggu operasional.',
                 'status' => $status,
-                'priority' => ($status == 'URGENT') ? 'High' : 'Normal',
-                'tipe_penanganan' => 'Remote',
+                'tipe_penanganan' => $tipe[array_rand($tipe)],
                 'user_id' => 2, // Dummy client
-                'assignee_id' => $users[array_rand($users)], // CS
-                'module_system_id' => $mod_ids[array_rand($mod_ids)],
+                'advisor_id' => $users[array_rand($users)], // CS
+                'module_system_id' => empty($mod_ids) ? null : $mod_ids[array_rand($mod_ids)],
+                'system' => empty($sys_ids) ? null : $sys_ids[array_rand($sys_ids)],
+                'link_id' => Str::random(10),
                 'due_date' => $created_at->copy()->addDays(2),
                 'closed_at' => ($status == 'CLOSED') ? $created_at->copy()->addHours(rand(1, 48)) : null,
                 'created_at' => $created_at,

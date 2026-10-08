@@ -11,7 +11,7 @@ class ModulController extends Controller
         $title = 'Hapus Modul!';
         $text = 'Apakah Anda yakin ingin menghapus data ini?';
         confirmDelete($title, $text);
-        $moduls = \App\Models\Modul::all();
+        $moduls = \App\Models\ModuleSystem::all();
         return view('modul.index', compact('moduls'));
     }
 
@@ -22,15 +22,15 @@ class ModulController extends Controller
 
     public function edit($id){
         $this->authorize('aspv');
-        $data = \App\Models\Modul::find($id);
+        $data = \App\Models\ModuleSystem::find($id);
         return view('modul.edit', compact('data'));
     }
 
     public function store(Request $request){
         $this->authorize('aspv');
-        $modul = new \App\Models\Modul;
+        $modul = new \App\Models\ModuleSystem;
         $request->validate([
-            'name'=>'required|max:255|unique:modul,name',
+            'name'=>'required|max:255|unique:module_systems,name',
             'bobot_poin'=>'required|integer'
         ]);
         $modul->name = $request->input('name');
@@ -42,9 +42,9 @@ class ModulController extends Controller
 
     public function update(Request $request,$id){
         $this->authorize('aspv');
-        $data = \App\Models\Modul::find($id);
+        $data = \App\Models\ModuleSystem::find($id);
         $request->validate([
-            'name'=>'required|max:255|unique:modul,name,'.$id,
+            'name'=>'required|max:255|unique:module_systems,name,'.$id,
             'bobot_poin'=>'required|integer'
         ]);
         $data->update([
@@ -57,7 +57,7 @@ class ModulController extends Controller
 
     public function delete($id){
         $this->authorize('aspv');
-        $data = \App\Models\Modul::find($id);
+        $data = \App\Models\ModuleSystem::find($id);
         $data->delete();
         \RealRashid\SweetAlert\Facades\Alert::success('Berhasil Menghapus Data!');
         return redirect('/modul');

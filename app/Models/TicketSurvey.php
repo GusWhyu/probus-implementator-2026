@@ -9,7 +9,9 @@ class TicketSurvey extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['ticket_id', 'rating', 'feedback', 'submitted_at'];
+    public const UPDATED_AT = null;
+
+    protected $fillable = ['ticket_id', 'rating', 'feedback'];
 
     public function ticket()
     {

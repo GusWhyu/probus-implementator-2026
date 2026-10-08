@@ -9,6 +9,8 @@ class TicketLog extends Model
 {
     use HasFactory;
 
+    public const UPDATED_AT = null;
+
     protected $fillable = ['ticket_id', 'user_id', 'action', 'description'];
 
     public function ticket()
