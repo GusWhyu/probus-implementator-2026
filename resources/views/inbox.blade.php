@@ -27,6 +27,17 @@
                 </a>
             </div>
         </form>
+
+        @if ($pendingTakeovers->count() > 0)
+        <!-- Pending Take Over Banner -->
+        <button type="button" onclick="document.getElementById('modal_takeover_list').showModal()" class="w-full bg-white border border-amber-200 rounded-xl p-4 mb-4 flex items-center justify-between hover:border-amber-300 hover:shadow-sm transition-all text-left shrink-0">
+            <span class="font-extrabold text-slate-800 text-sm">Request Pengalihan Ticket</span>
+            <div class="flex gap-3">
+                <span class="bg-blue-100/50 text-blue-600 font-bold px-2 py-0.5 rounded border border-blue-200/50 text-xs">{{ $pendingTakeovers->count() }}</span>
+                <span class="bg-amber-50 text-amber-600 font-bold px-2.5 py-0.5 rounded text-[10px] tracking-wider border border-amber-100">PENDING</span>
+            </div>
+        </button>
+        @endif
         
             <!-- Kanban Board -->
         <div class="flex-1 min-h-0 w-full pb-2">
@@ -189,4 +200,120 @@
             </div>
         </div>
     </div>
+
+    @if ($pendingTakeovers->count() > 0)
+    <!-- Modal for Takeover list -->
+    <dialog id="modal_takeover_list" class="modal">
+        <div class="modal-box w-11/12 max-w-2xl rounded-3xl p-6 md:p-8 bg-slate-100/95 backdrop-blur-md border border-white shadow-2xl">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="font-extrabold text-xl text-slate-800">Request Pengalihan Ticket</h3>
+                <button type="button" class="w-8 h-8 rounded-xl bg-white flex items-center justify-center text-slate-400 hover:bg-slate-200 shadow-sm border border-slate-200 transition-colors" onclick="document.getElementById('modal_takeover_list').close()">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            
+            <div class="flex flex-col gap-4 max-h-[65vh] overflow-y-auto custom-scrollbar p-1">
+                @foreach($pendingTakeovers as $rq)
+                <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm flex flex-col relative">
+                    <div class="flex justify-between items-center mb-4">
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <span class="bg-blue-50 text-blue-600 text-[11px] font-bold px-2.5 py-1.5 rounded-md">{{ $rq->ticket_number }}</span>
+                            <span class="bg-slate-100 text-slate-500 text-[10px] font-semibold px-2.5 py-1.5 rounded-md">{{ $rq->kategoriSystem->name ?? '-' }}</span>
+                            <span class="bg-slate-100 text-slate-500 text-[10px] font-semibold px-2.5 py-1.5 rounded-md">{{ $rq->moduleSystem->name ?? '-' }}</span>
+                        </div>
+                        <span class="text-orange-500 text-[10px] font-bold px-3 py-1.5 rounded-full uppercase tracking-wider shrink-0">{{ $rq->status }}</span>
+                    </div>
+                    <h3 class="font-extrabold text-slate-800 text-lg mb-5 leading-snug">{{ $rq->title }}</h3>
+                    
+                    <div class="grid grid-cols-2 gap-y-5 gap-x-4 mb-6">
+                        <div>
+                            <div class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Client</div>
+                            <div class="text-sm font-extrabold text-slate-800 truncate">{{ $rq->client->nm_out ?? '-' }}</div>
+                        </div>
+                        <div>
+                            <div class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Tipe Penanganan</div>
+                            <div class="text-sm font-extrabold text-slate-800 truncate">{{ $rq->tipe_penanganan ?? '-' }}</div>
+                        </div>
+                        <div>
+                            <div class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">User</div>
+                            <div class="text-sm font-medium text-slate-600 truncate">{{ $rq->user->name ?? '-' }}</div>
+                        </div>
+                        <div>
+                            <div class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Advisor</div>
+                            <div class="text-sm font-extrabold text-slate-800 truncate">{{ $rq->advisor->name ?? '-' }}</div>
+                        </div>
+                        <div>
+                            <div class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Created At</div>
+                            <div class="text-sm font-bold text-slate-800">{{ $rq->created_at ? $rq->created_at->format('d/m/Y') : '-' }}</div>
+                        </div>
+                        <div>
+                            <div class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Closed At</div>
+                            <div class="text-sm font-bold text-slate-800">{{ $rq->closed_at ? $rq->closed_at->format('d/m/Y') : '--/--/----' }}</div>
+                        </div>
+                    </div>
+                    
+                    @if($rq->pending_advisor_at)
+                    <div class="mb-5 bg-amber-50/50 rounded-xl p-3.5 border border-amber-100 flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-full bg-white flex items-center justify-center text-amber-500 shadow-sm shrink-0">
+                            <i class="fa-regular fa-clock"></i>
+                        </div>
+                        <div class="flex-1">
+                            <p class="text-[9px] font-bold text-amber-600/70 uppercase tracking-widest mb-0.5">Batas Waktu Persetujuan</p>
+                            <p class="text-sm font-extrabold text-amber-600 tracking-wider" id="countdown-{{ $rq->id }}">--:--</p>
+                        </div>
+                    </div>
+                    @endif
+
+                    <div class="grid grid-cols-2 gap-3 mt-auto">
+                        <form action="{{ route('ticket.takeover.reject', $rq->id) }}" method="POST" class="w-full">
+                            @csrf
+                            <button type="submit" class="w-full py-3 bg-white text-slate-500 font-bold text-xs rounded-xl border border-slate-200 hover:bg-slate-50 hover:text-slate-800 transition-all shadow-sm uppercase tracking-widest">Tolak</button>
+                        </form>
+                        <form action="{{ route('ticket.takeover.accept', $rq->id) }}" method="POST" class="w-full">
+                            @csrf
+                            <button type="submit" class="w-full py-3 bg-blue-600 text-white font-bold text-xs rounded-xl hover:bg-blue-700 transition-all shadow-sm shadow-blue-500/30 uppercase tracking-widest">Terima</button>
+                        </form>
+                    </div>
+                </div>
+                @endforeach
+            </div>
+        </div>
+        <form method="dialog" class="modal-backdrop bg-slate-900/60 backdrop-blur-sm"><button>close</button></form>
+    </dialog>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            @foreach($pendingTakeovers as $rq)
+                @if($rq->pending_advisor_at)
+                (function() {
+                    const el = document.getElementById('countdown-{{ $rq->id }}');
+                    if(!el) return;
+                    
+                    // Add 60 minutes to pending_advisor_at
+                    const expireAt = new Date("{{ \Carbon\Carbon::parse($rq->pending_advisor_at)->toISOString() }}").getTime() + (60 * 60 * 1000);
+                    
+                    const interval = setInterval(function() {
+                        const now = new Date().getTime();
+                        const distance = expireAt - now;
+                        
+                        if (distance <= 0) {
+                            clearInterval(interval);
+                            el.innerHTML = "WAKTU HABIS";
+                            el.classList.add('text-rose-600');
+                            el.classList.remove('text-amber-600');
+                            setTimeout(() => window.location.reload(), 2000);
+                            return;
+                        }
+                        
+                        const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                        const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+                        
+                        el.innerHTML = minutes.toString().padStart(2, '0') + ":" + seconds.toString().padStart(2, '0');
+                    }, 1000);
+                })();
+                @endif
+            @endforeach
+        });
+    </script>
+    @endif
 </x-app-layout>

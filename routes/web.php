@@ -53,6 +53,7 @@ Route::post('/createrq',[RequestController::class, 'store'])->middleware(['auth'
 Route::post('/editrq/{id}', [RequestController::class, 'updaterq'])->middleware(['auth'])->name('updaterq');
 Route::get('/deleteimg/{img}', [RequestController::class, 'deleteimg'])->middleware(['auth'])->name('deleteimg');
 Route::get('/updatestatus/{id}/{stid}',[RequestController::class, 'updatestatus'])->middleware(['auth'])->name('updatestatus');
+Route::post('/updatestatus-with-advisor/{id}/{stid}',[RequestController::class, 'updatestatusWithAdvisor'])->middleware(['auth'])->name('updatestatus.advisor');
 Route::post('/komentar/{id}', [RequestController::class, 'komentar'])->middleware(['auth'])->name('komentar');
 Route::delete('/deletekomen/{id}',[RequestController::class, 'deletekomen'])->middleware(['auth'])->name('deletekomen');
 Route::delete('/deletereq/{id}',[RequestController::class, 'delete'])->middleware(['auth'])->name('deletereq');
@@ -156,6 +157,10 @@ Route::middleware(['auth'])->group(function () {
     Route::put('/pengaturan/soft-skill/{id}', [\App\Http\Controllers\PerformanceCategoryController::class, 'update'])->name('soft-skill.update');
     Route::delete('/pengaturan/soft-skill/{id}', [\App\Http\Controllers\PerformanceCategoryController::class, 'destroy'])->name('soft-skill.destroy');
 });
+
+// Review Routes (Public)
+Route::get('/review/{ticket_number}', [\App\Http\Controllers\ReviewController::class, 'show'])->name('review.show');
+Route::post('/review/{ticket_number}', [\App\Http\Controllers\ReviewController::class, 'store'])->name('review.store');
 
 require __DIR__.'/auth.php';
 

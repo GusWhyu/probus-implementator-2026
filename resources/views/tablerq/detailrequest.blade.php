@@ -89,6 +89,36 @@
                         </div>
                         @endif
                         
+                        <!-- Review Pelanggan -->
+                        @if ($datarq->status == 'CLOSED')
+                        <div class="bg-blue-50/40 rounded-3xl border border-blue-100 shadow-sm p-6 md:p-8 mt-6">
+                            <div class="flex items-center gap-2 mb-3">
+                                <i class="fa-regular fa-star text-amber-500 text-lg"></i>
+                                <h3 class="text-base font-extrabold text-slate-800">Review Pelanggan</h3>
+                            </div>
+                            <p class="text-[13px] font-medium text-slate-500 mb-6 leading-relaxed">
+                                Tiket telah selesai. Bagikan link berikut kepada client untuk memberikan penilaian terhadap pelayanan CS.
+                            </p>
+                            
+                            <div class="bg-white rounded-2xl border border-slate-200 p-2 flex flex-col sm:flex-row items-center gap-3 shadow-sm">
+                                <div class="flex items-center gap-3 px-3 w-full sm:w-auto flex-1 overflow-hidden">
+                                    <i class="fa-solid fa-link text-blue-500"></i>
+                                    <span class="text-[13px] font-medium text-blue-600 truncate" id="review-link">{{ url('/review/' . $datarq->ticket_number) }}</span>
+                                </div>
+                                <div class="flex gap-2 w-full sm:w-auto shrink-0 mt-2 sm:mt-0">
+                                    <button type="button" onclick="navigator.clipboard.writeText('{{ url('/review/' . $datarq->ticket_number) }}'); alert('Link berhasil disalin!')" class="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 text-white font-bold text-xs rounded-xl hover:bg-blue-700 transition-all shadow-sm shadow-blue-500/20 active:scale-95">
+                                        <i class="fa-regular fa-copy"></i> Salin Link
+                                    </button>
+                                    <a href="{{ url('/review/' . $datarq->ticket_number) }}" target="_blank" class="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 bg-white text-blue-600 font-bold text-xs rounded-xl hover:bg-blue-50 border border-blue-200 transition-all active:scale-95">
+                                        Buka Review
+                                    </a>
+                                </div>
+                            </div>
+                            <p class="text-[10px] font-bold text-blue-500 flex items-center gap-1.5 mt-4">
+                                <i class="fa-solid fa-circle-info"></i> Link ini akan kedaluwarsa dalam 1 hari. Review hanya bisa dilakukan 1 kali.
+                            </p>
+                        </div>
+                        @endif
 
                     </div>
 
@@ -291,9 +321,15 @@
                                         <i class="fa-solid fa-gears text-blue-200"></i> Proses Tiket
                                     </a>
                                 @else
-                                    <a href="/updatestatus/{{ $datarq->id }}/CLOSED" class="w-full flex items-center justify-center bg-emerald-500 hover:bg-emerald-600 text-white py-3.5 rounded-xl font-bold text-sm shadow-md shadow-emerald-500/20 transition-all active:scale-95 gap-2">
-                                        <i class="fa-solid fa-check text-emerald-100"></i> Selesaikan Tiket
-                                    </a>
+                                    @if(is_null($datarq->advisor_id))
+                                        <button type="button" onclick="document.getElementById('forceAdvisorModal').showModal()" class="w-full flex items-center justify-center bg-emerald-500 hover:bg-emerald-600 text-white py-3.5 rounded-xl font-bold text-sm shadow-md shadow-emerald-500/20 transition-all active:scale-95 gap-2">
+                                            <i class="fa-solid fa-check text-emerald-100"></i> Selesaikan Tiket
+                                        </button>
+                                    @else
+                                        <button type="button" onclick="document.getElementById('confirmCloseModal').showModal()" class="w-full flex items-center justify-center bg-emerald-500 hover:bg-emerald-600 text-white py-3.5 rounded-xl font-bold text-sm shadow-md shadow-emerald-500/20 transition-all active:scale-95 gap-2">
+                                            <i class="fa-solid fa-check text-emerald-100"></i> Selesaikan Tiket
+                                        </button>
+                                    @endif
                                 @endif
                             @else
                                 <button disabled class="w-full flex items-center justify-center bg-slate-100 text-slate-400 py-3.5 rounded-xl font-bold text-sm transition-all cursor-not-allowed gap-2">
@@ -327,26 +363,149 @@
         </div>
     </div>
 
-    <!-- Modals -->
     <dialog id="takeOverModal" class="modal">
-        <div class="modal-box w-11/12 max-w-sm rounded-3xl p-6">
-            <h3 class="font-extrabold text-lg text-slate-800 mb-4">Alihkan Tiket</h3>
+        <div class="modal-box w-11/12 max-w-md rounded-3xl p-6 md:p-8 bg-white">
             <form action="{{ route('ticket.takeover', $datarq->id) }}" method="POST">
                 @csrf
-                <div class="mb-6">
-                    <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wide mb-2">Pilih Advisor Tujuan</label>
-                    <select name="target_advisor_id" class="w-full bg-slate-50 border border-slate-200 text-slate-800 text-sm rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white p-3.5 outline-none font-medium" required>
-                        <option value="" disabled selected>Pilih advisor...</option>
-                        @foreach(\App\Models\User::where('id', '!=', $datarq->advisor_id)->whereIn('usertype', ['admin', 'supervisor', 'user'])->get() as $adv)
-                            <option value="{{ $adv->id }}">{{ $adv->name }} ({{ ucfirst($adv->usertype) }})</option>
-                        @endforeach
-                    </select>
+                <!-- Header -->
+                <div class="flex justify-between items-start mb-4">
+                    <div>
+                        <h3 class="font-extrabold text-[17px] text-slate-800 mb-1">Alihkan / Ambil Alih Tiket</h3>
+                        <p class="text-[11px] text-slate-500 font-medium">Pilih tindakan untuk mengubah penanggung jawab tiket ini.</p>
+                    </div>
+                    <button type="button" class="w-8 h-8 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 hover:bg-slate-200 border border-slate-100 transition-colors" onclick="takeOverModal.close()">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
                 </div>
-                <div class="flex justify-end gap-3">
-                    <button type="button" class="px-5 py-2.5 bg-slate-100 text-slate-600 font-bold text-xs rounded-xl hover:bg-slate-200 transition-colors" onclick="takeOverModal.close()">Batal</button>
-                    <button type="submit" class="px-5 py-2.5 bg-blue-600 text-white font-bold text-xs rounded-xl hover:bg-blue-700 transition-colors shadow-sm shadow-blue-500/20">Alihkan</button>
+
+                <!-- Tabs -->
+                <div class="flex p-1 bg-slate-50 rounded-xl mb-6 border border-slate-100">
+                    <button type="button" id="tab-alihkan" onclick="switchTakeoverTab('alihkan')" class="flex-1 py-2 text-xs font-bold rounded-lg bg-blue-50 text-blue-600 shadow-sm border border-blue-100 transition-all text-center">Alihkan</button>
+                    <button type="button" id="tab-ambil" onclick="switchTakeoverTab('ambil')" class="flex-1 py-2 text-xs font-bold rounded-lg text-slate-500 hover:text-slate-700 transition-all text-center">Ambil Alih</button>
+                </div>
+
+                <!-- Info Tiket -->
+                <div class="mb-5">
+                    <p class="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest mb-2.5">Informasi Tiket</p>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="bg-slate-50/50 rounded-2xl p-3.5 border border-slate-100/80">
+                            <p class="text-[9px] font-bold text-slate-500 uppercase tracking-widest mb-1">Tiket</p>
+                            <p class="font-extrabold text-slate-800 text-sm">{{ $datarq->ticket_number }}</p>
+                        </div>
+                        <div class="bg-slate-50/50 rounded-2xl p-3.5 border border-slate-100/80">
+                            <p class="text-[9px] font-bold text-slate-500 uppercase tracking-widest mb-1">Client</p>
+                            <p class="font-extrabold text-slate-800 text-sm truncate" title="{{ $datarq->client->nm_out ?? '-' }}">{{ $datarq->client->nm_out ?? '-' }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Select Box -->
+                <div class="mb-6" id="select-advisor-container">
+                    <p class="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest mb-2.5">Detail Alihkan</p>
+                    <p class="text-[11px] font-bold text-slate-700 mb-2">Penanggung jawab baru</p>
+                    <div class="relative group">
+                        <i class="fa-regular fa-user absolute left-4 top-1/2 -translate-y-1/2 text-blue-500 text-sm"></i>
+                        <select id="target_advisor_id" name="target_advisor_id" class="w-full bg-white border border-slate-200 text-slate-800 text-xs rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 p-3.5 pl-10 outline-none font-bold appearance-none shadow-sm cursor-pointer hover:bg-slate-50 transition-colors" required>
+                            <option value="" disabled selected>Pilih advisor...</option>
+                            @foreach(\App\Models\User::where('id', '!=', $datarq->advisor_id)->whereIn('usertype', ['admin', 'supervisor', 'user'])->get() as $adv)
+                                <option value="{{ $adv->id }}">{{ $adv->name }} @if($adv->id == Auth::id()) (Anda) @endif</option>
+                            @endforeach
+                        </select>
+                        <i class="fa-solid fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 text-[10px] pointer-events-none group-hover:text-blue-500 transition-colors"></i>
+                    </div>
+                </div>
+
+                <p class="text-[10px] text-slate-500 mb-6 leading-relaxed font-medium">
+                    Pastikan data sudah benar sebelum melakukan konfirmasi. Tindakan ini akan mengubah penanggung jawab tiket dan mencatat riwayat perubahan.
+                </p>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <button type="button" class="py-3 bg-white text-slate-600 font-bold text-xs rounded-xl border border-slate-200 hover:bg-slate-50 hover:text-slate-800 transition-all shadow-sm" onclick="takeOverModal.close()">Batal</button>
+                    <button type="submit" class="py-3 bg-blue-600 text-white font-bold text-xs rounded-xl hover:bg-blue-700 transition-all shadow-sm shadow-blue-500/30">Konfirmasi</button>
                 </div>
             </form>
+        </div>
+        <form method="dialog" class="modal-backdrop bg-slate-900/60 backdrop-blur-sm"><button>close</button></form>
+    </dialog>
+
+    <script>
+        function switchTakeoverTab(tab) {
+            const alihkanBtn = document.getElementById('tab-alihkan');
+            const ambilAlihBtn = document.getElementById('tab-ambil');
+            const selectContainer = document.getElementById('select-advisor-container');
+            const targetSelect = document.getElementById('target_advisor_id');
+
+            if (tab === 'alihkan') {
+                alihkanBtn.className = "flex-1 py-2 text-xs font-bold rounded-lg bg-blue-50 text-blue-600 shadow-sm border border-blue-100 transition-all text-center";
+                ambilAlihBtn.className = "flex-1 py-2 text-xs font-bold rounded-lg text-slate-500 hover:text-slate-700 transition-all text-center";
+                selectContainer.style.display = "block";
+                targetSelect.value = "";
+            } else {
+                ambilAlihBtn.className = "flex-1 py-2 text-xs font-bold rounded-lg bg-blue-50 text-blue-600 shadow-sm border border-blue-100 transition-all text-center";
+                alihkanBtn.className = "flex-1 py-2 text-xs font-bold rounded-lg text-slate-500 hover:text-slate-700 transition-all text-center";
+                selectContainer.style.display = "none";
+                
+                // Ambil alih (Take over by myself)
+                targetSelect.value = "{{ Auth::id() }}";
+            }
+        }
+    </script>
+
+    <dialog id="forceAdvisorModal" class="modal">
+        <div class="modal-box w-11/12 max-w-md rounded-3xl p-6 md:p-8 bg-white">
+            <form action="{{ url('/updatestatus-with-advisor/'.$datarq->id.'/CLOSED') }}" method="POST">
+                @csrf
+                <!-- Header -->
+                <div class="flex justify-between items-start mb-4">
+                    <div>
+                        <h3 class="font-extrabold text-[17px] text-slate-800 mb-1">Selesaikan Tiket</h3>
+                        <p class="text-[11px] text-slate-500 font-medium">Tiket ini belum memiliki Advisor. Anda wajib memilih Advisor untuk melanjutkan.</p>
+                    </div>
+                    <button type="button" class="w-8 h-8 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 hover:bg-slate-200 border border-slate-100 transition-colors" onclick="document.getElementById('forceAdvisorModal').close()">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+
+                <div class="mb-6">
+                    <p class="text-[11px] font-bold text-slate-700 mb-2">Pilih Advisor</p>
+                    <div class="relative group">
+                        <i class="fa-regular fa-user absolute left-4 top-1/2 -translate-y-1/2 text-blue-500 text-sm"></i>
+                        <select name="advisor_id" class="w-full bg-white border border-slate-200 text-slate-800 text-xs rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 p-3.5 pl-10 outline-none font-bold appearance-none shadow-sm cursor-pointer hover:bg-slate-50 transition-colors" required>
+                            <option value="" disabled selected>Pilih advisor...</option>
+                            @foreach(\App\Models\User::whereIn('usertype', ['admin', 'supervisor', 'user'])->get() as $adv)
+                                <option value="{{ $adv->id }}">{{ $adv->name }} @if($adv->id == Auth::id()) (Anda) @endif</option>
+                            @endforeach
+                        </select>
+                        <i class="fa-solid fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 text-[10px] pointer-events-none group-hover:text-blue-500 transition-colors"></i>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <button type="button" class="py-3 bg-white text-slate-600 font-bold text-xs rounded-xl border border-slate-200 hover:bg-slate-50 hover:text-slate-800 transition-all shadow-sm" onclick="document.getElementById('forceAdvisorModal').close()">Batal</button>
+                    <button type="submit" class="py-3 bg-emerald-500 text-white font-bold text-xs rounded-xl hover:bg-emerald-600 transition-all shadow-sm shadow-emerald-500/30">Lanjutkan & Selesai</button>
+                </div>
+            </form>
+        </div>
+        <form method="dialog" class="modal-backdrop bg-slate-900/60 backdrop-blur-sm"><button>close</button></form>
+    </dialog>
+
+    <dialog id="confirmCloseModal" class="modal">
+        <div class="modal-box w-11/12 max-w-sm rounded-3xl p-6 md:p-8 bg-white text-center border border-slate-100">
+            <div class="w-20 h-20 bg-emerald-50 text-emerald-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm border-4 border-emerald-100/50">
+                <i class="fa-solid fa-circle-check text-4xl"></i>
+            </div>
+            
+            <h3 class="font-extrabold text-xl text-slate-800 mb-2">Selesaikan Tiket?</h3>
+            <p class="text-[13px] text-slate-500 font-medium mb-8 leading-relaxed px-2">
+                Apakah Anda yakin ingin menyelesaikan tiket ini? Status tiket akan berubah menjadi Selesai.
+            </p>
+            
+            <div class="flex gap-3">
+                <button type="button" class="flex-1 py-3 bg-white text-slate-600 font-bold text-sm rounded-xl border border-slate-200 hover:bg-slate-50 hover:text-slate-800 transition-all shadow-sm" onclick="document.getElementById('confirmCloseModal').close()">Batal</button>
+                <a href="/updatestatus/{{ $datarq->id }}/CLOSED" class="flex-1 py-3 bg-emerald-500 text-white font-bold text-sm rounded-xl hover:bg-emerald-600 transition-all shadow-sm shadow-emerald-500/30 flex items-center justify-center">
+                    Ya, Selesaikan
+                </a>
+            </div>
         </div>
         <form method="dialog" class="modal-backdrop bg-slate-900/60 backdrop-blur-sm"><button>close</button></form>
     </dialog>

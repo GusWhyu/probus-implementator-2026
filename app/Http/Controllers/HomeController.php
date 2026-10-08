@@ -258,10 +258,26 @@ class HomeController extends Controller
         $progress = (clone $query)->where('status', 'PROGRESS')->latest()->get();
         $closed = (clone $query)->where('status', 'CLOSED')->latest()->get();
 
+        $pendingTakeovers = Ticket::where('pending_advisor_id', auth()->id())->latest()->get();
+
+        // Auto expire takeovers older than 1 hour
+        $expiredFound = false;
+        foreach ($pendingTakeovers as $tk) {
+            if ($tk->pending_advisor_at && now()->diffInMinutes($tk->pending_advisor_at) >= 60) {
+                $tk->update(['pending_advisor_id' => null, 'pending_advisor_at' => null]);
+                $expiredFound = true;
+            }
+        }
+        
+        // Refresh query if any expired
+        if ($expiredFound) {
+            $pendingTakeovers = Ticket::where('pending_advisor_id', auth()->id())->latest()->get();
+        }
+
         $systems = \App\Models\Tag::all();
         $modules = ModuleSystem::all();
 
-        return view('inbox', compact('open', 'progress', 'closed', 'systems', 'modules'));
+        return view('inbox', compact('open', 'progress', 'closed', 'systems', 'modules', 'pendingTakeovers'));
     }
 
     public function activitylog(){

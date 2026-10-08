@@ -162,12 +162,26 @@ class RequestController extends Controller
             'status_id' => $logStatusId,
             'user_id' => Auth::user()->id
         ]);
-        $creator = $data->client;
+        $creator = $data->user;
         if ($creator) {
             $creator->notify(new RequestStatusChanged($data));
         }
-        Alert::success('Status Changed!');
+        
+        Alert::success('Berhasil!', 'Status tiket telah diperbarui.')->showConfirmButton('Tutup', '#3b82f6');
         return redirect()->back();
+    }
+
+    public function updatestatusWithAdvisor(Request $request, $id, $stid){
+        $request->validate([
+            'advisor_id' => 'required|exists:users,id'
+        ]);
+
+        $data = \App\Models\Ticket::findOrFail($id);
+        $data->update([
+            'advisor_id' => $request->advisor_id
+        ]);
+
+        return $this->updatestatus($id, $stid);
     }
 
     public function komentar(Request $request,$id){
@@ -270,15 +284,17 @@ class RequestController extends Controller
         if (in_array($currentUser->usertype, ['admin', 'supervisor'])) {
             $ticket->update([
                 'advisor_id' => $targetUserId,
-                'pending_advisor_id' => null
+                'pending_advisor_id' => null,
+                'pending_advisor_at' => null
             ]);
-            Alert::success('Berhasil!', 'Tiket telah dialihkan.');
+            Alert::success('Berhasil!', 'Tiket telah berhasil dialihkan.')->showConfirmButton('Tutup', '#3b82f6');
         } else {
             // User asks another user -> Need approval
             $ticket->update([
-                'pending_advisor_id' => $targetUserId
+                'pending_advisor_id' => $targetUserId,
+                'pending_advisor_at' => now()
             ]);
-            Alert::success('Terkirim!', 'Permintaan pengalihan tiket telah dikirim dan menunggu persetujuan.');
+            Alert::success('Terkirim!', 'Permintaan pengalihan tiket telah dikirim.')->showConfirmButton('Tutup', '#3b82f6');
         }
         
         return redirect()->back();
@@ -289,9 +305,10 @@ class RequestController extends Controller
         if ($ticket->pending_advisor_id == Auth::id()) {
             $ticket->update([
                 'advisor_id' => Auth::id(),
-                'pending_advisor_id' => null
+                'pending_advisor_id' => null,
+                'pending_advisor_at' => null
             ]);
-            Alert::success('Berhasil!', 'Anda telah mengambil alih tiket ini.');
+            Alert::success('Berhasil!', 'Anda telah mengambil alih tiket ini.')->showConfirmButton('Tutup', '#3b82f6');
         }
         return redirect()->back();
     }
@@ -300,7 +317,8 @@ class RequestController extends Controller
         $ticket = \App\Models\Ticket::findOrFail($id);
         if ($ticket->pending_advisor_id == Auth::id()) {
             $ticket->update([
-                'pending_advisor_id' => null
+                'pending_advisor_id' => null,
+                'pending_advisor_at' => null
             ]);
             Alert::info('Ditolak!', 'Anda telah menolak permintaan alih tiket.');
         }

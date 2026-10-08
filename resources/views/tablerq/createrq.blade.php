@@ -38,7 +38,7 @@
                                 <div>
                                     <div class="flex items-center justify-between mb-2">
                                         <label class="flex items-center gap-1.5 text-xs font-bold text-slate-600">
-                                            <i class="fa-solid fa-heading text-slate-400 text-[10px]"></i> Judul Tiket
+                                            <i class="fa-solid fa-heading text-slate-400 text-[10px]"></i> Judul Tiket <span class="text-rose-500">*</span>
                                         </label>
                                         <span class="text-[10px] font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full" id="title-counter">0/100</span>
                                     </div>
@@ -47,7 +47,7 @@
                                 
                                 <div>
                                     <label class="flex items-center gap-1.5 text-xs font-bold text-slate-600 mb-2">
-                                        <i class="fa-solid fa-user text-slate-400 text-[10px]"></i> Client
+                                        <i class="fa-solid fa-user text-slate-400 text-[10px]"></i> Client <span class="text-rose-500">*</span>
                                     </label>
                                     <div class="relative">
                                         <select name="client" class="w-full bg-slate-50 border border-slate-200 text-slate-800 text-sm rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white block p-3.5 transition-all outline-none appearance-none cursor-pointer pr-10" required>
@@ -65,7 +65,7 @@
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                                 <div>
                                     <label class="flex items-center gap-1.5 text-xs font-bold text-slate-600 mb-2">
-                                        <i class="fa-solid fa-server text-slate-400 text-[10px]"></i> System
+                                        <i class="fa-solid fa-server text-slate-400 text-[10px]"></i> System <span class="text-rose-500">*</span>
                                     </label>
                                     <div class="relative">
                                         <select name="tag" class="w-full bg-slate-50 border border-slate-200 text-slate-800 text-sm rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white block p-3.5 transition-all outline-none appearance-none cursor-pointer pr-10" required>
@@ -80,7 +80,7 @@
                                 
                                 <div>
                                     <label class="flex items-center gap-1.5 text-xs font-bold text-slate-600 mb-2">
-                                        <i class="fa-solid fa-cube text-slate-400 text-[10px]"></i> Module
+                                        <i class="fa-solid fa-cube text-slate-400 text-[10px]"></i> Module <span class="text-rose-500">*</span>
                                     </label>
                                     <div class="relative">
                                         <select name="category" class="w-full bg-slate-50 border border-slate-200 text-slate-800 text-sm rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white block p-3.5 transition-all outline-none appearance-none cursor-pointer pr-10" required>
@@ -98,7 +98,7 @@
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                                 <div>
                                     <label class="flex items-center gap-1.5 text-xs font-bold text-slate-600 mb-2">
-                                        <i class="fa-solid fa-wrench text-slate-400 text-[10px]"></i> Tipe Penanganan
+                                        <i class="fa-solid fa-wrench text-slate-400 text-[10px]"></i> Tipe Penanganan <span class="text-rose-500">*</span>
                                     </label>
                                     <div class="relative">
                                         <select name="tipe_penanganan" class="w-full bg-slate-50 border border-slate-200 text-slate-800 text-sm rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white block p-3.5 transition-all outline-none appearance-none cursor-pointer pr-10" required>
@@ -132,7 +132,7 @@
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                                 <div>
                                     <label class="flex items-center gap-1.5 text-xs font-bold text-slate-600 mb-2">
-                                        <i class="fa-regular fa-calendar text-slate-400 text-[10px]"></i> Deadline (Due Date)
+                                        <i class="fa-regular fa-calendar text-slate-400 text-[10px]"></i> Deadline (Due Date) <span class="text-rose-500">*</span>
                                     </label>
                                     @php
                                         $now = \Carbon\Carbon::now('Asia/Makassar');
@@ -154,7 +154,7 @@
                                 <div class="w-7 h-7 rounded-lg bg-amber-100 text-amber-500 flex items-center justify-center">
                                     <i class="fa-solid fa-align-left text-xs"></i>
                                 </div>
-                                Deskripsi Masalah
+                                Deskripsi Masalah <span class="text-rose-500">*</span>
                             </h2>
                         </div>
                         <div class="p-6 md:p-8">
