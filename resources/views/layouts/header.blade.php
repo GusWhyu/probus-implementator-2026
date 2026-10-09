@@ -6,7 +6,7 @@
         <button @click="sidebarOpen = true" class="md:hidden p-2 -ml-2 text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors">
             <i class="fa-solid fa-bars text-lg"></i>
         </button>
-        <h1 class="font-bold text-[14px] md:text-[15px] text-slate-800 capitalize truncate max-w-[180px] sm:max-w-xs md:max-w-none">{{ request()->routeIs('dashboard') ? 'Dashboard Laporan & Penilaian Kinerja CS' : (request()->routeIs('daftartiket') ? 'Daftar Tiket Helpdesk CS' : (request()->routeIs('inbox') ? 'Inbox & Manajemen Tiket' : (request()->is('createrq') ? 'Buat Tiket Baru' : (request()->is('detailrequest/*') ? 'Detail Workspace Pengerjaan Tiket' : (str_replace('-', ' ', request()->path()) == '/' ? 'Dashboard' : str_replace('-', ' ', request()->path())))))) }}</h1>
+        <h1 class="font-bold text-[14px] md:text-[15px] text-slate-800 capitalize truncate max-w-[180px] sm:max-w-xs md:max-w-none">{{ request()->routeIs('dashboard') ? 'Dashboard Laporan & Penilaian Kinerja CS' : (request()->routeIs('daftartiket') ? 'Daftar Tiket Helpdesk CS' : (request()->routeIs('inbox') ? 'Inbox & Manajemen Tiket' : (request()->is('createrq') || request()->is('createticket') ? 'Buat Tiket Baru' : (request()->is('detailrequest/*') || request()->is('detailticket/*') ? 'Detail Workspace Pengerjaan Tiket' : (request()->is('editrq/*') || request()->is('editticket/*') ? 'Edit Tiket Pelanggan' : (str_replace('-', ' ', request()->path()) == '/' ? 'Dashboard' : str_replace('-', ' ', request()->path()))))))) }}</h1>
     </div>
     <div class="flex items-center gap-4">
         <!-- Notification Dropdown -->

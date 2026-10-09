@@ -1,22 +1,26 @@
 @php
     use Carbon\Carbon;
     Carbon::setLocale('en');
+    $rentang = Carbon::parse($datarq->start_date)->diffInDays(Carbon::parse($datarq->end_date));
     $rqid = $datarq->user_id;
     $aid = Auth::user()->id;
-    // $ait = Auth::user()->tag_id; // Tag handling may need adjustment if user tags changed
-    $stid = $datarq->status;
+    $ait = Auth::user()->tag_id;
+    $stid = $datarq->status_id;
     $ust = Auth::user()->usertype;
 
     // Status Styling
-    if ($stid == 'CLOSED') {
+    if ($stid == 1) {
         $bg = "bg-emerald-50 text-emerald-600 border-emerald-200";
-        $icon = "fa-circle-check";
-    } elseif ($stid == 'PROGRESS') {
+        $icon = "fa-door-open";
+    } elseif ($stid == 2) {
+        $bg = "bg-rose-50 text-rose-600 border-rose-200";
+        $icon = "fa-fire";
+    } elseif ($stid == 3) {
         $bg = "bg-amber-50 text-amber-600 border-amber-200";
         $icon = "fa-bars-progress";
     } else {
-        $bg = "bg-blue-50 text-blue-600 border-blue-200";
-        $icon = "fa-door-open";
+        $bg = "bg-slate-50 text-slate-600 border-slate-200";
+        $icon = "fa-circle-check";
     }
 @endphp
 
@@ -31,7 +35,7 @@
                         <i class="fa-solid fa-arrow-left"></i>
                     </a>
                     <div>
-                        <h1 class="text-2xl font-extrabold text-slate-800 tracking-tight">Detail Tiket <span class="text-blue-600">#{{ $datarq->ticket_number }}</span></h1>
+                        <h1 class="text-2xl font-extrabold text-slate-800 tracking-tight">Detail Tiket <span class="text-blue-600">#TK-{{ $datarq->id }}</span></h1>
                         <p class="text-sm text-slate-500 font-medium mt-1">Pantau deskripsi, progres, dan diskusi terkait tiket ini.</p>
                     </div>
                 </div>
@@ -61,12 +65,12 @@
                     
                     <!-- Main Ticket Detail -->
                     <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 md:p-8">
-                        <h2 class="text-2xl md:text-3xl font-extrabold text-slate-800 mb-6 leading-tight">{{ $datarq->title }}</h2>
+                        <h2 class="text-2xl md:text-3xl font-extrabold text-slate-800 mb-6 leading-tight">{{ $datarq->judul }}</h2>
                         
                         <div>
                             <h3 class="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider mb-3">Deskripsi Masalah</h3>
                             <div class="text-slate-700 text-sm font-medium leading-relaxed prose max-w-none prose-p:my-2 prose-headings:text-slate-800">
-                                {!! $datarq->description !!}
+                                {!! $datarq->deskripsi !!}
                             </div>
                         </div>
                         
@@ -89,37 +93,38 @@
                         </div>
                         @endif
                         
-                        <!-- Review Pelanggan -->
-                        @if ($datarq->status == 'CLOSED')
-                        <div class="bg-blue-50/40 rounded-3xl border border-blue-100 shadow-sm p-6 md:p-8 mt-6">
-                            <div class="flex items-center gap-2 mb-3">
-                                <i class="fa-regular fa-star text-amber-500 text-lg"></i>
-                                <h3 class="text-base font-extrabold text-slate-800">Review Pelanggan</h3>
-                            </div>
-                            <p class="text-[13px] font-medium text-slate-500 mb-6 leading-relaxed">
-                                Tiket telah selesai. Bagikan link berikut kepada client untuk memberikan penilaian terhadap pelayanan CS.
-                            </p>
-                            
-                            <div class="bg-white rounded-2xl border border-slate-200 p-2 flex flex-col sm:flex-row items-center gap-3 shadow-sm">
-                                <div class="flex items-center gap-3 px-3 w-full sm:w-auto flex-1 overflow-hidden">
-                                    <i class="fa-solid fa-link text-blue-500"></i>
-                                    <span class="text-[13px] font-medium text-blue-600 truncate" id="review-link">{{ url('/review/' . $datarq->ticket_number) }}</span>
+                        <!-- Approval Info Details -->
+                        @if ($datarq->approval_status == 'approved' || $datarq->approval_status == 'rejected')
+                        <div class="mt-8 border-t border-slate-100 pt-8">
+                            @if ($datarq->approval_status == 'approved')
+                            <div class="bg-emerald-50 border border-emerald-100 text-emerald-800 p-5 rounded-2xl flex items-start gap-4">
+                                <div class="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-600 shrink-0 shadow-sm">
+                                    <i class="fa-solid fa-circle-check text-xl"></i>
                                 </div>
-                                <div class="flex gap-2 w-full sm:w-auto shrink-0 mt-2 sm:mt-0">
-                                    <button type="button" onclick="navigator.clipboard.writeText('{{ url('/review/' . $datarq->ticket_number) }}'); alert('Link berhasil disalin!')" class="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 text-white font-bold text-xs rounded-xl hover:bg-blue-700 transition-all shadow-sm shadow-blue-500/20 active:scale-95">
-                                        <i class="fa-regular fa-copy"></i> Salin Link
-                                    </button>
-                                    <a href="{{ url('/review/' . $datarq->ticket_number) }}" target="_blank" class="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 bg-white text-blue-600 font-bold text-xs rounded-xl hover:bg-blue-50 border border-blue-200 transition-all active:scale-95">
-                                        Buka Review
-                                    </a>
+                                <div>
+                                    <p class="font-extrabold text-sm text-emerald-900">Tiket Disetujui</p>
+                                    <p class="text-xs font-medium text-emerald-700 mt-1">Oleh: {{ $datarq->approver->name ?? 'Admin' }} — {{ $datarq->approval_date ? Carbon::parse($datarq->approval_date)->translatedFormat('l, d M Y - H:i') : '' }}</p>
                                 </div>
                             </div>
-                            <p class="text-[10px] font-bold text-blue-500 flex items-center gap-1.5 mt-4">
-                                <i class="fa-solid fa-circle-info"></i> Link ini akan kedaluwarsa dalam 1 hari. Review hanya bisa dilakukan 1 kali.
-                            </p>
+                            @elseif ($datarq->approval_status == 'rejected')
+                            <div class="bg-rose-50 border border-rose-100 text-rose-800 p-5 rounded-2xl flex items-start gap-4">
+                                <div class="w-10 h-10 bg-rose-100 rounded-full flex items-center justify-center text-rose-600 shrink-0 shadow-sm">
+                                    <i class="fa-solid fa-triangle-exclamation text-xl"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <p class="font-extrabold text-sm text-rose-900">Tiket Ditolak</p>
+                                    <p class="text-xs font-medium text-rose-700 mt-1 mb-3">Oleh: {{ $datarq->approver->name ?? 'Admin' }} — {{ $datarq->approval_date ? Carbon::parse($datarq->approval_date)->translatedFormat('l, d M Y - H:i') : '' }}</p>
+                                    @if ($datarq->approval_note)
+                                    <div class="bg-white/60 border border-rose-100 rounded-xl p-3 text-xs font-medium text-rose-800 shadow-sm">
+                                        <span class="font-bold text-rose-900 block mb-1">Alasan Penolakan:</span>
+                                        {{ $datarq->approval_note }}
+                                    </div>
+                                    @endif
+                                </div>
+                            </div>
+                            @endif
                         </div>
                         @endif
-
                     </div>
 
                     <!-- Update System List -->
@@ -221,295 +226,140 @@
                 <!-- Right Content (Sidebar Info) -->
                 <div class="w-full lg:w-5/12 xl:w-4/12 shrink-0 space-y-6">
                     
-                    @if ($datarq->pending_advisor_id == $aid)
-                    <!-- Pending Take Over Approval Banner -->
-                    <div class="bg-blue-50 border border-blue-200 rounded-3xl p-5 relative overflow-hidden shadow-sm mb-6">
-                        <div class="flex items-start gap-4 relative z-10">
-                            <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center text-blue-600 shrink-0 shadow-sm">
-                                <i class="fa-solid fa-handshake text-lg"></i>
+                    <!-- Status & Meta Card -->
+                    <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 relative overflow-hidden">
+                        
+                        <!-- Status Header -->
+                        <div class="flex items-center justify-between mb-8 pb-6 border-b border-slate-100">
+                            <div>
+                                <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1">Tiket ID</p>
+                                <span class="text-blue-600 font-bold text-xl font-mono">TK-{{ $datarq->id }}</span>
                             </div>
-                            <div class="flex-1">
-                                <p class="font-bold text-blue-900 text-sm mb-1">Permintaan Alih Tiket</p>
-                                <p class="text-xs font-medium text-blue-700/80 mb-3">Seseorang meminta Anda untuk mengambil alih dan menyelesaikan tiket ini. Apakah Anda bersedia?</p>
-                                <div class="flex gap-2">
-                                    <form action="{{ route('ticket.takeover.reject', $datarq->id) }}" method="POST" class="inline">
-                                        @csrf
-                                        <button type="submit" class="px-4 py-2 bg-white text-rose-600 font-bold text-xs rounded-xl hover:bg-rose-50 transition-colors border border-rose-200">Tolak</button>
-                                    </form>
-                                    <form action="{{ route('ticket.takeover.accept', $datarq->id) }}" method="POST" class="inline">
-                                        @csrf
-                                        <button type="submit" class="px-4 py-2 bg-blue-600 text-white font-bold text-xs rounded-xl hover:bg-blue-700 transition-colors shadow-sm shadow-blue-500/20">Terima</button>
-                                    </form>
+                            <span class="px-3.5 py-1.5 rounded-xl text-xs font-extrabold uppercase tracking-wider border {{ $bg }} flex items-center gap-1.5 shadow-sm">
+                                <i class="fa-solid {{ $icon }}"></i> {{ $datarq->status->name }}
+                            </span>
+                        </div>
+
+                        <!-- Info Grid -->
+                        <div class="space-y-5">
+                            <div class="flex items-start gap-4">
+                                <div class="w-8 h-8 rounded-lg bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-400 shrink-0">
+                                    <i class="fa-solid fa-laptop-code text-xs"></i>
+                                </div>
+                                <div>
+                                    <div class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-0.5">System & Module</div>
+                                    <div class="font-bold text-slate-800 text-sm">{{ $datarq->tag->name }} <span class="text-slate-300 mx-1">•</span> <span class="text-blue-600">{{ $datarq->kategori->name }}</span></div>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-start gap-4">
+                                <div class="w-8 h-8 rounded-lg bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-400 shrink-0">
+                                    <i class="fa-regular fa-building text-xs"></i>
+                                </div>
+                                <div>
+                                    <div class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-0.5">Client / Outlet</div>
+                                    <div class="font-bold text-slate-800 text-sm">{{ $datarq->outlet->nm_out }}</div>
+                                </div>
+                            </div>
+
+                            <div class="flex items-start gap-4">
+                                <div class="w-8 h-8 rounded-lg bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-400 shrink-0">
+                                    <i class="fa-regular fa-calendar-xmark text-xs"></i>
+                                </div>
+                                <div>
+                                    <div class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-0.5">Deadline Pengerjaan</div>
+                                    <div class="font-bold text-rose-600 text-sm">{{ Carbon::parse($datarq->end_date)->translatedFormat('d F Y') }}</div>
+                                </div>
+                            </div>
+
+                            <div class="flex items-start gap-4">
+                                <div class="w-8 h-8 rounded-lg bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-400 shrink-0">
+                                    <i class="fa-solid fa-user-tie text-xs"></i>
+                                </div>
+                                <div>
+                                    <div class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-0.5">User Reporter</div>
+                                    <div class="font-bold text-slate-800 text-sm truncate" title="{{ $datarq->user->name }}">{{ $datarq->user->name }}</div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                    @endif
 
-                    <!-- Status & Meta Card -->
-                    <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 md:p-7 relative overflow-hidden">
-                        
-                        <h3 class="text-sm font-extrabold text-slate-800 mb-6">Informasi Tiket</h3>
-                        
-                        <!-- Ticket ID & Status Header -->
-                        <div class="flex items-center justify-between mb-8">
-                            <span class="text-blue-500 font-bold text-lg font-mono">{{ $datarq->ticket_number }}</span>
-                            <span class="px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider {{ $bg }}">
-                                {{ $datarq->status }}
-                            </span>
-                        </div>
-                        
-                        <!-- Info Grid -->
-                        <div class="grid grid-cols-2 gap-y-6 gap-x-4">
-                            <!-- Row 1 -->
+                        <!-- Timestamps Footer -->
+                        <div class="mt-8 pt-6 border-t border-slate-100 flex justify-between">
                             <div>
-                                <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wide mb-1.5">System</p>
-                                <p class="font-bold text-slate-800 text-sm">{{ $datarq->kategoriSystem->name ?? '-' }}</p>
+                                <div class="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider mb-0.5">Created At</div>
+                                <div class="font-semibold text-slate-600 text-xs">{{ Carbon::parse($datarq->created_at)->translatedFormat('d M Y') }}</div>
                             </div>
-                            <div>
-                                <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wide mb-1.5">Module</p>
-                                <p class="font-bold text-slate-800 text-sm">{{ $datarq->moduleSystem->name ?? '-' }}</p>
-                            </div>
-                            
-                            <!-- Row 2 -->
-                            <div>
-                                <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wide mb-1.5">Client</p>
-                                <p class="font-bold text-slate-800 text-sm">{{ $datarq->client->nm_out ?? '-' }}</p>
-                            </div>
-                            <div>
-                                <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wide mb-1.5">Tipe Penanganan</p>
-                                <p class="font-bold text-slate-800 text-sm">{{ $datarq->tipe_penanganan ?? 'Office' }}</p>
-                            </div>
-
-                            <!-- Row 3 -->
-                            <div>
-                                <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wide mb-1.5">Reporter</p>
-                                <p class="font-bold text-slate-800 text-sm truncate" title="{{ $datarq->user->name ?? '-' }}">{{ $datarq->user->name ?? '-' }}</p>
-                            </div>
-                            <div>
-                                <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wide mb-1.5">Advisor</p>
-                                <p class="font-bold text-slate-800 text-sm truncate" title="{{ $datarq->advisor->name ?? '-' }}">{{ $datarq->advisor->name ?? '-' }}</p>
-                            </div>
-
-                            <!-- Row 4 -->
-                            <div>
-                                <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wide mb-1.5">Created At</p>
-                                <p class="font-bold text-slate-800 text-sm">{{ Carbon::parse($datarq->created_at)->format('d/m/Y') }}</p>
-                            </div>
-                            <div>
-                                <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wide mb-1.5">{{ $datarq->closed_at ? 'Closed At' : 'Updated At' }}</p>
-                                <p class="font-bold text-slate-800 text-sm">{{ Carbon::parse($datarq->closed_at ?? $datarq->updated_at)->format('d/m/Y') }}</p>
+                            <div class="text-right">
+                                <div class="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider mb-0.5">Updated At</div>
+                                <div class="font-semibold text-slate-600 text-xs">{{ Carbon::parse($datarq->updated_at)->translatedFormat('d M Y') }}</div>
                             </div>
                         </div>
                     </div>
 
-                    @php
-                        $isOwner = ($datarq->user_id == $aid || $datarq->advisor_id == $aid);
-                        $isAdminOrSpv = ($ust == 'admin' || $ust == 'supervisor');
-                        $canSeeActions = $isAdminOrSpv || $isOwner;
-                    @endphp
-                    @if($canSeeActions)
                     <!-- Action Buttons -->
                     <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6">
                         <h3 class="text-[11px] font-extrabold text-slate-800 uppercase tracking-wider mb-4 text-center">Tindakan Tiket</h3>
                         
                         <div class="grid grid-cols-1 gap-3">
-                            <!-- Button 1 (Blue) - Proses Tiket / Selesaikan -->
-                            @if ($stid != 'CLOSED')
-                                @if ($datarq->status == 'OPEN')
-                                    <a href="/updatestatus/{{ $datarq->id }}/PROGRESS" class="w-full flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white py-3.5 rounded-xl font-bold text-sm shadow-md shadow-blue-500/20 transition-all active:scale-95 gap-2">
+                            <!-- Button 1 (Blue) - Proses Tiket / Approve / Selesaikan -->
+                            @if (Auth::user()->usertype === 'admin' && in_array($datarq->status_id, [1, 2]))
+                                @if ($datarq->approval_status != 'approved' && $datarq->approval_status != 'rejected')
+                                    <button type="button" onclick="approve_modal.showModal()" class="w-full flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white py-3.5 rounded-xl font-bold text-sm shadow-md shadow-blue-500/20 transition-all active:scale-95 gap-2">
+                                        <i class="fa-solid fa-check-double text-blue-200"></i> Approve Tiket
+                                    </button>
+                                @else
+                                    <button disabled class="w-full flex items-center justify-center bg-slate-100 text-slate-400 py-3.5 rounded-xl font-bold text-sm transition-all cursor-not-allowed gap-2">
+                                        <i class="fa-solid fa-spinner"></i> Proses Tiket
+                                    </button>
+                                @endif
+                            @elseif ($stid != 4 && $ait == $datarq->tag_id)
+                                @if ($datarq->status_id == 1 || $datarq->status_id == 2)
+                                    <a href="/updatestatus/{{ $datarq->id }}/3" class="w-full flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white py-3.5 rounded-xl font-bold text-sm shadow-md shadow-blue-500/20 transition-all active:scale-95 gap-2">
                                         <i class="fa-solid fa-gears text-blue-200"></i> Proses Tiket
                                     </a>
                                 @else
-                                    @if(is_null($datarq->advisor_id))
-                                        <button type="button" onclick="document.getElementById('forceAdvisorModal').showModal()" class="w-full flex items-center justify-center bg-emerald-500 hover:bg-emerald-600 text-white py-3.5 rounded-xl font-bold text-sm shadow-md shadow-emerald-500/20 transition-all active:scale-95 gap-2">
-                                            <i class="fa-solid fa-check text-emerald-100"></i> Selesaikan Tiket
-                                        </button>
-                                    @else
-                                        <button type="button" onclick="document.getElementById('confirmCloseModal').showModal()" class="w-full flex items-center justify-center bg-emerald-500 hover:bg-emerald-600 text-white py-3.5 rounded-xl font-bold text-sm shadow-md shadow-emerald-500/20 transition-all active:scale-95 gap-2">
-                                            <i class="fa-solid fa-check text-emerald-100"></i> Selesaikan Tiket
-                                        </button>
-                                    @endif
+                                    <a href="/updatestatus/{{ $datarq->id }}/4" class="w-full flex items-center justify-center bg-emerald-500 hover:bg-emerald-600 text-white py-3.5 rounded-xl font-bold text-sm shadow-md shadow-emerald-500/20 transition-all active:scale-95 gap-2">
+                                        <i class="fa-solid fa-check text-emerald-100"></i> Selesaikan Tiket
+                                    </a>
                                 @endif
                             @else
                                 <button disabled class="w-full flex items-center justify-center bg-slate-100 text-slate-400 py-3.5 rounded-xl font-bold text-sm transition-all cursor-not-allowed gap-2">
-                                    <i class="fa-solid fa-check-circle"></i> Tiket Selesai
+                                    <i class="fa-solid fa-gears"></i> Proses Tiket
                                 </button>
                             @endif
 
-                            <div class="grid grid-cols-2 gap-3 mt-1">
-                                <!-- Button 2 (Orange) - Alihkan/Ambil Alih -->
-                                <button type="button" onclick="takeOverModal.showModal()" class="w-full flex flex-col items-center justify-center bg-amber-50 text-amber-600 hover:bg-amber-500 hover:text-white border border-amber-200 py-3 rounded-xl font-bold text-xs shadow-sm transition-all active:scale-95 gap-1 text-center">
-                                    <i class="fa-solid fa-right-left text-sm"></i> Alihkan/Ambil
-                                </button>
+                            <div class="grid grid-cols-2 gap-3">
+                                <!-- Button 2 (Orange) - Alihkan/Ambil Alih / Reject -->
+                                @if (Auth::user()->usertype === 'admin' && in_array($datarq->status_id, [1, 2]) && $datarq->approval_status != 'rejected')
+                                    <button type="button" onclick="reject_modal.showModal()" class="w-full flex flex-col items-center justify-center bg-rose-50 text-rose-600 hover:bg-rose-500 hover:text-white border border-rose-200 py-3 rounded-xl font-bold text-xs shadow-sm transition-all active:scale-95 gap-1">
+                                        <i class="fa-solid fa-ban text-sm"></i> Tolak Tiket
+                                    </button>
+                                @else
+                                    <button type="button" class="w-full flex flex-col items-center justify-center bg-amber-50 text-amber-600 hover:bg-amber-500 hover:text-white border border-amber-200 py-3 rounded-xl font-bold text-xs shadow-sm transition-all active:scale-95 gap-1 text-center">
+                                        <i class="fa-solid fa-right-left text-sm"></i> Alihkan/Ambil
+                                    </button>
+                                @endif
 
                                 <!-- Button 3 (Green) - Buat Request (Update System) -->
-                                @if ($stid == 'PROGRESS' && $datarq->user_id != $aid)
+                                @if ($stid == 3 && $datarq->user_id != $aid && $ait == $datarq->tag_id)
                                     <a href="/createus/{{ $datarq->id }}" class="w-full flex flex-col items-center justify-center bg-emerald-50 text-emerald-600 hover:bg-emerald-500 hover:text-white border border-emerald-200 py-3 rounded-xl font-bold text-xs shadow-sm transition-all active:scale-95 gap-1 text-center">
-                                        <i class="fa-solid fa-laptop-medical text-sm"></i> Buat Update Sys
+                                        <i class="fa-solid fa-laptop-medical text-sm"></i> Buat Request
                                     </a>
                                 @else
-                                    <button disabled type="button" class="w-full flex flex-col items-center justify-center bg-slate-50 text-slate-400 border border-slate-200 py-3 rounded-xl font-bold text-xs transition-all cursor-not-allowed gap-1 text-center">
-                                        <i class="fa-solid fa-laptop-medical text-sm"></i> Buat Update Sys
+                                    <button type="button" class="w-full flex flex-col items-center justify-center bg-emerald-50 text-emerald-600 hover:bg-emerald-500 hover:text-white border border-emerald-200 py-3 rounded-xl font-bold text-xs shadow-sm transition-all active:scale-95 gap-1 text-center">
+                                        <i class="fa-solid fa-laptop-medical text-sm"></i> Buat Request
                                     </button>
                                 @endif
                             </div>
                         </div>
                     </div>
-                    @endif
                     
                 </div>
             </div>
         </div>
     </div>
 
-    <dialog id="takeOverModal" class="modal">
-        <div class="modal-box w-11/12 max-w-md rounded-3xl p-6 md:p-8 bg-white">
-            <form action="{{ route('ticket.takeover', $datarq->id) }}" method="POST">
-                @csrf
-                <!-- Header -->
-                <div class="flex justify-between items-start mb-4">
-                    <div>
-                        <h3 class="font-extrabold text-[17px] text-slate-800 mb-1">Alihkan / Ambil Alih Tiket</h3>
-                        <p class="text-[11px] text-slate-500 font-medium">Pilih tindakan untuk mengubah penanggung jawab tiket ini.</p>
-                    </div>
-                    <button type="button" class="w-8 h-8 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 hover:bg-slate-200 border border-slate-100 transition-colors" onclick="takeOverModal.close()">
-                        <i class="fa-solid fa-xmark"></i>
-                    </button>
-                </div>
-
-                <!-- Tabs -->
-                <div class="flex p-1 bg-slate-50 rounded-xl mb-6 border border-slate-100">
-                    <button type="button" id="tab-alihkan" onclick="switchTakeoverTab('alihkan')" class="flex-1 py-2 text-xs font-bold rounded-lg bg-blue-50 text-blue-600 shadow-sm border border-blue-100 transition-all text-center">Alihkan</button>
-                    <button type="button" id="tab-ambil" onclick="switchTakeoverTab('ambil')" class="flex-1 py-2 text-xs font-bold rounded-lg text-slate-500 hover:text-slate-700 transition-all text-center">Ambil Alih</button>
-                </div>
-
-                <!-- Info Tiket -->
-                <div class="mb-5">
-                    <p class="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest mb-2.5">Informasi Tiket</p>
-                    <div class="grid grid-cols-2 gap-3">
-                        <div class="bg-slate-50/50 rounded-2xl p-3.5 border border-slate-100/80">
-                            <p class="text-[9px] font-bold text-slate-500 uppercase tracking-widest mb-1">Tiket</p>
-                            <p class="font-extrabold text-slate-800 text-sm">{{ $datarq->ticket_number }}</p>
-                        </div>
-                        <div class="bg-slate-50/50 rounded-2xl p-3.5 border border-slate-100/80">
-                            <p class="text-[9px] font-bold text-slate-500 uppercase tracking-widest mb-1">Client</p>
-                            <p class="font-extrabold text-slate-800 text-sm truncate" title="{{ $datarq->client->nm_out ?? '-' }}">{{ $datarq->client->nm_out ?? '-' }}</p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Select Box -->
-                <div class="mb-6" id="select-advisor-container">
-                    <p class="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest mb-2.5">Detail Alihkan</p>
-                    <p class="text-[11px] font-bold text-slate-700 mb-2">Penanggung jawab baru</p>
-                    <div class="relative group">
-                        <i class="fa-regular fa-user absolute left-4 top-1/2 -translate-y-1/2 text-blue-500 text-sm"></i>
-                        <select id="target_advisor_id" name="target_advisor_id" class="w-full bg-white border border-slate-200 text-slate-800 text-xs rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 p-3.5 pl-10 outline-none font-bold appearance-none shadow-sm cursor-pointer hover:bg-slate-50 transition-colors" required>
-                            <option value="" disabled selected>Pilih advisor...</option>
-                            @foreach(\App\Models\User::where('id', '!=', $datarq->advisor_id)->whereIn('usertype', ['admin', 'supervisor', 'user'])->get() as $adv)
-                                <option value="{{ $adv->id }}">{{ $adv->name }} @if($adv->id == Auth::id()) (Anda) @endif</option>
-                            @endforeach
-                        </select>
-                        <i class="fa-solid fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 text-[10px] pointer-events-none group-hover:text-blue-500 transition-colors"></i>
-                    </div>
-                </div>
-
-                <p class="text-[10px] text-slate-500 mb-6 leading-relaxed font-medium">
-                    Pastikan data sudah benar sebelum melakukan konfirmasi. Tindakan ini akan mengubah penanggung jawab tiket dan mencatat riwayat perubahan.
-                </p>
-
-                <div class="grid grid-cols-2 gap-3">
-                    <button type="button" class="py-3 bg-white text-slate-600 font-bold text-xs rounded-xl border border-slate-200 hover:bg-slate-50 hover:text-slate-800 transition-all shadow-sm" onclick="takeOverModal.close()">Batal</button>
-                    <button type="submit" class="py-3 bg-blue-600 text-white font-bold text-xs rounded-xl hover:bg-blue-700 transition-all shadow-sm shadow-blue-500/30">Konfirmasi</button>
-                </div>
-            </form>
-        </div>
-        <form method="dialog" class="modal-backdrop bg-slate-900/60 backdrop-blur-sm"><button>close</button></form>
-    </dialog>
-
-    <script>
-        function switchTakeoverTab(tab) {
-            const alihkanBtn = document.getElementById('tab-alihkan');
-            const ambilAlihBtn = document.getElementById('tab-ambil');
-            const selectContainer = document.getElementById('select-advisor-container');
-            const targetSelect = document.getElementById('target_advisor_id');
-
-            if (tab === 'alihkan') {
-                alihkanBtn.className = "flex-1 py-2 text-xs font-bold rounded-lg bg-blue-50 text-blue-600 shadow-sm border border-blue-100 transition-all text-center";
-                ambilAlihBtn.className = "flex-1 py-2 text-xs font-bold rounded-lg text-slate-500 hover:text-slate-700 transition-all text-center";
-                selectContainer.style.display = "block";
-                targetSelect.value = "";
-            } else {
-                ambilAlihBtn.className = "flex-1 py-2 text-xs font-bold rounded-lg bg-blue-50 text-blue-600 shadow-sm border border-blue-100 transition-all text-center";
-                alihkanBtn.className = "flex-1 py-2 text-xs font-bold rounded-lg text-slate-500 hover:text-slate-700 transition-all text-center";
-                selectContainer.style.display = "none";
-                
-                // Ambil alih (Take over by myself)
-                targetSelect.value = "{{ Auth::id() }}";
-            }
-        }
-    </script>
-
-    <dialog id="forceAdvisorModal" class="modal">
-        <div class="modal-box w-11/12 max-w-md rounded-3xl p-6 md:p-8 bg-white">
-            <form action="{{ url('/updatestatus-with-advisor/'.$datarq->id.'/CLOSED') }}" method="POST">
-                @csrf
-                <!-- Header -->
-                <div class="flex justify-between items-start mb-4">
-                    <div>
-                        <h3 class="font-extrabold text-[17px] text-slate-800 mb-1">Selesaikan Tiket</h3>
-                        <p class="text-[11px] text-slate-500 font-medium">Tiket ini belum memiliki Advisor. Anda wajib memilih Advisor untuk melanjutkan.</p>
-                    </div>
-                    <button type="button" class="w-8 h-8 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 hover:bg-slate-200 border border-slate-100 transition-colors" onclick="document.getElementById('forceAdvisorModal').close()">
-                        <i class="fa-solid fa-xmark"></i>
-                    </button>
-                </div>
-
-                <div class="mb-6">
-                    <p class="text-[11px] font-bold text-slate-700 mb-2">Pilih Advisor</p>
-                    <div class="relative group">
-                        <i class="fa-regular fa-user absolute left-4 top-1/2 -translate-y-1/2 text-blue-500 text-sm"></i>
-                        <select name="advisor_id" class="w-full bg-white border border-slate-200 text-slate-800 text-xs rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 p-3.5 pl-10 outline-none font-bold appearance-none shadow-sm cursor-pointer hover:bg-slate-50 transition-colors" required>
-                            <option value="" disabled selected>Pilih advisor...</option>
-                            @foreach(\App\Models\User::whereIn('usertype', ['admin', 'supervisor', 'user'])->get() as $adv)
-                                <option value="{{ $adv->id }}">{{ $adv->name }} @if($adv->id == Auth::id()) (Anda) @endif</option>
-                            @endforeach
-                        </select>
-                        <i class="fa-solid fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 text-[10px] pointer-events-none group-hover:text-blue-500 transition-colors"></i>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-2 gap-3">
-                    <button type="button" class="py-3 bg-white text-slate-600 font-bold text-xs rounded-xl border border-slate-200 hover:bg-slate-50 hover:text-slate-800 transition-all shadow-sm" onclick="document.getElementById('forceAdvisorModal').close()">Batal</button>
-                    <button type="submit" class="py-3 bg-emerald-500 text-white font-bold text-xs rounded-xl hover:bg-emerald-600 transition-all shadow-sm shadow-emerald-500/30">Lanjutkan & Selesai</button>
-                </div>
-            </form>
-        </div>
-        <form method="dialog" class="modal-backdrop bg-slate-900/60 backdrop-blur-sm"><button>close</button></form>
-    </dialog>
-
-    <dialog id="confirmCloseModal" class="modal">
-        <div class="modal-box w-11/12 max-w-sm rounded-3xl p-6 md:p-8 bg-white text-center border border-slate-100">
-            <div class="w-20 h-20 bg-emerald-50 text-emerald-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm border-4 border-emerald-100/50">
-                <i class="fa-solid fa-circle-check text-4xl"></i>
-            </div>
-            
-            <h3 class="font-extrabold text-xl text-slate-800 mb-2">Selesaikan Tiket?</h3>
-            <p class="text-[13px] text-slate-500 font-medium mb-8 leading-relaxed px-2">
-                Apakah Anda yakin ingin menyelesaikan tiket ini? Status tiket akan berubah menjadi Selesai.
-            </p>
-            
-            <div class="flex gap-3">
-                <button type="button" class="flex-1 py-3 bg-white text-slate-600 font-bold text-sm rounded-xl border border-slate-200 hover:bg-slate-50 hover:text-slate-800 transition-all shadow-sm" onclick="document.getElementById('confirmCloseModal').close()">Batal</button>
-                <a href="/updatestatus/{{ $datarq->id }}/CLOSED" class="flex-1 py-3 bg-emerald-500 text-white font-bold text-sm rounded-xl hover:bg-emerald-600 transition-all shadow-sm shadow-emerald-500/30 flex items-center justify-center">
-                    Ya, Selesaikan
-                </a>
-            </div>
-        </div>
-        <form method="dialog" class="modal-backdrop bg-slate-900/60 backdrop-blur-sm"><button>close</button></form>
-    </dialog>
-
+    <!-- Modals -->
     <dialog id="my_modal_3" class="modal">
         <div class="modal-box w-11/12 max-w-5xl rounded-3xl p-0 overflow-hidden bg-transparent shadow-none">
             <form method="dialog">
@@ -522,7 +372,48 @@
         <form method="dialog" class="modal-backdrop bg-slate-900/80 backdrop-blur-sm"><button>close</button></form>
     </dialog>
 
+    @if (Auth::user()->usertype === 'admin' && in_array($datarq->status_id, [1, 2]))
+    <dialog id="approve_modal" class="modal">
+        <div class="modal-box rounded-3xl max-w-md bg-white p-8">
+            <form method="dialog"><button class="btn btn-sm btn-circle btn-ghost absolute right-4 top-4 text-slate-400">✕</button></form>
+            <div class="flex items-center justify-center mb-6">
+                <div class="w-20 h-20 rounded-full bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-500 shrink-0">
+                    <i class="fa-solid fa-check-double text-4xl"></i>
+                </div>
+            </div>
+            <h3 class="font-extrabold text-2xl text-slate-800 text-center mb-2">Setujui Request</h3>
+            <p class="text-sm font-medium text-slate-500 text-center mb-8 px-4">Apakah Anda yakin ingin menyetujui tiket ini? Tiket akan diproses ke tahap selanjutnya oleh tim terkait.</p>
+            <form action="/request/{{ $datarq->id }}/approve" method="POST" class="flex gap-4 justify-center">
+                @csrf
+                <button type="button" onclick="approve_modal.close()" class="px-6 py-3 w-1/2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-sm transition-colors text-center">Batal</button>
+                <button type="submit" class="px-6 py-3 w-1/2 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-xl text-sm transition-colors shadow-md shadow-emerald-500/20 text-center">Ya, Setujui</button>
+            </form>
+        </div>
+        <form method="dialog" class="modal-backdrop bg-slate-900/60 backdrop-blur-sm"><button>close</button></form>
+    </dialog>
 
+    <dialog id="reject_modal" class="modal">
+        <div class="modal-box rounded-3xl max-w-md bg-white p-8">
+            <form method="dialog"><button class="btn btn-sm btn-circle btn-ghost absolute right-4 top-4 text-slate-400">✕</button></form>
+            <div class="flex items-center justify-center mb-6">
+                <div class="w-20 h-20 rounded-full bg-rose-50 border border-rose-100 flex items-center justify-center text-rose-500 shrink-0">
+                    <i class="fa-solid fa-triangle-exclamation text-4xl"></i>
+                </div>
+            </div>
+            <h3 class="font-extrabold text-2xl text-slate-800 text-center mb-2">Tolak Request</h3>
+            <p class="text-sm font-medium text-slate-500 text-center mb-6">Silakan masukkan alasan yang jelas mengenai penolakan tiket ini:</p>
+            <form action="/request/{{ $datarq->id }}/reject" method="POST">
+                @csrf
+                <textarea name="reason" rows="3" class="w-full p-4 border border-slate-200 bg-slate-50 rounded-2xl focus:outline-none focus:border-rose-500 focus:ring-4 focus:ring-rose-500/10 mb-6 text-sm font-medium text-slate-700 transition-all" placeholder="Tuliskan alasan penolakan di sini..." required></textarea>
+                <div class="flex gap-4 justify-center">
+                    <button type="button" onclick="reject_modal.close()" class="px-6 py-3 w-1/2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-sm transition-colors text-center">Batal</button>
+                    <button type="submit" class="px-6 py-3 w-1/2 bg-rose-500 hover:bg-rose-600 text-white font-bold rounded-xl text-sm transition-colors shadow-md shadow-rose-500/20 text-center">Tolak Tiket</button>
+                </div>
+            </form>
+        </div>
+        <form method="dialog" class="modal-backdrop bg-slate-900/60 backdrop-blur-sm"><button>close</button></form>
+    </dialog>
+    @endif
 
     <script>
         document.querySelectorAll('.image-container img').forEach(image =>{
@@ -558,5 +449,4 @@
         .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 20px; }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background-color: #94a3b8; }
     </style>
-
 </x-app-layout>

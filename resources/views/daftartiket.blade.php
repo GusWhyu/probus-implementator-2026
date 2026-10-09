@@ -10,7 +10,7 @@
                 <h2 class="text-2xl font-bold text-slate-800">Daftar Tiket Helpdesk CS</h2>
                 <p class="text-slate-500 text-sm mt-1">Kelola dan pantau seluruh tiket pelanggan dalam format tabel yang lebih ringkas.</p>
             </div>
-            <a href="{{ url('createrq') }}" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-md shadow-blue-500/20 flex items-center gap-2 transition-all">
+            <a href="{{ url('createticket') }}" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-md shadow-blue-500/20 flex items-center gap-2 transition-all">
                 <i class="fa-solid fa-plus"></i> Buat Tiket Baru
             </a>
         </div>
@@ -128,7 +128,7 @@
                         @forelse($all_tickets as $rq)
                             <tr class="hover:bg-slate-50/80 transition-colors group">
                                 <td class="py-3 px-3 sm:px-4 align-top">
-                                    <a href="/detailrequest/{{ $rq->id }}" class="text-sm font-bold text-blue-600 hover:text-blue-800 whitespace-nowrap">{{ $rq->ticket_number }}</a>
+                                    <a href="/detailticket/{{ $rq->id }}" class="text-sm font-bold text-blue-600 hover:text-blue-800 whitespace-nowrap">{{ $rq->ticket_number }}</a>
                                 </td>
                                 <td class="py-3 px-3 sm:px-4 align-top">
                                     <div class="text-sm font-semibold text-slate-800">{{ $rq->client->name ?? '-' }}</div>
@@ -180,7 +180,7 @@
                                             <i class="fa-solid fa-ellipsis"></i>
                                         </button>
                                         <ul tabindex="0" class="dropdown-content z-[50] menu p-2 shadow-lg bg-white rounded-xl w-36 border border-slate-100">
-                                            <li><a href="/detailrequest/{{ $rq->id }}" class="text-xs font-medium text-slate-700 hover:bg-slate-50 hover:text-blue-600"><i class="fa-regular fa-eye mr-2"></i> Detail</a></li>
+                                            <li><a href="/detailticket/{{ $rq->id }}" class="text-xs font-medium text-slate-700 hover:bg-slate-50 hover:text-blue-600"><i class="fa-regular fa-eye mr-2"></i> Detail</a></li>
                                             @if($rq->status != 'CLOSED')
                                                 <li><a href="/editrq/{{ $rq->id }}" class="text-xs font-medium text-slate-700 hover:bg-slate-50 hover:text-blue-600"><i class="fa-regular fa-pen-to-square mr-2"></i> Edit</a></li>
                                             @endif
@@ -226,7 +226,7 @@
                         $statusClass = 'bg-emerald-50 text-emerald-600 border-emerald-200';
                     }
                 @endphp
-                <a href="/detailrequest/{{ $rq->id }}" class="bg-white rounded-xl p-5 border border-slate-200 shadow-sm hover:shadow-md transition-shadow cursor-pointer flex flex-col group relative">
+                <a href="/detailticket/{{ $rq->id }}" class="bg-white rounded-xl p-5 border border-slate-200 shadow-sm hover:shadow-md transition-shadow cursor-pointer flex flex-col group relative">
                     <div class="flex justify-between items-center mb-3">
                         <div class="flex items-center gap-2">
                             <span class="bg-blue-50 text-blue-600 text-xs font-bold px-2 py-1 rounded">{{ $rq->ticket_number }}</span>
