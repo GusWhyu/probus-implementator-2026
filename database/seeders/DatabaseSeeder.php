@@ -41,21 +41,21 @@ class DatabaseSeeder extends Seeder
         ]);
 
 
-        // User seeding disabled to prevent overwriting existing user data during migrations
-        // User::create([
-        //     'name' => 'Admin',
-        //     'email' => 'admin@mail.com',
-        //     'usertype' => 'admin',
-        //     'tag_id' => '5',
-        //     'password' => bcrypt('12345678')
-        // ]);
-        // User::create([
-        //     'name' => 'Supervisor',
-        //     'email' => 'spv@mail.com',
-        //     'usertype' => 'supervisor',
-        //     'tag_id' => '6',
-        //     'password' => bcrypt('12345678')
-        // ]);
+        //User
+        User::create([
+            'name' => 'Admin',
+            'email' => 'admin@mail.com',
+            'usertype' => 'admin',
+            'tag_id' => '5',
+            'password' => bcrypt('12345678')
+        ]);
+        User::create([
+            'name' => 'Supervisor',
+            'email' => 'spv@mail.com',
+            'usertype' => 'supervisor',
+            'tag_id' => '6',
+            'password' => bcrypt('12345678')
+        ]);
 
         //Kategori
         Kategori::create([

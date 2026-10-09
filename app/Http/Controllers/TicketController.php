@@ -375,7 +375,8 @@ class TicketController extends Controller
             ]);
             Alert::success('Terkirim!', 'Permintaan pengalihan tiket telah dikirim ke user tersebut.')->showConfirmButton('Tutup', '#3b82f6');
         }
-        return redirect()->route('inbox');
+        
+        return redirect()->back();
     }
 
     public function takeoverAccept($id) {
