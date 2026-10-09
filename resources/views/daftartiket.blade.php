@@ -10,7 +10,7 @@
                 <h2 class="text-2xl font-bold text-slate-800">Daftar Tiket Helpdesk CS</h2>
                 <p class="text-slate-500 text-sm mt-1">Kelola dan pantau seluruh tiket pelanggan dalam format tabel yang lebih ringkas.</p>
             </div>
-            <a href="{{ url('createrq') }}" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-md shadow-blue-500/20 flex items-center gap-2 transition-all">
+            <a href="{{ url('createticket') }}" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-md shadow-blue-500/20 flex items-center gap-2 transition-all">
                 <i class="fa-solid fa-plus"></i> Buat Tiket Baru
             </a>
         </div>

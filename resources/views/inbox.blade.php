@@ -22,7 +22,7 @@
                     @endforeach
                 </select>
 
-                <a href="{{ url('createrq') }}" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg font-bold text-sm shadow-sm flex items-center gap-2 transition-all active:scale-95 whitespace-nowrap">
+                <a href="{{ url('createticket') }}" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg font-bold text-sm shadow-sm flex items-center gap-2 transition-all active:scale-95 whitespace-nowrap">
                     <i class="fa-solid fa-plus text-xs"></i> Buat Tiket Baru
                 </a>
             </div>
@@ -74,7 +74,7 @@
                                     <div class="text-sm font-medium text-slate-700 truncate" title="{{ $rq->tipe_penanganan ?? '-' }}">{{ $rq->tipe_penanganan ?? '-' }}</div>
                                 </div>
                                 <div>
-                                    <div class="text-[10px] font-semibold text-slate-400 uppercase mb-1 tracking-wider">Reporter</div>
+                                    <div class="text-[10px] font-semibold text-slate-400 uppercase mb-1 tracking-wider">User</div>
                                     <div class="text-sm text-slate-600 truncate" title="{{ $rq->user->name ?? '-' }}">{{ $rq->user->name ?? '-' }}</div>
                                 </div>
                                 <div>
@@ -125,7 +125,7 @@
                                     <div class="text-sm font-medium text-slate-700 truncate" title="{{ $rq->tipe_penanganan ?? '-' }}">{{ $rq->tipe_penanganan ?? '-' }}</div>
                                 </div>
                                 <div>
-                                    <div class="text-[10px] font-semibold text-slate-400 uppercase mb-1 tracking-wider">Reporter</div>
+                                    <div class="text-[10px] font-semibold text-slate-400 uppercase mb-1 tracking-wider">User</div>
                                     <div class="text-sm text-slate-600 truncate" title="{{ $rq->user->name ?? '-' }}">{{ $rq->user->name ?? '-' }}</div>
                                 </div>
                                 <div>
@@ -176,7 +176,7 @@
                                     <div class="text-sm font-medium text-slate-700 truncate" title="{{ $rq->tipe_penanganan ?? '-' }}">{{ $rq->tipe_penanganan ?? '-' }}</div>
                                 </div>
                                 <div>
-                                    <div class="text-[10px] font-semibold text-slate-400 uppercase mb-1 tracking-wider">Reporter</div>
+                                    <div class="text-[10px] font-semibold text-slate-400 uppercase mb-1 tracking-wider">User</div>
                                     <div class="text-sm text-slate-600 truncate" title="{{ $rq->user->name ?? '-' }}">{{ $rq->user->name ?? '-' }}</div>
                                 </div>
                                 <div>
