@@ -11,6 +11,7 @@ use App\Http\Controllers\StatusController;
 use App\Http\Controllers\MyrequsController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RequestController;
+use App\Http\Controllers\TicketController;
 use App\Http\Controllers\KategoriController;
 use App\Http\Controllers\UpdateSystemController;
 use App\Http\Controllers\ModulController;
@@ -44,6 +45,7 @@ Route::post('/penilaian/{id}', [HomeController::class, 'storePenilaian'])->middl
 Route::get('/rapor/{id}', [HomeController::class, 'rapor'])->middleware(['auth'])->name('rapor');
 Route::get('/rapor/{id}/download', [HomeController::class, 'downloadRapor'])->middleware(['auth'])->name('rapor.download');
 Route::get('/riwayat/{id}', [HomeController::class, 'riwayat'])->middleware(['auth'])->name('riwayat');
+// Old Request System Routes
 Route::get('/getOutlet/{search?}', [RequestController::class, 'getOutlet'])->name('getOutlet');
 Route::get('/detailrequest/{id}',[RequestController::class, 'detailrequest'])->middleware(['auth'])->name('detailrequest');
 Route::get('/mrq', [RequestController::class, 'mrq'])->middleware(['auth'])->name('mrq');
@@ -53,15 +55,28 @@ Route::post('/createrq',[RequestController::class, 'store'])->middleware(['auth'
 Route::post('/editrq/{id}', [RequestController::class, 'updaterq'])->middleware(['auth'])->name('updaterq');
 Route::get('/deleteimg/{img}', [RequestController::class, 'deleteimg'])->middleware(['auth'])->name('deleteimg');
 Route::get('/updatestatus/{id}/{stid}',[RequestController::class, 'updatestatus'])->middleware(['auth'])->name('updatestatus');
-Route::post('/updatestatus-with-advisor/{id}/{stid}',[RequestController::class, 'updatestatusWithAdvisor'])->middleware(['auth'])->name('updatestatus.advisor');
 Route::post('/komentar/{id}', [RequestController::class, 'komentar'])->middleware(['auth'])->name('komentar');
 Route::delete('/deletekomen/{id}',[RequestController::class, 'deletekomen'])->middleware(['auth'])->name('deletekomen');
 Route::delete('/deletereq/{id}',[RequestController::class, 'delete'])->middleware(['auth'])->name('deletereq');
 Route::post('/request/{id}/approve', [RequestController::class, 'approveRequest'])->middleware(['auth'])->name('request.approve');
 Route::post('/request/{id}/reject', [RequestController::class, 'rejectRequest'])->middleware(['auth'])->name('request.reject');
-Route::post('/request/{id}/takeover', [RequestController::class, 'takeover'])->middleware(['auth'])->name('ticket.takeover');
-Route::post('/request/{id}/takeover/accept', [RequestController::class, 'takeoverAccept'])->middleware(['auth'])->name('ticket.takeover.accept');
-Route::post('/request/{id}/takeover/reject', [RequestController::class, 'takeoverReject'])->middleware(['auth'])->name('ticket.takeover.reject');
+
+// New Ticketing System Routes
+Route::get('/detailticket/{id}',[TicketController::class, 'detailticket'])->middleware(['auth'])->name('detailticket');
+Route::get('/createticket', [TicketController::class, 'createticket'])->middleware(['auth'])->name('createticket');
+Route::get('/editticket/{id}', [TicketController::class, 'editticket'])->middleware(['auth'])->name('editticket');
+Route::post('/createticket',[TicketController::class, 'storeticket'])->middleware(['auth'])->name('storeticket');
+Route::post('/editticket/{id}', [TicketController::class, 'updateticket'])->middleware(['auth'])->name('updateticket');
+Route::get('/ticket-deleteimg/{img}', [TicketController::class, 'deleteimg'])->middleware(['auth'])->name('ticket.deleteimg');
+Route::get('/ticket-updatestatus/{id}/{stid}',[TicketController::class, 'updatestatus'])->middleware(['auth'])->name('ticket.updatestatus');
+Route::post('/ticket-updatestatus-with-advisor/{id}/{stid}',[TicketController::class, 'updatestatusWithAdvisor'])->middleware(['auth'])->name('ticket.updatestatus.advisor');
+Route::post('/ticket/{id}/diskusi', [TicketController::class, 'storeDiskusi'])->middleware(['auth'])->name('ticket.diskusi.store');
+Route::post('/ticket-komentar/{id}', [TicketController::class, 'komentar'])->middleware(['auth'])->name('ticket.komentar');
+Route::delete('/ticket-deletekomen/{id}',[TicketController::class, 'deletekomen'])->middleware(['auth'])->name('ticket.deletekomen');
+Route::delete('/deleteticket/{id}',[TicketController::class, 'delete'])->middleware(['auth'])->name('deleteticket');
+Route::post('/ticket/{id}/takeover', [TicketController::class, 'takeover'])->middleware(['auth'])->name('ticket.takeover');
+Route::post('/ticket/{id}/takeover/accept', [TicketController::class, 'takeoverAccept'])->middleware(['auth'])->name('ticket.takeover.accept');
+Route::post('/ticket/{id}/takeover/reject', [TicketController::class, 'takeoverReject'])->middleware(['auth'])->name('ticket.takeover.reject');
 
 //Route Update System
 Route::get('/detailus/{id}', [UpdateSystemController::class, 'detailus'])->middleware(['auth'])->name('detailus');

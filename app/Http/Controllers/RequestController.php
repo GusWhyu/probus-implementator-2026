@@ -21,8 +21,8 @@ class RequestController extends Controller
         $title = 'Delete Comment!';
         $text = 'Are you sure you want to delete this comment?';
         confirmDelete($title, $text);
-        $datarq = \App\Models\Ticket::findOrFail($id);
-        $dataimg = DataImage::where('ticket_id', $id)->get();
+        $datarq = \App\Models\Request::find($id);
+        $dataimg = DataImage::where('request_id', $id)->get();
         $komentar = Komentar::where('request_id', $id)->get();
         $dataus = UpdateSystem::where('request_id', $id)->get();
         $reqlog = RequestLog::where('request_id', $id)->first();
@@ -52,82 +52,115 @@ class RequestController extends Controller
     }
 
     public function createrq(){
-        $tag = \App\Models\Kategori::all(); 
-        $kategori = \App\Models\ModuleSystem::all();
-        // Client: Mengambil data dari tabel moutlet (Outlet model)
-        $clients = \App\Models\Outlet::orderBy('nm_out')->get();
-        // Advisor: Pengguna dengan usertype 'admin' atau 'supervisor' selain user yang login
-        $advisors = \App\Models\User::whereIn('usertype', ['admin', 'supervisor'])
-                                    ->where('id', '!=', Auth::id())
-                                    ->orderBy('name')->get();
-        return view('tablerq.createrq', compact('tag', 'kategori', 'clients', 'advisors'));
+        $tag = Tag::all();
+        $kategori = Kategori::all();
+        $status = Status::all();
+        return view('tablerq.createrq', compact('tag', 'kategori','status'));
     }
 
     public function editrq($id){
-        // Tiket yang sudah dikirim tidak bisa diedit sesuai permintaan.
-        Alert::error('Akses Ditolak', 'Tiket yang sudah dibuat tidak dapat diedit lagi.');
-        return redirect()->route('daftartiket');
+        $req = \App\Models\Request::find($id);
+        $img = DataImage::where('request_id', $id)->get();
+        $tag = Tag::all();
+        $kategori = Kategori::all();
+        $status = Status::all();
+        return view('tablerq.editrq', compact('tag','kategori', 'status', 'req', 'img'));
     }
 
     public function store(Request $request){
         $request->validate([
-            'title' => 'required|max:100',
+            'title' => 'required|max:255',
             'body' => 'required',
+            'startdate' => 'required|date|before:enddate',
+            'enddate' => 'required|date|after:startdate',
             'tag' => 'required',
             'category' => 'required',
-            'client' => 'required', // client from form is now client_id (moutlet)
-            'tipe_penanganan' => 'required',
-            'advisor' => 'nullable', // advisor is optional
-            'due_date' => 'required|date',
+            'outlet' => 'required',
+            'status' => 'required',
             'images' => 'array|max:6',
-            'images.*' => 'image|mimes:jpg,jpeg,png|max:1024'
+            'images.*' => 'image|mimes:jpg,jpeg,png|max:200'
         ]);
 
-        // Generate ticket number
-        $latestTicket = \App\Models\Ticket::latest('id')->first();
-        $nextId = $latestTicket ? $latestTicket->id + 1 : 1;
-        $ticketNumber = 'TCK-' . date('Ym') . '-' . str_pad($nextId, 4, '0', STR_PAD_LEFT);
-
-        $data = \App\Models\Ticket::create([
-            'ticket_number' => $ticketNumber,
-            'title' => $request->title,
-            'description' => $request->body,
-            'system' => $request->tag,
-            'module_system_id' => $request->category,
-            'client_id' => $request->client,
-            'user_id' => Auth::id(), // creator is the logged in user
-            'advisor_id' => $request->advisor,
-            'tipe_penanganan' => $request->tipe_penanganan,
-            'due_date' => $request->due_date,
-            'status' => 'OPEN',
-            'link_id' => \Illuminate\Support\Str::random(10),
+        $data = \App\Models\Request::create([
+            'judul' => $request->title,
+            'deskripsi' => $request->body,
+            'start_date' => $request->startdate,
+            'end_date' => $request->enddate,
+            'kategori_id' => $request->category,
+            'tag_id' => $request->tag,
+            'user_id' => Auth::user()->id,
+            'status_id' => $request->status,
+            'outlet_id' => $request->outlet,
         ]);
         
         $imagedata = [];
         if($request->hasfile('images')){
             foreach ($request->file('images') as $image) {
                 $extension = $image->getClientOriginalName();
-                $filename = time() . '_' . $extension; // Add time to prevent duplicate names
-                $image->move('img/', $filename);
+                $filename = $extension;
+                $image->move('img/',$filename);
                 $imagedata[]=[
-                    'ticket_id' => $data->id,
-                    'image' => $filename,
-                    'created_at' => now(),
-                    'updated_at' => now(),
+                    'request_id' => $data->id,
+                    'image' => $filename
                 ];
             }
-            if(!empty($imagedata)) {
-                DataImage::insert($imagedata);
-            }
         }
-        Alert::success('Create Ticket Success!');
+        DataImage::insert($imagedata);
+        Alert::success('Create Request Success!');
         return redirect()->route('detailrequest', ['id' => $data->id]);
     }
 
     public function updaterq(Request $request,$id){
-        // Fitur edit sudah dinonaktifkan
-        Alert::error('Akses Ditolak', 'Tiket yang sudah dibuat tidak dapat diedit lagi.');
-        return redirect()->route('daftartiket');
+        $rq = \App\Models\Request::find($id);
+        $request->validate([
+            'title' => 'required|max:255',
+            'body' => 'required',
+            'startdate' => 'required|date|before:enddate',
+            'enddate' => 'required|date|after:startdate',
+            'tag' => 'required',
+            'category' => 'required',
+            'outlet' => 'required',
+            'status' => 'required',
+            'images' => 'array|max:6',
+            'images.*' => 'image|mimes:jpg,jpeg,png|max:200'
+        ]);
+
+        $existingFile = DataImage::where('request_id', $id)->count();
+        $maxImages = 6;
+        $images = $request->file('images');
+        if ($images != null){
+
+            if ($existingFile + count($images) > $maxImages) {
+                Alert::error('Image Limit Exceeded!', 'You can only upload a maximum of 6 images.');
+                return redirect()->back();
+            }
+        }
+
+        $rq->update([
+            'judul' => $request->title,
+            'deskripsi' => $request->body,
+            'start_date' => $request->startdate,
+            'end_date' => $request->enddate,
+            'kategori_id' => $request->category,
+            'tag_id' => $request->tag,
+            'status_id' => $request->status,
+            'outlet_id' => $request->outlet,
+        ]);
+        $imagedata = [];
+        if($request->hasfile('images')){
+            foreach ($request->file('images') as $image) {
+                $extension = $image->getClientOriginalName();
+                $filename = $extension;
+                $image->move('img/',$filename);
+                $imagedata[]=[
+                    'request_id' => $id,
+                    'image' => $filename
+                ];
+            }
+        }
+        DataImage::insert($imagedata);
+        Alert::success('Request Successfully Edited!');
+        return redirect()->route('detailrequest', ['id' => $id]);
     }
 
     public function deleteimg($img){
@@ -139,49 +172,19 @@ class RequestController extends Controller
 
     public function updatestatus($id,$stid){
         $reqlog = RequestLog::class;
-        $data = \App\Models\Ticket::findOrFail($id);
-        $updateData = ['status' => $stid];
-        
-        // Record closed_at timestamp when ticket is closed
-        if ($stid == 'CLOSED') {
-            $updateData['closed_at'] = now();
-        } else {
-            // If reopened (OPEN/PROGRESS), reset closed_at
-            $updateData['closed_at'] = null;
-        }
-
-        $data->update($updateData);
-        
-        // Map string status to old status_id for backward compatibility in RequestLog
-        $logStatusId = 1;
-        if ($stid == 'PROGRESS') $logStatusId = 3;
-        elseif ($stid == 'CLOSED') $logStatusId = 4;
-        
+        $data = \App\Models\Request::find($id);
+        $data->update([
+            'status_id' => $stid
+        ]);
         $reqlog::create([
             'request_id' => $id,
-            'status_id' => $logStatusId,
+            'status_id' => $stid,
             'user_id' => Auth::user()->id
         ]);
         $creator = $data->user;
-        if ($creator) {
-            $creator->notify(new RequestStatusChanged($data));
-        }
-        
-        Alert::success('Berhasil!', 'Status tiket telah diperbarui.')->showConfirmButton('Tutup', '#3b82f6');
+        $creator->notify(new RequestStatusChanged($data));
+        Alert::success('Status Changed!');
         return redirect()->back();
-    }
-
-    public function updatestatusWithAdvisor(Request $request, $id, $stid){
-        $request->validate([
-            'advisor_id' => 'required|exists:users,id'
-        ]);
-
-        $data = \App\Models\Ticket::findOrFail($id);
-        $data->update([
-            'advisor_id' => $request->advisor_id
-        ]);
-
-        return $this->updatestatus($id, $stid);
     }
 
     public function komentar(Request $request,$id){
@@ -268,60 +271,6 @@ class RequestController extends Controller
         }
 
         Alert::success('Request Rejected!');
-        return redirect()->back();
-    }
-
-    public function takeover(Request $request, $id) {
-        $request->validate([
-            'target_advisor_id' => 'required|exists:users,id'
-        ]);
-
-        $ticket = \App\Models\Ticket::findOrFail($id);
-        $currentUser = Auth::user();
-        $targetUserId = $request->target_advisor_id;
-
-        // If current user is Admin or SPV, force assign directly
-        if (in_array($currentUser->usertype, ['admin', 'supervisor'])) {
-            $ticket->update([
-                'advisor_id' => $targetUserId,
-                'pending_advisor_id' => null,
-                'pending_advisor_at' => null
-            ]);
-            Alert::success('Berhasil!', 'Tiket telah berhasil dialihkan.')->showConfirmButton('Tutup', '#3b82f6');
-        } else {
-            // User asks another user -> Need approval
-            $ticket->update([
-                'pending_advisor_id' => $targetUserId,
-                'pending_advisor_at' => now()
-            ]);
-            Alert::success('Terkirim!', 'Permintaan pengalihan tiket telah dikirim.')->showConfirmButton('Tutup', '#3b82f6');
-        }
-        
-        return redirect()->back();
-    }
-
-    public function takeoverAccept($id) {
-        $ticket = \App\Models\Ticket::findOrFail($id);
-        if ($ticket->pending_advisor_id == Auth::id()) {
-            $ticket->update([
-                'advisor_id' => Auth::id(),
-                'pending_advisor_id' => null,
-                'pending_advisor_at' => null
-            ]);
-            Alert::success('Berhasil!', 'Anda telah mengambil alih tiket ini.')->showConfirmButton('Tutup', '#3b82f6');
-        }
-        return redirect()->back();
-    }
-
-    public function takeoverReject($id) {
-        $ticket = \App\Models\Ticket::findOrFail($id);
-        if ($ticket->pending_advisor_id == Auth::id()) {
-            $ticket->update([
-                'pending_advisor_id' => null,
-                'pending_advisor_at' => null
-            ]);
-            Alert::info('Ditolak!', 'Anda telah menolak permintaan alih tiket.');
-        }
         return redirect()->back();
     }
 }

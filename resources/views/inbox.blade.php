@@ -22,7 +22,7 @@
                     @endforeach
                 </select>
 
-                <a href="{{ url('createrq') }}" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg font-bold text-sm shadow-sm flex items-center gap-2 transition-all active:scale-95 whitespace-nowrap">
+                <a href="{{ url('createticket') }}" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg font-bold text-sm shadow-sm flex items-center gap-2 transition-all active:scale-95 whitespace-nowrap">
                     <i class="fa-solid fa-plus text-xs"></i> Buat Tiket Baru
                 </a>
             </div>
@@ -53,7 +53,7 @@
                     <!-- Per-column vertical scroll -->
                     <div class="flex-1 min-h-0 overflow-y-auto custom-scrollbar flex flex-col gap-5 pr-2 pb-4">
                         @foreach($open as $rq)
-                        <a href="/detailrequest/{{ $rq->id }}" class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm hover:shadow-md hover:border-blue-300 transition-all cursor-pointer flex flex-col group shrink-0 relative">
+                        <a href="/detailticket/{{ $rq->id }}" class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm hover:shadow-md hover:border-blue-300 transition-all cursor-pointer flex flex-col group shrink-0 relative">
                             <div class="flex justify-between items-center mb-4">
                                 <div class="flex items-center gap-2 flex-wrap">
                                     <span class="bg-blue-50 text-blue-600 text-[11px] font-bold px-2.5 py-1.5 rounded-md">{{ $rq->ticket_number }}</span>
@@ -74,7 +74,7 @@
                                     <div class="text-sm font-medium text-slate-700 truncate" title="{{ $rq->tipe_penanganan ?? '-' }}">{{ $rq->tipe_penanganan ?? '-' }}</div>
                                 </div>
                                 <div>
-                                    <div class="text-[10px] font-semibold text-slate-400 uppercase mb-1 tracking-wider">Reporter</div>
+                                    <div class="text-[10px] font-semibold text-slate-400 uppercase mb-1 tracking-wider">User</div>
                                     <div class="text-sm text-slate-600 truncate" title="{{ $rq->user->name ?? '-' }}">{{ $rq->user->name ?? '-' }}</div>
                                 </div>
                                 <div>
@@ -104,7 +104,7 @@
                     <!-- Per-column vertical scroll -->
                     <div class="flex-1 min-h-0 overflow-y-auto custom-scrollbar flex flex-col gap-5 pr-2 pb-4">
                         @foreach($progress as $rq)
-                        <a href="/detailrequest/{{ $rq->id }}" class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm hover:shadow-md hover:border-orange-300 transition-all cursor-pointer flex flex-col group shrink-0 relative">
+                        <a href="/detailticket/{{ $rq->id }}" class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm hover:shadow-md hover:border-orange-300 transition-all cursor-pointer flex flex-col group shrink-0 relative">
                             <div class="flex justify-between items-center mb-4">
                                 <div class="flex items-center gap-2 flex-wrap">
                                     <span class="bg-blue-50 text-blue-600 text-[11px] font-bold px-2.5 py-1.5 rounded-md">{{ $rq->ticket_number }}</span>
@@ -125,7 +125,7 @@
                                     <div class="text-sm font-medium text-slate-700 truncate" title="{{ $rq->tipe_penanganan ?? '-' }}">{{ $rq->tipe_penanganan ?? '-' }}</div>
                                 </div>
                                 <div>
-                                    <div class="text-[10px] font-semibold text-slate-400 uppercase mb-1 tracking-wider">Reporter</div>
+                                    <div class="text-[10px] font-semibold text-slate-400 uppercase mb-1 tracking-wider">User</div>
                                     <div class="text-sm text-slate-600 truncate" title="{{ $rq->user->name ?? '-' }}">{{ $rq->user->name ?? '-' }}</div>
                                 </div>
                                 <div>
@@ -155,7 +155,7 @@
                     <!-- Per-column vertical scroll -->
                     <div class="flex-1 min-h-0 overflow-y-auto custom-scrollbar flex flex-col gap-5 pr-2 pb-4">
                         @foreach($closed as $rq)
-                        <a href="/detailrequest/{{ $rq->id }}" class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm hover:shadow-md hover:border-emerald-300 transition-all cursor-pointer flex flex-col group shrink-0 relative">
+                        <a href="/detailticket/{{ $rq->id }}" class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm hover:shadow-md hover:border-emerald-300 transition-all cursor-pointer flex flex-col group shrink-0 relative">
                             <div class="flex justify-between items-center mb-4">
                                 <div class="flex items-center gap-2 flex-wrap">
                                     <span class="bg-blue-50 text-blue-600 text-[11px] font-bold px-2.5 py-1.5 rounded-md">{{ $rq->ticket_number }}</span>
@@ -176,7 +176,7 @@
                                     <div class="text-sm font-medium text-slate-700 truncate" title="{{ $rq->tipe_penanganan ?? '-' }}">{{ $rq->tipe_penanganan ?? '-' }}</div>
                                 </div>
                                 <div>
-                                    <div class="text-[10px] font-semibold text-slate-400 uppercase mb-1 tracking-wider">Reporter</div>
+                                    <div class="text-[10px] font-semibold text-slate-400 uppercase mb-1 tracking-wider">User</div>
                                     <div class="text-sm text-slate-600 truncate" title="{{ $rq->user->name ?? '-' }}">{{ $rq->user->name ?? '-' }}</div>
                                 </div>
                                 <div>

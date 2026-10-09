@@ -247,7 +247,10 @@ class HomeController extends Controller
     public function inbox(Request $request){
         $query = Ticket::query()->where(function($q) {
             $q->where('user_id', auth()->id())
-              ->orWhere('advisor_id', auth()->id());
+              ->orWhere(function($sub) {
+                  $sub->where('advisor_id', auth()->id())
+                      ->whereNull('pending_advisor_id');
+              });
         });
 
         if ($request->filled('module')) {
