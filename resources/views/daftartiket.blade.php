@@ -113,7 +113,7 @@
                     <thead class="bg-slate-50/50 border-b border-slate-200">
                         <tr>
                             <th class="py-3 px-3 sm:px-4 text-[10px] font-extrabold text-slate-500 uppercase tracking-widest whitespace-nowrap">No. Tiket</th>
-                            <th class="py-3 px-3 sm:px-4 text-[10px] font-extrabold text-slate-500 uppercase tracking-widest">User Pembuat</th>
+                            <th class="py-3 px-3 sm:px-4 text-[10px] font-extrabold text-slate-500 uppercase tracking-widest">User</th>
                             <th class="py-3 px-3 sm:px-4 text-[10px] font-extrabold text-slate-500 uppercase tracking-widest">Judul</th>
                             <th class="py-3 px-3 sm:px-4 text-[10px] font-extrabold text-slate-500 uppercase tracking-widest">Deskripsi</th>
                             <th class="py-3 px-3 sm:px-4 text-[10px] font-extrabold text-slate-500 uppercase tracking-widest whitespace-nowrap">Tipe Penanganan</th>
@@ -131,8 +131,8 @@
                                     <a href="/detailtiket/{{ $rq->id }}" class="text-sm font-bold text-blue-600 hover:text-blue-800 whitespace-nowrap">{{ $rq->ticket_number }}</a>
                                 </td>
                                 <td class="py-3 px-3 sm:px-4 align-top">
-                                    <div class="text-sm font-semibold text-slate-800">{{ $rq->client->name ?? '-' }}</div>
-                                    <div class="text-[11px] text-slate-400 mt-0.5 font-medium leading-tight">Departemen: <br/>{{ $rq->client->departemen->name ?? '-' }}</div>
+                                    <div class="text-sm font-semibold text-slate-800">{{ $rq->user->name ?? '-' }}</div>
+                                    <div class="text-[11px] text-slate-400 mt-0.5 font-medium leading-tight">Client: {{ $rq->client->name ?? '-' }}</div>
                                 </td>
                                 <td class="py-3 px-3 sm:px-4 align-top">
                                     <div class="text-sm font-bold text-slate-800 leading-snug">{{ $rq->title }}</div>

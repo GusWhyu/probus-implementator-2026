@@ -1,4 +1,8 @@
 <x-app-layout>
+    <!-- Tom Select CSS & JS -->
+    <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
+
     <div class="py-8 bg-slate-50/50 min-h-screen">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             
@@ -49,14 +53,16 @@
                                     <label class="flex items-center gap-1.5 text-xs font-bold text-slate-600 mb-2">
                                         <i class="fa-solid fa-user text-slate-400 text-[10px]"></i> Client <span class="text-rose-500">*</span>
                                     </label>
-                                    <div class="relative">
-                                        <select name="client" class="w-full bg-slate-50 border border-slate-200 text-slate-800 text-sm rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white block p-3.5 transition-all outline-none appearance-none cursor-pointer pr-10" required>
+                                    <div class="relative group">
+                                        <select id="client-select" name="client" class="w-full bg-slate-50 border border-slate-200 text-slate-800 text-sm rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white block p-3.5 transition-all outline-none" required>
                                             <option value="" disabled selected>Pilih client...</option>
                                             @foreach ($clients as $client)
                                             <option value="{{ $client->id }}" {{ old('client') == $client->id ? 'selected' : '' }}>{{ $client->nm_out }}</option>
                                             @endforeach
                                         </select>
-                                        <i class="fa-solid fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-[10px] text-slate-400 pointer-events-none"></i>
+                                        <div class="absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none flex items-center justify-center w-7 h-7 rounded-lg bg-white shadow-sm border border-slate-100 z-10 transition-colors text-slate-400">
+                                            <i class="fa-solid fa-magnifying-glass text-[11px]"></i>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -266,8 +272,39 @@
             updateCounter();
         }
 
-        document.addEventListener('trix-file-accept', function(e){
-            e.preventDefault();
+        document.addEventListener('trix-file-accept', function(e) {
+            const maxFileSize = 1024 * 1024; // 1MB
+            if (e.file.size > maxFileSize) {
+                e.preventDefault();
+                
+                // Create custom toast
+                const toast = document.createElement('div');
+                toast.className = 'fixed bottom-4 right-4 bg-white border-l-4 border-rose-500 rounded-xl shadow-xl p-4 flex items-start gap-3 z-50 transition-all transform translate-y-10 opacity-0 duration-300';
+                toast.innerHTML = `
+                    <div class="text-rose-500 mt-0.5">
+                        <i class="fa-solid fa-circle-exclamation text-xl"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-slate-800 text-sm">Ukuran Gambar Terlalu Besar!</h4>
+                        <p class="text-xs text-slate-500 mt-1">Gambar <b class="text-slate-700">${e.file.name}</b> berukuran ${(e.file.size / (1024*1024)).toFixed(2)} MB.<br>Maksimal ukuran yang diizinkan adalah <b>1 MB</b>.</p>
+                    </div>
+                    <button class="text-slate-400 hover:text-slate-600 transition-colors ml-4" onclick="this.parentElement.remove()">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                `;
+                document.body.appendChild(toast);
+                
+                // Animate in
+                setTimeout(() => {
+                    toast.classList.remove('translate-y-10', 'opacity-0');
+                }, 10);
+                
+                // Animate out after 6 seconds
+                setTimeout(() => {
+                    toast.classList.add('translate-y-10', 'opacity-0');
+                    setTimeout(() => toast.remove(), 300);
+                }, 6000);
+            }
         });
 
         // Prevent default drag behaviors globally to avoid opening images in new tab
@@ -318,17 +355,19 @@
                 return;
             }
             
-            let hasLargeFile = false;
+            let largeFileNames = [];
             newFiles.forEach(file => {
                 if (file.size > 1024 * 1024) {
-                    hasLargeFile = true;
+                    largeFileNames.push(file.name);
                 } else {
                     selectedFiles.push(file);
                 }
             });
             
-            if (hasLargeFile) {
-                showToast('Beberapa gambar tidak dimasukkan karena melebihi batas maksimal 1MB per file.', 'warning');
+            if (largeFileNames.length > 0) {
+                // If there's 1 large file, say "Gambar X", if multiple say "Gambar X, Y, Z"
+                const listStr = largeFileNames.join(', ');
+                showToast('Gambar berikut melebihi 1MB dan ditolak: ' + listStr, 'warning');
             }
 
             updateFileInput();
@@ -347,15 +386,21 @@
             selectedFiles.forEach((file, index) => {
                 const fileSize = (file.size / 1024).toFixed(1) + ' KB';
                 
+                // Create object URL for preview
+                const fileUrl = URL.createObjectURL(file);
+                
                 const item = document.createElement('div');
                 item.className = 'flex items-center justify-between p-2.5 bg-[#fafcfd] border border-slate-100 rounded-xl shadow-[0_2px_10px_-3px_rgba(0,0,0,0.05)]';
                 item.innerHTML = `
                     <div class="flex items-center gap-4 overflow-hidden">
-                        <div class="w-12 h-12 bg-[#e8f1ff] text-[#3b82f6] rounded-xl flex items-center justify-center shrink-0">
-                            <i class="fa-solid fa-image text-lg"></i>
+                        <div class="w-12 h-12 bg-[#e8f1ff] text-[#3b82f6] rounded-xl flex items-center justify-center shrink-0 overflow-hidden border border-slate-200/50">
+                            ${file.type.startsWith('image/') 
+                                ? `<img src="${fileUrl}" class="w-full h-full object-cover" alt="Preview" />` 
+                                : `<i class="fa-solid fa-file text-lg"></i>`
+                            }
                         </div>
                         <div class="overflow-hidden">
-                            <p class="text-[13px] font-bold text-slate-700 truncate mb-0.5">${file.name}</p>
+                            <p class="text-[13px] font-bold text-slate-700 truncate mb-0.5" title="${file.name}">${file.name}</p>
                             <p class="text-[11px] font-semibold text-slate-400">${fileSize}</p>
                         </div>
                     </div>
@@ -424,15 +469,77 @@
 
         // Initialize Flatpickr for 24-hour format
         document.addEventListener('DOMContentLoaded', function() {
-            flatpickr("#due-date-picker", {
-                enableTime: true,
-                dateFormat: "Y-m-d H:i",
-                time_24hr: true,
-                minDate: new Date(), // This automatically prevents selecting a time in the past for today
-                locale: "id",
-                defaultHour: new Date().getHours(),
-                defaultMinute: new Date().getMinutes(),
-            });
+            try {
+                if (typeof flatpickr !== 'undefined') {
+                    flatpickr("#due-date-picker", {
+                        enableTime: true,
+                        dateFormat: "Y-m-d H:i",
+                        time_24hr: true,
+                        minDate: new Date(), // This automatically prevents selecting a time in the past for today
+                        locale: "id",
+                        defaultHour: new Date().getHours(),
+                        defaultMinute: new Date().getMinutes(),
+                    });
+                }
+            } catch (e) { console.error(e); }
+
+            // Initialize Tom Select for Client searchable dropdown
+            try {
+                if (typeof TomSelect !== 'undefined') {
+                    new TomSelect("#client-select", {
+                        create: false,
+                        sortField: {
+                            field: "text",
+                            direction: "asc"
+                        },
+                        placeholder: "Cari dan pilih client..."
+                    });
+                }
+            } catch (e) { console.error("TomSelect error:", e); }
         });
     </script>
+    <style>
+        .ts-wrapper {
+            padding: 0 !important;
+            border: none !important;
+            background: transparent !important;
+            box-shadow: none !important;
+        }
+        .ts-control {
+            border-radius: 0.75rem !important; /* Tailwind rounded-xl */
+            padding: 0.875rem 3rem 0.875rem 0.875rem !important; /* space for icon on right */
+            background-color: #f8fafc !important; /* bg-slate-50 */
+            border-color: #e2e8f0 !important; /* border-slate-200 */
+            font-size: 0.875rem !important; /* text-sm */
+            color: #1e293b !important; /* text-slate-800 */
+            box-shadow: none !important;
+            min-height: 48px;
+            display: flex;
+            align-items: center;
+        }
+        .ts-control::after {
+            display: none !important; /* Hide TomSelect default chevron arrow */
+        }
+        .ts-control.focus {
+            background-color: #ffffff !important;
+            border-color: #3b82f6 !important; /* focus:border-blue-500 */
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2) !important; /* focus:ring-blue-500/20 */
+        }
+        .ts-dropdown {
+            border-radius: 0.75rem !important;
+            border-color: #e2e8f0 !important;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
+            margin-top: 4px !important;
+        }
+        .ts-dropdown .option {
+            padding: 0.75rem !important;
+            font-size: 0.875rem !important;
+            transition: all 0.2s;
+        }
+        .ts-dropdown .active {
+            background-color: #eff6ff !important; /* hover:bg-blue-50 */
+            color: #2563eb !important; /* text-blue-600 */
+            font-weight: 600;
+        }
+    </style>
 </x-app-layout>

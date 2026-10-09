@@ -257,8 +257,39 @@
     </style>
     
     <script>
-        document.addEventListener('trix-file-accept', function(e){
-            e.preventDefault();
+        document.addEventListener('trix-file-accept', function(e) {
+            const maxFileSize = 1024 * 1024; // 1MB
+            if (e.file.size > maxFileSize) {
+                e.preventDefault();
+                
+                // Create custom toast
+                const toast = document.createElement('div');
+                toast.className = 'fixed bottom-4 right-4 bg-white border-l-4 border-rose-500 rounded-xl shadow-xl p-4 flex items-start gap-3 z-50 transition-all transform translate-y-10 opacity-0 duration-300';
+                toast.innerHTML = `
+                    <div class="text-rose-500 mt-0.5">
+                        <i class="fa-solid fa-circle-exclamation text-xl"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-slate-800 text-sm">Ukuran Gambar Terlalu Besar!</h4>
+                        <p class="text-xs text-slate-500 mt-1">Gambar <b class="text-slate-700">${e.file.name}</b> berukuran ${(e.file.size / (1024*1024)).toFixed(2)} MB.<br>Maksimal ukuran yang diizinkan adalah <b>1 MB</b>.</p>
+                    </div>
+                    <button class="text-slate-400 hover:text-slate-600 transition-colors ml-4" onclick="this.parentElement.remove()">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                `;
+                document.body.appendChild(toast);
+                
+                // Animate in
+                setTimeout(() => {
+                    toast.classList.remove('translate-y-10', 'opacity-0');
+                }, 10);
+                
+                // Animate out after 6 seconds
+                setTimeout(() => {
+                    toast.classList.add('translate-y-10', 'opacity-0');
+                    setTimeout(() => toast.remove(), 300);
+                }, 6000);
+            }
         });
     </script>
 </x-app-layout>

@@ -1,4 +1,12 @@
 <x-app-layout>
+    <!-- Flatpickr CSS & JS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://npmcdn.com/flatpickr/dist/l10n/id.js"></script>
+    <!-- Tom Select CSS & JS -->
+    <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
+
     <div class="py-8 bg-slate-50/50 min-h-screen">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             
@@ -263,18 +271,82 @@
     </style>
 
     <script>
-        document.addEventListener('trix-file-accept', function(e){
-            e.preventDefault(); // Prevent file upload inside trix for this form
+        document.addEventListener('trix-file-accept', function(e) {
+            const maxFileSize = 1024 * 1024; // 1MB
+            if (e.file.size > maxFileSize) {
+                e.preventDefault();
+                
+                // Create custom toast
+                const toast = document.createElement('div');
+                toast.className = 'fixed bottom-4 right-4 bg-white border-l-4 border-rose-500 rounded-xl shadow-xl p-4 flex items-start gap-3 z-50 transition-all transform translate-y-10 opacity-0 duration-300';
+                toast.innerHTML = `
+                    <div class="text-rose-500 mt-0.5">
+                        <i class="fa-solid fa-circle-exclamation text-xl"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-slate-800 text-sm">Ukuran Gambar Terlalu Besar!</h4>
+                        <p class="text-xs text-slate-500 mt-1">Gambar <b class="text-slate-700">${e.file.name}</b> berukuran ${(e.file.size / (1024*1024)).toFixed(2)} MB.<br>Maksimal ukuran yang diizinkan adalah <b>1 MB</b>.</p>
+                    </div>
+                    <button class="text-slate-400 hover:text-slate-600 transition-colors ml-4" onclick="this.parentElement.remove()">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                `;
+                document.body.appendChild(toast);
+                
+                // Animate in
+                setTimeout(() => {
+                    toast.classList.remove('translate-y-10', 'opacity-0');
+                }, 10);
+                
+                // Animate out after 6 seconds
+                setTimeout(() => {
+                    toast.classList.add('translate-y-10', 'opacity-0');
+                    setTimeout(() => toast.remove(), 300);
+                }, 6000);
+            }
         });
 
-        // Simple script to update file name display
         document.getElementById('file-upload').addEventListener('change', function(e) {
             const fileNameDisplay = document.getElementById('file-name');
-            if (this.files && this.files.length > 0) {
-                if (this.files.length === 1) {
-                    fileNameDisplay.textContent = this.files[0].name;
+            const newFiles = Array.from(this.files);
+            
+            let largeFileNames = [];
+            newFiles.forEach(file => {
+                if (file.size > 1024 * 1024) {
+                    largeFileNames.push(file.name);
                 } else {
-                    fileNameDisplay.textContent = this.files.length + ' file berhasil dipilih';
+                    selectedFiles.push(file);
+                }
+            });
+            
+            if (largeFileNames.length > 0) {
+                const listStr = largeFileNames.join(', ');
+                
+                // Show custom premium toast
+                const toast = document.createElement('div');
+                toast.className = 'fixed bottom-4 right-4 bg-white border-l-4 border-rose-500 rounded-xl shadow-xl p-4 flex items-start gap-3 z-50 transition-all transform translate-y-10 opacity-0 duration-300';
+                toast.innerHTML = `
+                    <div class="text-rose-500 mt-0.5">
+                        <i class="fa-solid fa-circle-exclamation text-xl"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-slate-800 text-sm">Ukuran Gambar Terlalu Besar!</h4>
+                        <p class="text-xs text-slate-500 mt-1">Gambar berikut ditolak karena melebihi 1 MB:<br><b class="text-slate-700">${listStr}</b></p>
+                    </div>
+                    <button class="text-slate-400 hover:text-slate-600 transition-colors ml-4" onclick="this.parentElement.remove()">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                `;
+                document.body.appendChild(toast);
+                setTimeout(() => toast.classList.remove('translate-y-10', 'opacity-0'), 10);
+                setTimeout(() => { toast.classList.add('translate-y-10', 'opacity-0'); setTimeout(() => toast.remove(), 300); }, 6000);
+            }
+
+            if (selectedFiles.length > 0) {
+                if (selectedFiles.length === 1) {
+                    fileNameDisplay.textContent = selectedFiles[0].name;
+                } else {
+                    fileNameDisplay.textContent = selectedFiles.length + ' file berhasil dipilih';
                 }
                 fileNameDisplay.classList.add('text-blue-600', 'font-extrabold');
             } else {
@@ -283,7 +355,7 @@
             }
             updateFileInput();
             renderFileList();
-        }
+        });
 
         function updateFileInput() {
             const dataTransfer = new DataTransfer();
@@ -297,15 +369,21 @@
             selectedFiles.forEach((file, index) => {
                 const fileSize = (file.size / 1024).toFixed(1) + ' KB';
                 
+                // Create object URL for preview
+                const fileUrl = URL.createObjectURL(file);
+                
                 const item = document.createElement('div');
                 item.className = 'flex items-center justify-between p-2.5 bg-[#fafcfd] border border-slate-100 rounded-xl shadow-[0_2px_10px_-3px_rgba(0,0,0,0.05)]';
                 item.innerHTML = `
                     <div class="flex items-center gap-4 overflow-hidden">
-                        <div class="w-12 h-12 bg-[#e8f1ff] text-[#3b82f6] rounded-xl flex items-center justify-center shrink-0">
-                            <i class="fa-solid fa-image text-lg"></i>
+                        <div class="w-12 h-12 bg-[#e8f1ff] text-[#3b82f6] rounded-xl flex items-center justify-center shrink-0 overflow-hidden border border-slate-200/50">
+                            ${file.type.startsWith('image/') 
+                                ? `<img src="${fileUrl}" class="w-full h-full object-cover" alt="Preview" />` 
+                                : `<i class="fa-solid fa-file text-lg"></i>`
+                            }
                         </div>
                         <div class="overflow-hidden">
-                            <p class="text-[13px] font-bold text-slate-700 truncate mb-0.5">${file.name}</p>
+                            <p class="text-[13px] font-bold text-slate-700 truncate mb-0.5" title="${file.name}">${file.name}</p>
                             <p class="text-[11px] font-semibold text-slate-400">${fileSize}</p>
                         </div>
                     </div>
@@ -372,32 +450,44 @@
             });
         }
 
-        // Initialize Flatpickr for 24-hour format
+        // Initialize Flatpickr for 24-hour format (inside try-catch in case CDN fails)
         document.addEventListener('DOMContentLoaded', function() {
-            flatpickr("#due-date-picker", {
-                enableTime: true,
-                dateFormat: "Y-m-d H:i",
-                time_24hr: true,
-                minDate: new Date(), // This automatically prevents selecting a time in the past for today
-                locale: "id",
-                defaultHour: new Date().getHours(),
-                defaultMinute: new Date().getMinutes(),
-            });
+            try {
+                if (typeof flatpickr !== 'undefined') {
+                    flatpickr("#due-date-picker", {
+                        enableTime: true,
+                        dateFormat: "Y-m-d H:i",
+                        time_24hr: true,
+                        minDate: new Date(),
+                        locale: "id",
+                        defaultHour: new Date().getHours(),
+                        defaultMinute: new Date().getMinutes(),
+                    });
+                }
+            } catch (e) { console.error("Flatpickr error:", e); }
 
             // Initialize Tom Select for Client searchable dropdown
-            new TomSelect("#client-select", {
-                create: false,
-                sortField: {
-                    field: "text",
-                    direction: "asc"
-                },
-                placeholder: "Cari dan pilih client..."
-            });
+            try {
+                if (typeof TomSelect !== 'undefined') {
+                    new TomSelect("#client-select", {
+                        create: false,
+                        sortField: {
+                            field: "text",
+                            direction: "asc"
+                        },
+                        placeholder: "Cari dan pilih client..."
+                    });
+                }
+            } catch (e) { console.error("TomSelect error:", e); }
         });
     </script>
-    <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
     <style>
+        .ts-wrapper {
+            padding: 0 !important;
+            border: none !important;
+            background: transparent !important;
+            box-shadow: none !important;
+        }
         .ts-control {
             border-radius: 0.75rem !important; /* Tailwind rounded-xl */
             padding: 0.875rem 3rem 0.875rem 0.875rem !important; /* space for icon on right */
