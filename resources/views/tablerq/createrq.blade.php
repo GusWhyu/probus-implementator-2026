@@ -49,14 +49,16 @@
                                     <label class="flex items-center gap-1.5 text-xs font-bold text-slate-600 mb-2">
                                         <i class="fa-solid fa-user text-slate-400 text-[10px]"></i> Client <span class="text-rose-500">*</span>
                                     </label>
-                                    <div class="relative">
-                                        <select name="client" class="w-full bg-slate-50 border border-slate-200 text-slate-800 text-sm rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white block p-3.5 transition-all outline-none appearance-none cursor-pointer pr-10" required>
-                                            <option value="" disabled selected>Pilih client...</option>
+                                    <div class="relative group">
+                                        <select id="client-select" name="client" class="w-full bg-slate-50 border border-slate-200 text-slate-800 text-sm rounded-xl" required>
+                                            <option value="" disabled selected>Cari dan pilih client...</option>
                                             @foreach ($clients as $client)
                                             <option value="{{ $client->id }}" {{ old('client') == $client->id ? 'selected' : '' }}>{{ $client->nm_out }}</option>
                                             @endforeach
                                         </select>
-                                        <i class="fa-solid fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-[10px] text-slate-400 pointer-events-none"></i>
+                                        <div class="absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none flex items-center justify-center w-7 h-7 rounded-lg bg-white shadow-sm border border-slate-100 z-10 transition-colors text-slate-400">
+                                            <i class="fa-solid fa-magnifying-glass text-[11px]"></i>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -433,6 +435,56 @@
                 defaultHour: new Date().getHours(),
                 defaultMinute: new Date().getMinutes(),
             });
+
+            // Initialize Tom Select for Client searchable dropdown
+            new TomSelect("#client-select", {
+                create: false,
+                sortField: {
+                    field: "text",
+                    direction: "asc"
+                },
+                placeholder: "Cari dan pilih client..."
+            });
         });
     </script>
+    <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
+    <style>
+        .ts-control {
+            border-radius: 0.75rem !important; /* Tailwind rounded-xl */
+            padding: 0.875rem 3rem 0.875rem 0.875rem !important; /* space for icon on right */
+            background-color: #f8fafc !important; /* bg-slate-50 */
+            border-color: #e2e8f0 !important; /* border-slate-200 */
+            font-size: 0.875rem !important; /* text-sm */
+            color: #1e293b !important; /* text-slate-800 */
+            box-shadow: none !important;
+            min-height: 48px;
+            display: flex;
+            align-items: center;
+        }
+        .ts-control::after {
+            display: none !important; /* Hide TomSelect default chevron arrow */
+        }
+        .ts-control.focus {
+            background-color: #ffffff !important;
+            border-color: #3b82f6 !important; /* focus:border-blue-500 */
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2) !important; /* focus:ring-blue-500/20 */
+        }
+        .ts-dropdown {
+            border-radius: 0.75rem !important;
+            border-color: #e2e8f0 !important;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
+            margin-top: 4px !important;
+        }
+        .ts-dropdown .option {
+            padding: 0.75rem !important;
+            font-size: 0.875rem !important;
+            transition: all 0.2s;
+        }
+        .ts-dropdown .active {
+            background-color: #eff6ff !important; /* hover:bg-blue-50 */
+            color: #2563eb !important; /* text-blue-600 */
+            font-weight: 600;
+        }
+    </style>
 </x-app-layout>

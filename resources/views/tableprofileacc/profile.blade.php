@@ -116,7 +116,7 @@
                                     @endphp
                                     <tr class="hover:bg-slate-50/50 transition-colors group">
                                         <td class="py-4 px-6">
-                                            <a href="/detailrequest/{{ $rq->id }}" class="text-sm font-bold text-slate-800 hover:text-blue-600 transition-colors line-clamp-1" title="{{ $rq->judul }}">
+                                            <a href="/detailtiket/{{ $rq->id }}" class="text-sm font-bold text-slate-800 hover:text-blue-600 transition-colors line-clamp-1" title="{{ $rq->judul }}">
                                                 {{ $rq->judul }}
                                             </a>
                                         </td>
@@ -183,7 +183,7 @@
                                             </a>
                                         </td>
                                         <td class="py-4 px-6">
-                                            <a href="/detailrequest/{{ $up->request_id }}" class="text-xs font-semibold text-slate-500 hover:text-blue-600 transition-colors line-clamp-1" title="{{ $up->request ? $up->request->judul : '' }}">
+                                            <a href="/detailtiket/{{ $up->request_id }}" class="text-xs font-semibold text-slate-500 hover:text-blue-600 transition-colors line-clamp-1" title="{{ $up->request ? $up->request->judul : '' }}">
                                                 {{ $up->request ? $up->request->judul : 'Tidak Ada' }}
                                             </a>
                                         </td>

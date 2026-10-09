@@ -36,8 +36,8 @@
                     <div class="relative group flex-1 sm:flex-none">
                         <i class="fa-regular fa-calendar absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 text-white pointer-events-none text-[10px] sm:text-xs"></i>
                         <input type="text" id="dateRangePicker" 
-                               class="bg-white/15 backdrop-blur-sm text-white border border-white/20 pl-8 sm:pl-10 pr-3 sm:pr-4 py-2 sm:py-2.5 rounded-xl text-[10px] sm:text-xs font-bold hover:bg-white/25 transition-all cursor-pointer focus:outline-none focus:border-white/40 focus:ring-2 focus:ring-white/20 w-full sm:w-56 lg:w-64 placeholder-white/80"
-                               value="{{ now()->format('M d, Y') }} to {{ now()->format('M d, Y') }}" readonly>
+                               class="bg-white/15 backdrop-blur-sm text-white border border-white/20 pl-8 sm:pl-10 pr-3 sm:pr-4 py-2 sm:py-2.5 rounded-xl text-[10px] sm:text-xs font-bold hover:bg-white/25 transition-all cursor-pointer focus:outline-none focus:border-white/40 focus:ring-2 focus:ring-white/20 w-full sm:w-48 lg:w-48 placeholder-white/80"
+                               value="{{ now()->format('M d, Y') }}" readonly>
                     </div>
                     <button class="bg-white text-blue-600 px-3 sm:px-5 py-2 sm:py-2.5 rounded-xl text-[10px] sm:text-xs font-bold flex items-center justify-center gap-1.5 sm:gap-2 hover:bg-blue-50 transition-colors shadow-lg shadow-blue-900/20 shrink-0">
                         <i class="fa-solid fa-download"></i>
@@ -63,10 +63,7 @@
                         </div>
                     </div>
                     <div class="text-3xl font-extrabold text-slate-800 mb-1">{{ $total_count ?? 0 }}</div>
-                    <div class="flex items-center gap-1 text-[10px] font-bold text-emerald-500">
-                        <i class="fa-solid fa-arrow-trend-up"></i> 8.2%
-                        <span class="text-slate-400 font-semibold ml-1">↑ 13.9%</span>
-                    </div>
+
                 </div>
 
                 {{-- Card 2: Tiket Selesai --}}
@@ -78,10 +75,7 @@
                         </div>
                     </div>
                     <div class="text-3xl font-extrabold text-slate-800 mb-1">{{ $closed_count ?? 0 }}</div>
-                    <div class="flex items-center gap-1 text-[10px] font-bold text-emerald-500">
-                        <i class="fa-solid fa-arrow-trend-up"></i> 8.3%
-                        <span class="text-red-400 font-semibold ml-1">↓ 8.3%</span>
-                    </div>
+
                 </div>
 
                 {{-- Card 3: Dalam Proses --}}
@@ -93,10 +87,7 @@
                         </div>
                     </div>
                     <div class="text-3xl font-extrabold text-slate-800 mb-1">{{ $progress_count ?? 0 }}</div>
-                    <div class="flex items-center gap-1 text-[10px] font-bold text-emerald-500">
-                        <i class="fa-solid fa-arrow-trend-up"></i> 15.2%
-                        <span class="text-red-400 font-semibold ml-1">↓ 15.7%</span>
-                    </div>
+
                 </div>
 
                 {{-- Card 4: Terbuka --}}
@@ -108,10 +99,7 @@
                         </div>
                     </div>
                     <div class="text-3xl font-extrabold text-slate-800 mb-1">{{ $open_count ?? 0 }}</div>
-                    <div class="flex items-center gap-1 text-[10px] font-bold text-emerald-500">
-                        <i class="fa-solid fa-arrow-trend-up"></i> 8.4%
-                        <span class="text-emerald-500 font-semibold ml-1">↑ 6.4%</span>
-                    </div>
+
                 </div>
             </div>
 
@@ -170,7 +158,7 @@
             </div>
 
             {{-- Row 2: Performa Agen + Top Client + Jenis Kendala --}}
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
                 {{-- Performa Agen --}}
                 <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
                     <div class="flex items-center justify-between mb-1">
@@ -183,17 +171,7 @@
                     <a href="#" class="text-[11px] font-bold text-blue-600 hover:text-blue-700 mt-3 inline-flex items-center gap-1 transition-colors">View full report <i class="fa-solid fa-chevron-right text-[8px]"></i></a>
                 </div>
 
-                {{-- Volume Tiket Harian (Heatmap-style bar) --}}
-                <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
-                    <div class="flex items-center justify-between mb-1">
-                        <h3 class="text-sm font-bold text-slate-800">Volume Tiket</h3>
-                    </div>
-                    <p class="text-[11px] text-slate-400 font-medium mb-5">Tiket masuk per hari</p>
-                    <div class="h-56 w-full relative">
-                        <canvas id="volumeChart"></canvas>
-                    </div>
-                    <a href="#" class="text-[11px] font-bold text-blue-600 hover:text-blue-700 mt-3 inline-flex items-center gap-1 transition-colors">View full report <i class="fa-solid fa-chevron-right text-[8px]"></i></a>
-                </div>
+
 
                 {{-- Top Client Donut --}}
                 <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 flex flex-col">
@@ -264,24 +242,18 @@
                             @forelse(($all_tickets ?? collect())->take(5) as $ticket)
                             <tr class="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
                                 <td class="py-3.5 text-sm font-semibold text-slate-700">{{ $ticket->title ?? 'N/A' }}</td>
-                                <td class="py-3.5 text-sm text-slate-600">{{ $ticket->client->nama ?? 'N/A' }}</td>
-                                <td class="py-3.5 text-sm text-slate-600">{{ $ticket->kategori->nama ?? 'N/A' }}</td>
+                                <td class="py-3.5 text-sm text-slate-600">{{ $ticket->client->name ?? 'N/A' }}</td>
+                                <td class="py-3.5 text-sm text-slate-600">{{ $ticket->kategoriSystem->name ?? 'N/A' }}</td>
                                 <td class="py-3.5">
                                     @php
                                         $statusColors = [
-                                            1 => 'bg-red-100 text-red-700',
-                                            2 => 'bg-blue-100 text-blue-700',
-                                            3 => 'bg-amber-100 text-amber-700',
-                                            4 => 'bg-emerald-100 text-emerald-700',
-                                        ];
-                                        $statusNames = [
-                                            1 => 'Open',
-                                            2 => 'Progress',
-                                            3 => 'Closed',
+                                            'OPEN' => 'bg-red-100 text-red-700',
+                                            'PROGRESS' => 'bg-blue-100 text-blue-700',
+                                            'CLOSED' => 'bg-emerald-100 text-emerald-700',
                                         ];
                                     @endphp
-                                    <span class="px-2.5 py-1 rounded-lg text-[10px] font-bold {{ $statusColors[$ticket->status_id] ?? 'bg-slate-100 text-slate-600' }}">
-                                        {{ $statusNames[$ticket->status_id] ?? 'Unknown' }}
+                                    <span class="px-2.5 py-1 rounded-lg text-[10px] font-bold {{ $statusColors[$ticket->status] ?? 'bg-slate-100 text-slate-600' }}">
+                                        {{ $ticket->status ?? 'Unknown' }}
                                     </span>
                                 </td>
                                 <td class="py-3.5 text-sm text-slate-500">{{ $ticket->created_at->format('d M Y') }}</td>
@@ -315,44 +287,12 @@
         document.addEventListener('DOMContentLoaded', function() {
             // ── Initialize Flatpickr ──
             flatpickr("#dateRangePicker", {
-                mode: "range",
+                mode: "single",
                 dateFormat: "M d, Y",
-                showMonths: window.innerWidth > 768 ? 2 : 1,
-                onReady: function(selectedDates, dateStr, instance) {
-                    // Create preset container
-                    const presetContainer = document.createElement("div");
-                    presetContainer.className = "flatpickr-presets flex flex-wrap justify-center gap-2 pt-3 mt-3 border-t border-slate-100";
-                    
-                    const presets = [
-                        { label: '1 Hari', days: 0 },
-                        { label: '7 Hari', days: 6 },
-                        { label: '1 Bulan', days: 29 },
-                        { label: '1 Tahun', days: 364 }
-                    ];
-
-                    presets.forEach(preset => {
-                        const btn = document.createElement("button");
-                        btn.type = "button";
-                        btn.className = "text-[11px] font-bold px-3 py-1.5 bg-slate-50 border border-slate-200 text-slate-600 rounded-lg hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200 transition-colors cursor-pointer";
-                        btn.textContent = preset.label;
-                        
-                        btn.addEventListener("click", function(e) {
-                            e.preventDefault();
-                            const end = new Date();
-                            const start = new Date();
-                            start.setDate(end.getDate() - preset.days);
-                            instance.setDate([start, end], true);
-                            instance.close();
-                        });
-                        
-                        presetContainer.appendChild(btn);
-                    });
-
-                    instance.calendarContainer.appendChild(presetContainer);
-                },
+                showMonths: 1,
                 onChange: function(selectedDates, dateStr, instance) {
-                    if (selectedDates.length === 2) {
-                        console.log('Date range selected:', dateStr);
+                    if (selectedDates.length === 1) {
+                        console.log('Date selected:', dateStr);
                         // Trigger your filter functions here
                     }
                 }
@@ -471,34 +411,7 @@
                 }
             });
 
-            // ── 4. Volume Tiket (Vertical Bar) ──
-            new Chart(document.getElementById('volumeChart').getContext('2d'), {
-                type: 'bar',
-                data: {
-                    labels: {!! json_encode($chartLabels ?? []) !!},
-                    datasets: [{
-                        data: {!! json_encode($masukData ?? []) !!},
-                        backgroundColor: function(ctx) {
-                            return ctx.dataIndex === 5 ? '#2563eb' : '#bfdbfe'; // blue-600 for highlight, blue-200 for rest
-                        },
-                        hoverBackgroundColor: '#1d4ed8', // blue-700 on hover
-                        borderRadius: 8,
-                        barPercentage: 0.5
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: {
-                        y: { display: false, beginAtZero: true },
-                        x: {
-                            grid: { display: false, drawBorder: false },
-                            ticks: { font: { size: 10, weight: '600' } }
-                        }
-                    }
-                }
-            });
+
 
             // ── 5. Client Donut ──
             new Chart(document.getElementById('clientDonutChart').getContext('2d'), {

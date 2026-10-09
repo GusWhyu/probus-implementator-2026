@@ -27,7 +27,11 @@ class HomeController extends Controller
         $closed = Ticket::where('status', 'CLOSED')->latest()->take(5)->get();
         $us = UpdateSystem::latest()->take(4)->get();
 
-        $all_tickets = Ticket::latest()->paginate(9);
+        $all_tickets = Ticket::where('status', '!=', 'CLOSED')
+            ->where('created_at', '>=', \Carbon\Carbon::now()->subDays(2))
+            ->latest()
+            ->take(5)
+            ->get();
 
         // Chart Data Calculation
         $chartLabels = [];

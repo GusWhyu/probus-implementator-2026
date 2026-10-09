@@ -55,7 +55,7 @@ class RequestController extends Controller
         $tag = \App\Models\Kategori::all(); 
         $kategori = \App\Models\ModuleSystem::all();
         // Client: Mengambil data dari tabel moutlet (Outlet model)
-        $clients = \App\Models\Outlet::orderBy('nm_out')->get();
+        $clients = \App\Models\Outlet::where('aktif', 1)->orderBy('nm_out')->get();
         // Advisor: Pengguna dengan usertype 'admin' atau 'supervisor' selain user yang login
         $advisors = \App\Models\User::whereIn('usertype', ['admin', 'supervisor'])
                                     ->where('id', '!=', Auth::id())
@@ -121,7 +121,7 @@ class RequestController extends Controller
             }
         }
         Alert::success('Create Ticket Success!');
-        return redirect()->route('detailrequest', ['id' => $data->id]);
+        return redirect()->route('detailtiket', ['id' => $data->id]);
     }
 
     public function updaterq(Request $request,$id){

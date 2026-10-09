@@ -31,7 +31,7 @@
                     </div>
                     <div class="grid md:grid-cols-4 grid-rows-1">
                         @foreach ($data as $rq)
-                        <a href="/detailrequest/{{ $rq->id }}" class="mx-2">
+                        <a href="/detailtiket/{{ $rq->id }}" class="mx-2">
                             <div class="card bg-white rounded-xl mt-3 overflow-hidden">
                                 <div class="absolute right-0 m-3 flex items-center gap-1.5">
                                     <span class="text-xs font-bold text-gray-400 font-mono">#{{ $rq->id }}</span>

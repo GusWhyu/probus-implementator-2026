@@ -11,7 +11,7 @@
                             <h1 class="font-bold text-abu mt-2 ml-2"><a href="/myproc/1" class="hover:border-abu hover:border-b-2">Urgent <i class="fa-solid fa-up-right-from-square"></i></a></h1>
                             @if (count($urgent) >= 1)
                                 @foreach ($urgent as $ur)
-                                <a href="/detailrequest/{{ $ur->id }}" class="mx-2">
+                                <a href="/detailtiket/{{ $ur->id }}" class="mx-2">
                                     <div class="card bg-white rounded-xl mt-3 overflow-hidden">
                                         <div class="absolute right-0 m-3 flex items-center gap-1.5">
                                             <span class="text-xs font-bold text-gray-400 font-mono">#{{ $ur->id }}</span>
@@ -56,7 +56,7 @@
                             <h1 class="font-bold text-abu mt-2 ml-2"><a href="/myproc/2" class="hover:border-abu hover:border-b-2">Open <i class="fa-solid fa-up-right-from-square"></i></a></h1>
                             @if (count($open) >= 1)
                                 @foreach ($open as $op)
-                                <a href="/detailrequest/{{ $op->id }}" class="mx-2">
+                                <a href="/detailtiket/{{ $op->id }}" class="mx-2">
                                     <div class="card bg-white rounded-xl mt-3 overflow-hidden">
                                         <div class="absolute right-0 m-3 flex items-center gap-1.5">
                                             <span class="text-xs font-bold text-gray-400 font-mono">#{{ $op->id }}</span>
@@ -101,7 +101,7 @@
                             <h1 class="font-bold text-abu mt-2 ml-2"><a href="/myproc/3" class="hover:border-abu hover:border-b-2">Progress <i class="fa-solid fa-up-right-from-square"></i></a></h1>
                             @if (count($progress) >= 1)
                                 @foreach ($progress as $pr)
-                                <a href="/detailrequest/{{ $pr->id }}" class="mx-2">
+                                <a href="/detailtiket/{{ $pr->id }}" class="mx-2">
                                     <div class="card bg-white rounded-xl mt-3 overflow-hidden">
                                         <div class="absolute right-0 m-3 flex items-center gap-1.5">
                                             <span class="text-xs font-bold text-gray-400 font-mono">#{{ $pr->id }}</span>
@@ -146,7 +146,7 @@
                             <h1 class="font-bold text-abu mt-2 ml-2"><a href="/myproc/4" class="hover:border-abu hover:border-b-2">Closed <i class="fa-solid fa-up-right-from-square"></i></a></h1>
                             @if (count($closed) >= 1)
                                 @foreach ($closed as $cl)
-                                <a href="/detailrequest/{{ $cl->id }}" class="mx-2">
+                                <a href="/detailtiket/{{ $cl->id }}" class="mx-2">
                                     <div class="card bg-white rounded-xl mt-3 overflow-hidden">
                                         <div class="absolute right-0 m-3 flex items-center gap-1.5">
                                             <span class="text-xs font-bold text-gray-400 font-mono">#{{ $cl->id }}</span>
