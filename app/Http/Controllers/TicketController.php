@@ -22,6 +22,15 @@ class TicketController extends Controller
         $text = 'Are you sure you want to delete this comment?';
         confirmDelete($title, $text);
         $datarq = \App\Models\Ticket::findOrFail($id);
+        
+        // Auto-expire takeover if it's pending for > 1 hour
+        if ($datarq->pending_advisor_at && now()->diffInMinutes($datarq->pending_advisor_at) >= 60) {
+            $datarq->update(['pending_advisor_id' => null, 'pending_advisor_at' => null]);
+            if (Auth::id() == $datarq->user_id) {
+                Alert::warning('Pengalihan Otomatis Dibatalkan', 'Tiket ini telah dikembalikan kepada Anda karena telah melewati batas 1 jam tanpa persetujuan dari advisor tujuan.')->showConfirmButton('Tutup', '#f59e0b');
+            }
+        }
+
         $dataimg = DataImage::where('ticket_id', $id)->get();
         $komentar = \App\Models\TicketDiscussion::where('ticket_id', $id)->orderBy('created_at', 'asc')->get();
         $dataus = UpdateSystem::where('request_id', $id)->get();
