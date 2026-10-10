@@ -245,6 +245,21 @@ class HomeController extends Controller
     }
 
     public function inbox(Request $request){
+        // 1. Auto expire takeovers older than 1 hour for tickets I SENT (Original Owner)
+        $myExpiredSent = Ticket::where('user_id', auth()->id())
+                               ->whereNotNull('pending_advisor_id')
+                               ->where('pending_advisor_at', '<=', now()->subMinutes(60))
+                               ->get();
+        
+        if ($myExpiredSent->count() > 0) {
+            $ticketNumbers = $myExpiredSent->pluck('ticket_number')->toArray();
+            Ticket::whereIn('id', $myExpiredSent->pluck('id'))
+                  ->update(['pending_advisor_id' => null, 'pending_advisor_at' => null]);
+            
+            Alert::warning('Pengalihan Otomatis Dibatalkan', 'Tiket (' . implode(', ', $ticketNumbers) . ') telah dikembalikan kepada Anda karena telah melewati batas 1 jam tanpa persetujuan dari advisor tujuan.')->showConfirmButton('Tutup', '#f59e0b');
+        }
+
+        // 2. Query data
         $query = Ticket::query()->where(function($q) {
             $q->where('user_id', auth()->id())
               ->orWhere(function($sub) {
@@ -263,7 +278,7 @@ class HomeController extends Controller
 
         $pendingTakeovers = Ticket::where('pending_advisor_id', auth()->id())->latest()->get();
 
-        // Auto expire takeovers older than 1 hour
+        // 3. Auto expire takeovers older than 1 hour for tickets targeting ME
         $expiredFound = false;
         foreach ($pendingTakeovers as $tk) {
             if ($tk->pending_advisor_at && now()->diffInMinutes($tk->pending_advisor_at) >= 60) {
@@ -272,7 +287,7 @@ class HomeController extends Controller
             }
         }
         
-        // Refresh query if any expired
+        // Refresh query if any expired for me
         if ($expiredFound) {
             $pendingTakeovers = Ticket::where('pending_advisor_id', auth()->id())->latest()->get();
         }
