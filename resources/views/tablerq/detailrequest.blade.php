@@ -1,4 +1,4 @@
-@php
+﻿@php
     use Carbon\Carbon;
     Carbon::setLocale('en');
     $rentang = Carbon::parse($datarq->start_date)->diffInDays(Carbon::parse($datarq->end_date));
@@ -35,14 +35,14 @@
                         <i class="fa-solid fa-arrow-left"></i>
                     </a>
                     <div>
-                        <h1 class="text-2xl font-extrabold text-slate-800 tracking-tight">Detail Tiket <span class="text-blue-600">#TK-{{ $datarq->id }}</span></h1>
-                        <p class="text-sm text-slate-500 font-medium mt-1">Pantau deskripsi, progres, dan diskusi terkait tiket ini.</p>
+                        <h1 class="text-2xl font-extrabold text-slate-800 tracking-tight">Detail Request <span class="text-blue-600">#TK-{{ $datarq->id }}</span></h1>
+                        <p class="text-sm text-slate-500 font-medium mt-1">Pantau deskripsi, progres, dan diskusi terkait Request ini.</p>
                     </div>
                 </div>
                 
                 @if ($rqid == $aid || $ust == 'admin' || $ust == 'supervisor')
                 <a href="/editrq/{{ $datarq->id }}" class="px-6 py-2.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold rounded-xl text-sm shadow-sm flex items-center justify-center gap-2 transition-all active:scale-95">
-                    <i class="fa-solid fa-pen text-blue-500"></i> Edit Tiket
+                    <i class="fa-solid fa-pen text-blue-500"></i> Edit Request
                 </a>
                 @endif
             </div>
@@ -54,7 +54,7 @@
                 </div>
                 <div>
                     <p class="font-bold text-amber-800 text-sm">Perhatian</p>
-                    <p class="text-[13px] font-medium text-amber-700/80 mt-0.5">Pastikan seluruh aktivitas dan pembaruan tiket terdokumentasi dengan baik melalui komentar atau Update System.</p>
+                    <p class="text-[13px] font-medium text-amber-700/80 mt-0.5">Pastikan seluruh aktivitas dan pembaruan Request terdokumentasi dengan baik melalui komentar atau Update System.</p>
                 </div>
             </div>
 
@@ -102,8 +102,8 @@
                                     <i class="fa-solid fa-circle-check text-xl"></i>
                                 </div>
                                 <div>
-                                    <p class="font-extrabold text-sm text-emerald-900">Tiket Disetujui</p>
-                                    <p class="text-xs font-medium text-emerald-700 mt-1">Oleh: {{ $datarq->approver->name ?? 'Admin' }} — {{ $datarq->approval_date ? Carbon::parse($datarq->approval_date)->translatedFormat('l, d M Y - H:i') : '' }}</p>
+                                    <p class="font-extrabold text-sm text-emerald-900">Request Disetujui</p>
+                                    <p class="text-xs font-medium text-emerald-700 mt-1">Oleh: {{ $datarq->approver->name ?? 'Admin' }} â€” {{ $datarq->approval_date ? Carbon::parse($datarq->approval_date)->translatedFormat('l, d M Y - H:i') : '' }}</p>
                                 </div>
                             </div>
                             @elseif ($datarq->approval_status == 'rejected')
@@ -112,8 +112,8 @@
                                     <i class="fa-solid fa-triangle-exclamation text-xl"></i>
                                 </div>
                                 <div class="flex-1">
-                                    <p class="font-extrabold text-sm text-rose-900">Tiket Ditolak</p>
-                                    <p class="text-xs font-medium text-rose-700 mt-1 mb-3">Oleh: {{ $datarq->approver->name ?? 'Admin' }} — {{ $datarq->approval_date ? Carbon::parse($datarq->approval_date)->translatedFormat('l, d M Y - H:i') : '' }}</p>
+                                    <p class="font-extrabold text-sm text-rose-900">Request Ditolak</p>
+                                    <p class="text-xs font-medium text-rose-700 mt-1 mb-3">Oleh: {{ $datarq->approver->name ?? 'Admin' }} â€” {{ $datarq->approval_date ? Carbon::parse($datarq->approval_date)->translatedFormat('l, d M Y - H:i') : '' }}</p>
                                     @if ($datarq->approval_note)
                                     <div class="bg-white/60 border border-rose-100 rounded-xl p-3 text-xs font-medium text-rose-800 shadow-sm">
                                         <span class="font-bold text-rose-900 block mb-1">Alasan Penolakan:</span>
@@ -232,7 +232,7 @@
                         <!-- Status Header -->
                         <div class="flex items-center justify-between mb-8 pb-6 border-b border-slate-100">
                             <div>
-                                <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1">Tiket ID</p>
+                                <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1">Request ID</p>
                                 <span class="text-blue-600 font-bold text-xl font-mono">TK-{{ $datarq->id }}</span>
                             </div>
                             <span class="px-3.5 py-1.5 rounded-xl text-xs font-extrabold uppercase tracking-wider border {{ $bg }} flex items-center gap-1.5 shadow-sm">
@@ -248,7 +248,7 @@
                                 </div>
                                 <div>
                                     <div class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-0.5">System & Module</div>
-                                    <div class="font-bold text-slate-800 text-sm">{{ $datarq->tag->name }} <span class="text-slate-300 mx-1">•</span> <span class="text-blue-600">{{ $datarq->kategori->name }}</span></div>
+                                    <div class="font-bold text-slate-800 text-sm">{{ $datarq->tag->name }} <span class="text-slate-300 mx-1">â€¢</span> <span class="text-blue-600">{{ $datarq->kategori->name }}</span></div>
                                 </div>
                             </div>
                             
@@ -298,33 +298,33 @@
 
                     <!-- Action Buttons -->
                     <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6">
-                        <h3 class="text-[11px] font-extrabold text-slate-800 uppercase tracking-wider mb-4 text-center">Tindakan Tiket</h3>
+                        <h3 class="text-[11px] font-extrabold text-slate-800 uppercase tracking-wider mb-4 text-center">Tindakan Request</h3>
                         
                         <div class="grid grid-cols-1 gap-3">
-                            <!-- Button 1 (Blue) - Proses Tiket / Approve / Selesaikan -->
+                            <!-- Button 1 (Blue) - Proses Request / Approve / Selesaikan -->
                             @if (Auth::user()->usertype === 'admin' && in_array($datarq->status_id, [1, 2]))
                                 @if ($datarq->approval_status != 'approved' && $datarq->approval_status != 'rejected')
                                     <button type="button" onclick="approve_modal.showModal()" class="w-full flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white py-3.5 rounded-xl font-bold text-sm shadow-md shadow-blue-500/20 transition-all active:scale-95 gap-2">
-                                        <i class="fa-solid fa-check-double text-blue-200"></i> Approve Tiket
+                                        <i class="fa-solid fa-check-double text-blue-200"></i> Approve Request
                                     </button>
                                 @else
                                     <button disabled class="w-full flex items-center justify-center bg-slate-100 text-slate-400 py-3.5 rounded-xl font-bold text-sm transition-all cursor-not-allowed gap-2">
-                                        <i class="fa-solid fa-spinner"></i> Proses Tiket
+                                        <i class="fa-solid fa-spinner"></i> Proses Request
                                     </button>
                                 @endif
                             @elseif ($stid != 4 && $ait == $datarq->tag_id)
                                 @if ($datarq->status_id == 1 || $datarq->status_id == 2)
                                     <a href="/updatestatus/{{ $datarq->id }}/3" class="w-full flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white py-3.5 rounded-xl font-bold text-sm shadow-md shadow-blue-500/20 transition-all active:scale-95 gap-2">
-                                        <i class="fa-solid fa-gears text-blue-200"></i> Proses Tiket
+                                        <i class="fa-solid fa-gears text-blue-200"></i> Proses Request
                                     </a>
                                 @else
                                     <a href="/updatestatus/{{ $datarq->id }}/4" class="w-full flex items-center justify-center bg-emerald-500 hover:bg-emerald-600 text-white py-3.5 rounded-xl font-bold text-sm shadow-md shadow-emerald-500/20 transition-all active:scale-95 gap-2">
-                                        <i class="fa-solid fa-check text-emerald-100"></i> Selesaikan Tiket
+                                        <i class="fa-solid fa-check text-emerald-100"></i> Selesaikan Request
                                     </a>
                                 @endif
                             @else
                                 <button disabled class="w-full flex items-center justify-center bg-slate-100 text-slate-400 py-3.5 rounded-xl font-bold text-sm transition-all cursor-not-allowed gap-2">
-                                    <i class="fa-solid fa-gears"></i> Proses Tiket
+                                    <i class="fa-solid fa-gears"></i> Proses Request
                                 </button>
                             @endif
 
@@ -332,7 +332,7 @@
                                 <!-- Button 2 (Orange) - Alihkan/Ambil Alih / Reject -->
                                 @if (Auth::user()->usertype === 'admin' && in_array($datarq->status_id, [1, 2]) && $datarq->approval_status != 'rejected')
                                     <button type="button" onclick="reject_modal.showModal()" class="w-full flex flex-col items-center justify-center bg-rose-50 text-rose-600 hover:bg-rose-500 hover:text-white border border-rose-200 py-3 rounded-xl font-bold text-xs shadow-sm transition-all active:scale-95 gap-1">
-                                        <i class="fa-solid fa-ban text-sm"></i> Tolak Tiket
+                                        <i class="fa-solid fa-ban text-sm"></i> Tolak Request
                                     </button>
                                 @else
                                     <button type="button" class="w-full flex flex-col items-center justify-center bg-amber-50 text-amber-600 hover:bg-amber-500 hover:text-white border border-amber-200 py-3 rounded-xl font-bold text-xs shadow-sm transition-all active:scale-95 gap-1 text-center">
@@ -363,7 +363,7 @@
     <dialog id="my_modal_3" class="modal">
         <div class="modal-box w-11/12 max-w-5xl rounded-3xl p-0 overflow-hidden bg-transparent shadow-none">
             <form method="dialog">
-                <button class="btn btn-sm btn-circle btn-neutral absolute right-4 top-4 text-white z-50 shadow-md">✕</button>
+                <button class="btn btn-sm btn-circle btn-neutral absolute right-4 top-4 text-white z-50 shadow-md">âœ•</button>
             </form>
             <div class="bg-black/95 p-4 rounded-3xl flex justify-center items-center h-full min-h-[70vh] border border-white/10 shadow-2xl">
                 <img src="" alt="" class="max-w-full max-h-[85vh] object-contain rounded-xl shadow-2xl">
@@ -375,14 +375,14 @@
     @if (Auth::user()->usertype === 'admin' && in_array($datarq->status_id, [1, 2]))
     <dialog id="approve_modal" class="modal">
         <div class="modal-box rounded-3xl max-w-md bg-white p-8">
-            <form method="dialog"><button class="btn btn-sm btn-circle btn-ghost absolute right-4 top-4 text-slate-400">✕</button></form>
+            <form method="dialog"><button class="btn btn-sm btn-circle btn-ghost absolute right-4 top-4 text-slate-400">âœ•</button></form>
             <div class="flex items-center justify-center mb-6">
                 <div class="w-20 h-20 rounded-full bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-500 shrink-0">
                     <i class="fa-solid fa-check-double text-4xl"></i>
                 </div>
             </div>
             <h3 class="font-extrabold text-2xl text-slate-800 text-center mb-2">Setujui Request</h3>
-            <p class="text-sm font-medium text-slate-500 text-center mb-8 px-4">Apakah Anda yakin ingin menyetujui tiket ini? Tiket akan diproses ke tahap selanjutnya oleh tim terkait.</p>
+            <p class="text-sm font-medium text-slate-500 text-center mb-8 px-4">Apakah Anda yakin ingin menyetujui Request ini? Request akan diproses ke tahap selanjutnya oleh tim terkait.</p>
             <form action="/request/{{ $datarq->id }}/approve" method="POST" class="flex gap-4 justify-center">
                 @csrf
                 <button type="button" onclick="approve_modal.close()" class="px-6 py-3 w-1/2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-sm transition-colors text-center">Batal</button>
@@ -394,20 +394,20 @@
 
     <dialog id="reject_modal" class="modal">
         <div class="modal-box rounded-3xl max-w-md bg-white p-8">
-            <form method="dialog"><button class="btn btn-sm btn-circle btn-ghost absolute right-4 top-4 text-slate-400">✕</button></form>
+            <form method="dialog"><button class="btn btn-sm btn-circle btn-ghost absolute right-4 top-4 text-slate-400">âœ•</button></form>
             <div class="flex items-center justify-center mb-6">
                 <div class="w-20 h-20 rounded-full bg-rose-50 border border-rose-100 flex items-center justify-center text-rose-500 shrink-0">
                     <i class="fa-solid fa-triangle-exclamation text-4xl"></i>
                 </div>
             </div>
             <h3 class="font-extrabold text-2xl text-slate-800 text-center mb-2">Tolak Request</h3>
-            <p class="text-sm font-medium text-slate-500 text-center mb-6">Silakan masukkan alasan yang jelas mengenai penolakan tiket ini:</p>
+            <p class="text-sm font-medium text-slate-500 text-center mb-6">Silakan masukkan alasan yang jelas mengenai penolakan Request ini:</p>
             <form action="/request/{{ $datarq->id }}/reject" method="POST">
                 @csrf
                 <textarea name="reason" rows="3" class="w-full p-4 border border-slate-200 bg-slate-50 rounded-2xl focus:outline-none focus:border-rose-500 focus:ring-4 focus:ring-rose-500/10 mb-6 text-sm font-medium text-slate-700 transition-all" placeholder="Tuliskan alasan penolakan di sini..." required></textarea>
                 <div class="flex gap-4 justify-center">
                     <button type="button" onclick="reject_modal.close()" class="px-6 py-3 w-1/2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-sm transition-colors text-center">Batal</button>
-                    <button type="submit" class="px-6 py-3 w-1/2 bg-rose-500 hover:bg-rose-600 text-white font-bold rounded-xl text-sm transition-colors shadow-md shadow-rose-500/20 text-center">Tolak Tiket</button>
+                    <button type="submit" class="px-6 py-3 w-1/2 bg-rose-500 hover:bg-rose-600 text-white font-bold rounded-xl text-sm transition-colors shadow-md shadow-rose-500/20 text-center">Tolak Request</button>
                 </div>
             </form>
         </div>

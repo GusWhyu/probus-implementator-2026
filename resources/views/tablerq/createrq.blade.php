@@ -1,4 +1,4 @@
-<x-app-layout>
+﻿<x-app-layout>
     <div class="py-8 bg-slate-50/50 min-h-screen">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             
@@ -9,8 +9,8 @@
                         <i class="fa-solid fa-arrow-left"></i>
                     </a>
                     <div>
-                        <h1 class="text-2xl font-extrabold text-slate-800 tracking-tight">Buat Tiket Baru</h1>
-                        <p class="text-sm text-slate-500 font-medium mt-1">Isi informasi berikut untuk membuat tiket bantuan pelanggan.</p>
+                        <h1 class="text-2xl font-extrabold text-slate-800 tracking-tight">Buat Request Baru</h1>
+                        <p class="text-sm text-slate-500 font-medium mt-1">Isi informasi berikut untuk membuat Request bantuan pelanggan.</p>
                     </div>
                 </div>
             </div>
@@ -31,7 +31,7 @@
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <!-- Judul -->
                                 <div class="md:col-span-2">
-                                    <label class="block text-xs font-bold text-slate-700 mb-2">Judul Tiket</label>
+                                    <label class="block text-xs font-bold text-slate-700 mb-2">Judul Request</label>
                                     <input type="text" name="title" value="{{ old('title') }}" class="w-full px-4 py-3 bg-slate-50/50 border border-slate-200 rounded-xl text-sm font-medium text-slate-800 focus:bg-white focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all" placeholder="Contoh: Bug pada halaman checkout..." required>
                                 </div>
                                 
@@ -220,7 +220,7 @@
                     <div class="px-6 md:px-8 py-5 bg-slate-50 border-t border-slate-200 flex items-center justify-between">
                         <a href="{{ route('daftartiket') }}" class="px-6 py-2.5 text-slate-500 hover:text-slate-700 font-bold text-sm transition-colors">Batal</a>
                         <button type="submit" class="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-bold shadow-md shadow-blue-500/20 transition-all active:scale-95 flex items-center gap-2">
-                            <i class="fa-solid fa-paper-plane text-blue-200"></i> Buat Tiket
+                            <i class="fa-solid fa-paper-plane text-blue-200"></i> Buat Request
                         </button>
                     </div>
 
