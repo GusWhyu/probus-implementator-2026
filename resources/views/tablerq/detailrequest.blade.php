@@ -1,4 +1,4 @@
-﻿@php
+@php
     use Carbon\Carbon;
     Carbon::setLocale('en');
     $rentang = Carbon::parse($datarq->start_date)->diffInDays(Carbon::parse($datarq->end_date));
@@ -210,10 +210,10 @@
                                 @csrf
                                 <input type="hidden" id="comment" name="comment" value="{{ old('comment') }}">
                                 <div class="bg-slate-50/50 rounded-2xl border border-slate-200 overflow-hidden focus-within:ring-4 focus-within:ring-blue-500/10 focus-within:border-blue-500 transition-all">
-                                    <trix-editor trix-attachment-remove input="comment" class="border-none min-h-[100px] text-sm font-medium p-4 focus:outline-none max-w-none prose prose-slate" placeholder="Ketik pesan Anda di sini..."></trix-editor>
-                                    <div class="bg-white px-4 py-3 border-t border-slate-100 flex justify-between items-center">
-                                        <trix-toolbar id="trix-toolbar-komen"></trix-toolbar>
-                                        <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-xl text-xs font-bold transition-all active:scale-95 shadow-sm shadow-blue-500/20 flex items-center gap-2">
+                                    <trix-editor toolbar="trix-toolbar-komen" trix-attachment-remove input="comment" class="border-none min-h-[100px] text-sm font-medium p-4 focus:outline-none max-w-none prose prose-slate" placeholder="Ketik pesan Anda di sini..."></trix-editor>
+                                    <div class="bg-white px-4 py-3 border-t border-slate-100 flex flex-wrap justify-between items-center gap-4">
+                                        <trix-toolbar id="trix-toolbar-komen" class="flex-1 overflow-x-auto custom-scrollbar pb-1"></trix-toolbar>
+                                        <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-xl text-xs font-bold transition-all active:scale-95 shadow-sm shadow-blue-500/20 flex items-center gap-2 shrink-0">
                                             Kirim <i class="fa-solid fa-paper-plane text-[10px]"></i>
                                         </button>
                                     </div>
