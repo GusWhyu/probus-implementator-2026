@@ -16,79 +16,170 @@ use App\Models\User;
 
 class HomeController extends Controller
 {
-    public function index(){
-        $open_count = Ticket::where('status', 'OPEN')->count();
-        $progress_count = Ticket::where('status', 'PROGRESS')->count();
-        $closed_count = Ticket::where('status', 'CLOSED')->count();
-        $total_count = Ticket::count();
-        
+    public function index(Request $request){
+        $dateParam = $request->input('date');
+        $hasDate = !empty($dateParam) && $dateParam !== 'all';
+        $selectedDate = null;
+        $selectedDateRaw = '';
+        $selectedDateDisplay = '';
+        $periodTitle = 'Semua Waktu';
+
+        if ($hasDate) {
+            try {
+                $selectedDate = \Carbon\Carbon::parse($dateParam)->startOfDay();
+                $selectedDateRaw = $selectedDate->format('Y-m-d');
+                $selectedDateDisplay = $selectedDate->format('M d, Y');
+                $periodTitle = $selectedDate->isToday() 
+                    ? 'Hari Ini (' . $selectedDate->locale('id')->isoFormat('D MMMM Y') . ')'
+                    : $selectedDate->locale('id')->isoFormat('D MMMM Y');
+            } catch (\Exception $e) {
+                $hasDate = false;
+                $selectedDate = null;
+            }
+        }
+
+        // Base Ticket counts
+        if ($hasDate) {
+            $total_count = Ticket::whereDate('created_at', $selectedDate)->count();
+            $closed_count = Ticket::whereDate('created_at', $selectedDate)->where('status', 'CLOSED')->count();
+            $progress_count = Ticket::whereDate('created_at', $selectedDate)->where('status', 'PROGRESS')->count();
+            $open_count = Ticket::whereDate('created_at', $selectedDate)->where('status', 'OPEN')->count();
+        } else {
+            $total_count = Ticket::count();
+            $closed_count = Ticket::where('status', 'CLOSED')->count();
+            $progress_count = Ticket::where('status', 'PROGRESS')->count();
+            $open_count = Ticket::where('status', 'OPEN')->count();
+        }
+
         $open = Ticket::where('status', 'OPEN')->latest()->take(5)->get();
         $progress = Ticket::where('status', 'PROGRESS')->latest()->take(5)->get();
         $closed = Ticket::where('status', 'CLOSED')->latest()->take(5)->get();
         $us = UpdateSystem::latest()->take(4)->get();
 
-        $all_tickets = Ticket::where('status', '!=', 'CLOSED')
-            ->where('created_at', '>=', \Carbon\Carbon::now()->subDays(2))
-            ->latest()
-            ->take(5)
-            ->get();
+        // Recent / All Tickets for the period
+        if ($hasDate) {
+            $all_tickets = Ticket::whereDate('created_at', $selectedDate)
+                ->latest()
+                ->take(5)
+                ->get();
+            if ($all_tickets->isEmpty()) {
+                $all_tickets = Ticket::whereDate('created_at', '<=', $selectedDate)
+                    ->latest()
+                    ->take(5)
+                    ->get();
+            }
+        } else {
+            $all_tickets = Ticket::where('status', '!=', 'CLOSED')
+                ->where('created_at', '>=', \Carbon\Carbon::now()->subDays(2))
+                ->latest()
+                ->take(5)
+                ->get();
+            if ($all_tickets->isEmpty()) {
+                $all_tickets = Ticket::latest()->take(5)->get();
+            }
+        }
 
-        // Chart Data Calculation
+        // Chart Data Calculation (7-day trend ending on selectedDate or today)
         $chartLabels = [];
         $masukData = [];
         $selesaiData = [];
-        
-        // Dapatkan total tiket sebelum 7 hari yang lalu
-        $startDate = \Carbon\Carbon::now()->subDays(6)->startOfDay();
-        $cumulativeMasuk = Ticket::where('created_at', '<', $startDate)->count();
-        $cumulativeSelesai = Ticket::where('updated_at', '<', $startDate)->where('status', 'CLOSED')->count();
+        $endDate = $hasDate ? $selectedDate->copy() : \Carbon\Carbon::now()->startOfDay();
 
         for ($i = 6; $i >= 0; $i--) {
-            $date = \Carbon\Carbon::now()->subDays($i);
-            $chartLabels[] = $date->locale('id')->translatedFormat('l');
+            $d = $endDate->copy()->subDays($i);
+            $chartLabels[] = $d->locale('id')->isoFormat('ddd, D MMM');
             
-            $dailyMasuk = Ticket::whereDate('created_at', $date->toDateString())->count();
-            $dailySelesai = Ticket::whereDate('updated_at', $date->toDateString())->where('status', 'CLOSED')->count();
+            $dailyMasuk = Ticket::whereDate('created_at', $d->toDateString())->count();
+            $dailySelesai = Ticket::whereDate('updated_at', $d->toDateString())->where('status', 'CLOSED')->count();
             
-            $cumulativeMasuk += $dailyMasuk;
-            $cumulativeSelesai += $dailySelesai;
-            
-            $masukData[] = $cumulativeMasuk;
-            $selesaiData[] = $cumulativeSelesai;
+            $masukData[] = $dailyMasuk;
+            $selesaiData[] = $dailySelesai;
         }
 
-        $topAgents = User::whereHas('advisedTickets', function($q) {
+        // Top Agents
+        $topAgents = User::whereHas('advisedTickets', function($q) use ($hasDate, $selectedDate) {
                 $q->where('status', 'CLOSED');
+                if ($hasDate) {
+                    $q->whereDate('created_at', '<=', $selectedDate);
+                }
             })
-            ->withCount(['advisedTickets as closed_count' => function($q) {
+            ->withCount(['advisedTickets as closed_count' => function($q) use ($hasDate, $selectedDate) {
                 $q->where('status', 'CLOSED');
+                if ($hasDate) {
+                    $q->whereDate('created_at', '<=', $selectedDate);
+                }
             }])
             ->orderByDesc('closed_count')
             ->take(5)->get();
         $agentLabels = $topAgents->pluck('name')->toArray();
         $agentData = $topAgents->pluck('closed_count')->toArray();
 
-        $topClients = User::whereHas('clientTickets')
-            ->withCount('clientTickets as ticket_count')
+        // Top Clients
+        $topClients = User::whereHas('clientTickets', function($q) use ($hasDate, $selectedDate) {
+                if ($hasDate) {
+                    $q->whereDate('created_at', '<=', $selectedDate);
+                }
+            })
+            ->withCount(['clientTickets as ticket_count' => function($q) use ($hasDate, $selectedDate) {
+                if ($hasDate) {
+                    $q->whereDate('created_at', '<=', $selectedDate);
+                }
+            }])
             ->orderByDesc('ticket_count')
             ->take(10)->get();
         $clientDonutLabels = $topClients->take(4)->pluck('name')->toArray();
         $clientDonutData = $topClients->take(4)->pluck('ticket_count')->toArray();
         
         $clientBarLabels = $topClients->pluck('name')->map(function($name) {
-            return wordwrap($name, 10, "\\n", true);
+            return wordwrap($name, 10, "\n", true);
         })->toArray();
         $clientBarData = $topClients->pluck('ticket_count')->toArray();
 
-        $topModules = ModuleSystem::withCount('tickets')
+        // Top Modules
+        $topModules = ModuleSystem::whereHas('tickets', function($q) use ($hasDate, $selectedDate) {
+                if ($hasDate) {
+                    $q->whereDate('created_at', '<=', $selectedDate);
+                }
+            })
+            ->withCount(['tickets' => function($q) use ($hasDate, $selectedDate) {
+                if ($hasDate) {
+                    $q->whereDate('created_at', '<=', $selectedDate);
+                }
+            }])
             ->orderByDesc('tickets_count')
             ->take(7)->get();
         $kendalaLabels = $topModules->pluck('name')->toArray();
         $kendalaData = $topModules->pluck('tickets_count')->toArray();
 
+        // If AJAX request, return JSON response
+        if ($request->ajax() || $request->wantsJson() || $request->has('ajax')) {
+            $ticketsHtml = view('partials.dashboard_tickets', compact('all_tickets'))->render();
+            return response()->json([
+                'success' => true,
+                'hasDate' => $hasDate,
+                'date' => $selectedDateRaw,
+                'periodTitle' => $periodTitle,
+                'total_count' => $total_count,
+                'closed_count' => $closed_count,
+                'progress_count' => $progress_count,
+                'open_count' => $open_count,
+                'chartLabels' => $chartLabels,
+                'masukData' => $masukData,
+                'selesaiData' => $selesaiData,
+                'agentLabels' => $agentLabels,
+                'agentData' => $agentData,
+                'clientBarLabels' => $clientBarLabels,
+                'clientBarData' => $clientBarData,
+                'kendalaLabels' => $kendalaLabels,
+                'kendalaData' => $kendalaData,
+                'tickets_html' => $ticketsHtml,
+            ]);
+        }
+
         return view('dashboard', compact(
             'open', 'progress', 'closed', 'us', 'open_count', 'progress_count', 'closed_count', 'total_count', 'all_tickets',
-            'chartLabels', 'masukData', 'selesaiData', 'agentLabels', 'agentData', 'clientDonutLabels', 'clientDonutData', 'clientBarLabels', 'clientBarData', 'kendalaLabels', 'kendalaData'
+            'chartLabels', 'masukData', 'selesaiData', 'agentLabels', 'agentData', 'clientDonutLabels', 'clientDonutData', 'clientBarLabels', 'clientBarData', 'kendalaLabels', 'kendalaData',
+            'hasDate', 'selectedDateRaw', 'selectedDateDisplay', 'periodTitle'
         ));
     }
 
