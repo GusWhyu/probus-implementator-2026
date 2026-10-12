@@ -272,11 +272,27 @@ class TicketController extends Controller
         $request->validate([
             'comment' => 'required'
         ]);
-        \App\Models\TicketDiscussion::create([
+        $komen = \App\Models\TicketDiscussion::create([
             'ticket_id' => $id,
             'message' => $request->comment,
             'user_id' => Auth::user()->id,
         ]);
+
+        if ($request->ajax() || $request->wantsJson()) {
+            $totalCount = \App\Models\TicketDiscussion::where('ticket_id', $id)->count();
+            return response()->json([
+                'success' => true,
+                'message' => 'Diskusi berhasil dikirim',
+                'total_count' => $totalCount,
+                'data' => [
+                    'id' => $komen->id,
+                    'message' => $komen->message,
+                    'user_name' => Auth::user()->name,
+                    'time_ago' => $komen->created_at->diffForHumans(),
+                ]
+            ]);
+        }
+
         return redirect()->back();
     }
 

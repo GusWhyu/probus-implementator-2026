@@ -193,10 +193,10 @@
                             <h3 class="text-sm font-extrabold text-slate-800 uppercase tracking-wider flex items-center gap-2">
                                 <i class="fa-regular fa-comments text-blue-500"></i> Diskusi
                             </h3>
-                            <span class="bg-blue-100 text-blue-600 text-[10px] font-extrabold px-2.5 py-1 rounded-full">{{ count($komentar) }} Pesan</span>
+                            <span id="diskusi-count-badge" class="bg-blue-100 text-blue-600 text-[10px] font-extrabold px-2.5 py-1 rounded-full">{{ count($komentar) }} Pesan</span>
                         </div>
                         
-                        <div class="p-6 md:px-8 flex-1 overflow-y-auto space-y-6 custom-scrollbar bg-slate-50/30">
+                        <div id="diskusi-messages-container" class="p-6 md:px-8 flex-1 overflow-y-auto space-y-6 custom-scrollbar bg-slate-50/30">
                             @if (count($komentar) >= 1)
                                 @foreach ($komentar as $komen)
                                 <div class="flex gap-4 {{ $komen->user_id == $aid ? 'flex-row-reverse' : '' }}">
@@ -221,7 +221,7 @@
                                 </div>
                                 @endforeach
                             @else
-                                <div class="text-center py-12 flex flex-col items-center">
+                                <div id="diskusi-empty-state" class="text-center py-12 flex flex-col items-center">
                                     <div class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center text-slate-300 mb-4">
                                         <i class="fa-regular fa-comments text-2xl"></i>
                                     </div>
@@ -251,8 +251,8 @@
                                     @enderror
                                     <div class="bg-white px-4 py-3 border-t border-slate-100 flex justify-between items-center">
                                         <trix-toolbar id="trix-toolbar-komen"></trix-toolbar>
-                                        <button type="button" onclick="document.getElementById('diskusi-form').submit();" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-xl text-xs font-bold transition-all active:scale-95 shadow-sm shadow-blue-500/20 flex items-center gap-2">
-                                            Kirim <i class="fa-solid fa-paper-plane text-[10px]"></i>
+                                        <button type="submit" id="btn-kirim-diskusi" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-xl text-xs font-bold transition-all active:scale-95 shadow-sm shadow-blue-500/20 flex items-center gap-2">
+                                            <span>Kirim</span> <i class="fa-solid fa-paper-plane text-[10px]"></i>
                                         </button>
                                     </div>
                                 </div>
@@ -632,6 +632,170 @@
                     // Custom styling to make toolbar compact
                     toolbar.classList.add("scale-90", "origin-left", "m-0", "opacity-70", "hover:opacity-100", "transition-opacity");
                 }
+            }
+        });
+
+        // AJAX Chat Diskusi & Auto Scroll
+        document.addEventListener('DOMContentLoaded', function() {
+            const messagesContainer = document.getElementById('diskusi-messages-container');
+            if (messagesContainer) {
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            }
+
+            const diskusiForm = document.getElementById('diskusi-form');
+            if (diskusiForm) {
+                diskusiForm.addEventListener('submit', async function(e) {
+                    e.preventDefault();
+
+                    const trixEditor = diskusiForm.querySelector('trix-editor');
+                    const commentInput = document.getElementById('comment');
+                    const submitBtn = document.getElementById('btn-kirim-diskusi');
+
+                    // Check if content is empty
+                    const textContent = (trixEditor && trixEditor.editor) ? trixEditor.editor.getDocument().toString().trim() : '';
+                    const rawHtml = commentInput ? commentInput.value.replace(/<[^>]*>/g, '').trim() : '';
+
+                    if (!textContent && !rawHtml) {
+                        if (trixEditor) trixEditor.focus();
+                        return;
+                    }
+
+                    // Button loading state
+                    const originalBtnContent = submitBtn ? submitBtn.innerHTML : '';
+                    if (submitBtn) {
+                        submitBtn.disabled = true;
+                        submitBtn.innerHTML = '<span>Mengirim...</span> <i class="fa-solid fa-spinner fa-spin text-[10px]"></i>';
+                    }
+
+                    try {
+                        const formData = new FormData(diskusiForm);
+                        const response = await fetch(diskusiForm.action, {
+                            method: 'POST',
+                            body: formData,
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest',
+                                'Accept': 'application/json'
+                            }
+                        });
+
+                        if (!response.ok) {
+                            throw new Error('Gagal mengirim pesan');
+                        }
+
+                        const result = await response.json();
+
+                        if (result.success && result.data) {
+                            // Clear Trix editor & input
+                            if (trixEditor && trixEditor.editor) {
+                                trixEditor.editor.loadHTML('');
+                            }
+                            if (commentInput) {
+                                commentInput.value = '';
+                            }
+
+                            // Remove empty state message if exists
+                            const emptyState = document.getElementById('diskusi-empty-state');
+                            if (emptyState) {
+                                emptyState.remove();
+                            }
+
+                            // Update count badge
+                            const countBadge = document.getElementById('diskusi-count-badge');
+                            if (countBadge && result.total_count !== undefined) {
+                                countBadge.textContent = `${result.total_count} Pesan`;
+                            }
+
+                            // Append new message card
+                            const msg = result.data;
+                            const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(msg.user_name)}&background=2563eb&color=fff&bold=true`;
+
+                            const bubbleDiv = document.createElement('div');
+                            bubbleDiv.className = 'flex gap-4 flex-row-reverse transition-all duration-300 opacity-0 translate-y-2';
+                            bubbleDiv.innerHTML = `
+                                <div class="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center text-slate-500 font-bold shrink-0 overflow-hidden shadow-sm border border-white">
+                                    <img src="${avatarUrl}" alt="" class="w-full h-full object-cover">
+                                </div>
+                                <div class="max-w-[85%] sm:max-w-[75%] flex flex-col items-end">
+                                    <div class="flex items-center gap-2 mb-1.5 px-1">
+                                        <span class="font-bold text-[11px] text-slate-700">${escapeHtml(msg.user_name)}</span>
+                                        <span class="text-[10px] font-medium text-slate-400">${escapeHtml(msg.time_ago)}</span>
+                                    </div>
+                                    <div class="px-5 py-3.5 rounded-2xl text-sm font-medium prose prose-sm max-w-none shadow-sm bg-blue-600 text-white rounded-tr-sm prose-p:text-blue-50 prose-a:text-white">
+                                        ${msg.message}
+                                    </div>
+                                    <a data-confirm-delete="true" href="/deletekomen/${msg.id}" class="text-[10px] font-bold text-slate-400 mt-1.5 hover:text-rose-500 transition-colors px-1">
+                                        <i class="fa-solid fa-trash-can mr-1"></i>Hapus
+                                    </a>
+                                </div>
+                            `;
+
+                            // Bind delete confirmation on new bubble
+                            const delBtn = bubbleDiv.querySelector('a[data-confirm-delete]');
+                            if (delBtn) {
+                                delBtn.addEventListener('click', function(evt) {
+                                    if (window.Swal) {
+                                        evt.preventDefault();
+                                        const url = this.getAttribute('href');
+                                        Swal.fire({
+                                            title: 'Hapus Pesan?',
+                                            text: "Pesan ini akan dihapus permanen",
+                                            icon: 'warning',
+                                            showCancelButton: true,
+                                            confirmButtonColor: '#ef4444',
+                                            cancelButtonColor: '#94a3b8',
+                                            confirmButtonText: 'Ya, Hapus',
+                                            cancelButtonText: 'Batal'
+                                        }).then((swalRes) => {
+                                            if (swalRes.isConfirmed) {
+                                                window.location.href = url;
+                                            }
+                                        });
+                                    }
+                                });
+                            }
+
+                            if (messagesContainer) {
+                                messagesContainer.appendChild(bubbleDiv);
+
+                                requestAnimationFrame(() => {
+                                    bubbleDiv.classList.remove('opacity-0', 'translate-y-2');
+                                });
+
+                                messagesContainer.scrollTo({
+                                    top: messagesContainer.scrollHeight,
+                                    behavior: 'smooth'
+                                });
+                            }
+                        }
+                    } catch (error) {
+                        console.error('Error sending message:', error);
+                        if (window.Swal) {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Gagal Mengirim',
+                                text: 'Terjadi kesalahan saat mengirim pesan. Silakan coba lagi.',
+                                toast: true,
+                                position: 'top-end',
+                                showConfirmButton: false,
+                                timer: 3000
+                            });
+                        } else {
+                            alert('Gagal mengirim pesan.');
+                        }
+                    } finally {
+                        if (submitBtn) {
+                            submitBtn.disabled = false;
+                            submitBtn.innerHTML = originalBtnContent;
+                        }
+                    }
+                });
+            }
+
+            function escapeHtml(str) {
+                if (!str) return '';
+                const p = document.createElement('p');
+                p.textContent = str;
+                return p.innerHTML;
             }
         });
     </script>
