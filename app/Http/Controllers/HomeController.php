@@ -103,7 +103,7 @@ class HomeController extends Controller
         $closed = Ticket::withoutGlobalScope('leader')->where('status', 'CLOSED')->latest()->take(5)->get();
         $us = UpdateSystem::latest()->take(4)->get(); 
         
-        $query = Ticket::withoutGlobalScope('leader');
+        $query = Ticket::withoutGlobalScope('leader')->with(['user.departemen', 'client', 'advisor', 'kategoriSystem', 'moduleSystem']);
 
         // Apply Search Filter
         if ($request->filled('search')) {
@@ -111,8 +111,11 @@ class HomeController extends Controller
             $query->where(function($q) use ($search) {
                 $q->where('title', 'like', "%{$search}%")
                   ->orWhere('ticket_number', 'like', "%{$search}%")
-                  ->orWhereHas('client', function($q) use ($search) {
-                      $q->where('name', 'like', "%{$search}%");
+                  ->orWhereHas('client', function($cq) use ($search) {
+                      $cq->where('nm_out', 'like', "%{$search}%");
+                  })
+                  ->orWhereHas('user', function($uq) use ($search) {
+                      $uq->where('name', 'like', "%{$search}%");
                   });
             });
         }

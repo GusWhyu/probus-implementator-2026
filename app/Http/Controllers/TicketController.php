@@ -65,10 +65,8 @@ class TicketController extends Controller
         $kategori = \App\Models\ModuleSystem::all();
         // Client: Mengambil data dari tabel moutlet (Outlet model)
         $clients = \App\Models\Outlet::orderBy('nm_out')->get();
-        // Advisor: Pengguna dengan usertype 'admin' atau 'supervisor' selain user yang login
-        $advisors = \App\Models\User::whereIn('usertype', ['admin', 'supervisor'])
-                                    ->where('id', '!=', Auth::id())
-                                    ->orderBy('name')->get();
+        // Advisor: Mengambil semua user selain user pembuat tiket
+        $advisors = \App\Models\User::where('id', '!=', Auth::id())->orderBy('name')->get();
         return view('tablerq.createticket', compact('tag', 'kategori', 'clients', 'advisors'));
     }
 
@@ -91,9 +89,8 @@ class TicketController extends Controller
         $tag = \App\Models\Kategori::all(); 
         $kategori = \App\Models\ModuleSystem::all();
         $clients = \App\Models\Outlet::orderBy('nm_out')->get();
-        $advisors = \App\Models\User::whereIn('usertype', ['admin', 'supervisor'])
-                                    ->where('id', '!=', Auth::id())
-                                    ->orderBy('name')->get();
+        // Advisor: Mengambil semua user selain user pembuat tiket
+        $advisors = \App\Models\User::where('id', '!=', $datarq->user_id)->orderBy('name')->get();
                                     
         $img = \App\Models\DataImage::where('ticket_id', $id)->get();
                                     

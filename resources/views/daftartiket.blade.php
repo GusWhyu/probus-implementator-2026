@@ -132,7 +132,12 @@
                                 </td>
                                 <td class="py-3 px-3 sm:px-4 align-top">
                                     <div class="text-sm font-semibold text-slate-800">{{ $rq->user->name ?? '-' }}</div>
-                                    <div class="text-[11px] text-slate-400 mt-0.5 font-medium leading-tight">Client: {{ $rq->client->name ?? '-' }}</div>
+                                    <div class="text-[11px] text-blue-600 mt-0.5 font-medium leading-tight flex items-center gap-1.5" title="{{ $rq->client->nm_out ?? $rq->client->name ?? '-' }}{{ !empty($rq->client->lokasi) ? ' (' . $rq->client->lokasi . ')' : '' }}">
+                                        <i class="fa-solid fa-hotel text-[10px] text-blue-500 shrink-0"></i>
+                                        <span class="truncate max-w-[150px]">
+                                            {{ $rq->client->nm_out ?? $rq->client->name ?? '-' }}
+                                        </span>
+                                    </div>
                                 </td>
                                 <td class="py-3 px-3 sm:px-4 align-top">
                                     <div class="text-sm font-bold text-slate-800 leading-snug">{{ $rq->title }}</div>
@@ -238,51 +243,141 @@
                     } elseif ($rq->status == 'CLOSED') {
                         $statusClass = 'bg-emerald-50 text-emerald-600 border-emerald-200';
                     }
+                    
+                    $isOverdue = $rq->status != 'CLOSED' && $rq->due_date && \Carbon\Carbon::now()->gt(\Carbon\Carbon::parse($rq->due_date));
                 @endphp
-                <a href="/detailticket/{{ $rq->id }}" class="{{ $rq->pending_advisor_id != null ? 'bg-amber-50/40 border-2 border-amber-300 ring-2 ring-amber-200/50' : 'bg-white border border-slate-200' }} rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow cursor-pointer flex flex-col group relative">
-                    <div class="flex justify-between items-center mb-3">
-                        <div class="flex items-center gap-2">
-                            <span class="bg-blue-50 text-blue-600 text-xs font-bold px-2 py-1 rounded">{{ $rq->ticket_number }}</span>
-                            <span class="bg-slate-100 text-slate-500 text-[10px] font-semibold px-2 py-1 rounded">{{ $rq->kategoriSystem->name ?? '-' }}</span>
-                            <span class="bg-slate-100 text-slate-500 text-[10px] font-semibold px-2 py-1 rounded">{{ $rq->moduleSystem->name ?? '-' }}</span>
+                <div class="{{ $rq->pending_advisor_id != null ? 'bg-amber-50/30 border-2 border-amber-300 ring-2 ring-amber-200/50' : 'bg-white border border-slate-200/90' }} rounded-2xl p-5 shadow-sm hover:shadow-lg hover:border-blue-300 transition-all duration-200 flex flex-col group relative">
+                    {{-- Header Top Bar --}}
+                    <div class="flex justify-between items-start mb-3 gap-2">
+                        <div class="flex flex-wrap items-center gap-1.5">
+                            <span class="bg-blue-50 text-blue-700 text-xs font-mono font-bold px-2.5 py-1 rounded-lg border border-blue-200/60">{{ $rq->ticket_number }}</span>
+                            @if(optional($rq->kategoriSystem)->name)
+                                <span class="bg-slate-100 text-slate-600 text-[10px] font-semibold px-2 py-0.5 rounded-md border border-slate-200/50">{{ $rq->kategoriSystem->name }}</span>
+                            @endif
+                            @if(optional($rq->moduleSystem)->name)
+                                <span class="bg-slate-100 text-slate-600 text-[10px] font-semibold px-2 py-0.5 rounded-md border border-slate-200/50">{{ $rq->moduleSystem->name }}</span>
+                            @endif
                         </div>
-                        @if($rq->pending_advisor_id != null)
-                            <span class="text-[10px] font-extrabold px-2.5 py-1 rounded-full uppercase tracking-wider border bg-amber-100 text-amber-800 border-amber-300 animate-pulse">
-                                <i class="fa-solid fa-clock-rotate-left mr-1 text-[9px]"></i> WAITING
+                        <div class="shrink-0">
+                            @if($rq->pending_advisor_id != null)
+                                <div class="flex flex-col items-end gap-0.5">
+                                    <span class="text-[9px] font-extrabold px-2.5 py-0.5 rounded-full uppercase tracking-wider border bg-amber-100 text-amber-800 border-amber-300 animate-pulse flex items-center gap-1">
+                                        <i class="fa-solid fa-clock-rotate-left text-[8px]"></i> WAITING
+                                    </span>
+                                    @if($rq->pending_advisor_at)
+                                        <span class="text-[10px] font-mono font-bold text-amber-700 ticket-countdown" data-expire="{{ \Carbon\Carbon::parse($rq->pending_advisor_at)->addMinutes(60)->toISOString() }}">
+                                            --:--
+                                        </span>
+                                    @endif
+                                </div>
+                            @else
+                                <span class="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full uppercase tracking-wider border {{ $statusClass }}">
+                                    {{ $statusName }}
+                                </span>
+                            @endif
+                        </div>
+                    </div>
+
+                    {{-- Client / Hotel Name (Highlight) --}}
+                    <div class="flex items-center justify-between gap-2 mb-2.5 p-2.5 bg-slate-50/80 rounded-xl border border-slate-100">
+                        <div class="flex items-center gap-2 overflow-hidden">
+                            <div class="w-7 h-7 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center shrink-0">
+                                <i class="fa-solid fa-hotel text-xs"></i>
+                            </div>
+                            <div class="truncate">
+                                <span class="font-bold text-slate-800 text-xs" title="{{ $rq->client->nm_out ?? $rq->client->name ?? '-' }}">
+                                    {{ $rq->client->nm_out ?? $rq->client->name ?? '-' }}
+                                </span>
+                                @if(!empty($rq->client->lokasi))
+                                    <span class="text-[10px] text-slate-400 font-medium ml-1">({{ $rq->client->lokasi }})</span>
+                                @endif
+                            </div>
+                        </div>
+                        @if($rq->tipe_penanganan)
+                            <span class="text-[10px] font-bold px-2 py-0.5 rounded-md {{ $rq->tipe_penanganan == 'Remote' ? 'bg-purple-50 text-purple-700 border border-purple-200' : 'bg-sky-50 text-sky-700 border border-sky-200' }} shrink-0">
+                                <i class="fa-solid {{ $rq->tipe_penanganan == 'Remote' ? 'fa-laptop-code' : 'fa-building-user' }} mr-1"></i>{{ $rq->tipe_penanganan }}
                             </span>
-                        @else
-                            <span class="text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider border {{ $statusClass }}">{{ $statusName }}</span>
                         @endif
                     </div>
-                    <h3 class="font-bold text-slate-800 text-base mb-4 leading-tight line-clamp-2 group-hover:text-blue-600 transition-colors">{{ $rq->title }}</h3>
+
+                    {{-- Ticket Title --}}
+                    <a href="/detailticket/{{ $rq->id }}" class="block mb-1">
+                        <h3 class="font-bold text-slate-800 text-[15px] leading-snug line-clamp-2 group-hover:text-blue-600 transition-colors" title="{{ $rq->title }}">{{ $rq->title }}</h3>
+                    </a>
+
+                    {{-- Ticket Description Excerpt --}}
+                    <p class="text-xs text-slate-500 font-medium line-clamp-2 leading-relaxed mb-4">
+                        {{ strip_tags($rq->description ?? 'Tidak ada deskripsi') }}
+                    </p>
                     
-                    <div class="grid grid-cols-2 gap-y-4 gap-x-2 mt-auto text-sm border-t border-slate-100 pt-4">
+                    {{-- Key Info Grid --}}
+                    <div class="grid grid-cols-2 gap-y-3.5 gap-x-3 mt-auto text-xs border-t border-slate-100 pt-3.5">
+                        {{-- User / Pelapor --}}
                         <div>
-                            <div class="text-[10px] font-semibold text-slate-400 uppercase mb-0.5">Departemen</div>
-                            <div class="font-medium text-slate-700 truncate" title="{{ $rq->client->departemen->name ?? '-' }}">{{ $rq->client->departemen->name ?? '-' }}</div>
+                            <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5 flex items-center gap-1">
+                                <i class="fa-regular fa-user text-[10px]"></i> User / Pelapor
+                            </div>
+                            <div class="font-semibold text-slate-700 truncate text-xs" title="{{ $rq->user->name ?? '-' }}">
+                                {{ $rq->user->name ?? '-' }}
+                                @if(optional($rq->user->departemen)->name)
+                                    <span class="text-[10px] text-slate-400 font-normal">({{ $rq->user->departemen->name }})</span>
+                                @endif
+                            </div>
                         </div>
+
+                        {{-- Advisor --}}
                         <div>
-                            <div class="text-[10px] font-semibold text-slate-400 uppercase mb-0.5">Tipe Penanganan</div>
-                            <div class="font-medium text-slate-700 truncate" title="{{ $rq->tipe_penanganan ?? '-' }}">{{ $rq->tipe_penanganan ?? '-' }}</div>
+                            <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5 flex items-center gap-1">
+                                <i class="fa-solid fa-headset text-[10px]"></i> Advisor
+                            </div>
+                            <div class="font-semibold truncate text-xs {{ $rq->advisor ? 'text-slate-700' : 'text-slate-400 italic' }}" title="{{ $rq->advisor->name ?? 'Belum Ditugaskan' }}">
+                                {{ $rq->advisor->name ?? 'Belum Ditugaskan' }}
+                            </div>
                         </div>
+
+                        {{-- Tanggal Dibuat --}}
                         <div>
-                            <div class="text-[10px] font-semibold text-slate-400 uppercase mb-0.5">User</div>
-                            <div class="text-slate-600 truncate" title="{{ $rq->client->name ?? '-' }}">{{ $rq->client->name ?? '-' }}</div>
+                            <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5 flex items-center gap-1">
+                                <i class="fa-regular fa-calendar-plus text-[10px]"></i> Dibuat
+                            </div>
+                            <div class="text-slate-600 font-medium text-xs">
+                                {{ $rq->created_at ? $rq->created_at->format('d/m/Y H:i') : '-' }}
+                            </div>
                         </div>
+
+                        {{-- Due Date / Closed At --}}
                         <div>
-                            <div class="text-[10px] font-semibold text-slate-400 uppercase mb-0.5">Advisor</div>
-                            <div class="font-medium text-slate-700 truncate" title="{{ $rq->advisor->name ?? '-' }}">{{ $rq->advisor->name ?? '-' }}</div>
-                        </div>
-                        <div>
-                            <div class="text-[10px] font-semibold text-slate-400 uppercase mb-0.5">Created At</div>
-                            <div class="text-slate-600 text-xs">{{ $rq->created_at ? $rq->created_at->format('d/m/Y') : '-' }}</div>
-                        </div>
-                        <div>
-                            <div class="text-[10px] font-semibold text-slate-400 uppercase mb-0.5">Closed At</div>
-                            <div class="text-slate-600 text-xs">{{ $rq->status == 'CLOSED' && $rq->updated_at ? $rq->updated_at->format('d/m/Y') : '-' }}</div>
+                            @if($rq->status == 'CLOSED')
+                                <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5 flex items-center gap-1">
+                                    <i class="fa-regular fa-circle-check text-emerald-500 text-[10px]"></i> Selesai
+                                </div>
+                                <div class="text-emerald-700 font-semibold text-xs">
+                                    {{ $rq->closed_at ? \Carbon\Carbon::parse($rq->closed_at)->format('d/m/Y') : ($rq->updated_at ? $rq->updated_at->format('d/m/Y') : '-') }}
+                                </div>
+                            @else
+                                <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5 flex items-center gap-1">
+                                    <i class="fa-regular fa-calendar-xmark text-[10px] {{ $isOverdue ? 'text-rose-500' : '' }}"></i> Due Date
+                                </div>
+                                <div class="text-xs font-semibold {{ $isOverdue ? 'text-rose-600' : 'text-slate-600' }}">
+                                    {{ $rq->due_date ? \Carbon\Carbon::parse($rq->due_date)->format('d/m/Y') : '-' }}
+                                    @if($isOverdue)
+                                        <span class="text-[9px] bg-rose-100 text-rose-700 px-1.5 py-0.5 rounded font-bold ml-0.5">Late</span>
+                                    @endif
+                                </div>
+                            @endif
                         </div>
                     </div>
-                </a>
+
+                    {{-- Footer Action Bar --}}
+                    <div class="border-t border-slate-100 pt-3 mt-3 flex items-center justify-between">
+                        <span class="text-[11px] text-slate-400 flex items-center gap-1">
+                            <i class="fa-regular fa-clock text-[10px]"></i> {{ $rq->created_at ? $rq->created_at->diffForHumans() : '' }}
+                        </span>
+                        <a href="/detailticket/{{ $rq->id }}" class="text-blue-600 hover:text-blue-800 font-bold text-xs flex items-center gap-1 group-hover:translate-x-0.5 transition-transform">
+                            Lihat Detail <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                        </a>
+                    </div>
+                </div>
             @empty
                 <div class="col-span-full py-12 text-center bg-white border border-slate-200 rounded-xl shadow-sm">
                     <div class="flex flex-col items-center">

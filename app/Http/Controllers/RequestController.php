@@ -56,10 +56,8 @@ class RequestController extends Controller
         $kategori = \App\Models\ModuleSystem::all();
         // Client: Mengambil data dari tabel moutlet (Outlet model)
         $clients = \App\Models\Outlet::where('aktif', 1)->orderBy('nm_out')->get();
-        // Advisor: Pengguna dengan usertype 'admin' atau 'supervisor' selain user yang login
-        $advisors = \App\Models\User::whereIn('usertype', ['admin', 'supervisor'])
-                                    ->where('id', '!=', Auth::id())
-                                    ->orderBy('name')->get();
+        // Advisor: Mengambil semua user selain user pembuat request
+        $advisors = \App\Models\User::where('id', '!=', Auth::id())->orderBy('name')->get();
         return view('tablerq.createrq', compact('tag', 'kategori', 'clients', 'advisors'));
     }
 
