@@ -244,16 +244,20 @@
                             <form id="diskusi-form" action="/ticket-komentar/{{ $datarq->id }}" method="POST">
                                 @csrf
                                 <input type="hidden" id="comment" name="comment" value="{{ old('comment') }}">
-                                <div class="bg-slate-50/50 rounded-2xl border border-slate-200 overflow-hidden focus-within:ring-4 focus-within:ring-blue-500/10 focus-within:border-blue-500 transition-all">
-                                    <trix-editor toolbar="trix-toolbar-komen" trix-attachment-remove input="comment" class="border-none min-h-[100px] text-sm font-medium p-4 focus:outline-none max-w-none prose prose-slate" placeholder="Ketik pesan Anda di sini..."></trix-editor>
-                                    @error('comment')
-                                    <p class="text-rose-500 text-xs font-bold px-4 pb-2">{{ $message }}</p>
-                                    @enderror
-                                    <div class="bg-white px-4 py-3 border-t border-slate-100 flex justify-between items-center">
-                                        <trix-toolbar id="trix-toolbar-komen"></trix-toolbar>
-                                        <button type="button" id="btn-kirim-diskusi" onclick="kirimPesanDiskusi()" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-xl text-xs font-bold transition-all active:scale-95 shadow-sm shadow-blue-500/20 flex items-center gap-2">
+                                <div class="bg-slate-50/50 rounded-2xl border border-slate-200 overflow-hidden focus-within:ring-4 focus-within:ring-blue-500/10 focus-within:border-blue-500 transition-all flex flex-col">
+                                    <div class="order-2 bg-white px-4 py-3 border-t border-slate-100 flex flex-wrap sm:flex-nowrap justify-between items-center gap-3">
+                                        <div class="overflow-x-auto max-w-full flex-1">
+                                            <trix-toolbar id="trix-toolbar-komen"></trix-toolbar>
+                                        </div>
+                                        <button type="button" id="btn-kirim-diskusi" onclick="kirimPesanDiskusi()" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-xl text-xs font-bold transition-all active:scale-95 shadow-sm shadow-blue-500/20 flex items-center gap-2 shrink-0">
                                             <span>Kirim</span> <i class="fa-solid fa-paper-plane text-[10px]"></i>
                                         </button>
+                                    </div>
+                                    <div class="order-1">
+                                        <trix-editor toolbar="trix-toolbar-komen" trix-attachment-remove input="comment" class="border-none min-h-[100px] text-sm font-medium p-4 focus:outline-none max-w-none prose prose-slate w-full" placeholder="Ketik pesan Anda di sini..."></trix-editor>
+                                        @error('comment')
+                                        <p class="text-rose-500 text-xs font-bold px-4 pb-2">{{ $message }}</p>
+                                        @enderror
                                     </div>
                                 </div>
                             </form>
@@ -654,15 +658,18 @@
 
             // Ambil isi HTML dari Trix editor atau hidden input
             let messageHtml = '';
-            if (trixEditor && trixEditor.value) {
-                messageHtml = trixEditor.value;
-            } else if (commentInput && commentInput.value) {
+            if (commentInput && commentInput.value) {
                 messageHtml = commentInput.value;
+            } else if (trixEditor && trixEditor.value) {
+                messageHtml = trixEditor.value;
+            } else if (trixEditor) {
+                messageHtml = trixEditor.innerHTML;
             }
 
             // Validasi apakah benar-benar ada teks pesan (bukan hanya tag html kosong)
             const plainText = messageHtml.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim();
-            if (!plainText) {
+            const hasMedia = messageHtml.includes('<img') || messageHtml.includes('<figure');
+            if (!plainText && !hasMedia) {
                 if (trixEditor) trixEditor.focus();
                 return;
             }
@@ -679,7 +686,7 @@
                 formData.set('comment', messageHtml);
 
                 const csrfMeta = document.querySelector('meta[name="csrf-token"]');
-                const csrfToken = csrfMeta ? csrfMeta.getAttribute('content') : '';
+                const csrfToken = csrfMeta ? csrfMeta.getAttribute('content') : (diskusiForm.querySelector('input[name="_token"]')?.value || '');
 
                 const response = await fetch(diskusiForm.action, {
                     method: 'POST',
@@ -705,6 +712,9 @@
                     }
                     if (commentInput) {
                         commentInput.value = '';
+                    }
+                    if (trixEditor) {
+                        trixEditor.value = '';
                     }
 
                     // Hapus pesan kosong bila ada
