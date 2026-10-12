@@ -124,7 +124,7 @@ Route::get('/createmodul', [ModulController::class, 'create'])->middleware(['aut
 Route::get('/editmodul/{id}', [ModulController::class, 'edit'])->middleware(['auth'])->name('editmodul');
 Route::post('/createmodul', [ModulController::class, 'store'])->middleware(['auth'])->name('storemodul');
 Route::post('/editmodul/{id}', [ModulController::class, 'update'])->middleware(['auth'])->name('updatemodul');
-Route::delete('/deletemodul/{id}', [ModulController::class, 'delete'])->middleware(['auth'])->name('deletemodul');
+Route::match(['delete', 'get'], '/deletemodul/{id}', [ModulController::class, 'delete'])->middleware(['auth'])->name('deletemodul');
 
 //Route Status
 Route::get('/status', [StatusController::class, 'index'])->middleware(['auth'])->name('status');

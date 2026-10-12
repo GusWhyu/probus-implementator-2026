@@ -53,7 +53,20 @@
                     <!-- Per-column vertical scroll -->
                     <div class="flex-1 min-h-0 overflow-y-auto custom-scrollbar flex flex-col gap-5 pr-2 pb-4">
                         @foreach($open as $rq)
-                        <a href="/detailtiket/{{ $rq->id }}" class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm hover:shadow-md hover:border-blue-300 transition-all cursor-pointer flex flex-col group shrink-0 relative">
+                        <a href="/detailticket/{{ $rq->id }}" class="{{ $rq->pending_advisor_id != null ? 'bg-amber-50/40 border-2 border-amber-300 hover:border-amber-400 ring-2 ring-amber-200/50' : 'bg-white border border-slate-200 hover:border-blue-300' }} rounded-2xl p-5 shadow-sm hover:shadow-md transition-all cursor-pointer flex flex-col group shrink-0 relative">
+                            @if($rq->pending_advisor_id != null)
+                            <div class="mb-3.5 px-3 py-1.5 rounded-xl bg-amber-100/90 border border-amber-300/80 text-amber-900 text-xs font-bold flex items-center justify-between shadow-sm">
+                                <span class="flex items-center gap-1.5">
+                                    <i class="fa-solid fa-clock-rotate-left text-amber-600 animate-spin" style="animation-duration: 4s;"></i>
+                                    <span>Waiting Takeover</span>
+                                </span>
+                                @if($rq->pending_advisor_at)
+                                <span class="text-[11px] font-mono font-extrabold text-amber-800 bg-white/80 px-2 py-0.5 rounded-md border border-amber-200 ticket-countdown" data-expire="{{ \Carbon\Carbon::parse($rq->pending_advisor_at)->addMinutes(60)->toISOString() }}">
+                                    --:--
+                                </span>
+                                @endif
+                            </div>
+                            @endif
                             <div class="flex justify-between items-center mb-4">
                                 <div class="flex items-center gap-2 flex-wrap">
                                     <span class="bg-blue-50 text-blue-600 text-[11px] font-bold px-2.5 py-1.5 rounded-md">{{ $rq->ticket_number }}</span>
@@ -104,7 +117,20 @@
                     <!-- Per-column vertical scroll -->
                     <div class="flex-1 min-h-0 overflow-y-auto custom-scrollbar flex flex-col gap-5 pr-2 pb-4">
                         @foreach($progress as $rq)
-                        <a href="/detailtiket/{{ $rq->id }}" class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm hover:shadow-md hover:border-orange-300 transition-all cursor-pointer flex flex-col group shrink-0 relative">
+                        <a href="/detailticket/{{ $rq->id }}" class="{{ $rq->pending_advisor_id != null ? 'bg-amber-50/40 border-2 border-amber-300 hover:border-amber-400 ring-2 ring-amber-200/50' : 'bg-white border border-slate-200 hover:border-orange-300' }} rounded-2xl p-5 shadow-sm hover:shadow-md transition-all cursor-pointer flex flex-col group shrink-0 relative">
+                            @if($rq->pending_advisor_id != null)
+                            <div class="mb-3.5 px-3 py-1.5 rounded-xl bg-amber-100/90 border border-amber-300/80 text-amber-900 text-xs font-bold flex items-center justify-between shadow-sm">
+                                <span class="flex items-center gap-1.5">
+                                    <i class="fa-solid fa-clock-rotate-left text-amber-600 animate-spin" style="animation-duration: 4s;"></i>
+                                    <span>Waiting Takeover</span>
+                                </span>
+                                @if($rq->pending_advisor_at)
+                                <span class="text-[11px] font-mono font-extrabold text-amber-800 bg-white/80 px-2 py-0.5 rounded-md border border-amber-200 ticket-countdown" data-expire="{{ \Carbon\Carbon::parse($rq->pending_advisor_at)->addMinutes(60)->toISOString() }}">
+                                    --:--
+                                </span>
+                                @endif
+                            </div>
+                            @endif
                             <div class="flex justify-between items-center mb-4">
                                 <div class="flex items-center gap-2 flex-wrap">
                                     <span class="bg-blue-50 text-blue-600 text-[11px] font-bold px-2.5 py-1.5 rounded-md">{{ $rq->ticket_number }}</span>
@@ -155,7 +181,7 @@
                     <!-- Per-column vertical scroll -->
                     <div class="flex-1 min-h-0 overflow-y-auto custom-scrollbar flex flex-col gap-5 pr-2 pb-4">
                         @foreach($closed as $rq)
-                        <a href="/detailtiket/{{ $rq->id }}" class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm hover:shadow-md hover:border-emerald-300 transition-all cursor-pointer flex flex-col group shrink-0 relative">
+                        <a href="/detailticket/{{ $rq->id }}" class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm hover:shadow-md hover:border-emerald-300 transition-all cursor-pointer flex flex-col group shrink-0 relative">
                             <div class="flex justify-between items-center mb-4">
                                 <div class="flex items-center gap-2 flex-wrap">
                                     <span class="bg-blue-50 text-blue-600 text-[11px] font-bold px-2.5 py-1.5 rounded-md">{{ $rq->ticket_number }}</span>
@@ -316,4 +342,31 @@
         });
     </script>
     @endif
+
+    <!-- Live Countdown for Ticket Cards -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            function updateTicketTimers() {
+                const now = new Date().getTime();
+                document.querySelectorAll('.ticket-countdown').forEach(el => {
+                    const expireAttr = el.getAttribute('data-expire');
+                    if (!expireAttr) return;
+                    const expireAt = new Date(expireAttr).getTime();
+                    const distance = expireAt - now;
+
+                    if (distance <= 0) {
+                        el.innerHTML = "WAKTU HABIS";
+                        el.classList.add('text-rose-600');
+                        el.classList.remove('text-amber-800');
+                    } else {
+                        const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                        const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+                        el.innerHTML = minutes.toString().padStart(2, '0') + ":" + seconds.toString().padStart(2, '0');
+                    }
+                });
+            }
+            updateTicketTimers();
+            setInterval(updateTicketTimers, 1000);
+        });
+    </script>
 </x-app-layout>

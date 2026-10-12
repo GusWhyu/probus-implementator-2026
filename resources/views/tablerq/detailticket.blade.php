@@ -265,16 +265,30 @@
                 <!-- Right Content (Sidebar Info) -->
                 <div class="w-full lg:w-5/12 xl:w-4/12 shrink-0 space-y-6">
                     
-                    @if ($datarq->pending_advisor_id == $aid)
+                    @if ($datarq->pending_advisor_id != null)
                     <!-- Pending Take Over Approval Banner -->
-                    <div class="bg-blue-50 border border-blue-200 rounded-3xl p-5 relative overflow-hidden shadow-sm mb-6">
+                    <div class="bg-amber-50 border-2 border-amber-300 rounded-3xl p-5 relative overflow-hidden shadow-sm mb-6">
                         <div class="flex items-start gap-4 relative z-10">
-                            <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center text-blue-600 shrink-0 shadow-sm">
-                                <i class="fa-solid fa-handshake text-lg"></i>
+                            <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center text-amber-600 shrink-0 shadow-sm border border-amber-200">
+                                <i class="fa-solid fa-clock-rotate-left text-lg animate-spin" style="animation-duration: 4s;"></i>
                             </div>
                             <div class="flex-1">
-                                <p class="font-bold text-blue-900 text-sm mb-1">Permintaan Alih Tiket</p>
-                                <p class="text-xs font-medium text-blue-700/80 mb-3">Seseorang meminta Anda untuk mengambil alih dan menyelesaikan tiket ini. Apakah Anda bersedia?</p>
+                                <div class="flex items-center justify-between flex-wrap gap-2 mb-1">
+                                    <p class="font-bold text-amber-900 text-sm">Permintaan Alih Tiket (Waiting Approval)</p>
+                                    @if($datarq->pending_advisor_at)
+                                    <span class="text-xs font-mono font-extrabold text-amber-800 bg-white px-2.5 py-1 rounded-lg border border-amber-200 ticket-countdown" data-expire="{{ \Carbon\Carbon::parse($datarq->pending_advisor_at)->addMinutes(60)->toISOString() }}">
+                                        --:--
+                                    </span>
+                                    @endif
+                                </div>
+                                <p class="text-xs font-medium text-amber-800/80 mb-3">
+                                    @if ($datarq->pending_advisor_id == $aid)
+                                        Seseorang meminta Anda untuk mengambil alih dan menyelesaikan tiket ini. Batas waktu konfirmasi adalah 1 jam sebelum permintaan otomatis dibatalkan. Apakah Anda bersedia?
+                                    @else
+                                        Tiket ini sedang diajukan untuk dialihkan kepada <strong>{{ $datarq->pendingAdvisor->name ?? 'Advisor lain' }}</strong>. Diskusi dikunci sementara hingga disetujui atau batas waktu 1 jam habis.
+                                    @endif
+                                </p>
+                                @if ($datarq->pending_advisor_id == $aid)
                                 <div class="flex gap-2">
                                     <form action="{{ route('ticket.takeover.reject', $datarq->id) }}" method="POST" class="inline">
                                         @csrf
@@ -285,6 +299,7 @@
                                         <button type="submit" class="px-4 py-2 bg-blue-600 text-white font-bold text-xs rounded-xl hover:bg-blue-700 transition-colors shadow-sm shadow-blue-500/20">Terima</button>
                                     </form>
                                 </div>
+                                @endif
                             </div>
                         </div>
                     </div>
@@ -298,9 +313,16 @@
                         <!-- Ticket ID & Status Header -->
                         <div class="flex items-center justify-between mb-8">
                             <span class="text-blue-500 font-bold text-lg font-mono">{{ $datarq->ticket_number }}</span>
-                            <span class="px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider {{ $bg }}">
-                                {{ $datarq->status }}
-                            </span>
+                            <div class="flex items-center gap-2">
+                                @if ($datarq->pending_advisor_id != null)
+                                <span class="px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-amber-100 text-amber-800 border border-amber-300 animate-pulse flex items-center gap-1.5">
+                                    <i class="fa-solid fa-clock-rotate-left text-[9px]"></i> WAITING TAKEOVER
+                                </span>
+                                @endif
+                                <span class="px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider {{ $bg }}">
+                                    {{ $datarq->status }}
+                                </span>
+                            </div>
                         </div>
                         
                         <!-- Info Grid -->
@@ -471,7 +493,13 @@
                         <i class="fa-regular fa-user absolute left-4 top-1/2 -translate-y-1/2 text-blue-500 text-sm"></i>
                         <select id="target_advisor_id" name="target_advisor_id" class="w-full bg-white border border-slate-200 text-slate-800 text-xs rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 p-3.5 pl-10 outline-none font-bold appearance-none shadow-sm cursor-pointer hover:bg-slate-50 transition-colors" required>
                             <option value="" disabled selected>Pilih user...</option>
-                            @foreach(\App\Models\User::where('id', '!=', $datarq->user_id)->whereIn('usertype', ['admin', 'supervisor', 'user'])->get() as $usr)
+                            @php
+                                $takeoverQuery = \App\Models\User::where('id', '!=', $datarq->user_id)->whereIn('usertype', ['admin', 'supervisor', 'user']);
+                                if (Auth::user()->departemen_id) {
+                                    $takeoverQuery->where('departemen_id', Auth::user()->departemen_id);
+                                }
+                            @endphp
+                            @foreach($takeoverQuery->get() as $usr)
                                 <option value="{{ $usr->id }}">{{ $usr->name }} @if($usr->id == Auth::id()) (Anda) @endif</option>
                             @endforeach
                         </select>
@@ -623,4 +651,30 @@
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background-color: #94a3b8; }
     </style>
 
+    <!-- Live Countdown Script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            function updateTicketTimers() {
+                const now = new Date().getTime();
+                document.querySelectorAll('.ticket-countdown').forEach(el => {
+                    const expireAttr = el.getAttribute('data-expire');
+                    if (!expireAttr) return;
+                    const expireAt = new Date(expireAttr).getTime();
+                    const distance = expireAt - now;
+
+                    if (distance <= 0) {
+                        el.innerHTML = "WAKTU HABIS";
+                        el.classList.add('text-rose-600');
+                        el.classList.remove('text-amber-800');
+                    } else {
+                        const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                        const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+                        el.innerHTML = minutes.toString().padStart(2, '0') + ":" + seconds.toString().padStart(2, '0');
+                    }
+                });
+            }
+            updateTicketTimers();
+            setInterval(updateTicketTimers, 1000);
+        });
+    </script>
 </x-app-layout>

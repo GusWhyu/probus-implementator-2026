@@ -37,11 +37,24 @@ class HomeController extends Controller
         $chartLabels = [];
         $masukData = [];
         $selesaiData = [];
+        
+        // Dapatkan total tiket sebelum 7 hari yang lalu
+        $startDate = \Carbon\Carbon::now()->subDays(6)->startOfDay();
+        $cumulativeMasuk = Ticket::where('created_at', '<', $startDate)->count();
+        $cumulativeSelesai = Ticket::where('updated_at', '<', $startDate)->where('status', 'CLOSED')->count();
+
         for ($i = 6; $i >= 0; $i--) {
             $date = \Carbon\Carbon::now()->subDays($i);
-            $chartLabels[] = $date->translatedFormat('D');
-            $masukData[] = Ticket::whereDate('created_at', $date->toDateString())->count();
-            $selesaiData[] = Ticket::whereDate('updated_at', $date->toDateString())->where('status', 'CLOSED')->count();
+            $chartLabels[] = $date->locale('id')->translatedFormat('l');
+            
+            $dailyMasuk = Ticket::whereDate('created_at', $date->toDateString())->count();
+            $dailySelesai = Ticket::whereDate('updated_at', $date->toDateString())->where('status', 'CLOSED')->count();
+            
+            $cumulativeMasuk += $dailyMasuk;
+            $cumulativeSelesai += $dailySelesai;
+            
+            $masukData[] = $cumulativeMasuk;
+            $selesaiData[] = $cumulativeSelesai;
         }
 
         $topAgents = User::whereHas('advisedTickets', function($q) {
@@ -80,17 +93,17 @@ class HomeController extends Controller
     }
 
     public function daftartiket(Request $request){
-        $open_count = Ticket::where('status', 'OPEN')->count();
-        $progress_count = Ticket::where('status', 'PROGRESS')->count();
-        $closed_count = Ticket::where('status', 'CLOSED')->count();
-        $total_count = Ticket::count();
+        $open_count = Ticket::withoutGlobalScope('leader')->where('status', 'OPEN')->count();
+        $progress_count = Ticket::withoutGlobalScope('leader')->where('status', 'PROGRESS')->count();
+        $closed_count = Ticket::withoutGlobalScope('leader')->where('status', 'CLOSED')->count();
+        $total_count = Ticket::withoutGlobalScope('leader')->count();
         
-        $open = Ticket::where('status', 'OPEN')->latest()->take(5)->get();
-        $progress = Ticket::where('status', 'PROGRESS')->latest()->take(5)->get();
-        $closed = Ticket::where('status', 'CLOSED')->latest()->take(5)->get();
+        $open = Ticket::withoutGlobalScope('leader')->where('status', 'OPEN')->latest()->take(5)->get();
+        $progress = Ticket::withoutGlobalScope('leader')->where('status', 'PROGRESS')->latest()->take(5)->get();
+        $closed = Ticket::withoutGlobalScope('leader')->where('status', 'CLOSED')->latest()->take(5)->get();
         $us = UpdateSystem::latest()->take(4)->get(); 
         
-        $query = Ticket::query();
+        $query = Ticket::withoutGlobalScope('leader');
 
         // Apply Search Filter
         if ($request->filled('search')) {
@@ -260,7 +273,7 @@ class HomeController extends Controller
             Ticket::whereIn('id', $myExpiredSent->pluck('id'))
                   ->update(['pending_advisor_id' => null, 'pending_advisor_at' => null]);
             
-            Alert::warning('Pengalihan Otomatis Dibatalkan', 'Tiket (' . implode(', ', $ticketNumbers) . ') telah dikembalikan kepada Anda karena telah melewati batas 1 jam tanpa persetujuan dari advisor tujuan.')->showConfirmButton('Tutup', '#f59e0b');
+            Alert::warning('Pengalihan Otomatis Dibatalkan', 'Tiket (' . implode(', ', $ticketNumbers) . ') telah dikembalikan kepada Anda karena telah melewati batas 1 jam tanpa persetujuan dari advisor tujuan.')->showConfirmButton('Tutup', '#f59e0b')->autoClose(3000);
         }
 
         // 2. Query data

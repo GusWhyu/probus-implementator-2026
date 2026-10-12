@@ -15,7 +15,7 @@
 
         <!-- Content -->
         <div class="flex-1 overflow-y-auto custom-scrollbar pb-8">
-            <form action="/editmodul/{{ $data->id }}" method="POST" class="max-w-3xl">
+            <form action="{{ route('updatemodul', $data->id) }}" method="POST" class="max-w-3xl">
                 @csrf
                 <div class="bg-white rounded-xl border border-slate-200 shadow-sm flex flex-col">
                     <!-- Card Header -->
@@ -29,7 +29,7 @@
                         <!-- Nama Modul -->
                         <div>
                             <label for="name" class="block text-sm font-bold text-slate-700 mb-1.5">Nama Modul <span class="text-red-500">*</span></label>
-                            <input type="text" name="name" id="name" value="{{ $data->name }}" required class="w-full bg-white border border-slate-200 text-slate-800 text-sm rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all placeholder:text-slate-400" placeholder="Masukkan nama modul">
+                            <input type="text" name="name" id="name" value="{{ old('name', $data->name) }}" required class="w-full bg-white border border-slate-200 text-slate-800 text-sm rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all placeholder:text-slate-400" placeholder="Masukkan nama modul">
                             <p class="text-slate-400 text-[11px] mt-1.5">Gunakan nama yang mudah dikenali oleh tim CS.</p>
                             @error('name')
                                 <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
@@ -38,10 +38,10 @@
 
                         <!-- Bobot Poin -->
                         <div>
-                            <label for="bobot_poin" class="block text-sm font-bold text-slate-700 mb-1.5">Bobot Poin <span class="text-red-500">*</span></label>
-                            <input type="number" name="bobot_poin" id="bobot_poin" value="{{ $data->bobot_poin }}" required class="w-full bg-white border border-slate-200 text-slate-800 text-sm rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all placeholder:text-slate-400" placeholder="Masukkan bobot poin">
+                            <label for="bobot" class="block text-sm font-bold text-slate-700 mb-1.5">Bobot Poin <span class="text-red-500">*</span></label>
+                            <input type="number" name="bobot" id="bobot" value="{{ old('bobot', $data->bobot) }}" min="0" required class="w-full bg-white border border-slate-200 text-slate-800 text-sm rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all placeholder:text-slate-400" placeholder="Masukkan bobot poin">
                             <p class="text-slate-400 text-[11px] mt-1.5">Masukkan angka untuk bobot poin penilaian modul.</p>
-                            @error('bobot_poin')
+                            @error('bobot')
                                 <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                             @enderror
                         </div>

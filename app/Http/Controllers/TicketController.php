@@ -27,7 +27,7 @@ class TicketController extends Controller
         if ($datarq->pending_advisor_at && now()->diffInMinutes($datarq->pending_advisor_at) >= 60) {
             $datarq->update(['pending_advisor_id' => null, 'pending_advisor_at' => null]);
             if (Auth::id() == $datarq->user_id) {
-                Alert::warning('Pengalihan Otomatis Dibatalkan', 'Tiket ini telah dikembalikan kepada Anda karena telah melewati batas 1 jam tanpa persetujuan dari advisor tujuan.')->showConfirmButton('Tutup', '#f59e0b');
+                Alert::warning('Pengalihan Otomatis Dibatalkan', 'Tiket ini telah dikembalikan kepada Anda karena telah melewati batas 1 jam tanpa persetujuan dari advisor tujuan.')->showConfirmButton('Tutup', '#f59e0b')->autoClose(3000);
             }
         }
 
@@ -254,7 +254,7 @@ class TicketController extends Controller
             $creator->notify(new RequestStatusChanged($data));
         }
         
-        Alert::success('Berhasil!', 'Status tiket telah diperbarui.')->showConfirmButton('Tutup', '#3b82f6');
+        Alert::success('Berhasil!', 'Status tiket telah diperbarui.')->showConfirmButton('Tutup', '#3b82f6')->autoClose(2500);
         return redirect()->back();
     }
 
@@ -375,14 +375,14 @@ class TicketController extends Controller
                 'pending_advisor_id' => null,
                 'pending_advisor_at' => null
             ]);
-            Alert::success('Berhasil!', 'Tiket telah berhasil dialihkan.')->showConfirmButton('Tutup', '#3b82f6');
+            Alert::success('Berhasil!', 'Tiket telah berhasil dialihkan.')->showConfirmButton('Tutup', '#3b82f6')->autoClose(2500);
         } else {
             // User asks another user -> Need approval
             $ticket->update([
                 'pending_advisor_id' => $targetUserId,
                 'pending_advisor_at' => now()
             ]);
-            Alert::success('Terkirim!', 'Permintaan pengalihan tiket telah dikirim ke user tersebut.')->showConfirmButton('Tutup', '#3b82f6');
+            Alert::success('Terkirim!', 'Permintaan pengalihan tiket telah dikirim ke user tersebut.')->showConfirmButton('Tutup', '#3b82f6')->autoClose(2500);
         }
         
         return redirect()->back();
@@ -396,7 +396,7 @@ class TicketController extends Controller
                 'pending_advisor_id' => null,
                 'pending_advisor_at' => null
             ]);
-            Alert::success('Berhasil!', 'Anda telah mengambil alih tiket ini.')->showConfirmButton('Tutup', '#3b82f6');
+            Alert::success('Berhasil!', 'Anda telah mengambil alih tiket ini.')->showConfirmButton('Tutup', '#3b82f6')->autoClose(2500);
         }
         return redirect()->back();
     }
@@ -408,7 +408,7 @@ class TicketController extends Controller
                 'pending_advisor_id' => null,
                 'pending_advisor_at' => null
             ]);
-            Alert::info('Ditolak!', 'Anda telah menolak permintaan alih tiket.');
+            Alert::info('Ditolak!', 'Anda telah menolak permintaan alih tiket.')->autoClose(2500);
         }
         return redirect()->back();
     }

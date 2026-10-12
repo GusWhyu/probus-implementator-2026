@@ -109,15 +109,7 @@
                 <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 lg:col-span-2">
                     <div class="flex items-center justify-between mb-6">
                         <div>
-                            <h3 class="text-sm font-bold text-slate-800">Overview</h3>
-                            <div class="flex items-center gap-4 mt-2">
-                                <div class="flex items-center gap-1.5 text-[10px] font-bold text-slate-500">
-                                    <div class="w-6 h-[3px] rounded-full bg-blue-600"></div> Tiket Masuk
-                                </div>
-                                <div class="flex items-center gap-1.5 text-[10px] font-bold text-slate-500">
-                                    <div class="w-6 h-[3px] rounded-full bg-teal-500 border-dashed" style="border-top: 2px dashed #14b8a6; background: transparent; height: 0;"></div> Tiket Selesai
-                                </div>
-                            </div>
+                            <h3 class="text-sm font-bold text-slate-800">Volume Tiket</h3>
                         </div>
                         <select class="bg-slate-50 border border-slate-200 text-slate-600 text-[11px] font-bold rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-100">
                             <option>Harian</option>
@@ -157,46 +149,13 @@
                 </div>
             </div>
 
-            {{-- Row 2: Performa Agen + Top Client + Jenis Kendala --}}
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-                {{-- Performa Agen --}}
+            {{-- Row 2: Performa Agen --}}
+            <div class="mb-6">
+                <h2 class="text-sm font-bold text-slate-800 mb-4 px-2">Performa Agen</h2>
                 <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
-                    <div class="flex items-center justify-between mb-1">
-                        <h3 class="text-sm font-bold text-slate-800">Performa Agen</h3>
-                    </div>
-                    <p class="text-[11px] text-slate-400 font-medium mb-5">Tiket diselesaikan per agen</p>
                     <div class="h-56 w-full relative">
                         <canvas id="agentChart"></canvas>
                     </div>
-                    <a href="#" class="text-[11px] font-bold text-blue-600 hover:text-blue-700 mt-3 inline-flex items-center gap-1 transition-colors">View full report <i class="fa-solid fa-chevron-right text-[8px]"></i></a>
-                </div>
-
-
-
-                {{-- Top Client Donut --}}
-                <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 flex flex-col">
-                    <div class="flex items-center justify-between mb-1">
-                        <h3 class="text-sm font-bold text-slate-800">Top Client</h3>
-                    </div>
-                    <p class="text-[11px] text-slate-400 font-medium mb-5">Berdasarkan jumlah tiket</p>
-                    <div class="flex-1 w-full relative flex justify-center items-center">
-                        <canvas id="clientDonutChart" class="max-h-[160px]"></canvas>
-                    </div>
-                    <div class="mt-4 flex flex-col gap-2">
-                        @foreach(array_slice($clientDonutLabels ?? [], 0, 3) as $index => $label)
-                        <div class="flex items-center justify-between text-[11px]">
-                            <div class="flex items-center gap-2">
-                                @php
-                                    $bgColors = ['bg-blue-600', 'bg-sky-500', 'bg-indigo-500'];
-                                @endphp
-                                <div class="w-2 h-2 rounded-full {{ $bgColors[$index] }}"></div> 
-                                <span class="font-semibold text-slate-600">{{ $label }}</span>
-                            </div>
-                            <span class="font-bold text-slate-700">{{ $clientDonutData[$index] ?? 0 }} Tiket</span>
-                        </div>
-                        @endforeach
-                    </div>
-                    <a href="#" class="text-[11px] font-bold text-blue-600 hover:text-blue-700 mt-3 inline-flex items-center gap-1 transition-colors">View full report <i class="fa-solid fa-chevron-right text-[8px]"></i></a>
                 </div>
             </div>
 
@@ -240,21 +199,29 @@
                         </thead>
                         <tbody>
                             @forelse(($all_tickets ?? collect())->take(5) as $ticket)
-                            <tr class="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
-                                <td class="py-3.5 text-sm font-semibold text-slate-700">{{ $ticket->title ?? 'N/A' }}</td>
+                            <tr class="border-b transition-colors {{ $ticket->pending_advisor_id != null ? 'bg-amber-50/50 hover:bg-amber-100/50 border-l-4 border-l-amber-400' : 'border-slate-50 hover:bg-slate-50/50' }}">
+                                <td class="py-3.5 text-sm font-semibold text-slate-700">
+                                    <a href="/detailticket/{{ $ticket->id }}" class="hover:text-blue-600 transition-colors">{{ $ticket->title ?? 'N/A' }}</a>
+                                </td>
                                 <td class="py-3.5 text-sm text-slate-600">{{ $ticket->client->name ?? 'N/A' }}</td>
                                 <td class="py-3.5 text-sm text-slate-600">{{ $ticket->kategoriSystem->name ?? 'N/A' }}</td>
                                 <td class="py-3.5">
-                                    @php
-                                        $statusColors = [
-                                            'OPEN' => 'bg-red-100 text-red-700',
-                                            'PROGRESS' => 'bg-blue-100 text-blue-700',
-                                            'CLOSED' => 'bg-emerald-100 text-emerald-700',
-                                        ];
-                                    @endphp
-                                    <span class="px-2.5 py-1 rounded-lg text-[10px] font-bold {{ $statusColors[$ticket->status] ?? 'bg-slate-100 text-slate-600' }}">
-                                        {{ $ticket->status ?? 'Unknown' }}
-                                    </span>
+                                    @if($ticket->pending_advisor_id != null)
+                                        <span class="px-2.5 py-1 rounded-lg text-[10px] font-extrabold bg-amber-100 text-amber-800 border border-amber-300 inline-flex items-center gap-1 animate-pulse">
+                                            <i class="fa-solid fa-clock-rotate-left text-[9px]"></i> WAITING
+                                        </span>
+                                    @else
+                                        @php
+                                            $statusColors = [
+                                                'OPEN' => 'bg-red-100 text-red-700',
+                                                'PROGRESS' => 'bg-blue-100 text-blue-700',
+                                                'CLOSED' => 'bg-emerald-100 text-emerald-700',
+                                            ];
+                                        @endphp
+                                        <span class="px-2.5 py-1 rounded-lg text-[10px] font-bold {{ $statusColors[$ticket->status] ?? 'bg-slate-100 text-slate-600' }}">
+                                            {{ $ticket->status ?? 'Unknown' }}
+                                        </span>
+                                    @endif
                                 </td>
                                 <td class="py-3.5 text-sm text-slate-500">{{ $ticket->created_at->format('d M Y') }}</td>
                             </tr>
@@ -308,35 +275,17 @@
             gradient1.addColorStop(1, 'rgba(37, 99, 235, 0.01)');
 
             new Chart(overviewCtx, {
-                type: 'line',
+                type: 'bar',
                 data: {
                     labels: {!! json_encode($chartLabels ?? []) !!},
                     datasets: [{
-                        label: 'Tiket Masuk',
+                        label: 'Volume Tiket',
                         data: {!! json_encode($masukData ?? []) !!},
-                        borderColor: '#2563eb', // blue-600
-                        backgroundColor: gradient1,
-                        borderWidth: 2.5,
-                        pointBackgroundColor: '#2563eb',
-                        pointBorderColor: '#fff',
-                        pointBorderWidth: 2,
-                        pointRadius: 4,
-                        pointHoverRadius: 6,
-                        fill: true,
-                        tension: 0.4
-                    }, {
-                        label: 'Tiket Selesai',
-                        data: {!! json_encode($selesaiData ?? []) !!},
-                        borderColor: '#14b8a6', // teal-500
-                        borderWidth: 2,
-                        borderDash: [6, 4],
-                        pointBackgroundColor: '#14b8a6',
-                        pointBorderColor: '#fff',
-                        pointBorderWidth: 2,
-                        pointRadius: 3,
-                        pointHoverRadius: 5,
-                        fill: false,
-                        tension: 0.4
+                        backgroundColor: function(ctx) {
+                            return ctx.dataIndex === 6 ? '#2563eb' : '#eff6ff';
+                        },
+                        borderRadius: 4,
+                        barPercentage: 0.5
                     }]
                 },
                 options: {
@@ -388,9 +337,7 @@
                     datasets: [{
                         data: {!! json_encode($agentData ?? []) !!},
                         backgroundColor: function(ctx) {
-                            // Monochromatic blues for harmony: blue-800 to blue-400
-                            const colors = ['#1e40af', '#1d4ed8', '#2563eb', '#3b82f6', '#60a5fa']; 
-                            return colors[ctx.dataIndex] || '#e2e8f0';
+                            return ctx.dataIndex === 0 ? '#2563eb' : '#eff6ff';
                         },
                         borderRadius: 6,
                         barPercentage: 0.6
@@ -412,26 +359,6 @@
             });
 
 
-
-            // ── 5. Client Donut ──
-            new Chart(document.getElementById('clientDonutChart').getContext('2d'), {
-                type: 'doughnut',
-                data: {
-                    labels: {!! json_encode($clientDonutLabels ?? []) !!},
-                    datasets: [{
-                        data: {!! json_encode($clientDonutData ?? []) !!},
-                        backgroundColor: ['#2563eb', '#0ea5e9', '#6366f1', '#cbd5e1'], // blue, sky, indigo, slate
-                        borderWidth: 0,
-                        cutout: '68%',
-                        borderRadius: 3
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false }, tooltip: { enabled: true } }
-                }
-            });
 
             // ── 6. Top 10 Client (Vertical Bar) ──
             new Chart(document.getElementById('topClientBarChart').getContext('2d'), {

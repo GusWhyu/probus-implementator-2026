@@ -20,4 +20,9 @@ class PerformanceReviewModuleDetail extends Model
     {
         return $this->belongsTo(PerformanceCategory::class, 'module_id');
     }
+
+    public function moduleSystem()
+    {
+        return $this->belongsTo(ModuleSystem::class, 'module_id');
+    }
 }

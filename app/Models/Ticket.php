@@ -9,6 +9,22 @@ class Ticket extends Model
 {
     use HasFactory;
 
+    protected static function booted()
+    {
+        static::addGlobalScope('leader', function (\Illuminate\Database\Eloquent\Builder $builder) {
+            if (auth()->check() && auth()->user()->departemen_id) {
+                $dept_id = auth()->user()->departemen_id;
+                $builder->where(function ($q) use ($dept_id) {
+                    $q->whereHas('user', function ($sub) use ($dept_id) {
+                        $sub->where('departemen_id', $dept_id);
+                    })->orWhereHas('advisor', function ($sub) use ($dept_id) {
+                        $sub->where('departemen_id', $dept_id);
+                    });
+                });
+            }
+        });
+    }
+
     protected $fillable = [
         'ticket_number', 'title', 'description', 'status', 'priority', 
         'tipe_penanganan', 'user_id', 'client_id', 'advisor_id', 'pending_advisor_id', 'pending_advisor_at', 'module_system_id', 
