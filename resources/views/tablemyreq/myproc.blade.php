@@ -35,7 +35,7 @@
                             <div class="card bg-white rounded-xl mt-3 overflow-hidden">
                                 <div class="absolute right-0 m-3 flex items-center gap-1.5">
                                     <span class="text-xs font-bold text-gray-400 font-mono">#{{ $rq->id }}</span>
-                                    <div class="badge {{ $status }} rounded-[2px] text-white">{{ $rq->status->name }}</div>
+                                    <div class="badge {{ $status }} rounded-[2px] text-white">{{ $rq->status ? $rq->status->name : ($st ?? 'Open') }}</div>
                                 </div>
                                 <div class="card-body">
                                     <h1 class="card-title font-bold">
@@ -43,11 +43,11 @@
                                     </h1>
                                 </div>
                                 <div class="card-actions justify-start pl-7">
-                                    <div class="badge badge-secondary mb-3">{{ $rq->outlet->nm_out }}</div>
+                                    <div class="badge badge-secondary mb-3">{{ $rq->outlet ? $rq->outlet->nm_out : '-' }}</div>
                                 </div>
                                 <div class="card-actions justify-start pl-7">
-                                    <div class="badge badge-primary mb-3 text-white">{{ $rq->tag->name }}</div>
-                                    <div class="badge badge-neutral mb-3 text-white">{{ $rq->kategori->name }}</div>
+                                    <div class="badge badge-primary mb-3 text-white">{{ $rq->tag ? $rq->tag->name : '-' }}</div>
+                                    <div class="badge badge-neutral mb-3 text-white">{{ $rq->kategori ? $rq->kategori->name : '-' }}</div>
                                 </div>
                                 <div class="justify-start pl-7">
                                     <div class="mb-3 text-xs"><i class="fa-solid fa-calendar"></i> Update: {{ $rq->updated_at->toFormattedDayDateString() }} ({{ $rq->updated_at->diffForHumans() }})</div>

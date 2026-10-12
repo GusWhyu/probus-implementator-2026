@@ -236,7 +236,7 @@
                                 <span class="text-blue-600 font-bold text-xl font-mono">TK-{{ $datarq->id }}</span>
                             </div>
                             <span class="px-3.5 py-1.5 rounded-xl text-xs font-extrabold uppercase tracking-wider border {{ $bg }} flex items-center gap-1.5 shadow-sm">
-                                <i class="fa-solid {{ $icon }}"></i> {{ $datarq->status->name }}
+                                <i class="fa-solid {{ $icon }}"></i> {{ $datarq->status ? $datarq->status->name : ($datarq->status_id == 1 ? 'Open' : ($datarq->status_id == 3 ? 'Progress' : ($datarq->status_id == 4 ? 'Closed' : 'Open'))) }}
                             </span>
                         </div>
 
@@ -248,7 +248,7 @@
                                 </div>
                                 <div>
                                     <div class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-0.5">System & Module</div>
-                                    <div class="font-bold text-slate-800 text-sm">{{ $datarq->tag->name }} <span class="text-slate-300 mx-1">•</span> <span class="text-blue-600">{{ $datarq->kategori->name }}</span></div>
+                                    <div class="font-bold text-slate-800 text-sm">{{ $datarq->tag ? $datarq->tag->name : '-' }} <span class="text-slate-300 mx-1">•</span> <span class="text-blue-600">{{ $datarq->kategori ? $datarq->kategori->name : '-' }}</span></div>
                                 </div>
                             </div>
                             

@@ -65,7 +65,7 @@
                                         }
                                     @endphp
                                     <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold border {{ $statusClass }} shadow-sm">
-                                        <i class="fa-solid {{ $iconClass }}"></i> {{ $rl->status->name ?? 'Unknown' }}
+                                        <i class="fa-solid {{ $iconClass }}"></i> {{ $rl->status ? $rl->status->name : ($rl->status_id == 1 ? 'Open' : ($rl->status_id == 3 ? 'Progress' : ($rl->status_id == 4 ? 'Closed' : 'Unknown'))) }}
                                     </span>
                                 </td>
                                 <td class="py-4 px-6">

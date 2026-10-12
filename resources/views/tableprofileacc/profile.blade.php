@@ -122,7 +122,7 @@
                                         </td>
                                         <td class="py-4 px-6">
                                             <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-bold border {{ $bg }}">
-                                                <i class="fa-solid {{ $icon }}"></i> {{ $rq->status->name }}
+                                                <i class="fa-solid {{ $icon }}"></i> {{ $rq->status ? $rq->status->name : ($rq->status_id == 1 ? 'Open' : ($rq->status_id == 3 ? 'Progress' : ($rq->status_id == 4 ? 'Closed' : 'Open'))) }}
                                             </span>
                                         </td>
                                         <td class="py-4 px-6 text-center">
