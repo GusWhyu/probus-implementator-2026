@@ -20,14 +20,14 @@
         <div>
             <div class="px-3 mb-3 text-[11px] font-bold text-slate-400 uppercase tracking-wider">Request System</div>
             <ul class="space-y-1">
-                <li><a href="{{ route('dashboard') }}" class="flex items-center px-3 py-2 text-sm {{ request()->routeIs('dashboard') ? 'text-blue-600 bg-blue-50 font-medium' : 'text-slate-600 hover:bg-slate-50' }} rounded-lg transition-colors"><i class="fa-solid fa-chart-pie w-5 text-center mr-2 {{ request()->routeIs('dashboard') ? 'text-blue-600' : 'text-slate-400' }}"></i> Dashboard</a></li>
-                <li><a href="{{ route('activitylog') }}" class="flex items-center px-3 py-2 text-sm {{ request()->routeIs('activitylog') ? 'text-blue-600 bg-blue-50 font-medium' : 'text-slate-600 hover:bg-slate-50' }} rounded-lg transition-colors"><i class="fa-solid fa-clock-rotate-left w-5 text-center mr-2 {{ request()->routeIs('activitylog') ? 'text-blue-600' : 'text-slate-400' }}"></i> Activity Log</a></li>
+                <li><a href="{{ route('request.board') }}" class="flex items-center px-3 py-2 text-sm {{ request()->routeIs('request.board') ? 'text-blue-600 bg-blue-50 font-medium' : 'text-slate-600 hover:bg-slate-50' }} rounded-lg transition-colors"><i class="fa-solid fa-layer-group w-5 text-center mr-2 {{ request()->routeIs('request.board') ? 'text-blue-600' : 'text-slate-400' }}"></i> Request Board</a></li>
                 <li><a href="{{ route('myreq') }}" class="flex items-center px-3 py-2 text-sm {{ request()->routeIs('myreq') ? 'text-blue-600 bg-blue-50 font-medium' : 'text-slate-600 hover:bg-slate-50' }} rounded-lg transition-colors justify-between">
                     <div class="flex items-center"><i class="fa-solid fa-envelope-open-text w-5 text-center mr-2 {{ request()->routeIs('myreq') ? 'text-blue-600' : 'text-slate-400' }}"></i> My Request</div>
                     @if (count($rq1) > 0)
                         <span class="bg-blue-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">{{ count($rq1) }}</span>
                     @endif
                 </a></li>
+                <li><a href="{{ route('activitylog') }}" class="flex items-center px-3 py-2 text-sm {{ request()->routeIs('activitylog') ? 'text-blue-600 bg-blue-50 font-medium' : 'text-slate-600 hover:bg-slate-50' }} rounded-lg transition-colors"><i class="fa-solid fa-clock-rotate-left w-5 text-center mr-2 {{ request()->routeIs('activitylog') ? 'text-blue-600' : 'text-slate-400' }}"></i> Activity Log</a></li>
             </ul>
         </div>
         

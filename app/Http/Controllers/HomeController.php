@@ -410,13 +410,13 @@ class HomeController extends Controller
     }
 
     public function activitylog(){
-        $reqlog = RequestLog::latest()->take(10)->get();
+        $reqlog = RequestLog::with(['request', 'user', 'status'])->latest()->paginate(20);
         return view('activitylog', compact('reqlog'));
     }
 
     public function morerq($id){
-        $data = \App\Models\Request::where('status_id', $id)->latest()->paginate(12);
+        $data = \App\Models\Request::with(['outlet', 'tag', 'kategori', 'approver', 'status'])->where('status_id', $id)->latest()->paginate(12);
         $dataid = $id;
-        return view('tablerq.mrq',compact('data','dataid'));
+        return view('tablerq.mrq', compact('data', 'dataid'));
     }
 }

@@ -13,12 +13,12 @@
             <!-- Header section -->
             <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-8 gap-4">
                 <div class="flex items-center gap-4">
-                    <a href="{{ route('daftartiket') }}" class="w-11 h-11 bg-white border border-slate-200 rounded-full flex items-center justify-center text-slate-500 hover:text-blue-600 hover:border-blue-200 hover:bg-blue-50 transition-all shadow-sm shrink-0">
+                    <a href="{{ route('myreq') }}" class="w-11 h-11 bg-white border border-slate-200 rounded-full flex items-center justify-center text-slate-500 hover:text-blue-600 hover:border-blue-200 hover:bg-blue-50 transition-all shadow-sm shrink-0" title="Kembali">
                         <i class="fa-solid fa-arrow-left"></i>
                     </a>
                     <div>
-                        <h1 class="text-2xl font-extrabold text-slate-800 tracking-tight">Buat Tiket Baru</h1>
-                        <p class="text-sm text-slate-500 font-medium mt-1">Isi informasi berikut untuk membuat tiket bantuan pelanggan.</p>
+                        <h1 class="text-2xl font-extrabold text-slate-800 tracking-tight">Create Request Baru</h1>
+                        <p class="text-sm text-slate-500 font-medium mt-1">Isi formulir berikut untuk membuat request pengerjaan sistem baru.</p>
                     </div>
                 </div>
             </div>
@@ -232,9 +232,9 @@
 
                     <!-- Footer Actions -->
                     <div class="px-6 md:px-8 py-5 bg-slate-50 border-t border-slate-200 flex items-center justify-between">
-                        <a href="{{ route('daftartiket') }}" class="px-6 py-2.5 text-slate-500 hover:text-slate-700 font-bold text-sm transition-colors">Batal</a>
+                        <a href="{{ route('myreq') }}" class="px-6 py-2.5 text-slate-500 hover:text-slate-700 font-bold text-sm transition-colors">Batal</a>
                         <button type="submit" class="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-bold shadow-md shadow-blue-500/20 transition-all active:scale-95 flex items-center gap-2">
-                            <i class="fa-solid fa-paper-plane text-blue-200"></i> Buat Tiket
+                            <i class="fa-solid fa-paper-plane text-blue-200"></i> Simpan Request
                         </button>
                     </div>
 

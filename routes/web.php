@@ -45,7 +45,8 @@ Route::post('/penilaian/{id}', [HomeController::class, 'storePenilaian'])->middl
 Route::get('/rapor/{id}', [HomeController::class, 'rapor'])->middleware(['auth'])->name('rapor');
 Route::get('/rapor/{id}/download', [HomeController::class, 'downloadRapor'])->middleware(['auth'])->name('rapor.download');
 Route::get('/riwayat/{id}', [HomeController::class, 'riwayat'])->middleware(['auth'])->name('riwayat');
-// Old Request System Routes
+// Request System Routes
+Route::get('/request', [RequestController::class, 'index'])->middleware(['auth'])->name('request.board');
 Route::get('/getOutlet/{search?}', [RequestController::class, 'getOutlet'])->name('getOutlet');
 Route::get('/detailtiket/{id}',[RequestController::class, 'detailrequest'])->middleware(['auth'])->name('detailtiket');
 Route::get('/mrq', [RequestController::class, 'mrq'])->middleware(['auth'])->name('mrq');
