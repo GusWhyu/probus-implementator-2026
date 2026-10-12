@@ -245,13 +245,13 @@
                                 @csrf
                                 <input type="hidden" id="comment" name="comment" value="{{ old('comment') }}">
                                 <div class="bg-slate-50/50 rounded-2xl border border-slate-200 overflow-hidden focus-within:ring-4 focus-within:ring-blue-500/10 focus-within:border-blue-500 transition-all">
-                                    <trix-editor trix-attachment-remove input="comment" class="border-none min-h-[100px] text-sm font-medium p-4 focus:outline-none max-w-none prose prose-slate" placeholder="Ketik pesan Anda di sini..."></trix-editor>
+                                    <trix-editor toolbar="trix-toolbar-komen" trix-attachment-remove input="comment" class="border-none min-h-[100px] text-sm font-medium p-4 focus:outline-none max-w-none prose prose-slate" placeholder="Ketik pesan Anda di sini..."></trix-editor>
                                     @error('comment')
                                     <p class="text-rose-500 text-xs font-bold px-4 pb-2">{{ $message }}</p>
                                     @enderror
                                     <div class="bg-white px-4 py-3 border-t border-slate-100 flex justify-between items-center">
                                         <trix-toolbar id="trix-toolbar-komen"></trix-toolbar>
-                                        <button type="submit" id="btn-kirim-diskusi" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-xl text-xs font-bold transition-all active:scale-95 shadow-sm shadow-blue-500/20 flex items-center gap-2">
+                                        <button type="button" id="btn-kirim-diskusi" onclick="kirimPesanDiskusi()" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-xl text-xs font-bold transition-all active:scale-95 shadow-sm shadow-blue-500/20 flex items-center gap-2">
                                             <span>Kirim</span> <i class="fa-solid fa-paper-plane text-[10px]"></i>
                                         </button>
                                     </div>
@@ -636,7 +636,175 @@
         });
 
         // AJAX Chat Diskusi & Auto Scroll
-        document.addEventListener('DOMContentLoaded', function() {
+        function escapeHtml(str) {
+            if (!str) return '';
+            const p = document.createElement('p');
+            p.textContent = str;
+            return p.innerHTML;
+        }
+
+        window.kirimPesanDiskusi = async function() {
+            const diskusiForm = document.getElementById('diskusi-form');
+            if (!diskusiForm) return;
+
+            const trixEditor = document.querySelector('trix-editor[input="comment"]');
+            const commentInput = document.getElementById('comment');
+            const submitBtn = document.getElementById('btn-kirim-diskusi');
+            const messagesContainer = document.getElementById('diskusi-messages-container');
+
+            // Ambil isi HTML dari Trix editor atau hidden input
+            let messageHtml = '';
+            if (trixEditor && trixEditor.value) {
+                messageHtml = trixEditor.value;
+            } else if (commentInput && commentInput.value) {
+                messageHtml = commentInput.value;
+            }
+
+            // Validasi apakah benar-benar ada teks pesan (bukan hanya tag html kosong)
+            const plainText = messageHtml.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim();
+            if (!plainText) {
+                if (trixEditor) trixEditor.focus();
+                return;
+            }
+
+            // Ubah tombol ke status loading
+            const originalBtnContent = submitBtn ? submitBtn.innerHTML : '';
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<span>Mengirim...</span> <i class="fa-solid fa-spinner fa-spin text-[10px]"></i>';
+            }
+
+            try {
+                const formData = new FormData(diskusiForm);
+                formData.set('comment', messageHtml);
+
+                const csrfMeta = document.querySelector('meta[name="csrf-token"]');
+                const csrfToken = csrfMeta ? csrfMeta.getAttribute('content') : '';
+
+                const response = await fetch(diskusiForm.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken
+                    }
+                });
+
+                if (!response.ok) {
+                    const errData = await response.json().catch(() => null);
+                    throw new Error(errData?.message || 'Gagal mengirim pesan');
+                }
+
+                const result = await response.json();
+
+                if (result.success && result.data) {
+                    // Kosongkan editor Trix & hidden input
+                    if (trixEditor && trixEditor.editor) {
+                        trixEditor.editor.loadHTML('');
+                    }
+                    if (commentInput) {
+                        commentInput.value = '';
+                    }
+
+                    // Hapus pesan kosong bila ada
+                    const emptyState = document.getElementById('diskusi-empty-state');
+                    if (emptyState) {
+                        emptyState.remove();
+                    }
+
+                    // Perbarui badge jumlah pesan
+                    const countBadge = document.getElementById('diskusi-count-badge');
+                    if (countBadge && result.total_count !== undefined) {
+                        countBadge.textContent = `${result.total_count} Pesan`;
+                    }
+
+                    // Buat elemen bubble pesan baru
+                    const msg = result.data;
+                    const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(msg.user_name)}&background=2563eb&color=fff&bold=true`;
+
+                    const bubbleDiv = document.createElement('div');
+                    bubbleDiv.className = 'flex gap-4 flex-row-reverse transition-all duration-300 opacity-0 translate-y-2';
+                    bubbleDiv.innerHTML = `
+                        <div class="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center text-slate-500 font-bold shrink-0 overflow-hidden shadow-sm border border-white">
+                            <img src="${avatarUrl}" alt="" class="w-full h-full object-cover">
+                        </div>
+                        <div class="max-w-[85%] sm:max-w-[75%] flex flex-col items-end">
+                            <div class="flex items-center gap-2 mb-1.5 px-1">
+                                <span class="font-bold text-[11px] text-slate-700">${escapeHtml(msg.user_name)}</span>
+                                <span class="text-[10px] font-medium text-slate-400">${escapeHtml(msg.time_ago)}</span>
+                            </div>
+                            <div class="px-5 py-3.5 rounded-2xl text-sm font-medium prose prose-sm max-w-none shadow-sm bg-blue-600 text-white rounded-tr-sm prose-p:text-blue-50 prose-a:text-white">
+                                ${msg.message}
+                            </div>
+                            <a data-confirm-delete="true" href="/deletekomen/${msg.id}" class="text-[10px] font-bold text-slate-400 mt-1.5 hover:text-rose-500 transition-colors px-1">
+                                <i class="fa-solid fa-trash-can mr-1"></i>Hapus
+                            </a>
+                        </div>
+                    `;
+
+                    // Handler konfirmasi hapus pada bubble baru
+                    const delBtn = bubbleDiv.querySelector('a[data-confirm-delete]');
+                    if (delBtn) {
+                        delBtn.addEventListener('click', function(evt) {
+                            if (window.Swal) {
+                                evt.preventDefault();
+                                const url = this.getAttribute('href');
+                                Swal.fire({
+                                    title: 'Hapus Pesan?',
+                                    text: "Pesan ini akan dihapus permanen",
+                                    icon: 'warning',
+                                    showCancelButton: true,
+                                    confirmButtonColor: '#ef4444',
+                                    cancelButtonColor: '#94a3b8',
+                                    confirmButtonText: 'Ya, Hapus',
+                                    cancelButtonText: 'Batal'
+                                }).then((swalRes) => {
+                                    if (swalRes.isConfirmed) {
+                                        window.location.href = url;
+                                    }
+                                });
+                            }
+                        });
+                    }
+
+                    if (messagesContainer) {
+                        messagesContainer.appendChild(bubbleDiv);
+
+                        requestAnimationFrame(() => {
+                            bubbleDiv.classList.remove('opacity-0', 'translate-y-2');
+                        });
+
+                        messagesContainer.scrollTo({
+                            top: messagesContainer.scrollHeight,
+                            behavior: 'smooth'
+                        });
+                    }
+                }
+            } catch (error) {
+                console.error('Error sending message:', error);
+                if (window.Swal) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Gagal Mengirim',
+                        text: error.message || 'Terjadi kesalahan saat mengirim pesan. Silakan coba lagi.',
+                        toast: true,
+                        position: 'top-end',
+                        showConfirmButton: false,
+                        timer: 3000
+                    });
+                } else {
+                    alert('Gagal mengirim pesan: ' + (error.message || 'Coba lagi nanti'));
+                }
+            } finally {
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalBtnContent;
+                }
+            }
+        };
+
+        function initDiskusi() {
             const messagesContainer = document.getElementById('diskusi-messages-container');
             if (messagesContainer) {
                 messagesContainer.scrollTop = messagesContainer.scrollHeight;
@@ -644,160 +812,29 @@
 
             const diskusiForm = document.getElementById('diskusi-form');
             if (diskusiForm) {
-                diskusiForm.addEventListener('submit', async function(e) {
+                diskusiForm.addEventListener('submit', function(e) {
                     e.preventDefault();
-
-                    const trixEditor = diskusiForm.querySelector('trix-editor');
-                    const commentInput = document.getElementById('comment');
-                    const submitBtn = document.getElementById('btn-kirim-diskusi');
-
-                    // Check if content is empty
-                    const textContent = (trixEditor && trixEditor.editor) ? trixEditor.editor.getDocument().toString().trim() : '';
-                    const rawHtml = commentInput ? commentInput.value.replace(/<[^>]*>/g, '').trim() : '';
-
-                    if (!textContent && !rawHtml) {
-                        if (trixEditor) trixEditor.focus();
-                        return;
-                    }
-
-                    // Button loading state
-                    const originalBtnContent = submitBtn ? submitBtn.innerHTML : '';
-                    if (submitBtn) {
-                        submitBtn.disabled = true;
-                        submitBtn.innerHTML = '<span>Mengirim...</span> <i class="fa-solid fa-spinner fa-spin text-[10px]"></i>';
-                    }
-
-                    try {
-                        const formData = new FormData(diskusiForm);
-                        const response = await fetch(diskusiForm.action, {
-                            method: 'POST',
-                            body: formData,
-                            headers: {
-                                'X-Requested-With': 'XMLHttpRequest',
-                                'Accept': 'application/json'
-                            }
-                        });
-
-                        if (!response.ok) {
-                            throw new Error('Gagal mengirim pesan');
-                        }
-
-                        const result = await response.json();
-
-                        if (result.success && result.data) {
-                            // Clear Trix editor & input
-                            if (trixEditor && trixEditor.editor) {
-                                trixEditor.editor.loadHTML('');
-                            }
-                            if (commentInput) {
-                                commentInput.value = '';
-                            }
-
-                            // Remove empty state message if exists
-                            const emptyState = document.getElementById('diskusi-empty-state');
-                            if (emptyState) {
-                                emptyState.remove();
-                            }
-
-                            // Update count badge
-                            const countBadge = document.getElementById('diskusi-count-badge');
-                            if (countBadge && result.total_count !== undefined) {
-                                countBadge.textContent = `${result.total_count} Pesan`;
-                            }
-
-                            // Append new message card
-                            const msg = result.data;
-                            const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(msg.user_name)}&background=2563eb&color=fff&bold=true`;
-
-                            const bubbleDiv = document.createElement('div');
-                            bubbleDiv.className = 'flex gap-4 flex-row-reverse transition-all duration-300 opacity-0 translate-y-2';
-                            bubbleDiv.innerHTML = `
-                                <div class="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center text-slate-500 font-bold shrink-0 overflow-hidden shadow-sm border border-white">
-                                    <img src="${avatarUrl}" alt="" class="w-full h-full object-cover">
-                                </div>
-                                <div class="max-w-[85%] sm:max-w-[75%] flex flex-col items-end">
-                                    <div class="flex items-center gap-2 mb-1.5 px-1">
-                                        <span class="font-bold text-[11px] text-slate-700">${escapeHtml(msg.user_name)}</span>
-                                        <span class="text-[10px] font-medium text-slate-400">${escapeHtml(msg.time_ago)}</span>
-                                    </div>
-                                    <div class="px-5 py-3.5 rounded-2xl text-sm font-medium prose prose-sm max-w-none shadow-sm bg-blue-600 text-white rounded-tr-sm prose-p:text-blue-50 prose-a:text-white">
-                                        ${msg.message}
-                                    </div>
-                                    <a data-confirm-delete="true" href="/deletekomen/${msg.id}" class="text-[10px] font-bold text-slate-400 mt-1.5 hover:text-rose-500 transition-colors px-1">
-                                        <i class="fa-solid fa-trash-can mr-1"></i>Hapus
-                                    </a>
-                                </div>
-                            `;
-
-                            // Bind delete confirmation on new bubble
-                            const delBtn = bubbleDiv.querySelector('a[data-confirm-delete]');
-                            if (delBtn) {
-                                delBtn.addEventListener('click', function(evt) {
-                                    if (window.Swal) {
-                                        evt.preventDefault();
-                                        const url = this.getAttribute('href');
-                                        Swal.fire({
-                                            title: 'Hapus Pesan?',
-                                            text: "Pesan ini akan dihapus permanen",
-                                            icon: 'warning',
-                                            showCancelButton: true,
-                                            confirmButtonColor: '#ef4444',
-                                            cancelButtonColor: '#94a3b8',
-                                            confirmButtonText: 'Ya, Hapus',
-                                            cancelButtonText: 'Batal'
-                                        }).then((swalRes) => {
-                                            if (swalRes.isConfirmed) {
-                                                window.location.href = url;
-                                            }
-                                        });
-                                    }
-                                });
-                            }
-
-                            if (messagesContainer) {
-                                messagesContainer.appendChild(bubbleDiv);
-
-                                requestAnimationFrame(() => {
-                                    bubbleDiv.classList.remove('opacity-0', 'translate-y-2');
-                                });
-
-                                messagesContainer.scrollTo({
-                                    top: messagesContainer.scrollHeight,
-                                    behavior: 'smooth'
-                                });
-                            }
-                        }
-                    } catch (error) {
-                        console.error('Error sending message:', error);
-                        if (window.Swal) {
-                            Swal.fire({
-                                icon: 'error',
-                                title: 'Gagal Mengirim',
-                                text: 'Terjadi kesalahan saat mengirim pesan. Silakan coba lagi.',
-                                toast: true,
-                                position: 'top-end',
-                                showConfirmButton: false,
-                                timer: 3000
-                            });
-                        } else {
-                            alert('Gagal mengirim pesan.');
-                        }
-                    } finally {
-                        if (submitBtn) {
-                            submitBtn.disabled = false;
-                            submitBtn.innerHTML = originalBtnContent;
-                        }
-                    }
+                    window.kirimPesanDiskusi();
                 });
             }
 
-            function escapeHtml(str) {
-                if (!str) return '';
-                const p = document.createElement('p');
-                p.textContent = str;
-                return p.innerHTML;
-            }
-        });
+            // Kirim dengan Ctrl+Enter atau Cmd+Enter saat fokus di Trix
+            document.addEventListener('keydown', function(e) {
+                if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                    const trix = document.querySelector('trix-editor[input="comment"]');
+                    if (trix && (document.activeElement === trix || trix.contains(document.activeElement))) {
+                        e.preventDefault();
+                        window.kirimPesanDiskusi();
+                    }
+                }
+            });
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initDiskusi);
+        } else {
+            initDiskusi();
+        }
     </script>
     
     <style>
