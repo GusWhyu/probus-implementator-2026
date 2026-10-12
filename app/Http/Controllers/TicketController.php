@@ -277,7 +277,6 @@ class TicketController extends Controller
             'message' => $request->comment,
             'user_id' => Auth::user()->id,
         ]);
-        Alert::success('Berhasil', 'Diskusi berhasil dikirim!');
         return redirect()->back();
     }
 
