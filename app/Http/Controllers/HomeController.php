@@ -425,6 +425,10 @@ class HomeController extends Controller
               });
         });
 
+        if ($request->filled('system')) {
+            $query->where('system', $request->system);
+        }
+
         if ($request->filled('module')) {
             $query->where('module_system_id', $request->module);
         }
@@ -449,7 +453,7 @@ class HomeController extends Controller
             $pendingTakeovers = Ticket::where('pending_advisor_id', auth()->id())->latest()->get();
         }
 
-        $systems = \App\Models\Tag::all();
+        $systems = \App\Models\Kategori::all();
         $modules = ModuleSystem::all();
 
         return view('inbox', compact('open', 'progress', 'closed', 'systems', 'modules', 'pendingTakeovers'));
