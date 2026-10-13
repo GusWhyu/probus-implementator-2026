@@ -9,17 +9,14 @@
     $ust = Auth::user()->usertype;
 
     // Status Styling
-    if ($stid == 1) {
-        $bg = "bg-emerald-50 text-emerald-600 border-emerald-200";
+    if ($stid == 1 || $stid == 2) {
+        $bg = "bg-sky-50 text-sky-600 border-sky-200";
         $icon = "fa-door-open";
-    } elseif ($stid == 2) {
-        $bg = "bg-rose-50 text-rose-600 border-rose-200";
-        $icon = "fa-fire";
     } elseif ($stid == 3) {
         $bg = "bg-amber-50 text-amber-600 border-amber-200";
         $icon = "fa-bars-progress";
     } else {
-        $bg = "bg-slate-50 text-slate-600 border-slate-200";
+        $bg = "bg-emerald-50 text-emerald-600 border-emerald-200";
         $icon = "fa-circle-check";
     }
 @endphp
@@ -236,7 +233,7 @@
                                 <span class="text-blue-600 font-bold text-xl font-mono">TK-{{ $datarq->id }}</span>
                             </div>
                             <span class="px-3.5 py-1.5 rounded-xl text-xs font-extrabold uppercase tracking-wider border {{ $bg }} flex items-center gap-1.5 shadow-sm">
-                                <i class="fa-solid {{ $icon }}"></i> {{ $datarq->status ? $datarq->status->name : ($datarq->status_id == 1 ? 'Open' : ($datarq->status_id == 3 ? 'Progress' : ($datarq->status_id == 4 ? 'Closed' : 'Open'))) }}
+                                <i class="fa-solid {{ $icon }}"></i> {{ $datarq->status ? $datarq->status->name : (in_array($datarq->status_id, [1, 2]) ? 'Open' : ($datarq->status_id == 3 ? 'Progress' : 'Closed')) }}
                             </span>
                         </div>
 

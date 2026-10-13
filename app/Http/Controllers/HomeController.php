@@ -18,32 +18,47 @@ class HomeController extends Controller
 {
     public function index(Request $request){
         $dateParam = $request->input('date');
-        $hasDate = !empty($dateParam) && $dateParam !== 'all';
+        // Default ke hari ini jika tidak ada parameter tanggal
+        if (empty($dateParam) || $dateParam === 'all') {
+            $dateParam = \Carbon\Carbon::now()->format('Y-m-d');
+        }
         $selectedDate = null;
         $selectedDateRaw = '';
         $selectedDateDisplay = '';
-        $periodTitle = 'Semua Waktu';
+        $periodTitle = '';
+        $startOfMonth = null;
+        $hasDate = true;
 
-        if ($hasDate) {
-            try {
-                $selectedDate = \Carbon\Carbon::parse($dateParam)->startOfDay();
-                $selectedDateRaw = $selectedDate->format('Y-m-d');
-                $selectedDateDisplay = $selectedDate->format('M d, Y');
-                $periodTitle = $selectedDate->isToday() 
-                    ? 'Hari Ini (' . $selectedDate->locale('id')->isoFormat('D MMMM Y') . ')'
-                    : $selectedDate->locale('id')->isoFormat('D MMMM Y');
-            } catch (\Exception $e) {
-                $hasDate = false;
-                $selectedDate = null;
-            }
+        try {
+            $selectedDate = \Carbon\Carbon::parse($dateParam)->startOfDay();
+            $selectedDateRaw = $selectedDate->format('Y-m-d');
+            $selectedDateDisplay = $selectedDate->format('M d, Y');
+            // Selalu mulai dari tanggal 1 bulan tersebut
+            $startOfMonth = $selectedDate->copy()->startOfMonth();
+            $periodTitle = '1 - ' . $selectedDate->day . ' ' . $selectedDate->locale('id')->isoFormat('MMMM Y');
+        } catch (\Exception $e) {
+            $hasDate = false;
+            $selectedDate = null;
         }
+
 
         // Base Ticket counts
         if ($hasDate) {
-            $total_count = Ticket::whereDate('created_at', $selectedDate)->count();
-            $closed_count = Ticket::whereDate('created_at', $selectedDate)->where('status', 'CLOSED')->count();
-            $progress_count = Ticket::whereDate('created_at', $selectedDate)->where('status', 'PROGRESS')->count();
-            $open_count = Ticket::whereDate('created_at', $selectedDate)->where('status', 'OPEN')->count();
+            // Tiket yang dibuat di bulan ini (tgl 1 s/d tanggal yang dipilih)
+            $currentMonthTotal = Ticket::whereBetween('created_at', [$startOfMonth, $selectedDate->copy()->endOfDay()])->count();
+            $closed_count = Ticket::whereBetween('created_at', [$startOfMonth, $selectedDate->copy()->endOfDay()])->where('status', 'CLOSED')->count();
+            $progress_count = Ticket::whereBetween('created_at', [$startOfMonth, $selectedDate->copy()->endOfDay()])->where('status', 'PROGRESS')->count();
+            $currentMonthOpen = Ticket::whereBetween('created_at', [$startOfMonth, $selectedDate->copy()->endOfDay()])->where('status', 'OPEN')->count();
+
+            // Tiket OPEN dari bulan-bulan sebelumnya yang masih menggantung (carry over)
+            $carryOverOpen = Ticket::where('created_at', '<', $startOfMonth)
+                ->where('status', 'OPEN')
+                ->count();
+
+            // Total open = open bulan ini + carry over dari bulan sebelumnya
+            $open_count = $currentMonthOpen + $carryOverOpen;
+            // Total keseluruhan = tiket bulan ini + carry over open dari bulan sebelumnya
+            $total_count = $currentMonthTotal + $carryOverOpen;
         } else {
             $total_count = Ticket::count();
             $closed_count = Ticket::where('status', 'CLOSED')->count();
@@ -58,15 +73,22 @@ class HomeController extends Controller
 
         // Recent / All Tickets for the period
         if ($hasDate) {
-            $all_tickets = Ticket::whereDate('created_at', $selectedDate)
+            // Ambil tiket bulan ini (tgl 1 - tanggal dipilih) + carry over OPEN dari bulan sebelumnya
+            $all_tickets = Ticket::where(function($q) use ($startOfMonth, $selectedDate) {
+                    // Tiket dibuat di bulan ini (tgl 1 s/d tanggal dipilih)
+                    $q->whereBetween('created_at', [$startOfMonth, $selectedDate->copy()->endOfDay()]);
+                })
+                ->orWhere(function($q) use ($startOfMonth) {
+                    // Carry over: tiket OPEN dari bulan sebelumnya
+                    $q->where('created_at', '<', $startOfMonth)
+                      ->where('status', 'OPEN');
+                })
                 ->latest()
                 ->take(5)
                 ->get();
+
             if ($all_tickets->isEmpty()) {
-                $all_tickets = Ticket::whereDate('created_at', '<=', $selectedDate)
-                    ->latest()
-                    ->take(5)
-                    ->get();
+                $all_tickets = Ticket::latest()->take(5)->get();
             }
         } else {
             $all_tickets = Ticket::where('status', '!=', 'CLOSED')
@@ -96,17 +118,17 @@ class HomeController extends Controller
             $selesaiData[] = $dailySelesai;
         }
 
-        // Top Agents
-        $topAgents = User::whereHas('advisedTickets', function($q) use ($hasDate, $selectedDate) {
+        // Top Agents — range tgl 1 s/d tanggal dipilih + carry over open
+        $topAgents = User::whereHas('advisedTickets', function($q) use ($hasDate, $startOfMonth, $selectedDate) {
                 $q->where('status', 'CLOSED');
                 if ($hasDate) {
-                    $q->whereDate('created_at', '<=', $selectedDate);
+                    $q->whereBetween('created_at', [$startOfMonth, $selectedDate->copy()->endOfDay()]);
                 }
             })
-            ->withCount(['advisedTickets as closed_count' => function($q) use ($hasDate, $selectedDate) {
+            ->withCount(['advisedTickets as closed_count' => function($q) use ($hasDate, $startOfMonth, $selectedDate) {
                 $q->where('status', 'CLOSED');
                 if ($hasDate) {
-                    $q->whereDate('created_at', '<=', $selectedDate);
+                    $q->whereBetween('created_at', [$startOfMonth, $selectedDate->copy()->endOfDay()]);
                 }
             }])
             ->orderByDesc('closed_count')
@@ -114,15 +136,27 @@ class HomeController extends Controller
         $agentLabels = $topAgents->pluck('name')->toArray();
         $agentData = $topAgents->pluck('closed_count')->toArray();
 
-        // Top Clients
-        $topClients = User::whereHas('clientTickets', function($q) use ($hasDate, $selectedDate) {
+        // Top Clients — range tgl 1 s/d tanggal dipilih + carry over open
+        $topClients = User::whereHas('clientTickets', function($q) use ($hasDate, $startOfMonth, $selectedDate) {
                 if ($hasDate) {
-                    $q->whereDate('created_at', '<=', $selectedDate);
+                    $q->where(function($sub) use ($startOfMonth, $selectedDate) {
+                        $sub->whereBetween('created_at', [$startOfMonth, $selectedDate->copy()->endOfDay()])
+                            ->orWhere(function($carry) use ($startOfMonth) {
+                                $carry->where('created_at', '<', $startOfMonth)
+                                      ->where('status', 'OPEN');
+                            });
+                    });
                 }
             })
-            ->withCount(['clientTickets as ticket_count' => function($q) use ($hasDate, $selectedDate) {
+            ->withCount(['clientTickets as ticket_count' => function($q) use ($hasDate, $startOfMonth, $selectedDate) {
                 if ($hasDate) {
-                    $q->whereDate('created_at', '<=', $selectedDate);
+                    $q->where(function($sub) use ($startOfMonth, $selectedDate) {
+                        $sub->whereBetween('created_at', [$startOfMonth, $selectedDate->copy()->endOfDay()])
+                            ->orWhere(function($carry) use ($startOfMonth) {
+                                $carry->where('created_at', '<', $startOfMonth)
+                                      ->where('status', 'OPEN');
+                            });
+                    });
                 }
             }])
             ->orderByDesc('ticket_count')
@@ -135,15 +169,27 @@ class HomeController extends Controller
         })->toArray();
         $clientBarData = $topClients->pluck('ticket_count')->toArray();
 
-        // Top Modules
-        $topModules = ModuleSystem::whereHas('tickets', function($q) use ($hasDate, $selectedDate) {
+        // Top Modules — range tgl 1 s/d tanggal dipilih + carry over open
+        $topModules = ModuleSystem::whereHas('tickets', function($q) use ($hasDate, $startOfMonth, $selectedDate) {
                 if ($hasDate) {
-                    $q->whereDate('created_at', '<=', $selectedDate);
+                    $q->where(function($sub) use ($startOfMonth, $selectedDate) {
+                        $sub->whereBetween('created_at', [$startOfMonth, $selectedDate->copy()->endOfDay()])
+                            ->orWhere(function($carry) use ($startOfMonth) {
+                                $carry->where('created_at', '<', $startOfMonth)
+                                      ->where('status', 'OPEN');
+                            });
+                    });
                 }
             })
-            ->withCount(['tickets' => function($q) use ($hasDate, $selectedDate) {
+            ->withCount(['tickets' => function($q) use ($hasDate, $startOfMonth, $selectedDate) {
                 if ($hasDate) {
-                    $q->whereDate('created_at', '<=', $selectedDate);
+                    $q->where(function($sub) use ($startOfMonth, $selectedDate) {
+                        $sub->whereBetween('created_at', [$startOfMonth, $selectedDate->copy()->endOfDay()])
+                            ->orWhere(function($carry) use ($startOfMonth) {
+                                $carry->where('created_at', '<', $startOfMonth)
+                                      ->where('status', 'OPEN');
+                            });
+                    });
                 }
             }])
             ->orderByDesc('tickets_count')
@@ -415,7 +461,8 @@ class HomeController extends Controller
     }
 
     public function morerq($id){
-        $data = \App\Models\Request::with(['outlet', 'tag', 'kategori', 'approver', 'status'])->where('status_id', $id)->latest()->paginate(12);
+        $statusIds = ($id == 1 || $id == 2) ? [1, 2] : [$id];
+        $data = \App\Models\Request::with(['outlet', 'tag', 'kategori', 'approver', 'status'])->whereIn('status_id', $statusIds)->latest()->paginate(12);
         $dataid = $id;
         return view('tablerq.mrq', compact('data', 'dataid'));
     }

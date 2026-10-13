@@ -43,12 +43,6 @@
                     </p>
                 </div>
                 <div class="flex flex-row items-center gap-2 sm:gap-3 w-full lg:w-auto mt-2 lg:mt-0">
-                    {{-- Reset / Semua Data Button --}}
-                    <button type="button" id="resetDateBtn" title="Tampilkan Semua Waktu" 
-                            class="{{ $hasDate ? '' : 'hidden' }} bg-white/20 hover:bg-white/30 text-white px-3 py-2 sm:py-2.5 rounded-xl text-[10px] sm:text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm whitespace-nowrap active:scale-95">
-                        <i class="fa-solid fa-rotate-left text-[10px]"></i>
-                        <span>Semua Data</span>
-                    </button>
 
                     {{-- Datepicker Container --}}
                     <div class="relative group flex-1 sm:flex-none">
@@ -484,15 +478,6 @@
                         tbody.innerHTML = data.tickets_html;
                     }
 
-                    // Toggle Reset Button
-                    const resetBtn = document.getElementById('resetDateBtn');
-                    if (resetBtn) {
-                        if (data.hasDate) {
-                            resetBtn.classList.remove('hidden');
-                        } else {
-                            resetBtn.classList.add('hidden');
-                        }
-                    }
 
                     // Update URL without page reload
                     const nextUrl = data.hasDate ? `/dashboard?date=${data.date}` : '/dashboard?date=all';
@@ -508,8 +493,6 @@
 
             // ── 7. Initialize Flatpickr ──
             const dateInput = document.getElementById('dateRangePicker');
-            const resetBtn = document.getElementById('resetDateBtn');
-
             const fp = flatpickr(dateInput, {
                 mode: "single",
                 dateFormat: "Y-m-d",
@@ -525,18 +508,9 @@
                         const day = String(d.getDate()).padStart(2, '0');
                         const isoDate = `${year}-${month}-${day}`;
                         fetchDashboardData(isoDate);
-                    } else {
-                        fetchDashboardData('all');
                     }
                 }
             });
-
-            if (resetBtn) {
-                resetBtn.addEventListener('click', function() {
-                    if (fp) fp.clear();
-                    fetchDashboardData('all');
-                });
-            }
         });
     </script>
 </x-app-layout>

@@ -1,9 +1,5 @@
 @php
-    if ($dataid == 1) {
-        $st = "Urgent";
-        $badgeClass = "bg-rose-500 text-white";
-        $subColor = "text-rose-600";
-    } elseif ($dataid == 2) {
+    if ($dataid == 1 || $dataid == 2) {
         $st = "Open";
         $badgeClass = "bg-sky-500 text-white";
         $subColor = "text-sky-600";

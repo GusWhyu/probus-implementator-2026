@@ -47,25 +47,21 @@
                                     @php
                                         $statusClass = 'bg-slate-100 text-slate-600 border-slate-200';
                                         $iconClass = 'fa-circle-info';
-                                        if($rl->status_id == 1) { 
-                                            $statusClass = 'bg-emerald-50 text-emerald-700 border-emerald-200'; 
+                                        if($rl->status_id == 1 || $rl->status_id == 2) { 
+                                            $statusClass = 'bg-sky-50 text-sky-700 border-sky-200'; 
                                             $iconClass = 'fa-door-open';
-                                        }
-                                        elseif($rl->status_id == 2) { 
-                                            $statusClass = 'bg-rose-50 text-rose-700 border-rose-200'; 
-                                            $iconClass = 'fa-fire';
                                         }
                                         elseif($rl->status_id == 3) { 
                                             $statusClass = 'bg-amber-50 text-amber-700 border-amber-200'; 
                                             $iconClass = 'fa-bars-progress';
                                         }
                                         elseif($rl->status_id == 4) { 
-                                            $statusClass = 'bg-slate-50 text-slate-600 border-slate-200'; 
+                                            $statusClass = 'bg-emerald-50 text-emerald-700 border-emerald-200'; 
                                             $iconClass = 'fa-circle-check';
                                         }
                                     @endphp
                                     <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold border {{ $statusClass }} shadow-sm">
-                                        <i class="fa-solid {{ $iconClass }}"></i> {{ $rl->status ? $rl->status->name : ($rl->status_id == 1 ? 'Open' : ($rl->status_id == 3 ? 'Progress' : ($rl->status_id == 4 ? 'Closed' : 'Unknown'))) }}
+                                        <i class="fa-solid {{ $iconClass }}"></i> {{ $rl->status ? $rl->status->name : (in_array($rl->status_id, [1, 2]) ? 'Open' : ($rl->status_id == 3 ? 'Progress' : ($rl->status_id == 4 ? 'Closed' : 'Unknown'))) }}
                                     </span>
                                 </td>
                                 <td class="py-4 px-6">

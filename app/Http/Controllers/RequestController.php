@@ -18,13 +18,12 @@ use App\Notifications\RequestStatusChanged;
 class RequestController extends Controller
 {
     public function index(){
-        $urgent = \App\Models\Request::with(['outlet', 'tag', 'kategori', 'approver', 'status'])->where('status_id', 1)->latest()->take(10)->get();
-        $open = \App\Models\Request::with(['outlet', 'tag', 'kategori', 'approver', 'status'])->where('status_id', 2)->latest()->take(10)->get();
-        $progress = \App\Models\Request::with(['outlet', 'tag', 'kategori', 'approver', 'status'])->where('status_id', 3)->latest()->take(10)->get();
-        $closed = \App\Models\Request::with(['outlet', 'tag', 'kategori', 'approver', 'status'])->where('status_id', 4)->latest()->take(10)->get();
+        $open = \App\Models\Request::with(['outlet', 'tag', 'kategori', 'approver', 'status'])->whereIn('status_id', [1, 2])->latest()->take(20)->get();
+        $progress = \App\Models\Request::with(['outlet', 'tag', 'kategori', 'approver', 'status'])->where('status_id', 3)->latest()->take(20)->get();
+        $closed = \App\Models\Request::with(['outlet', 'tag', 'kategori', 'approver', 'status'])->where('status_id', 4)->latest()->take(20)->get();
         
         $isMyReq = false;
-        return view('tablemyreq.myreq', compact('urgent', 'open', 'progress', 'closed', 'isMyReq'));
+        return view('tablemyreq.myreq', compact('open', 'progress', 'closed', 'isMyReq'));
     }
 
     public function detailrequest($id){
@@ -236,7 +235,7 @@ class RequestController extends Controller
         $data = \App\Models\Request::findOrFail($id);
 
         if (!in_array($data->status_id, [1, 2])) {
-            Alert::error('Request hanya dapat diapprove jika berstatus Open atau Urgent!');
+            Alert::error('Request hanya dapat diapprove jika berstatus Open!');
             return redirect()->back();
         }
 
@@ -263,7 +262,7 @@ class RequestController extends Controller
         $data = \App\Models\Request::findOrFail($id);
 
         if (!in_array($data->status_id, [1, 2])) {
-            Alert::error('Request hanya dapat direject jika berstatus Open atau Urgent!');
+            Alert::error('Request hanya dapat direject jika berstatus Open!');
             return redirect()->back();
         }
 

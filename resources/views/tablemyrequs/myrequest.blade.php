@@ -21,9 +21,7 @@
                         <tbody>
                             @foreach ($req as $rq)
                                             @php
-                                                if ($rq->status_id == 1) {
-                                                    $bg = "badge-error";
-                                                } elseif ($rq->status_id == 2) {
+                                                if ($rq->status_id == 1 || $rq->status_id == 2) {
                                                     $bg = "badge-info";
                                                 } elseif ($rq->status_id == 3) {
                                                     $bg = "badge-warning";
@@ -33,7 +31,7 @@
                                             @endphp
                                             <tr>
                                                 <td class="p-3 text-lg text-abugelap"><a href="/detailtiket/{{ $rq->id }}" class="hover:underline">{{ Str::limit($rq->judul, 40, '...') }}</a></td>
-                                                <td class="p-3 text-sm text-abugelap"><div class="badge {{ $bg }} badge-lg rounded text-white">{{ $rq->status ? $rq->status->name : ($rq->status_id == 1 ? 'Open' : ($rq->status_id == 3 ? 'Progress' : ($rq->status_id == 4 ? 'Closed' : 'Open'))) }}</div></td>
+                                                <td class="p-3 text-sm text-abugelap"><div class="badge {{ $bg }} badge-lg rounded text-white">{{ $rq->status ? $rq->status->name : (in_array($rq->status_id, [1, 2]) ? 'Open' : ($rq->status_id == 3 ? 'Progress' : 'Closed')) }}</div></td>
                                                 <td class="p-3 text-xl text-abugelap"><a class="hover:text-black m-2" href="/editrq/{{ $rq->id }}"><i class="fa-solid fa-pen"></i></a>
                                                     <a data-confirm-delete="true" class="hover:text-black m-2" href="/deletereq/{{ $rq->id }}"><i class="fa-solid fa-trash"></i></a></td>
                                             </tr>

@@ -237,7 +237,7 @@ class TicketController extends Controller
         $data->update($updateData);
         
         // Map string status to old status_id for backward compatibility in RequestLog
-        $logStatusId = 1;
+        $logStatusId = 2;
         if ($stid == 'PROGRESS') $logStatusId = 3;
         elseif ($stid == 'CLOSED') $logStatusId = 4;
         
@@ -318,7 +318,7 @@ class TicketController extends Controller
         $data = \App\Models\Request::findOrFail($id);
 
         if (!in_array($data->status_id, [1, 2])) {
-            Alert::error('Request hanya dapat diapprove jika berstatus Open atau Urgent!');
+            Alert::error('Request hanya dapat diapprove jika berstatus Open!');
             return redirect()->back();
         }
 
@@ -345,7 +345,7 @@ class TicketController extends Controller
         $data = \App\Models\Request::findOrFail($id);
 
         if (!in_array($data->status_id, [1, 2])) {
-            Alert::error('Request hanya dapat direject jika berstatus Open atau Urgent!');
+            Alert::error('Request hanya dapat direject jika berstatus Open!');
             return redirect()->back();
         }
 

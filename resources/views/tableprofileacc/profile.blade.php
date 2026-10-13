@@ -100,17 +100,14 @@
                                 <tbody class="divide-y divide-slate-100">
                                     @forelse ($req as $rq)
                                     @php
-                                        if ($rq->status_id == 1) {
-                                            $bg = "bg-emerald-50 text-emerald-700 border-emerald-200";
+                                        if ($rq->status_id == 1 || $rq->status_id == 2) {
+                                            $bg = "bg-sky-50 text-sky-700 border-sky-200";
                                             $icon = "fa-door-open";
-                                        } elseif ($rq->status_id == 2) {
-                                            $bg = "bg-rose-50 text-rose-700 border-rose-200";
-                                            $icon = "fa-fire";
                                         } elseif ($rq->status_id == 3) {
                                             $bg = "bg-amber-50 text-amber-700 border-amber-200";
                                             $icon = "fa-bars-progress";
                                         } else {
-                                            $bg = "bg-slate-50 text-slate-600 border-slate-200";
+                                            $bg = "bg-emerald-50 text-emerald-700 border-emerald-200";
                                             $icon = "fa-circle-check";
                                         }
                                     @endphp
@@ -122,7 +119,7 @@
                                         </td>
                                         <td class="py-4 px-6">
                                             <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-bold border {{ $bg }}">
-                                                <i class="fa-solid {{ $icon }}"></i> {{ $rq->status ? $rq->status->name : ($rq->status_id == 1 ? 'Open' : ($rq->status_id == 3 ? 'Progress' : ($rq->status_id == 4 ? 'Closed' : 'Open'))) }}
+                                                <i class="fa-solid {{ $icon }}"></i> {{ $rq->status ? $rq->status->name : (in_array($rq->status_id, [1, 2]) ? 'Open' : ($rq->status_id == 3 ? 'Progress' : 'Closed')) }}
                                             </span>
                                         </td>
                                         <td class="py-4 px-6 text-center">
