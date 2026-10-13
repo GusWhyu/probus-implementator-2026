@@ -20,6 +20,7 @@
         <div>
             <div class="px-3 mb-3 text-[11px] font-bold text-slate-400 uppercase tracking-wider">Request System</div>
             <ul class="space-y-1">
+                <li><a href="{{ route('request.dashboard') }}" class="flex items-center px-3 py-2 text-sm {{ request()->routeIs('request.dashboard') ? 'text-blue-600 bg-blue-50 font-medium' : 'text-slate-600 hover:bg-slate-50' }} rounded-lg transition-colors"><i class="fa-solid fa-chart-line w-5 text-center mr-2 {{ request()->routeIs('request.dashboard') ? 'text-blue-600' : 'text-slate-400' }}"></i> Dashboard</a></li>
                 <li><a href="{{ route('request.board') }}" class="flex items-center px-3 py-2 text-sm {{ request()->routeIs('request.board') ? 'text-blue-600 bg-blue-50 font-medium' : 'text-slate-600 hover:bg-slate-50' }} rounded-lg transition-colors"><i class="fa-solid fa-layer-group w-5 text-center mr-2 {{ request()->routeIs('request.board') ? 'text-blue-600' : 'text-slate-400' }}"></i> Request Board</a></li>
                 <li><a href="{{ route('myreq') }}" class="flex items-center px-3 py-2 text-sm {{ request()->routeIs('myreq') ? 'text-blue-600 bg-blue-50 font-medium' : 'text-slate-600 hover:bg-slate-50' }} rounded-lg transition-colors justify-between">
                     <div class="flex items-center"><i class="fa-solid fa-envelope-open-text w-5 text-center mr-2 {{ request()->routeIs('myreq') ? 'text-blue-600' : 'text-slate-400' }}"></i> My Request</div>

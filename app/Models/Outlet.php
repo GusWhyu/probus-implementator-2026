@@ -24,4 +24,9 @@ class Outlet extends Model
     {
         $this->attributes['nm_out'] = $value;
     }
+
+    public function requests()
+    {
+        return $this->hasMany(Request::class, 'outlet_id');
+    }
 }

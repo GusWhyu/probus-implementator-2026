@@ -46,6 +46,8 @@ Route::get('/rapor/{id}', [HomeController::class, 'rapor'])->middleware(['auth']
 Route::get('/rapor/{id}/download', [HomeController::class, 'downloadRapor'])->middleware(['auth'])->name('rapor.download');
 Route::get('/riwayat/{id}', [HomeController::class, 'riwayat'])->middleware(['auth'])->name('riwayat');
 // Request System Routes
+Route::get('/request-dashboard', [RequestController::class, 'dashboard'])->middleware(['auth'])->name('request.dashboard');
+Route::get('/request/dashboard', function() { return redirect()->route('request.dashboard'); });
 Route::get('/request', [RequestController::class, 'index'])->middleware(['auth'])->name('request.board');
 Route::get('/getOutlet/{search?}', [RequestController::class, 'getOutlet'])->name('getOutlet');
 Route::get('/detailrequest/{id}', [RequestController::class, 'detailrequest'])->middleware(['auth'])->name('detailrequest');

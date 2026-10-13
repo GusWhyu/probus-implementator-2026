@@ -61,4 +61,12 @@ class User extends Authenticatable
     public function clientTickets() {
         return $this->hasMany(Ticket::class, 'user_id');
     }
+
+    public function requests() {
+        return $this->hasMany(Request::class, 'user_id');
+    }
+
+    public function approvedRequests() {
+        return $this->hasMany(Request::class, 'approved_by');
+    }
 }

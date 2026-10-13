@@ -10,6 +10,7 @@ use App\Models\Kategori;
 use App\Models\Komentar;
 use App\Models\DataImage;
 use App\Models\UpdateSystem;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use RealRashid\SweetAlert\Facades\Alert;
@@ -17,6 +18,223 @@ use App\Notifications\RequestStatusChanged;
 
 class RequestController extends Controller
 {
+    public function dashboard(Request $request) {
+        $dateParam = $request->input('date');
+        // Default ke hari ini jika tidak ada parameter tanggal
+        if (empty($dateParam) || $dateParam === 'all') {
+            $dateParam = \Carbon\Carbon::now()->format('Y-m-d');
+        }
+        $selectedDate = null;
+        $selectedDateRaw = '';
+        $selectedDateDisplay = '';
+        $periodTitle = '';
+        $startOfMonth = null;
+        $hasDate = true;
+
+        try {
+            $selectedDate = \Carbon\Carbon::parse($dateParam)->startOfDay();
+            $selectedDateRaw = $selectedDate->format('Y-m-d');
+            $selectedDateDisplay = $selectedDate->format('M d, Y');
+            $startOfMonth = $selectedDate->copy()->startOfMonth();
+            $periodTitle = '1 - ' . $selectedDate->day . ' ' . $selectedDate->locale('id')->isoFormat('MMMM Y');
+        } catch (\Exception $e) {
+            $hasDate = false;
+            $selectedDate = null;
+        }
+
+        // Base Request counts
+        if ($hasDate) {
+            // Request yang dibuat di bulan ini (tgl 1 s/d tanggal yang dipilih)
+            $currentMonthTotal = \App\Models\Request::whereBetween('created_at', [$startOfMonth, $selectedDate->copy()->endOfDay()])->count();
+            $closed_count = \App\Models\Request::whereBetween('created_at', [$startOfMonth, $selectedDate->copy()->endOfDay()])->where('status_id', 4)->count();
+            $currentMonthProgress = \App\Models\Request::whereBetween('created_at', [$startOfMonth, $selectedDate->copy()->endOfDay()])->where('status_id', 3)->count();
+            $currentMonthOpen = \App\Models\Request::whereBetween('created_at', [$startOfMonth, $selectedDate->copy()->endOfDay()])->whereIn('status_id', [1, 2])->count();
+
+            // Request OPEN dari bulan-bulan sebelumnya yang masih menggantung (carry over)
+            $carryOverOpen = \App\Models\Request::where('created_at', '<', $startOfMonth)
+                ->whereIn('status_id', [1, 2])
+                ->count();
+
+            // Request PROGRESS dari bulan-bulan sebelumnya yang masih berjalan (carry over)
+            $carryOverProgress = \App\Models\Request::where('created_at', '<', $startOfMonth)
+                ->where('status_id', 3)
+                ->count();
+
+            $open_count = $currentMonthOpen + $carryOverOpen;
+            $progress_count = $currentMonthProgress + $carryOverProgress;
+            $total_count = $currentMonthTotal + $carryOverOpen + $carryOverProgress;
+        } else {
+            $total_count = \App\Models\Request::count();
+            $closed_count = \App\Models\Request::where('status_id', 4)->count();
+            $progress_count = \App\Models\Request::where('status_id', 3)->count();
+            $open_count = \App\Models\Request::whereIn('status_id', [1, 2])->count();
+        }
+
+        // Recent Requests for the period
+        if ($hasDate) {
+            // Ambil request bulan ini (tgl 1 - tanggal dipilih) + carry over aktif dari bulan sebelumnya
+            $all_requests = \App\Models\Request::with(['outlet', 'tag', 'kategori', 'status', 'user', 'approver'])
+                ->where(function($q) use ($startOfMonth, $selectedDate) {
+                    $q->whereBetween('created_at', [$startOfMonth, $selectedDate->copy()->endOfDay()]);
+                })
+                ->orWhere(function($q) use ($startOfMonth) {
+                    $q->where('created_at', '<', $startOfMonth)
+                      ->whereIn('status_id', [1, 2, 3]);
+                })
+                ->latest()
+                ->take(5)
+                ->get();
+
+            if ($all_requests->isEmpty()) {
+                $all_requests = \App\Models\Request::with(['outlet', 'tag', 'kategori', 'status', 'user', 'approver'])->latest()->take(5)->get();
+            }
+        } else {
+            $all_requests = \App\Models\Request::with(['outlet', 'tag', 'kategori', 'status', 'user', 'approver'])
+                ->where('status_id', '!=', 4)
+                ->where('created_at', '>=', \Carbon\Carbon::now()->subDays(2))
+                ->latest()
+                ->take(5)
+                ->get();
+            if ($all_requests->isEmpty()) {
+                $all_requests = \App\Models\Request::with(['outlet', 'tag', 'kategori', 'status', 'user', 'approver'])->latest()->take(5)->get();
+            }
+        }
+
+        // Chart Data Calculation (7-day trend ending on selectedDate or today)
+        $chartLabels = [];
+        $masukData = [];
+        $selesaiData = [];
+        $endDate = $hasDate ? $selectedDate->copy() : \Carbon\Carbon::now()->startOfDay();
+
+        for ($i = 6; $i >= 0; $i--) {
+            $d = $endDate->copy()->subDays($i);
+            $chartLabels[] = $d->locale('id')->isoFormat('ddd, D MMM');
+
+            $dailyMasuk = \App\Models\Request::whereDate('created_at', $d->toDateString())->count();
+            $dailySelesai = \App\Models\Request::whereDate('updated_at', $d->toDateString())->where('status_id', 4)->count();
+
+            $masukData[] = $dailyMasuk;
+            $selesaiData[] = $dailySelesai;
+        }
+
+        // Performa Divisi / Tim (Tag) — range tgl 1 s/d tanggal dipilih + carry over aktif
+        $topTags = Tag::whereHas('requests', function($q) use ($hasDate, $startOfMonth, $selectedDate) {
+                if ($hasDate) {
+                    $q->where(function($sub) use ($startOfMonth, $selectedDate) {
+                        $sub->whereBetween('created_at', [$startOfMonth, $selectedDate->copy()->endOfDay()])
+                            ->orWhere(function($carry) use ($startOfMonth) {
+                                $carry->where('created_at', '<', $startOfMonth)
+                                      ->whereIn('status_id', [1, 2, 3]);
+                            });
+                    });
+                }
+            })
+            ->withCount(['requests' => function($q) use ($hasDate, $startOfMonth, $selectedDate) {
+                if ($hasDate) {
+                    $q->where(function($sub) use ($startOfMonth, $selectedDate) {
+                        $sub->whereBetween('created_at', [$startOfMonth, $selectedDate->copy()->endOfDay()])
+                            ->orWhere(function($carry) use ($startOfMonth) {
+                                $carry->where('created_at', '<', $startOfMonth)
+                                      ->whereIn('status_id', [1, 2, 3]);
+                            });
+                    });
+                }
+            }])
+            ->orderByDesc('requests_count')
+            ->take(7)->get();
+        $tagLabels = $topTags->pluck('name')->toArray();
+        $tagData = $topTags->pluck('requests_count')->toArray();
+
+        // Top 10 Clients / Outlets — range tgl 1 s/d tanggal dipilih + carry over aktif
+        $topOutlets = Outlet::whereHas('requests', function($q) use ($hasDate, $startOfMonth, $selectedDate) {
+                if ($hasDate) {
+                    $q->where(function($sub) use ($startOfMonth, $selectedDate) {
+                        $sub->whereBetween('created_at', [$startOfMonth, $selectedDate->copy()->endOfDay()])
+                            ->orWhere(function($carry) use ($startOfMonth) {
+                                $carry->where('created_at', '<', $startOfMonth)
+                                      ->whereIn('status_id', [1, 2, 3]);
+                            });
+                    });
+                }
+            })
+            ->withCount(['requests' => function($q) use ($hasDate, $startOfMonth, $selectedDate) {
+                if ($hasDate) {
+                    $q->where(function($sub) use ($startOfMonth, $selectedDate) {
+                        $sub->whereBetween('created_at', [$startOfMonth, $selectedDate->copy()->endOfDay()])
+                            ->orWhere(function($carry) use ($startOfMonth) {
+                                $carry->where('created_at', '<', $startOfMonth)
+                                      ->whereIn('status_id', [1, 2, 3]);
+                            });
+                    });
+                }
+            }])
+            ->orderByDesc('requests_count')
+            ->take(10)->get();
+        $clientBarLabels = $topOutlets->pluck('nm_out')->map(function($name) {
+            return wordwrap($name ?: 'Outlet', 10, "\n", true);
+        })->toArray();
+        $clientBarData = $topOutlets->pluck('requests_count')->toArray();
+
+        // Top Modul / Kategori Sistem — range tgl 1 s/d tanggal dipilih + carry over aktif
+        $topKategori = Kategori::whereHas('requests', function($q) use ($hasDate, $startOfMonth, $selectedDate) {
+                if ($hasDate) {
+                    $q->where(function($sub) use ($startOfMonth, $selectedDate) {
+                        $sub->whereBetween('created_at', [$startOfMonth, $selectedDate->copy()->endOfDay()])
+                            ->orWhere(function($carry) use ($startOfMonth) {
+                                $carry->where('created_at', '<', $startOfMonth)
+                                      ->whereIn('status_id', [1, 2, 3]);
+                            });
+                    });
+                }
+            })
+            ->withCount(['requests' => function($q) use ($hasDate, $startOfMonth, $selectedDate) {
+                if ($hasDate) {
+                    $q->where(function($sub) use ($startOfMonth, $selectedDate) {
+                        $sub->whereBetween('created_at', [$startOfMonth, $selectedDate->copy()->endOfDay()])
+                            ->orWhere(function($carry) use ($startOfMonth) {
+                                $carry->where('created_at', '<', $startOfMonth)
+                                      ->whereIn('status_id', [1, 2, 3]);
+                            });
+                    });
+                }
+            }])
+            ->orderByDesc('requests_count')
+            ->take(7)->get();
+        $kategoriLabels = $topKategori->pluck('name')->toArray();
+        $kategoriData = $topKategori->pluck('requests_count')->toArray();
+
+        // If AJAX request, return JSON response
+        if ($request->ajax() || $request->wantsJson() || $request->has('ajax')) {
+            $requestsHtml = view('partials.dashboard_requests', compact('all_requests'))->render();
+            return response()->json([
+                'success' => true,
+                'hasDate' => $hasDate,
+                'date' => $selectedDateRaw,
+                'periodTitle' => $periodTitle,
+                'total_count' => $total_count,
+                'closed_count' => $closed_count,
+                'progress_count' => $progress_count,
+                'open_count' => $open_count,
+                'chartLabels' => $chartLabels,
+                'masukData' => $masukData,
+                'selesaiData' => $selesaiData,
+                'tagLabels' => $tagLabels,
+                'tagData' => $tagData,
+                'clientBarLabels' => $clientBarLabels,
+                'clientBarData' => $clientBarData,
+                'kategoriLabels' => $kategoriLabels,
+                'kategoriData' => $kategoriData,
+                'requests_html' => $requestsHtml,
+            ]);
+        }
+
+        return view('dashboard_request', compact(
+            'open_count', 'progress_count', 'closed_count', 'total_count', 'all_requests',
+            'chartLabels', 'masukData', 'selesaiData', 'tagLabels', 'tagData', 'clientBarLabels', 'clientBarData', 'kategoriLabels', 'kategoriData',
+            'hasDate', 'selectedDateRaw', 'selectedDateDisplay', 'periodTitle'
+        ));
+    }
+
     public function index(Request $request){
         $openQuery = \App\Models\Request::with(['outlet', 'tag', 'kategori', 'approver', 'status'])->whereIn('status_id', [1, 2]);
         $progressQuery = \App\Models\Request::with(['outlet', 'tag', 'kategori', 'approver', 'status'])->where('status_id', 3);
@@ -85,13 +303,13 @@ class RequestController extends Controller
     }
 
     public function createrq(){
-        $tag = \App\Models\Kategori::all(); 
-        $kategori = \App\Models\ModuleSystem::all();
+        // Divisi / Tim Pelaksana (Tag model)
+        $tag = \App\Models\Tag::orderBy('name')->get(); 
+        // System / Aplikasi (Kategori model)
+        $kategori = \App\Models\Kategori::orderBy('name')->get();
         // Client: Mengambil data dari tabel moutlet (Outlet model)
-        $clients = \App\Models\Outlet::where('aktif', 1)->orderBy('nm_out')->get();
-        // Advisor: Mengambil semua user selain user pembuat request
-        $advisors = \App\Models\User::where('id', '!=', Auth::id())->orderBy('name')->get();
-        return view('tablerq.createrq', compact('tag', 'kategori', 'clients', 'advisors'));
+        $clients = \App\Models\Outlet::orderBy('nm_out')->get();
+        return view('tablerq.createrq', compact('tag', 'kategori', 'clients'));
     }
 
     public function editrq($id){
@@ -113,17 +331,22 @@ class RequestController extends Controller
 
     public function store(Request $request){
         $request->validate([
-            'title' => 'required|max:255',
+            'title' => 'required|max:100',
             'body' => 'required',
-            'startdate' => 'required|date|before:enddate',
-            'enddate' => 'required|date|after:startdate',
+            'startdate' => 'required|date',
+            'enddate' => 'required|date|after_or_equal:startdate',
             'tag' => 'required',
             'category' => 'required',
-            'outlet' => 'required',
-            'status' => 'required',
+            'client' => 'nullable',
+            'outlet' => 'nullable',
             'images' => 'array|max:6',
-            'images.*' => 'image|mimes:jpg,jpeg,png|max:200'
+            'images.*' => 'image|mimes:jpg,jpeg,png|max:1024'
         ]);
+
+        $outletId = $request->outlet ?? $request->client;
+        if (!$outletId) {
+            return back()->withErrors(['client' => 'Client / Outlet wajib dipilih.'])->withInput();
+        }
 
         $data = \App\Models\Request::create([
             'judul' => $request->title,
@@ -132,27 +355,30 @@ class RequestController extends Controller
             'end_date' => $request->enddate,
             'kategori_id' => $request->category,
             'tag_id' => $request->tag,
-            'user_id' => Auth::user()->id,
-            'status_id' => $request->status,
-            'outlet_id' => $request->outlet,
+            'user_id' => Auth::id(),
+            'status_id' => 2, // 2 = Open
+            'outlet_id' => $outletId,
+            'approval_status' => 'pending',
         ]);
         
         $imagedata = [];
         if($request->hasfile('images')){
             foreach ($request->file('images') as $image) {
                 $extension = $image->getClientOriginalName();
-                $filename = $extension;
-                $image->move('img/',$filename);
+                $filename = time() . '_' . $extension; // Add timestamp to prevent duplicate names
+                $image->move('img/', $filename);
                 $imagedata[]=[
                     'request_id' => $data->id,
-                    'image' => $filename
+                    'image' => $filename,
+                    'created_at' => now(),
+                    'updated_at' => now(),
                 ];
             }
+            if(!empty($imagedata)) {
+                DataImage::insert($imagedata);
+            }
         }
-        if(!empty($imagedata)) {
-            DataImage::insert($imagedata);
-        }
-        Alert::success('Create Ticket Success!');
+        Alert::success('Create Request Success!', 'Request pengerjaan sistem berhasil dibuat.');
         return redirect()->route('detailrequest', ['id' => $data->id]);
     }
 
