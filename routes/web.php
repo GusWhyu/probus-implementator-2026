@@ -155,8 +155,10 @@ Route::post('/editprofile/{id}', [ProfileController::class, 'updateprofile'])->m
 Route::get('/editpassacc', [ProfileController::class, 'editpass'])->middleware(['auth'])->name('editpassacc');
 Route::post('/editpassacc', [ProfileController::class, 'updatepass'])->middleware(['auth'])->name('updatepassacc');
 
-//Route My Request & Update System
-Route::get('/myrequs', [MyrequsController::class, 'index'])->middleware(['auth'])->name('myrequs');
+//Route History, My Request & Update System
+Route::get('/history', [MyrequsController::class, 'history'])->middleware(['auth'])->name('history');
+Route::get('/request/history', function() { return redirect()->route('history'); })->name('request.history');
+Route::get('/myrequs', [MyrequsController::class, 'history'])->middleware(['auth'])->name('myrequs');
 Route::get('/myrequest', [MyrequsController::class, 'myrequest'])->middleware(['auth'])->name('myrequest');
 Route::get('/myupdatesystem', [MyrequsController::class, 'myupdatesystem'])->middleware(['auth'])->name('myupdatesystem');
 

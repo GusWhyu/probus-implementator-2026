@@ -23,11 +23,27 @@ class TicketController extends Controller
         confirmDelete($title, $text);
         $datarq = \App\Models\Ticket::findOrFail($id);
         
-        // Auto-expire takeover if it's pending for > 1 hour
-        if ($datarq->pending_advisor_at && now()->diffInMinutes($datarq->pending_advisor_at) >= 60) {
-            $datarq->update(['pending_advisor_id' => null, 'pending_advisor_at' => null]);
+        // Auto-expire takeover if deadline reached
+        $isExpired = false;
+        if ($datarq->pending_advisor_expires_at) {
+            $isExpired = now()->gte($datarq->pending_advisor_expires_at);
+        } elseif ($datarq->pending_advisor_at) {
+            $mins = $datarq->takeover_duration_minutes ?: 60;
+            $isExpired = now()->diffInMinutes($datarq->pending_advisor_at) >= $mins;
+        }
+
+        if ($isExpired) {
+            $durationText = $datarq->takeover_duration_text;
+            $datarq->update([
+                'status' => 'OPEN',
+                'returned_at' => now(),
+                'pending_advisor_id' => null, 
+                'pending_advisor_at' => null,
+                'pending_advisor_expires_at' => null,
+                'takeover_duration_minutes' => null
+            ]);
             if (Auth::id() == $datarq->user_id) {
-                Alert::warning('Pengalihan Otomatis Dibatalkan', 'Tiket ini telah dikembalikan kepada Anda karena telah melewati batas 1 jam tanpa persetujuan dari advisor tujuan.')->showConfirmButton('Tutup', '#f59e0b')->autoClose(3000);
+                Alert::warning('Pengalihan Otomatis Dibatalkan', 'Tiket ini telah dikembalikan kepada Anda karena telah melewati batas ' . $durationText . ' tanpa persetujuan dari advisor tujuan.')->showConfirmButton('Tutup', '#f59e0b')->autoClose(3000);
             }
         }
 
@@ -373,26 +389,56 @@ class TicketController extends Controller
 
     public function takeover(Request $request, $id) {
         $request->validate([
-            'target_advisor_id' => 'required|exists:users,id'
+            'target_advisor_id' => 'required|exists:users,id',
+            'waiting_duration_type' => 'nullable|string',
+            'waiting_duration_preset' => 'nullable|string',
+            'custom_duration_value' => 'nullable|numeric|min:1',
+            'custom_duration_unit' => 'nullable|string'
         ]);
 
         $ticket = \App\Models\Ticket::findOrFail($id);
         $currentUser = Auth::user();
         $targetUserId = $request->target_advisor_id;
 
+        // Calculate custom duration in minutes
+        $durationMinutes = 60; // default 1 hour
+        $isCustom = ($request->input('waiting_duration_type') === 'custom' || $request->input('waiting_duration_preset') === 'custom');
+
+        if ($isCustom) {
+            $val = (int) $request->input('custom_duration_value', 15);
+            if ($val <= 0) $val = 15;
+            $unit = $request->input('custom_duration_unit', 'minutes');
+            if ($unit === 'hours') {
+                $durationMinutes = $val * 60;
+            } elseif ($unit === 'days') {
+                $durationMinutes = $val * 1440;
+            } else {
+                $durationMinutes = $val;
+            }
+        } elseif ($request->filled('waiting_duration_preset') && is_numeric($request->input('waiting_duration_preset'))) {
+            $presetVal = (int) $request->input('waiting_duration_preset');
+            if ($presetVal > 0) {
+                $durationMinutes = $presetVal;
+            }
+        }
+
         // If current user is Admin or SPV, force assign directly
         if (in_array($currentUser->usertype, ['admin', 'supervisor'])) {
             $ticket->update([
                 'user_id' => $targetUserId,
                 'pending_advisor_id' => null,
-                'pending_advisor_at' => null
+                'pending_advisor_at' => null,
+                'pending_advisor_expires_at' => null,
+                'takeover_duration_minutes' => null
             ]);
             Alert::success('Berhasil!', 'Tiket telah berhasil dialihkan.')->showConfirmButton('Tutup', '#3b82f6')->autoClose(2500);
         } else {
-            // User asks another user -> Need approval
+            // User asks another user -> Need approval with custom duration
             $ticket->update([
                 'pending_advisor_id' => $targetUserId,
-                'pending_advisor_at' => now()
+                'pending_advisor_at' => now(),
+                'takeover_duration_minutes' => $durationMinutes,
+                'pending_advisor_expires_at' => now()->addMinutes($durationMinutes)
             ]);
             Alert::success('Terkirim!', 'Permintaan pengalihan tiket telah dikirim ke user tersebut.')->showConfirmButton('Tutup', '#3b82f6')->autoClose(2500);
         }
@@ -406,7 +452,9 @@ class TicketController extends Controller
             $ticket->update([
                 'user_id' => Auth::id(),
                 'pending_advisor_id' => null,
-                'pending_advisor_at' => null
+                'pending_advisor_at' => null,
+                'pending_advisor_expires_at' => null,
+                'takeover_duration_minutes' => null
             ]);
             Alert::success('Berhasil!', 'Anda telah mengambil alih tiket ini.')->showConfirmButton('Tutup', '#3b82f6')->autoClose(2500);
         }
@@ -417,8 +465,12 @@ class TicketController extends Controller
         $ticket = \App\Models\Ticket::findOrFail($id);
         if ($ticket->pending_advisor_id == Auth::id()) {
             $ticket->update([
+                'status' => 'OPEN',
+                'returned_at' => now(),
                 'pending_advisor_id' => null,
-                'pending_advisor_at' => null
+                'pending_advisor_at' => null,
+                'pending_advisor_expires_at' => null,
+                'takeover_duration_minutes' => null
             ]);
             Alert::info('Ditolak!', 'Anda telah menolak permintaan alih tiket.')->autoClose(2500);
         }

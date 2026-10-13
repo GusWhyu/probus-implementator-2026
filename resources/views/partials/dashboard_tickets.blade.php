@@ -18,9 +18,16 @@
                     'CLOSED' => 'bg-emerald-100 text-emerald-700 border border-emerald-200',
                 ];
             @endphp
-            <span class="px-2.5 py-1 rounded-lg text-[10px] font-bold {{ $statusColors[$ticket->status] ?? 'bg-slate-100 text-slate-600' }}">
-                {{ $ticket->status ?? 'Unknown' }}
-            </span>
+            <div class="inline-flex items-center gap-1.5">
+                @if($ticket->is_new)
+                <span class="inline-flex items-center gap-0.5 bg-gradient-to-r from-emerald-500 to-teal-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded-full uppercase tracking-wider">
+                    NEW
+                </span>
+                @endif
+                <span class="px-2.5 py-1 rounded-lg text-[10px] font-bold {{ $statusColors[$ticket->status] ?? 'bg-slate-100 text-slate-600' }}">
+                    {{ $ticket->status ?? 'Unknown' }}
+                </span>
+            </div>
         @endif
     </td>
     <td class="py-3.5 text-slate-500 font-mono text-xs">{{ $ticket->created_at ? $ticket->created_at->format('d M Y') : '-' }}</td>

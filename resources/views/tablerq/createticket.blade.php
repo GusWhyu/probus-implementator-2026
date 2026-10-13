@@ -440,7 +440,7 @@
                     <h3 class="text-xl font-extrabold text-slate-800 mb-3">${type === 'error' ? 'Peringatan!' : 'Perhatian!'}</h3>
                     <p class="text-[13px] text-slate-500 font-medium leading-relaxed mb-8">${message}</p>
                     <button class="w-full py-3.5 bg-slate-900 hover:bg-slate-800 active:scale-95 text-white rounded-xl font-bold text-sm transition-all shadow-md close-modal">
-                        Mengerti
+                        Oke
                     </button>
                 </div>
             `;

@@ -152,7 +152,7 @@
                                     <span>Waiting Takeover</span>
                                 </span>
                                 @if($rq->pending_advisor_at)
-                                <span class="text-[11px] font-mono font-extrabold text-amber-800 bg-white/80 px-2 py-0.5 rounded-md border border-amber-200 ticket-countdown" data-expire="{{ \Carbon\Carbon::parse($rq->pending_advisor_at)->addMinutes(60)->toISOString() }}">
+                                <span class="text-[11px] font-mono font-extrabold text-amber-800 bg-white/80 px-2 py-0.5 rounded-md border border-amber-200 ticket-countdown" data-expire="{{ $rq->takeover_expire_time ? $rq->takeover_expire_time->toISOString() : '' }}">
                                     --:--
                                 </span>
                                 @endif
@@ -164,7 +164,14 @@
                                     <span class="bg-slate-100 text-slate-600 text-[10px] font-semibold px-2 py-1 rounded-md max-w-[90px] truncate" title="{{ $rq->kategoriSystem->name ?? '' }}">{{ $rq->kategoriSystem->name ?? '-' }}</span>
                                     <span class="bg-slate-100 text-slate-600 text-[10px] font-semibold px-2 py-1 rounded-md max-w-[90px] truncate" title="{{ $rq->moduleSystem->name ?? '' }}">{{ $rq->moduleSystem->name ?? '-' }}</span>
                                 </div>
-                                <span class="bg-blue-50 text-blue-600 text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider border border-blue-100 shrink-0">{{ $rq->status }}</span>
+                                <div class="flex items-center gap-1.5 shrink-0">
+                                    @if($rq->is_new && $rq->pending_advisor_id == null)
+                                    <span class="inline-flex items-center gap-1 bg-gradient-to-r from-emerald-500 to-teal-500 text-white text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider shadow-sm shadow-emerald-500/25">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>NEW
+                                    </span>
+                                    @endif
+                                    <span class="bg-blue-50 text-blue-600 text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider border border-blue-100 shrink-0">{{ $rq->status }}</span>
+                                </div>
                             </div>
                             <h3 class="font-extrabold text-slate-800 text-base sm:text-lg mb-4 leading-snug line-clamp-2 group-hover:text-blue-600 transition-colors" title="{{ $rq->title }}">{{ $rq->title }}</h3>
                             
@@ -229,7 +236,7 @@
                                     <span>Waiting Takeover</span>
                                 </span>
                                 @if($rq->pending_advisor_at)
-                                <span class="text-[11px] font-mono font-extrabold text-amber-800 bg-white/80 px-2 py-0.5 rounded-md border border-amber-200 ticket-countdown" data-expire="{{ \Carbon\Carbon::parse($rq->pending_advisor_at)->addMinutes(60)->toISOString() }}">
+                                <span class="text-[11px] font-mono font-extrabold text-amber-800 bg-white/80 px-2 py-0.5 rounded-md border border-amber-200 ticket-countdown" data-expire="{{ $rq->takeover_expire_time ? $rq->takeover_expire_time->toISOString() : '' }}">
                                     --:--
                                 </span>
                                 @endif
@@ -412,7 +419,7 @@
                         </div>
                         <div class="flex-1">
                             <p class="text-[9px] font-bold text-amber-600/70 uppercase tracking-widest mb-0.5">Batas Waktu Persetujuan</p>
-                            <p class="text-sm font-extrabold text-amber-600 tracking-wider" id="countdown-{{ $rq->id }}">--:--</p>
+                            <p class="text-sm font-extrabold text-amber-600 tracking-wider ticket-countdown" id="countdown-{{ $rq->id }}" data-expire="{{ $rq->takeover_expire_time ? $rq->takeover_expire_time->toISOString() : '' }}">--:--</p>
                         </div>
                     </div>
                     @endif
@@ -486,9 +493,14 @@
                         el.classList.add('text-rose-600');
                         el.classList.remove('text-amber-800');
                     } else {
+                        const hours = Math.floor(distance / (1000 * 60 * 60));
                         const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
                         const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-                        el.innerHTML = minutes.toString().padStart(2, '0') + ":" + seconds.toString().padStart(2, '0');
+                        if (hours > 0) {
+                            el.innerHTML = hours.toString().padStart(2, '0') + ":" + minutes.toString().padStart(2, '0') + ":" + seconds.toString().padStart(2, '0');
+                        } else {
+                            el.innerHTML = minutes.toString().padStart(2, '0') + ":" + seconds.toString().padStart(2, '0');
+                        }
                     }
                 });
             }

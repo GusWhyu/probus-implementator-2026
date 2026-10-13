@@ -14,15 +14,7 @@ class ProfileController extends Controller
 {
     public function index()
     {
-        $title = 'Delete Data!';
-        $text = 'Are you sure you want to delete this data?';
-        confirmDelete($title, $text);
-        $uid = Auth::user()->id;
-        $req = \App\Models\Request::where('user_id',$uid)->latest()
-        ->take(5)->get();
-        $updt = UpdateSystem::where('user_id', $uid)->latest()
-        ->take(5)->get();
-        return view('tableprofileacc.profile', compact('req','updt'));
+        return view('tableprofileacc.profile');
     }
 
     public function edit($id)

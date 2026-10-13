@@ -402,18 +402,39 @@ class HomeController extends Controller
     }
 
     public function inbox(Request $request){
-        // 1. Auto expire takeovers older than 1 hour for tickets I SENT (Original Owner)
-        $myExpiredSent = Ticket::where('user_id', auth()->id())
-                               ->whereNotNull('pending_advisor_id')
-                               ->where('pending_advisor_at', '<=', now()->subMinutes(60))
-                               ->get();
+        // 1. Auto expire takeovers if deadline reached for tickets I SENT (Original Owner)
+        $mySent = Ticket::where('user_id', auth()->id())
+                        ->whereNotNull('pending_advisor_id')
+                        ->get();
         
-        if ($myExpiredSent->count() > 0) {
-            $ticketNumbers = $myExpiredSent->pluck('ticket_number')->toArray();
-            Ticket::whereIn('id', $myExpiredSent->pluck('id'))
-                  ->update(['pending_advisor_id' => null, 'pending_advisor_at' => null]);
+        $expiredSentIds = [];
+        $expiredSentNumbers = [];
+        foreach ($mySent as $tk) {
+            $isExpired = false;
+            if ($tk->pending_advisor_expires_at) {
+                $isExpired = now()->gte($tk->pending_advisor_expires_at);
+            } elseif ($tk->pending_advisor_at) {
+                $mins = $tk->takeover_duration_minutes ?: 60;
+                $isExpired = now()->diffInMinutes($tk->pending_advisor_at) >= $mins;
+            }
+            if ($isExpired) {
+                $expiredSentIds[] = $tk->id;
+                $expiredSentNumbers[] = $tk->ticket_number;
+            }
+        }
+        
+        if (!empty($expiredSentIds)) {
+            Ticket::whereIn('id', $expiredSentIds)
+                  ->update([
+                      'status' => 'OPEN',
+                      'returned_at' => now(),
+                      'pending_advisor_id' => null, 
+                      'pending_advisor_at' => null,
+                      'pending_advisor_expires_at' => null,
+                      'takeover_duration_minutes' => null
+                  ]);
             
-            Alert::warning('Pengalihan Otomatis Dibatalkan', 'Tiket (' . implode(', ', $ticketNumbers) . ') telah dikembalikan kepada Anda karena telah melewati batas 1 jam tanpa persetujuan dari advisor tujuan.')->showConfirmButton('Tutup', '#f59e0b')->autoClose(3000);
+            Alert::warning('Pengalihan Otomatis Dibatalkan', 'Tiket (' . implode(', ', $expiredSentNumbers) . ') telah dikembalikan kepada Anda karena telah melewati batas waktu tanpa persetujuan dari advisor tujuan.')->showConfirmButton('Tutup', '#f59e0b')->autoClose(3000);
         }
 
         // 2. Query data
@@ -465,11 +486,25 @@ class HomeController extends Controller
 
         $pendingTakeovers = Ticket::where('pending_advisor_id', auth()->id())->latest()->get();
 
-        // 3. Auto expire takeovers older than 1 hour for tickets targeting ME
+        // 3. Auto expire takeovers if deadline reached for tickets targeting ME
         $expiredFound = false;
         foreach ($pendingTakeovers as $tk) {
-            if ($tk->pending_advisor_at && now()->diffInMinutes($tk->pending_advisor_at) >= 60) {
-                $tk->update(['pending_advisor_id' => null, 'pending_advisor_at' => null]);
+            $isExpired = false;
+            if ($tk->pending_advisor_expires_at) {
+                $isExpired = now()->gte($tk->pending_advisor_expires_at);
+            } elseif ($tk->pending_advisor_at) {
+                $mins = $tk->takeover_duration_minutes ?: 60;
+                $isExpired = now()->diffInMinutes($tk->pending_advisor_at) >= $mins;
+            }
+            if ($isExpired) {
+                $tk->update([
+                    'status' => 'OPEN',
+                    'returned_at' => now(),
+                    'pending_advisor_id' => null, 
+                    'pending_advisor_at' => null,
+                    'pending_advisor_expires_at' => null,
+                    'takeover_duration_minutes' => null
+                ]);
                 $expiredFound = true;
             }
         }

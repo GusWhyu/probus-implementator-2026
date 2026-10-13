@@ -325,43 +325,23 @@
                                 <button disabled class="w-full flex items-center justify-center bg-slate-100 text-slate-400 py-3.5 rounded-xl font-bold text-sm transition-all cursor-not-allowed gap-2">
                                     <i class="fa-solid fa-circle-check text-emerald-500"></i> Request Selesai
                                 </button>
-
-                                <div class="grid grid-cols-2 gap-3 mt-1">
-                                    <button disabled type="button" class="w-full flex flex-col items-center justify-center bg-slate-50 text-slate-400 border border-slate-200 py-3 rounded-xl font-bold text-xs transition-all cursor-not-allowed gap-1 text-center">
-                                        <i class="fa-solid fa-right-left text-sm"></i> Alihkan/Ambil
-                                    </button>
-
-                                    <button disabled type="button" class="w-full flex flex-col items-center justify-center bg-slate-50 text-slate-400 border border-slate-200 py-3 rounded-xl font-bold text-xs transition-all cursor-not-allowed gap-1 text-center">
-                                        <i class="fa-solid fa-laptop-medical text-sm"></i> Update System
-                                    </button>
-                                </div>
                             @elseif ($stid == 3)
                                 <!-- STATUS PROGRESS -->
                                 @if ($canManage)
                                     <a href="/updatestatus/{{ $datarq->id }}/4" class="w-full flex items-center justify-center bg-emerald-500 hover:bg-emerald-600 text-white py-3.5 rounded-xl font-bold text-sm shadow-md shadow-emerald-500/20 transition-all active:scale-95 gap-2">
                                         <i class="fa-solid fa-check text-emerald-100"></i> Selesaikan Request
                                     </a>
+                                    <a href="/createus/{{ $datarq->id }}" class="w-full flex items-center justify-center bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white border border-emerald-200 py-3 rounded-xl font-bold text-xs shadow-sm transition-all active:scale-95 gap-2 text-center">
+                                        <i class="fa-solid fa-laptop-medical text-sm"></i> + Update System
+                                    </a>
                                 @else
                                     <button disabled class="w-full flex items-center justify-center bg-slate-100 text-slate-400 py-3.5 rounded-xl font-bold text-sm transition-all cursor-not-allowed gap-2">
                                         <i class="fa-solid fa-check"></i> Selesaikan Request
                                     </button>
-                                @endif
-
-                                <div class="grid grid-cols-2 gap-3 mt-1">
-                                    <button type="button" class="w-full flex flex-col items-center justify-center bg-amber-50 text-amber-600 hover:bg-amber-500 hover:text-white border border-amber-200 py-3 rounded-xl font-bold text-xs shadow-sm transition-all active:scale-95 gap-1 text-center">
-                                        <i class="fa-solid fa-right-left text-sm"></i> Alihkan/Ambil
+                                    <button disabled type="button" class="w-full flex items-center justify-center bg-slate-50 text-slate-400 border border-slate-200 py-3 rounded-xl font-bold text-xs transition-all cursor-not-allowed gap-2 text-center">
+                                        <i class="fa-solid fa-laptop-medical text-sm"></i> Update System
                                     </button>
-
-                                    @if ($canManage)
-                                        <a href="/createus/{{ $datarq->id }}" class="w-full flex flex-col items-center justify-center bg-emerald-50 text-emerald-600 hover:bg-emerald-500 hover:text-white border border-emerald-200 py-3 rounded-xl font-bold text-xs shadow-sm transition-all active:scale-95 gap-1 text-center">
-                                            <i class="fa-solid fa-laptop-medical text-sm"></i> Update System
-                                        </a>
-                                    @else
-                                        <button disabled type="button" class="w-full flex flex-col items-center justify-center bg-slate-50 text-slate-400 border border-slate-200 py-3 rounded-xl font-bold text-xs transition-all cursor-not-allowed gap-1 text-center">
-                                            <i class="fa-solid fa-laptop-medical text-sm"></i> Update System
-                                        </button>
-                                    @endif
-                                </div>
+                                @endif
                             @else
                                 <!-- STATUS OPEN (1 atau 2) -->
                                 @if ($ust === 'admin' && $isPendingApproval)
@@ -369,16 +349,9 @@
                                     <button type="button" onclick="approve_modal.showModal()" class="w-full flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white py-3.5 rounded-xl font-bold text-sm shadow-md shadow-blue-500/20 transition-all active:scale-95 gap-2">
                                         <i class="fa-solid fa-check-double text-blue-200"></i> Approve Request
                                     </button>
-
-                                    <div class="grid grid-cols-2 gap-3 mt-1">
-                                        <button type="button" onclick="reject_modal.showModal()" class="w-full flex flex-col items-center justify-center bg-rose-50 text-rose-600 hover:bg-rose-500 hover:text-white border border-rose-200 py-3 rounded-xl font-bold text-xs shadow-sm transition-all active:scale-95 gap-1">
-                                            <i class="fa-solid fa-ban text-sm"></i> Tolak Request
-                                        </button>
-
-                                        <button disabled type="button" class="w-full flex flex-col items-center justify-center bg-slate-50 text-slate-400 border border-slate-200 py-3 rounded-xl font-bold text-xs transition-all cursor-not-allowed gap-1 text-center">
-                                            <i class="fa-solid fa-laptop-medical text-sm"></i> Update System
-                                        </button>
-                                    </div>
+                                    <button type="button" onclick="reject_modal.showModal()" class="w-full flex items-center justify-center bg-rose-50 text-rose-600 hover:bg-rose-500 hover:text-white border border-rose-200 py-3 rounded-xl font-bold text-xs shadow-sm transition-all active:scale-95 gap-2">
+                                        <i class="fa-solid fa-ban text-sm"></i> Tolak Request
+                                    </button>
                                 @elseif (!$isPendingApproval || $datarq->approval_status === 'approved')
                                     <!-- Sudah Diapprove: Tombol PROSES REQUEST aktif! -->
                                     @if ($canManage)
@@ -390,31 +363,11 @@
                                             <i class="fa-solid fa-gears"></i> Proses Request
                                         </button>
                                     @endif
-
-                                    <div class="grid grid-cols-2 gap-3 mt-1">
-                                        <button type="button" class="w-full flex flex-col items-center justify-center bg-amber-50 text-amber-600 hover:bg-amber-500 hover:text-white border border-amber-200 py-3 rounded-xl font-bold text-xs shadow-sm transition-all active:scale-95 gap-1 text-center">
-                                            <i class="fa-solid fa-right-left text-sm"></i> Alihkan/Ambil
-                                        </button>
-
-                                        <button disabled type="button" class="w-full flex flex-col items-center justify-center bg-slate-50 text-slate-400 border border-slate-200 py-3 rounded-xl font-bold text-xs transition-all cursor-not-allowed gap-1 text-center">
-                                            <i class="fa-solid fa-laptop-medical text-sm"></i> Update System
-                                        </button>
-                                    </div>
                                 @else
                                     <!-- Non-Admin ketika belum diapprove -->
                                     <button disabled class="w-full flex items-center justify-center bg-amber-50 text-amber-700 border border-amber-200 py-3.5 rounded-xl font-bold text-sm transition-all cursor-not-allowed gap-2">
                                         <i class="fa-solid fa-clock"></i> Menunggu Approval Admin
                                     </button>
-
-                                    <div class="grid grid-cols-2 gap-3 mt-1">
-                                        <button type="button" class="w-full flex flex-col items-center justify-center bg-amber-50 text-amber-600 hover:bg-amber-500 hover:text-white border border-amber-200 py-3 rounded-xl font-bold text-xs shadow-sm transition-all active:scale-95 gap-1 text-center">
-                                            <i class="fa-solid fa-right-left text-sm"></i> Alihkan/Ambil
-                                        </button>
-
-                                        <button disabled type="button" class="w-full flex flex-col items-center justify-center bg-slate-50 text-slate-400 border border-slate-200 py-3 rounded-xl font-bold text-xs transition-all cursor-not-allowed gap-1 text-center">
-                                            <i class="fa-solid fa-laptop-medical text-sm"></i> Update System
-                                        </button>
-                                    </div>
                                 @endif
                             @endif
                         </div>

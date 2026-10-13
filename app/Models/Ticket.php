@@ -27,9 +27,59 @@ class Ticket extends Model
 
     protected $fillable = [
         'ticket_number', 'title', 'description', 'status', 'priority', 
-        'tipe_penanganan', 'user_id', 'client_id', 'advisor_id', 'pending_advisor_id', 'pending_advisor_at', 'module_system_id', 
-        'system', 'due_date', 'closed_at', 'link_id'
+        'tipe_penanganan', 'user_id', 'client_id', 'advisor_id', 'pending_advisor_id', 'pending_advisor_at', 'takeover_duration_minutes', 'pending_advisor_expires_at', 'module_system_id', 
+        'system', 'due_date', 'closed_at', 'returned_at', 'link_id'
     ];
+
+    protected $casts = [
+        'returned_at' => 'datetime',
+        'pending_advisor_at' => 'datetime',
+        'pending_advisor_expires_at' => 'datetime',
+        'due_date' => 'datetime',
+        'closed_at' => 'datetime',
+    ];
+
+    public function getTakeoverExpireTimeAttribute()
+    {
+        if ($this->pending_advisor_expires_at) {
+            return $this->pending_advisor_expires_at;
+        }
+        if ($this->pending_advisor_at) {
+            $mins = $this->takeover_duration_minutes ?: 60;
+            return \Carbon\Carbon::parse($this->pending_advisor_at)->addMinutes($mins);
+        }
+        return null;
+    }
+
+    public function getTakeoverDurationTextAttribute()
+    {
+        $mins = (int) ($this->takeover_duration_minutes ?: 60);
+        if ($mins >= 1440 && $mins % 1440 === 0) {
+            return ($mins / 1440) . ' hari';
+        } elseif ($mins >= 60 && $mins % 60 === 0) {
+            return ($mins / 60) . ' jam';
+        } elseif ($mins >= 60) {
+            $h = floor($mins / 60);
+            $m = $mins % 60;
+            return "{$h} jam {$m} menit";
+        }
+        return "{$mins} menit";
+    }
+
+    public function getIsNewAttribute()
+    {
+        if (strtoupper($this->status) !== 'OPEN') {
+            return false;
+        }
+
+        // Tiket baru dibuat dalam 24 jam terakhir
+        $isRecentlyCreated = $this->created_at && $this->created_at->gt(now()->subHours(24));
+
+        // Tiket yang baru dikembalikan dalam 24 jam terakhir
+        $isRecentlyReturned = $this->returned_at && \Carbon\Carbon::parse($this->returned_at)->gt(now()->subHours(24));
+
+        return $isRecentlyCreated || $isRecentlyReturned;
+    }
 
     public function user()
     {

@@ -284,16 +284,16 @@
                                 <div class="flex items-center justify-between flex-wrap gap-2 mb-1">
                                     <p class="font-bold text-amber-900 text-sm">Permintaan Alih Tiket (Waiting Approval)</p>
                                     @if($datarq->pending_advisor_at)
-                                    <span class="text-xs font-mono font-extrabold text-amber-800 bg-white px-2.5 py-1 rounded-lg border border-amber-200 ticket-countdown" data-expire="{{ \Carbon\Carbon::parse($datarq->pending_advisor_at)->addMinutes(60)->toISOString() }}">
+                                    <span class="text-xs font-mono font-extrabold text-amber-800 bg-white px-2.5 py-1 rounded-lg border border-amber-200 ticket-countdown" data-expire="{{ $datarq->takeover_expire_time ? $datarq->takeover_expire_time->toISOString() : '' }}">
                                         --:--
                                     </span>
                                     @endif
                                 </div>
                                 <p class="text-xs font-medium text-amber-800/80 mb-3">
                                     @if ($datarq->pending_advisor_id == $aid)
-                                        Seseorang meminta Anda untuk mengambil alih dan menyelesaikan tiket ini. Batas waktu konfirmasi adalah 1 jam sebelum permintaan otomatis dibatalkan. Apakah Anda bersedia?
+                                        Seseorang meminta Anda untuk mengambil alih dan menyelesaikan tiket ini. Batas waktu konfirmasi adalah <strong>{{ $datarq->takeover_duration_text }}</strong> sebelum permintaan otomatis dibatalkan. Apakah Anda bersedia?
                                     @else
-                                        Tiket ini sedang diajukan untuk dialihkan kepada <strong>{{ $datarq->pendingAdvisor->name ?? 'Advisor lain' }}</strong>. Diskusi dikunci sementara hingga disetujui atau batas waktu 1 jam habis.
+                                        Tiket ini sedang diajukan untuk dialihkan kepada <strong>{{ $datarq->pendingAdvisor->name ?? 'Advisor lain' }}</strong>. Diskusi dikunci sementara hingga disetujui atau batas waktu <strong>{{ $datarq->takeover_duration_text }}</strong> habis.
                                     @endif
                                 </p>
                                 @if ($datarq->pending_advisor_id == $aid)
@@ -325,6 +325,11 @@
                                 @if ($datarq->pending_advisor_id != null)
                                 <span class="px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-amber-100 text-amber-800 border border-amber-300 animate-pulse flex items-center gap-1.5">
                                     <i class="fa-solid fa-clock-rotate-left text-[9px]"></i> WAITING TAKEOVER
+                                </span>
+                                @endif
+                                @if ($datarq->is_new && $datarq->pending_advisor_id == null)
+                                <span class="inline-flex items-center gap-1 bg-gradient-to-r from-emerald-500 to-teal-500 text-white text-[9px] font-black px-2.5 py-1 rounded-full uppercase tracking-wider shadow-sm">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>NEW
                                 </span>
                                 @endif
                                 <span class="px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider {{ $bg }}">
@@ -515,6 +520,73 @@
                     </div>
                 </div>
 
+                <!-- Waiting Duration Setting -->
+                <div class="mb-5" id="waiting-duration-container">
+                    <div class="flex items-center justify-between mb-2">
+                        <label class="text-[11px] font-bold text-slate-700">Batas Waktu Menunggu</label>
+                        <span class="text-[10px] font-medium text-slate-400">Hitung mundur otomatis</span>
+                    </div>
+
+                    <!-- Preset Options Grid -->
+                    <div class="grid grid-cols-3 gap-2 mb-2">
+                        <label class="cursor-pointer">
+                            <input type="radio" name="waiting_duration_preset" value="15" class="peer hidden" onchange="toggleCustomDuration(false)">
+                            <div class="py-2 text-center text-xs font-bold rounded-xl border border-slate-200 peer-checked:bg-blue-50 peer-checked:border-blue-500 peer-checked:text-blue-600 transition-all hover:bg-slate-50">
+                                15 Menit
+                            </div>
+                        </label>
+                        <label class="cursor-pointer">
+                            <input type="radio" name="waiting_duration_preset" value="30" class="peer hidden" onchange="toggleCustomDuration(false)">
+                            <div class="py-2 text-center text-xs font-bold rounded-xl border border-slate-200 peer-checked:bg-blue-50 peer-checked:border-blue-500 peer-checked:text-blue-600 transition-all hover:bg-slate-50">
+                                30 Menit
+                            </div>
+                        </label>
+                        <label class="cursor-pointer">
+                            <input type="radio" name="waiting_duration_preset" value="60" class="peer hidden" checked onchange="toggleCustomDuration(false)">
+                            <div class="py-2 text-center text-xs font-bold rounded-xl border border-slate-200 peer-checked:bg-blue-50 peer-checked:border-blue-500 peer-checked:text-blue-600 transition-all hover:bg-slate-50">
+                                1 Jam
+                            </div>
+                        </label>
+                        <label class="cursor-pointer">
+                            <input type="radio" name="waiting_duration_preset" value="120" class="peer hidden" onchange="toggleCustomDuration(false)">
+                            <div class="py-2 text-center text-xs font-bold rounded-xl border border-slate-200 peer-checked:bg-blue-50 peer-checked:border-blue-500 peer-checked:text-blue-600 transition-all hover:bg-slate-50">
+                                2 Jam
+                            </div>
+                        </label>
+                        <label class="cursor-pointer">
+                            <input type="radio" name="waiting_duration_preset" value="1440" class="peer hidden" onchange="toggleCustomDuration(false)">
+                            <div class="py-2 text-center text-xs font-bold rounded-xl border border-slate-200 peer-checked:bg-blue-50 peer-checked:border-blue-500 peer-checked:text-blue-600 transition-all hover:bg-slate-50">
+                                1 Hari
+                            </div>
+                        </label>
+                        <label class="cursor-pointer">
+                            <input type="radio" name="waiting_duration_preset" value="custom" id="preset_custom" class="peer hidden" onchange="toggleCustomDuration(true)">
+                            <div class="py-2 text-center text-xs font-bold rounded-xl border border-slate-200 peer-checked:bg-blue-50 peer-checked:border-blue-500 peer-checked:text-blue-600 transition-all hover:bg-slate-50 flex items-center justify-center gap-1">
+                                <i class="fa-solid fa-sliders text-[10px]"></i> Kustom
+                            </div>
+                        </label>
+                    </div>
+
+                    <input type="hidden" name="waiting_duration_type" id="waiting_duration_type" value="preset">
+
+                    <!-- Custom Duration Input (Hidden by default) -->
+                    <div id="custom-duration-fields" class="hidden mt-2 p-3 bg-slate-50 rounded-xl border border-slate-200">
+                        <div class="flex items-center gap-2">
+                            <div class="flex-1 relative">
+                                <input type="number" name="custom_duration_value" id="custom_duration_value" min="1" max="1000" placeholder="Contoh: 45" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 outline-none focus:border-blue-500">
+                            </div>
+                            <div class="w-28 relative">
+                                <select name="custom_duration_unit" id="custom_duration_unit" class="w-full bg-white border border-slate-200 rounded-xl px-2.5 py-2 text-xs font-bold text-slate-800 outline-none focus:border-blue-500 cursor-pointer">
+                                    <option value="minutes">Menit</option>
+                                    <option value="hours">Jam</option>
+                                    <option value="days">Hari</option>
+                                </select>
+                            </div>
+                        </div>
+                        <p class="text-[10px] text-slate-400 mt-1.5 font-medium">Masukkan durasi angka bebas dan pilih satuannya.</p>
+                    </div>
+                </div>
+
                 <p class="text-[10px] text-slate-500 mb-6 leading-relaxed font-medium">
                     Pastikan data sudah benar sebelum melakukan konfirmasi. Tindakan ini akan mengubah kepemilikan/User dari tiket ini dan mencatat riwayat perubahan.
                 </p>
@@ -533,20 +605,39 @@
             const alihkanBtn = document.getElementById('tab-alihkan');
             const ambilAlihBtn = document.getElementById('tab-ambil');
             const selectContainer = document.getElementById('select-advisor-container');
+            const waitingContainer = document.getElementById('waiting-duration-container');
             const targetSelect = document.getElementById('target_advisor_id');
 
             if (tab === 'alihkan') {
-                alihkanBtn.className = "flex-1 py-2 text-xs font-bold rounded-lg bg-blue-50 text-blue-600 shadow-sm border border-blue-100 transition-all text-center";
-                ambilAlihBtn.className = "flex-1 py-2 text-xs font-bold rounded-lg text-slate-500 hover:text-slate-700 transition-all text-center";
-                selectContainer.style.display = "block";
-                targetSelect.value = "";
+                if (alihkanBtn) alihkanBtn.className = "flex-1 py-2 text-xs font-bold rounded-lg bg-blue-50 text-blue-600 shadow-sm border border-blue-100 transition-all text-center";
+                if (ambilAlihBtn) ambilAlihBtn.className = "flex-1 py-2 text-xs font-bold rounded-lg text-slate-500 hover:text-slate-700 transition-all text-center";
+                if (selectContainer) selectContainer.style.display = "block";
+                if (waitingContainer) waitingContainer.style.display = "block";
+                if (targetSelect) targetSelect.value = "";
             } else {
-                ambilAlihBtn.className = "flex-1 py-2 text-xs font-bold rounded-lg bg-blue-50 text-blue-600 shadow-sm border border-blue-100 transition-all text-center";
-                alihkanBtn.className = "flex-1 py-2 text-xs font-bold rounded-lg text-slate-500 hover:text-slate-700 transition-all text-center";
-                selectContainer.style.display = "none";
+                if (ambilAlihBtn) ambilAlihBtn.className = "flex-1 py-2 text-xs font-bold rounded-lg bg-blue-50 text-blue-600 shadow-sm border border-blue-100 transition-all text-center";
+                if (alihkanBtn) alihkanBtn.className = "flex-1 py-2 text-xs font-bold rounded-lg text-slate-500 hover:text-slate-700 transition-all text-center";
+                if (selectContainer) selectContainer.style.display = "none";
+                if (waitingContainer) waitingContainer.style.display = "none";
                 
                 // Ambil alih (Take over by myself)
-                targetSelect.value = "{{ Auth::id() }}";
+                if (targetSelect) targetSelect.value = "{{ Auth::id() }}";
+            }
+        }
+
+        function toggleCustomDuration(isCustom) {
+            const customFields = document.getElementById('custom-duration-fields');
+            const typeInput = document.getElementById('waiting_duration_type');
+            const customVal = document.getElementById('custom_duration_value');
+
+            if (isCustom) {
+                customFields.classList.remove('hidden');
+                typeInput.value = 'custom';
+                if (!customVal.value) customVal.value = 45;
+                customVal.focus();
+            } else {
+                customFields.classList.add('hidden');
+                typeInput.value = 'preset';
             }
         }
     </script>
@@ -882,9 +973,14 @@
                         el.classList.add('text-rose-600');
                         el.classList.remove('text-amber-800');
                     } else {
+                        const hours = Math.floor(distance / (1000 * 60 * 60));
                         const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
                         const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-                        el.innerHTML = minutes.toString().padStart(2, '0') + ":" + seconds.toString().padStart(2, '0');
+                        if (hours > 0) {
+                            el.innerHTML = hours.toString().padStart(2, '0') + ":" + minutes.toString().padStart(2, '0') + ":" + seconds.toString().padStart(2, '0');
+                        } else {
+                            el.innerHTML = minutes.toString().padStart(2, '0') + ":" + seconds.toString().padStart(2, '0');
+                        }
                     }
                 });
             }

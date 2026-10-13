@@ -161,7 +161,7 @@
                                                 <i class="fa-solid fa-clock-rotate-left mr-1 text-[9px]"></i> WAITING
                                             </span>
                                             @if($rq->pending_advisor_at)
-                                            <span class="text-[10px] font-mono font-bold text-amber-700 ticket-countdown" data-expire="{{ \Carbon\Carbon::parse($rq->pending_advisor_at)->addMinutes(60)->toISOString() }}">
+                                            <span class="text-[10px] font-mono font-bold text-amber-700 ticket-countdown" data-expire="{{ $rq->takeover_expire_time ? $rq->takeover_expire_time->toISOString() : '' }}">
                                                 --:--
                                             </span>
                                             @endif
@@ -179,9 +179,16 @@
                                                 $statusClass = 'bg-emerald-50 text-emerald-600 border-emerald-200';
                                             }
                                         @endphp
-                                        <span class="inline-flex items-center justify-center px-2.5 py-1 rounded-full text-[9px] font-extrabold uppercase tracking-wider border whitespace-nowrap {{ $statusClass }}">
-                                            {{ $statusName }}
-                                        </span>
+                                        <div class="inline-flex items-center gap-1.5">
+                                            @if($rq->is_new && $rq->pending_advisor_id == null)
+                                            <span class="inline-flex items-center gap-1 bg-gradient-to-r from-emerald-500 to-teal-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded-full uppercase tracking-wider shadow-sm">
+                                                <span class="w-1 h-1 rounded-full bg-white animate-pulse"></span>NEW
+                                            </span>
+                                            @endif
+                                            <span class="inline-flex items-center justify-center px-2.5 py-1 rounded-full text-[9px] font-extrabold uppercase tracking-wider border whitespace-nowrap {{ $statusClass }}">
+                                                {{ $statusName }}
+                                            </span>
+                                        </div>
                                     @endif
                                 </td>
                                 <td class="py-3 px-3 sm:px-4 align-top">
@@ -265,15 +272,22 @@
                                         <i class="fa-solid fa-clock-rotate-left text-[8px]"></i> WAITING
                                     </span>
                                     @if($rq->pending_advisor_at)
-                                        <span class="text-[10px] font-mono font-bold text-amber-700 ticket-countdown" data-expire="{{ \Carbon\Carbon::parse($rq->pending_advisor_at)->addMinutes(60)->toISOString() }}">
+                                        <span class="text-[10px] font-mono font-bold text-amber-700 ticket-countdown" data-expire="{{ $rq->takeover_expire_time ? $rq->takeover_expire_time->toISOString() : '' }}">
                                             --:--
                                         </span>
                                     @endif
                                 </div>
                             @else
-                                <span class="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full uppercase tracking-wider border {{ $statusClass }}">
-                                    {{ $statusName }}
-                                </span>
+                                <div class="flex items-center gap-1.5">
+                                    @if($rq->is_new)
+                                    <span class="inline-flex items-center gap-1 bg-gradient-to-r from-emerald-500 to-teal-500 text-white text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider shadow-sm">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>NEW
+                                    </span>
+                                    @endif
+                                    <span class="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full uppercase tracking-wider border {{ $statusClass }}">
+                                        {{ $statusName }}
+                                    </span>
+                                </div>
                             @endif
                         </div>
                     </div>
@@ -415,9 +429,14 @@
                         el.classList.add('text-rose-600');
                         el.classList.remove('text-amber-700');
                     } else {
+                        const hours = Math.floor(distance / (1000 * 60 * 60));
                         const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
                         const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-                        el.innerHTML = minutes.toString().padStart(2, '0') + ":" + seconds.toString().padStart(2, '0');
+                        if (hours > 0) {
+                            el.innerHTML = hours.toString().padStart(2, '0') + ":" + minutes.toString().padStart(2, '0') + ":" + seconds.toString().padStart(2, '0');
+                        } else {
+                            el.innerHTML = minutes.toString().padStart(2, '0') + ":" + seconds.toString().padStart(2, '0');
+                        }
                     }
                 });
             }

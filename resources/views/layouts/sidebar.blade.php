@@ -28,7 +28,8 @@
                         <span class="bg-blue-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">{{ count($rq1) }}</span>
                     @endif
                 </a></li>
-                <li><a href="{{ route('activitylog') }}" class="flex items-center px-3 py-2 text-sm {{ request()->routeIs('activitylog') ? 'text-blue-600 bg-blue-50 font-medium' : 'text-slate-600 hover:bg-slate-50' }} rounded-lg transition-colors"><i class="fa-solid fa-clock-rotate-left w-5 text-center mr-2 {{ request()->routeIs('activitylog') ? 'text-blue-600' : 'text-slate-400' }}"></i> Activity Log</a></li>
+                <li><a href="{{ route('history') }}" class="flex items-center px-3 py-2 text-sm {{ request()->routeIs('history') || request()->routeIs('request.history') || request()->routeIs('myrequs') || request()->routeIs('myrequest') || request()->routeIs('myupdatesystem') ? 'text-blue-600 bg-blue-50 font-medium' : 'text-slate-600 hover:bg-slate-50' }} rounded-lg transition-colors"><i class="fa-solid fa-clock-rotate-left w-5 text-center mr-2 {{ request()->routeIs('history') || request()->routeIs('request.history') || request()->routeIs('myrequs') || request()->routeIs('myrequest') || request()->routeIs('myupdatesystem') ? 'text-blue-600' : 'text-slate-400' }}"></i> History</a></li>
+                <li><a href="{{ route('activitylog') }}" class="flex items-center px-3 py-2 text-sm {{ request()->routeIs('activitylog') ? 'text-blue-600 bg-blue-50 font-medium' : 'text-slate-600 hover:bg-slate-50' }} rounded-lg transition-colors"><i class="fa-solid fa-timeline w-5 text-center mr-2 {{ request()->routeIs('activitylog') ? 'text-blue-600' : 'text-slate-400' }}"></i> Activity Log</a></li>
             </ul>
         </div>
         
