@@ -2,37 +2,83 @@
     <!-- Absolute positioning guarantees strict height constraint, bypassing the parent's overflow-auto. -->
     <div x-data="{ activeTab: 'open' }" class="absolute top-16 bottom-0 left-0 right-0 flex flex-col w-full p-3 sm:p-5 md:p-8 pt-3 sm:pt-4 overflow-y-auto lg:overflow-hidden bg-[#F8FAFC] z-10 overscroll-contain" style="-webkit-overflow-scrolling: touch;">
         
-        {{-- Top Header & Filters --}}
-        <form method="GET" action="{{ route('inbox') }}" class="flex flex-col md:flex-row justify-between items-start md:items-center mb-3 md:mb-6 gap-3 md:gap-4 shrink-0">
-            <div class="flex items-center justify-between w-full md:w-auto">
-                <div>
-                    <h2 class="text-xl sm:text-2xl md:text-[28px] font-bold text-slate-800 leading-tight">Inbox & Manajemen Tiket</h2>
-                    <p class="text-slate-500 text-xs sm:text-sm mt-0.5">Prioritaskan antrean dan tindak lanjuti tiket pelanggan.</p>
+        {{-- Top Header --}}
+        <div class="flex items-center justify-between mb-3 md:mb-5 gap-3 shrink-0">
+            <div>
+                <h2 class="text-xl sm:text-2xl md:text-[28px] font-bold text-slate-800 leading-tight">Inbox & Manajemen Tiket</h2>
+                <p class="text-slate-500 text-xs sm:text-sm mt-0.5">Prioritaskan antrean dan tindak lanjuti tiket pelanggan.</p>
+            </div>
+            <a href="{{ url('createticket') }}" class="bg-blue-600 hover:bg-blue-700 text-white px-3.5 sm:px-4 md:px-5 py-2 sm:py-2.5 rounded-xl font-bold text-xs sm:text-sm shadow-sm flex items-center gap-1.5 sm:gap-2 transition-all active:scale-95 shrink-0 whitespace-nowrap">
+                <i class="fa-solid fa-plus text-xs"></i>
+                <span class="hidden sm:inline">Buat Tiket Baru</span>
+                <span class="sm:hidden">Tiket Baru</span>
+            </a>
+        </div>
+
+        {{-- Filters & Search Toolbar --}}
+        <form method="GET" action="{{ route('inbox') }}" class="mb-3.5 md:mb-6 shrink-0">
+            <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3 w-full">
+                <!-- Search Input Bar -->
+                <div class="relative flex-1 min-w-0">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3.5 sm:left-4 top-1/2 -translate-y-1/2 text-slate-400 text-xs sm:text-sm pointer-events-none"></i>
+                    <input type="text" 
+                           name="search" 
+                           value="{{ request('search') }}" 
+                           placeholder="Cari ID tiket, judul, client, atau user..." 
+                           class="w-full pl-9 sm:pl-11 pr-10 py-2 sm:py-2.5 bg-white border border-slate-200 rounded-xl text-xs sm:text-sm font-medium text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 shadow-sm transition-all"
+                           autocomplete="off">
+                    @if(request('search'))
+                    <a href="{{ route('inbox', request()->except('search')) }}" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1 rounded-full transition-colors" title="Hapus pencarian">
+                        <i class="fa-solid fa-circle-xmark text-xs sm:text-sm"></i>
+                    </a>
+                    @endif
                 </div>
-                <a href="{{ url('createticket') }}" class="md:hidden bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-xl font-bold text-xs shadow-sm flex items-center gap-1.5 shrink-0 transition-all active:scale-95">
-                    <i class="fa-solid fa-plus text-[10px]"></i> Tiket Baru
-                </a>
+
+                <!-- Dropdowns & Actions Toolbar -->
+                <div class="flex items-center gap-2 sm:gap-3 shrink-0">
+                    <!-- System Dropdown -->
+                    <div class="relative flex-1 sm:flex-initial">
+                        <select name="system" onchange="this.form.submit()" class="w-full sm:min-w-[150px] px-3 sm:px-4 py-2 sm:py-2.5 pr-8 bg-white border border-slate-200 rounded-xl text-xs sm:text-sm font-medium text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 shadow-sm appearance-none cursor-pointer hover:border-slate-300 transition-colors">
+                            <option value="">Semua System</option>
+                            @foreach($systems as $sys)
+                                <option value="{{ $sys->id }}" {{ request('system') == $sys->id ? 'selected' : '' }}>{{ $sys->name }}</option>
+                            @endforeach
+                        </select>
+                        <i class="fa-solid fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-slate-400 pointer-events-none"></i>
+                    </div>
+                    
+                    <!-- Module Dropdown -->
+                    <div class="relative flex-1 sm:flex-initial">
+                        <select name="module" onchange="this.form.submit()" class="w-full sm:min-w-[150px] px-3 sm:px-4 py-2 sm:py-2.5 pr-8 bg-white border border-slate-200 rounded-xl text-xs sm:text-sm font-medium text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 shadow-sm appearance-none cursor-pointer hover:border-slate-300 transition-colors">
+                            <option value="">Semua Module</option>
+                            @foreach($modules as $mod)
+                                <option value="{{ $mod->id }}" {{ request('module') == $mod->id ? 'selected' : '' }}>{{ $mod->name }}</option>
+                            @endforeach
+                        </select>
+                        <i class="fa-solid fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-slate-400 pointer-events-none"></i>
+                    </div>
+
+                    @if(request()->filled('search') || request()->filled('system') || request()->filled('module'))
+                    <!-- Reset Filter Button -->
+                    <a href="{{ route('inbox') }}" class="px-3 py-2 sm:py-2.5 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-1.5 transition-colors shadow-sm shrink-0" title="Reset filter & pencarian">
+                        <i class="fa-solid fa-rotate-left text-xs"></i>
+                        <span class="hidden md:inline">Reset</span>
+                    </a>
+                    @endif
+                </div>
             </div>
 
-            <div class="flex items-center gap-3 sm:gap-4 w-full md:w-auto flex-wrap md:flex-nowrap">
-                <select name="system" onchange="this.form.submit()" class="flex-1 md:flex-initial px-3 sm:px-4 py-2 sm:py-2.5 bg-white border border-slate-200 rounded-xl text-xs sm:text-sm font-medium text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/20 shadow-sm md:min-w-[150px] appearance-none cursor-pointer" style="background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2394a3b8%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E'); background-repeat: no-repeat; background-position: right 0.75rem top 50%; background-size: 0.6rem auto;">
-                    <option value="">Semua System</option>
-                    @foreach($systems as $sys)
-                        <option value="{{ $sys->id }}" {{ request('system') == $sys->id ? 'selected' : '' }}>{{ $sys->name }}</option>
-                    @endforeach
-                </select>
-                
-                <select name="module" onchange="this.form.submit()" class="flex-1 md:flex-initial px-3 sm:px-4 py-2 sm:py-2.5 bg-white border border-slate-200 rounded-xl text-xs sm:text-sm font-medium text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/20 shadow-sm md:min-w-[150px] appearance-none cursor-pointer" style="background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2394a3b8%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E'); background-repeat: no-repeat; background-position: right 0.75rem top 50%; background-size: 0.6rem auto;">
-                    <option value="">Semua Module</option>
-                    @foreach($modules as $mod)
-                        <option value="{{ $mod->id }}" {{ request('module') == $mod->id ? 'selected' : '' }}>{{ $mod->name }}</option>
-                    @endforeach
-                </select>
-
-                <a href="{{ url('createticket') }}" class="hidden md:flex bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-sm items-center gap-2 transition-all active:scale-95 whitespace-nowrap">
-                    <i class="fa-solid fa-plus text-xs"></i> Buat Tiket Baru
-                </a>
+            @if(request('search'))
+            <div class="flex items-center gap-2 mt-2 px-1">
+                <span class="text-xs text-slate-500 font-medium">Hasil pencarian untuk:</span>
+                <span class="inline-flex items-center gap-1.5 bg-blue-50 text-blue-700 text-xs font-bold px-2.5 py-0.5 rounded-lg border border-blue-200">
+                    "{{ request('search') }}"
+                    <a href="{{ route('inbox', request()->except('search')) }}" class="hover:text-blue-900 ml-0.5">
+                        <i class="fa-solid fa-xmark text-[10px]"></i>
+                    </a>
+                </span>
             </div>
+            @endif
         </form>
 
         @if ($pendingTakeovers->count() > 0)
@@ -150,11 +196,14 @@
                             </div>
                         </a>
                         @empty
-                        <div class="p-8 text-center bg-white rounded-2xl border border-slate-200/80 shadow-sm flex flex-col items-center justify-center my-auto">
-                            <div class="w-12 h-12 bg-slate-50 rounded-full flex items-center justify-center text-slate-300 mb-2">
-                                <i class="fa-solid fa-inbox text-xl"></i>
+                        <div class="p-8 text-center bg-white rounded-2xl border {{ request()->filled('search') ? 'border-dashed border-slate-200' : 'border-slate-200/80' }} shadow-sm flex flex-col items-center justify-center my-auto">
+                            <div class="w-12 h-12 {{ request()->filled('search') ? 'bg-blue-50 text-blue-500' : 'bg-slate-50 text-slate-300' }} rounded-full flex items-center justify-center mb-2">
+                                <i class="fa-solid {{ request()->filled('search') ? 'fa-magnifying-glass' : 'fa-inbox' }} text-xl"></i>
                             </div>
-                            <p class="text-xs font-bold text-slate-500">Tidak ada tiket Open</p>
+                            <p class="text-xs font-bold text-slate-700">Tidak ada tiket Open</p>
+                            @if(request()->filled('search'))
+                            <p class="text-[11px] text-slate-400 mt-0.5">Tidak cocok dengan "{{ request('search') }}"</p>
+                            @endif
                         </div>
                         @endforelse
                     </div>
@@ -224,11 +273,14 @@
                             </div>
                         </a>
                         @empty
-                        <div class="p-8 text-center bg-white rounded-2xl border border-slate-200/80 shadow-sm flex flex-col items-center justify-center my-auto">
-                            <div class="w-12 h-12 bg-slate-50 rounded-full flex items-center justify-center text-slate-300 mb-2">
-                                <i class="fa-solid fa-inbox text-xl"></i>
+                        <div class="p-8 text-center bg-white rounded-2xl border {{ request()->filled('search') ? 'border-dashed border-slate-200' : 'border-slate-200/80' }} shadow-sm flex flex-col items-center justify-center my-auto">
+                            <div class="w-12 h-12 {{ request()->filled('search') ? 'bg-amber-50 text-amber-500' : 'bg-slate-50 text-slate-300' }} rounded-full flex items-center justify-center mb-2">
+                                <i class="fa-solid {{ request()->filled('search') ? 'fa-magnifying-glass' : 'fa-inbox' }} text-xl"></i>
                             </div>
-                            <p class="text-xs font-bold text-slate-500">Tidak ada tiket Progress</p>
+                            <p class="text-xs font-bold text-slate-700">Tidak ada tiket Progress</p>
+                            @if(request()->filled('search'))
+                            <p class="text-[11px] text-slate-400 mt-0.5">Tidak cocok dengan "{{ request('search') }}"</p>
+                            @endif
                         </div>
                         @endforelse
                     </div>
@@ -285,11 +337,14 @@
                             </div>
                         </a>
                         @empty
-                        <div class="p-8 text-center bg-white rounded-2xl border border-slate-200/80 shadow-sm flex flex-col items-center justify-center my-auto">
-                            <div class="w-12 h-12 bg-slate-50 rounded-full flex items-center justify-center text-slate-300 mb-2">
-                                <i class="fa-solid fa-inbox text-xl"></i>
+                        <div class="p-8 text-center bg-white rounded-2xl border {{ request()->filled('search') ? 'border-dashed border-slate-200' : 'border-slate-200/80' }} shadow-sm flex flex-col items-center justify-center my-auto">
+                            <div class="w-12 h-12 {{ request()->filled('search') ? 'bg-emerald-50 text-emerald-500' : 'bg-slate-50 text-slate-300' }} rounded-full flex items-center justify-center mb-2">
+                                <i class="fa-solid {{ request()->filled('search') ? 'fa-magnifying-glass' : 'fa-inbox' }} text-xl"></i>
                             </div>
-                            <p class="text-xs font-bold text-slate-500">Tidak ada tiket Closed</p>
+                            <p class="text-xs font-bold text-slate-700">Tidak ada tiket Closed</p>
+                            @if(request()->filled('search'))
+                            <p class="text-[11px] text-slate-400 mt-0.5">Tidak cocok dengan "{{ request('search') }}"</p>
+                            @endif
                         </div>
                         @endforelse
                     </div>

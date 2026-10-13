@@ -60,14 +60,14 @@
                                         <i class="fa-solid fa-ticket text-slate-400 text-sm w-4"></i>
                                         <span class="text-sm font-medium text-slate-500">Tiket ditangani</span>
                                     </div>
-                                    <span class="text-sm font-extrabold text-slate-800">82</span>
+                                    <span class="text-sm font-extrabold text-slate-800">{{ $tiket_ditangani }}</span>
                                 </div>
                                 <div class="flex items-center justify-between py-2 border-b border-slate-50 last:border-0">
                                     <div class="flex items-center gap-3">
                                         <i class="fa-regular fa-circle-check text-slate-400 text-sm w-4"></i>
                                         <span class="text-sm font-medium text-slate-500">Tiket selesai</span>
                                     </div>
-                                    <span class="text-sm font-extrabold text-slate-800">91</span>
+                                    <span class="text-sm font-extrabold text-slate-800">{{ $tiket_selesai }}</span>
                                 </div>
                                 <div class="flex items-center justify-between py-2 border-b border-slate-50 last:border-0">
                                     <div class="flex items-center gap-3">
@@ -81,7 +81,7 @@
                                         <i class="fa-solid fa-chart-line text-slate-400 text-sm w-4"></i>
                                         <span class="text-sm font-medium text-slate-500">Persentase ticket selesai</span>
                                     </div>
-                                    <span class="text-sm font-extrabold text-slate-800">92.5%</span>
+                                    <span class="text-sm font-extrabold text-slate-800">{{ $tiket_ditangani > 0 ? round(($tiket_selesai / $tiket_ditangani) * 100, 1) : 0 }}%</span>
                                 </div>
                             </div>
                         </div>

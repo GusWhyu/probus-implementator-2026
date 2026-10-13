@@ -295,9 +295,9 @@ class HomeController extends Controller
     public function penilaian($id){
         $user = User::findOrFail($id);
         
-        // Count user tickets for current month
-        $tiket_ditangani = Ticket::where('advisor_id', $id)->whereMonth('created_at', date('m'))->count();
-        $tiket_selesai = Ticket::where('advisor_id', $id)->where('status', 'closed')->whereMonth('created_at', date('m'))->count();
+        // Count user tickets for current month (tiket yang dibuat oleh user)
+        $tiket_ditangani = Ticket::where('user_id', $id)->whereMonth('created_at', date('m'))->count();
+        $tiket_selesai = Ticket::where('user_id', $id)->where('status', 'closed')->whereMonth('created_at', date('m'))->count();
         
         $nilai_tiket = $tiket_ditangani > 0 ? round(($tiket_selesai / $tiket_ditangani) * 100) : 80;
 
@@ -358,7 +358,7 @@ class HomeController extends Controller
         // Insert Module Details
         $modules = ModuleSystem::all();
         foreach($modules as $mod) {
-            $count = Ticket::where('advisor_id', $id)
+            $count = Ticket::where('user_id', $id)
                            ->where('module_system_id', $mod->id)
                            ->whereMonth('created_at', date('m'))
                            ->count();
@@ -423,7 +423,33 @@ class HomeController extends Controller
                   $sub->where('advisor_id', auth()->id())
                       ->whereNull('pending_advisor_id');
               });
-        });
+        })->with(['kategoriSystem', 'moduleSystem', 'client', 'user', 'advisor']);
+
+        // Search filter
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('ticket_number', 'like', "%{$search}%")
+                  ->orWhere('title', 'like', "%{$search}%")
+                  ->orWhere('description', 'like', "%{$search}%")
+                  ->orWhere('tipe_penanganan', 'like', "%{$search}%")
+                  ->orWhereHas('client', function($cq) use ($search) {
+                      $cq->where('nm_out', 'like', "%{$search}%");
+                  })
+                  ->orWhereHas('user', function($uq) use ($search) {
+                      $uq->where('name', 'like', "%{$search}%");
+                  })
+                  ->orWhereHas('advisor', function($aq) use ($search) {
+                      $aq->where('name', 'like', "%{$search}%");
+                  })
+                  ->orWhereHas('kategoriSystem', function($kq) use ($search) {
+                      $kq->where('name', 'like', "%{$search}%");
+                  })
+                  ->orWhereHas('moduleSystem', function($mq) use ($search) {
+                      $mq->where('name', 'like', "%{$search}%");
+                  });
+            });
+        }
 
         if ($request->filled('system')) {
             $query->where('system', $request->system);
