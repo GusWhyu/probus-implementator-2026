@@ -68,7 +68,7 @@ graph TD
         
         RB --> CR["+ Create Request (/createrq)"]
         MR --> CR
-        RB --> DR["Detail Request (/detailtiket/{id})"]
+        RB --> DR["Detail Request (/detailrequest/{id})"]
         MR --> DR
         
         DR --> APP["Approve (/request/{id}/approve)"]

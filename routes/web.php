@@ -48,7 +48,10 @@ Route::get('/riwayat/{id}', [HomeController::class, 'riwayat'])->middleware(['au
 // Request System Routes
 Route::get('/request', [RequestController::class, 'index'])->middleware(['auth'])->name('request.board');
 Route::get('/getOutlet/{search?}', [RequestController::class, 'getOutlet'])->name('getOutlet');
-Route::get('/detailtiket/{id}',[RequestController::class, 'detailrequest'])->middleware(['auth'])->name('detailtiket');
+Route::get('/detailrequest/{id}', [RequestController::class, 'detailrequest'])->middleware(['auth'])->name('detailrequest');
+Route::get('/detailtiket/{id}', function($id) {
+    return redirect()->route('detailrequest', ['id' => $id]);
+})->middleware(['auth'])->name('detailtiket');
 Route::get('/mrq', [RequestController::class, 'mrq'])->middleware(['auth'])->name('mrq');
 Route::get('/createrq', [RequestController::class, 'createrq'])->middleware(['auth'])->name('createrq');
 Route::get('/editrq/{id}', [RequestController::class, 'editrq'])->middleware(['auth'])->name('editrq');

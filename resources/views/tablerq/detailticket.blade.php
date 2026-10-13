@@ -25,6 +25,10 @@
     $isPendingOther = $datarq->pending_advisor_id != null && $datarq->pending_advisor_id != $aid;
     
     $showAlert = $isOverdue || $isUnassigned || $isPendingOther;
+    $prevUrl = url()->previous();
+    $currentUrl = url()->current();
+    $isInvalidBack = (!$prevUrl || $prevUrl === $currentUrl || str_contains($prevUrl, '/detailticket') || str_contains($prevUrl, '/ticket-') || str_contains($prevUrl, '/editticket'));
+    $backUrl = $isInvalidBack ? route('daftartiket') : $prevUrl;
 @endphp
 
 <x-app-layout>
@@ -34,7 +38,7 @@
             <!-- Header section -->
             <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-8 gap-4">
                 <div class="flex items-center gap-4">
-                    <a href="{{ url()->previous() !== url()->current() ? url()->previous() : route('daftartiket') }}" class="w-11 h-11 bg-white border border-slate-200 rounded-full flex items-center justify-center text-slate-500 hover:text-blue-600 hover:border-blue-200 hover:bg-blue-50 transition-all shadow-sm shrink-0">
+                    <a href="{{ $backUrl }}" onclick="if (document.referrer && !document.referrer.includes('/detailticket') && !document.referrer.includes('/ticket-') && !document.referrer.includes('/editticket')) { event.preventDefault(); window.location.href = document.referrer; }" class="w-11 h-11 bg-white border border-slate-200 rounded-full flex items-center justify-center text-slate-500 hover:text-blue-600 hover:border-blue-200 hover:bg-blue-50 transition-all shadow-sm shrink-0 cursor-pointer" title="Kembali">
                         <i class="fa-solid fa-arrow-left"></i>
                     </a>
                     <div>

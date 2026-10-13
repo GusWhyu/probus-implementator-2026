@@ -36,7 +36,7 @@
                                             <i class="fa-solid fa-ticket text-xs"></i>
                                         </div>
                                         <div>
-                                            <a href="/detailtiket/{{ $rl->request_id }}" class="text-sm font-bold text-slate-800 hover:text-blue-600 transition-colors line-clamp-1" title="{{ $rl->request->judul ?? 'Unknown' }}">
+                                            <a href="/detailrequest/{{ $rl->request_id }}" class="text-sm font-bold text-slate-800 hover:text-blue-600 transition-colors line-clamp-1" title="{{ $rl->request->judul ?? 'Unknown' }}">
                                                 {{ $rl->request->judul ?? 'Tiket Telah Dihapus' }}
                                             </a>
                                             <p class="text-[11px] font-semibold text-slate-400 mt-0.5">ID: #TK-{{ $rl->request_id }}</p>

@@ -13,8 +13,30 @@
                     </p>
                 </div>
                 
-                <div class="flex items-center gap-3">
-                    <a href="{{ route('createrq') }}" class="inline-flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-sm transition-all active:scale-95">
+                <div class="flex flex-wrap items-center gap-3">
+                    <form method="GET" action="{{ url()->current() }}" class="flex flex-wrap items-center gap-3">
+                        <select name="system" onchange="this.form.submit()" class="px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-xs sm:text-sm font-semibold text-slate-700 hover:border-slate-300 focus:outline-none focus:ring-4 focus:ring-blue-500/10 shadow-sm min-w-[140px] appearance-none cursor-pointer transition-all" style="background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2394a3b8%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E'); background-repeat: no-repeat; background-position: right 1rem top 50%; background-size: 0.65rem auto;">
+                            <option value="">Semua System</option>
+                            @foreach(($systems ?? []) as $sys)
+                                <option value="{{ data_get($sys, 'id') }}" {{ request('system') == data_get($sys, 'id') ? 'selected' : '' }}>{{ data_get($sys, 'name') }}</option>
+                            @endforeach
+                        </select>
+
+                        <select name="module" onchange="this.form.submit()" class="px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-xs sm:text-sm font-semibold text-slate-700 hover:border-slate-300 focus:outline-none focus:ring-4 focus:ring-blue-500/10 shadow-sm min-w-[140px] appearance-none cursor-pointer transition-all" style="background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2394a3b8%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E'); background-repeat: no-repeat; background-position: right 1rem top 50%; background-size: 0.65rem auto;">
+                            <option value="">Semua Module</option>
+                            @foreach(($modules ?? []) as $mod)
+                                <option value="{{ data_get($mod, 'id') }}" {{ request('module') == data_get($mod, 'id') ? 'selected' : '' }}>{{ data_get($mod, 'name') }}</option>
+                            @endforeach
+                        </select>
+
+                        @if(request('system') || request('module'))
+                        <a href="{{ url()->current() }}" class="px-3 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5" title="Reset Filter">
+                            <i class="fa-solid fa-xmark"></i> Reset
+                        </a>
+                        @endif
+                    </form>
+
+                    <a href="{{ route('createrq') }}" class="inline-flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-sm transition-all active:scale-95 shrink-0">
                         <i class="fa-solid fa-plus text-xs"></i> Create Request
                     </a>
                 </div>
@@ -35,9 +57,9 @@
                         </span>
                     </div>
 
-                    <div class="space-y-4">
+                    <div class="space-y-4 max-h-[calc(100vh-270px)] min-h-[450px] overflow-y-auto pr-2 custom-scrollbar">
                         @forelse ($open as $item)
-                        <a href="/detailtiket/{{ $item->id }}" class="block bg-white rounded-2xl p-5 border border-slate-200/90 shadow-sm hover:shadow-md hover:border-sky-200 transition-all group relative overflow-hidden">
+                        <a href="/detailrequest/{{ $item->id }}" class="block bg-white rounded-2xl p-5 border border-slate-200/90 shadow-sm hover:shadow-md hover:border-sky-200 transition-all group relative overflow-hidden">
                             <div class="flex items-center justify-between mb-3">
                                 <span class="text-xs font-bold text-slate-400 font-mono">#{{ $item->id }}</span>
                                 <span class="px-2.5 py-0.5 rounded-md text-[10px] font-extrabold uppercase tracking-wide text-white bg-sky-500">
@@ -104,9 +126,9 @@
                         </span>
                     </div>
 
-                    <div class="space-y-4">
+                    <div class="space-y-4 max-h-[calc(100vh-270px)] min-h-[450px] overflow-y-auto pr-2 custom-scrollbar">
                         @forelse ($progress as $item)
-                        <a href="/detailtiket/{{ $item->id }}" class="block bg-white rounded-2xl p-5 border border-slate-200/90 shadow-sm hover:shadow-md hover:border-amber-200 transition-all group relative overflow-hidden">
+                        <a href="/detailrequest/{{ $item->id }}" class="block bg-white rounded-2xl p-5 border border-slate-200/90 shadow-sm hover:shadow-md hover:border-amber-200 transition-all group relative overflow-hidden">
                             <div class="flex items-center justify-between mb-3">
                                 <span class="text-xs font-bold text-slate-400 font-mono">#{{ $item->id }}</span>
                                 <span class="px-2.5 py-0.5 rounded-md text-[10px] font-extrabold uppercase tracking-wide text-white bg-amber-500">
@@ -173,9 +195,9 @@
                         </span>
                     </div>
 
-                    <div class="space-y-4">
+                    <div class="space-y-4 max-h-[calc(100vh-270px)] min-h-[450px] overflow-y-auto pr-2 custom-scrollbar">
                         @forelse ($closed as $item)
-                        <a href="/detailtiket/{{ $item->id }}" class="block bg-white rounded-2xl p-5 border border-slate-200/90 shadow-sm hover:shadow-md hover:border-emerald-200 transition-all group relative overflow-hidden">
+                        <a href="/detailrequest/{{ $item->id }}" class="block bg-white rounded-2xl p-5 border border-slate-200/90 shadow-sm hover:shadow-md hover:border-emerald-200 transition-all group relative overflow-hidden">
                             <div class="flex items-center justify-between mb-3">
                                 <span class="text-xs font-bold text-slate-400 font-mono">#{{ $item->id }}</span>
                                 <span class="px-2.5 py-0.5 rounded-md text-[10px] font-extrabold uppercase tracking-wide text-white bg-emerald-500">
@@ -233,4 +255,26 @@
             </div>
         </div>
     </div>
+
+    <style>
+        .custom-scrollbar {
+            scrollbar-width: thin;
+            scrollbar-color: #cbd5e1 #f1f5f9;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 7px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 9999px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background-color: #cbd5e1;
+            border-radius: 9999px;
+            border: 1px solid #f1f5f9;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background-color: #94a3b8;
+        }
+    </style>
 </x-app-layout>

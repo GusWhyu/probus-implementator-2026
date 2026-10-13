@@ -1,7 +1,7 @@
 @forelse(($all_tickets ?? collect())->take(5) as $ticket)
 <tr class="border-b transition-colors {{ $ticket->pending_advisor_id != null ? 'bg-amber-50/50 hover:bg-amber-100/50 border-l-4 border-l-amber-400' : 'border-slate-50 hover:bg-slate-50/50' }}">
     <td class="py-3.5 text-sm font-semibold text-slate-700">
-        <a href="/detailtiket/{{ $ticket->id }}" class="hover:text-blue-600 transition-colors">{{ $ticket->title ?? $ticket->judul ?? 'N/A' }}</a>
+        <a href="/detailticket/{{ $ticket->id }}" class="hover:text-blue-600 transition-colors">{{ $ticket->title ?? $ticket->judul ?? 'N/A' }}</a>
     </td>
     <td class="py-3.5 text-sm text-slate-600">{{ $ticket->client->nm_out ?? $ticket->client->name ?? 'N/A' }}</td>
     <td class="py-3.5 text-sm text-slate-600">{{ $ticket->kategoriSystem->name ?? $ticket->kategori->name ?? 'N/A' }}</td>

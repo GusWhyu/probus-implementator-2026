@@ -30,7 +30,7 @@
                                                 }
                                             @endphp
                                             <tr>
-                                                <td class="p-3 text-lg text-abugelap"><a href="/detailtiket/{{ $rq->id }}" class="hover:underline">{{ Str::limit($rq->judul, 40, '...') }}</a></td>
+                                                <td class="p-3 text-lg text-abugelap"><a href="/detailrequest/{{ $rq->id }}" class="hover:underline">{{ Str::limit($rq->judul, 40, '...') }}</a></td>
                                                 <td class="p-3 text-sm text-abugelap"><div class="badge {{ $bg }} badge-lg rounded text-white">{{ $rq->status ? $rq->status->name : (in_array($rq->status_id, [1, 2]) ? 'Open' : ($rq->status_id == 3 ? 'Progress' : 'Closed')) }}</div></td>
                                                 <td class="p-3 text-xl text-abugelap"><a class="hover:text-black m-2" href="/editrq/{{ $rq->id }}"><i class="fa-solid fa-pen"></i></a>
                                                     <a data-confirm-delete="true" class="hover:text-black m-2" href="/deletereq/{{ $rq->id }}"><i class="fa-solid fa-trash"></i></a></td>

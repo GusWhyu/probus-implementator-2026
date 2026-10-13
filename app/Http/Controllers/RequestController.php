@@ -17,13 +17,32 @@ use App\Notifications\RequestStatusChanged;
 
 class RequestController extends Controller
 {
-    public function index(){
-        $open = \App\Models\Request::with(['outlet', 'tag', 'kategori', 'approver', 'status'])->whereIn('status_id', [1, 2])->latest()->take(20)->get();
-        $progress = \App\Models\Request::with(['outlet', 'tag', 'kategori', 'approver', 'status'])->where('status_id', 3)->latest()->take(20)->get();
-        $closed = \App\Models\Request::with(['outlet', 'tag', 'kategori', 'approver', 'status'])->where('status_id', 4)->latest()->take(20)->get();
+    public function index(Request $request){
+        $openQuery = \App\Models\Request::with(['outlet', 'tag', 'kategori', 'approver', 'status'])->whereIn('status_id', [1, 2]);
+        $progressQuery = \App\Models\Request::with(['outlet', 'tag', 'kategori', 'approver', 'status'])->where('status_id', 3);
+        $closedQuery = \App\Models\Request::with(['outlet', 'tag', 'kategori', 'approver', 'status'])->where('status_id', 4);
+
+        if ($request->filled('system')) {
+            $openQuery->where('tag_id', $request->system);
+            $progressQuery->where('tag_id', $request->system);
+            $closedQuery->where('tag_id', $request->system);
+        }
+
+        if ($request->filled('module')) {
+            $openQuery->where('kategori_id', $request->module);
+            $progressQuery->where('kategori_id', $request->module);
+            $closedQuery->where('kategori_id', $request->module);
+        }
+
+        $open = $openQuery->latest()->get();
+        $progress = $progressQuery->latest()->get();
+        $closed = $closedQuery->latest()->get();
+
+        $systems = Tag::all();
+        $modules = Kategori::all();
         
         $isMyReq = false;
-        return view('tablemyreq.myreq', compact('open', 'progress', 'closed', 'isMyReq'));
+        return view('tablemyreq.myreq', compact('open', 'progress', 'closed', 'systems', 'modules', 'isMyReq'));
     }
 
     public function detailrequest($id){
@@ -31,11 +50,16 @@ class RequestController extends Controller
         $text = 'Are you sure you want to delete this comment?';
         confirmDelete($title, $text);
         $datarq = \App\Models\Request::find($id);
+        if (!$datarq) {
+            Alert::error('Request not found!');
+            return redirect()->route('request.board');
+        }
         $dataimg = DataImage::where('request_id', $id)->get();
-        $komentar = Komentar::where('request_id', $id)->get();
+        $komentar = Komentar::where('request_id', $id)->with('user')->get();
         $dataus = UpdateSystem::where('request_id', $id)->get();
-        $reqlog = RequestLog::where('request_id', $id)->first();
-        return view('tablerq.detailrequest', compact('datarq', 'dataimg','komentar','dataus','reqlog'));
+        $reqlog = RequestLog::where('request_id', $id)->latest()->first();
+        $closedLog = RequestLog::where('request_id', $id)->where('status_id', 4)->latest()->first();
+        return view('tablerq.detailrequest', compact('datarq', 'dataimg','komentar','dataus','reqlog', 'closedLog'));
     }
 
     public function mrq(){
@@ -72,6 +96,14 @@ class RequestController extends Controller
 
     public function editrq($id){
         $req = \App\Models\Request::find($id);
+        if (!$req) {
+            Alert::error('Request not found!');
+            return redirect()->route('request.board');
+        }
+        if ($req->status_id == 4) {
+            Alert::warning('Request Ditutup', 'Request ini telah berstatus Closed dan tidak dapat diedit lagi.');
+            return redirect()->route('detailrequest', ['id' => $id]);
+        }
         $img = DataImage::where('request_id', $id)->get();
         $tag = Tag::all();
         $kategori = Kategori::all();
@@ -121,11 +153,19 @@ class RequestController extends Controller
             DataImage::insert($imagedata);
         }
         Alert::success('Create Ticket Success!');
-        return redirect()->route('detailtiket', ['id' => $data->id]);
+        return redirect()->route('detailrequest', ['id' => $data->id]);
     }
 
     public function updaterq(Request $request,$id){
         $rq = \App\Models\Request::find($id);
+        if (!$rq) {
+            Alert::error('Request not found!');
+            return redirect()->route('request.board');
+        }
+        if ($rq->status_id == 4) {
+            Alert::warning('Request Ditutup', 'Request ini telah berstatus Closed dan tidak dapat diedit lagi.');
+            return redirect()->route('detailrequest', ['id' => $id]);
+        }
         $request->validate([
             'title' => 'required|max:255',
             'body' => 'required',
@@ -185,8 +225,15 @@ class RequestController extends Controller
     }
 
     public function updatestatus($id,$stid){
-        $reqlog = RequestLog::class;
         $data = \App\Models\Request::find($id);
+        if (!$data) {
+            return redirect()->back();
+        }
+        if ($data->status_id == 4) {
+            Alert::warning('Request Ditutup', 'Request ini telah berstatus Closed dan tidak dapat diubah statusnya lagi.');
+            return redirect()->back();
+        }
+        $reqlog = RequestLog::class;
         $data->update([
             'status_id' => $stid
         ]);
@@ -196,12 +243,19 @@ class RequestController extends Controller
             'user_id' => Auth::user()->id
         ]);
         $creator = $data->user;
-        $creator->notify(new RequestStatusChanged($data));
+        if ($creator) {
+            $creator->notify(new RequestStatusChanged($data));
+        }
         Alert::success('Status Changed!');
         return redirect()->back();
     }
 
     public function komentar(Request $request,$id){
+        $rq = \App\Models\Request::find($id);
+        if (!$rq || $rq->status_id == 4) {
+            Alert::error('Akses Ditolak', 'Request telah ditutup, diskusi tidak dapat dilanjutkan.');
+            return redirect()->back();
+        }
         $request->validate([
             'comment' => 'required'
         ]);
@@ -214,9 +268,15 @@ class RequestController extends Controller
     }
 
     public function deletekomen($id){
-        $komen = Komentar::find($id);
-        $komen->delete();
-        Alert::success('Comment Deleted!');
+        $komen = Komentar::with('request')->find($id);
+        if ($komen && $komen->request && $komen->request->status_id == 4) {
+            Alert::error('Akses Ditolak', 'Request telah ditutup, komentar tidak dapat dihapus.');
+            return redirect()->back();
+        }
+        if ($komen) {
+            $komen->delete();
+            Alert::success('Comment Deleted!');
+        }
         return redirect()->back();
     }
 

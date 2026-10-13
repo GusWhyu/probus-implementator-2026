@@ -19,7 +19,7 @@
                             @foreach ($updt as $us)
                                 <tr>
                                     <td class="p-3 text-lg text-abugelap" ><a href="/detailus/{{ $us->id }}" class="hover:underline">{{ Str::limit($us->judul, 30, '...') }}</a></td>
-                                    <td class="p-3 text-lg text-abugelap"><a href="/detailtiket/{{ $us->request_id }}" class="hover:underline">{{ $us->request->judul }}</a></td>
+                                    <td class="p-3 text-lg text-abugelap"><a href="/detailrequest/{{ $us->request_id }}" class="hover:underline">{{ $us->request->judul }}</a></td>
                                     <td class="p-3 text-xl text-abugelap"><a class="hover:text-black m-2" href="/editus/{{ $us->id }}"><i class="fa-solid fa-pen"></i></a>
                                         <a data-confirm-delete="true" class="hover:text-black m-2" href="/deleteus/{{ $us->id }}"><i class="fa-solid fa-trash"></i></a></td>
                                 </tr>
