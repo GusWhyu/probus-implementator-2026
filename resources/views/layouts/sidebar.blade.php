@@ -47,6 +47,7 @@
             </ul>
         </div>
 
+        @can('aspv')
         <div>
             <div class="px-3 mb-3 text-[11px] font-bold text-slate-400 uppercase tracking-wider">Pengaturan</div>
             <ul class="space-y-1">
@@ -65,6 +66,7 @@
                 </li>
             </ul>
         </div>
+        @endcan
 
         @can('aspv')
         <div>

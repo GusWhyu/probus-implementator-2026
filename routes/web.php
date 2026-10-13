@@ -171,7 +171,7 @@ Route::get('/demo-tiket', function () {
 });
 
 // Settings -> Penilaian Soft Skill
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth', 'can:aspv'])->group(function () {
     Route::get('/pengaturan/soft-skill', [\App\Http\Controllers\PerformanceCategoryController::class, 'index'])->name('soft-skill.index');
     Route::get('/pengaturan/soft-skill/create', [\App\Http\Controllers\PerformanceCategoryController::class, 'create'])->name('soft-skill.create');
     Route::post('/pengaturan/soft-skill', [\App\Http\Controllers\PerformanceCategoryController::class, 'store'])->name('soft-skill.store');
