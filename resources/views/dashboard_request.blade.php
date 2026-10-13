@@ -198,7 +198,7 @@
                         <p class="text-[11px] text-slate-400 mt-0.5">Request pada periode tanggal yang dipilih</p>
                     </div>
                     <a href="{{ route('request.board') }}" class="text-[11px] font-bold text-blue-600 hover:text-blue-700 inline-flex items-center gap-1 transition-colors">
-                        Lihat Request Board <i class="fa-solid fa-chevron-right text-[8px]"></i>
+                        Lihat Daftar Request <i class="fa-solid fa-chevron-right text-[8px]"></i>
                     </a>
                 </div>
                 <div class="overflow-x-auto">

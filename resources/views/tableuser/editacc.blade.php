@@ -45,9 +45,9 @@
                             <div class="mt-5 {{ $user->id == 1 ? 'hidden' : '' }}">
                                 <x-label for="usertype" :value="__('User Type')" />
                                 <select name="usertype" id="usertype" class="rounded-lg w-full mt-1 shadow-sm border-gray-300 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
-                                    <option value="admin" {{ $user->usertype == 'admin' ? 'selected' : '' }}>admin</option>
-                                    <option value="supervisor" {{ $user->usertype == 'supervisor' ? 'selected' : '' }}>supervisor</option>
-                                    <option value="user" {{ $user->usertype == 'user' ? 'selected' : '' }}>user</option>
+                                    <option value="admin" {{ old('usertype', $user->usertype) == 'admin' ? 'selected' : '' }}>admin</option>
+                                    <option value="supervisor" {{ old('usertype', $user->usertype) == 'supervisor' ? 'selected' : '' }}>supervisor</option>
+                                    <option value="user" {{ old('usertype', $user->usertype) == 'user' ? 'selected' : '' }}>user</option>
                                 </select>
                             </div>
                 

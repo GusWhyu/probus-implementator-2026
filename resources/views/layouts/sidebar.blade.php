@@ -20,16 +20,34 @@
         <div>
             <div class="px-3 mb-3 text-[11px] font-bold text-slate-400 uppercase tracking-wider">Request System</div>
             <ul class="space-y-1">
-                <li><a href="{{ route('request.dashboard') }}" class="flex items-center px-3 py-2 text-sm {{ request()->routeIs('request.dashboard') ? 'text-blue-600 bg-blue-50 font-medium' : 'text-slate-600 hover:bg-slate-50' }} rounded-lg transition-colors"><i class="fa-solid fa-chart-line w-5 text-center mr-2 {{ request()->routeIs('request.dashboard') ? 'text-blue-600' : 'text-slate-400' }}"></i> Dashboard</a></li>
-                <li><a href="{{ route('request.board') }}" class="flex items-center px-3 py-2 text-sm {{ request()->routeIs('request.board') ? 'text-blue-600 bg-blue-50 font-medium' : 'text-slate-600 hover:bg-slate-50' }} rounded-lg transition-colors"><i class="fa-solid fa-layer-group w-5 text-center mr-2 {{ request()->routeIs('request.board') ? 'text-blue-600' : 'text-slate-400' }}"></i> Request Board</a></li>
-                <li><a href="{{ route('myreq') }}" class="flex items-center px-3 py-2 text-sm {{ request()->routeIs('myreq') ? 'text-blue-600 bg-blue-50 font-medium' : 'text-slate-600 hover:bg-slate-50' }} rounded-lg transition-colors justify-between">
-                    <div class="flex items-center"><i class="fa-solid fa-envelope-open-text w-5 text-center mr-2 {{ request()->routeIs('myreq') ? 'text-blue-600' : 'text-slate-400' }}"></i> My Request</div>
+                <li><a href="{{ route('request.dashboard') }}" class="flex items-center px-3 py-2 text-sm {{ request()->routeIs('request.dashboard') ? 'text-blue-600 bg-blue-50 font-medium' : 'text-slate-600 hover:bg-slate-50' }} rounded-lg transition-colors"><i class="fa-solid fa-chart-line w-5 text-center mr-2.5 {{ request()->routeIs('request.dashboard') ? 'text-blue-600' : 'text-slate-400' }}"></i> <span>Dashboard</span></a></li>
+                <li><a href="{{ route('request.board') }}" class="flex items-center px-3 py-1.5 text-sm {{ request()->routeIs('request.board') ? 'text-blue-600 bg-blue-50 font-medium' : 'text-slate-600 hover:bg-slate-50' }} rounded-lg transition-colors">
+                    <i class="fa-solid fa-layer-group w-5 text-center mr-2.5 {{ request()->routeIs('request.board') ? 'text-blue-600' : 'text-slate-400' }}"></i>
+                    <div class="flex flex-col">
+                        <span class="leading-tight">Daftar Request</span>
+                        <span class="text-[10px] {{ request()->routeIs('request.board') ? 'text-blue-500/80 font-normal' : 'text-slate-400 font-normal' }}">Semua Request</span>
+                    </div>
+                </a></li>
+                <li><a href="{{ route('myreq') }}" class="flex items-center px-3 py-1.5 text-sm {{ request()->routeIs('myreq') ? 'text-blue-600 bg-blue-50 font-medium' : 'text-slate-600 hover:bg-slate-50' }} rounded-lg transition-colors justify-between">
+                    <div class="flex items-center">
+                        <i class="fa-solid fa-inbox w-5 text-center mr-2.5 {{ request()->routeIs('myreq') ? 'text-blue-600' : 'text-slate-400' }}"></i>
+                        <div class="flex flex-col">
+                            <span class="leading-tight">My Request</span>
+                            <span class="text-[10px] {{ request()->routeIs('myreq') ? 'text-blue-500/80 font-normal' : 'text-slate-400 font-normal' }}">Antrean Masuk</span>
+                        </div>
+                    </div>
                     @if (count($rq1) > 0)
                         <span class="bg-blue-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">{{ count($rq1) }}</span>
                     @endif
                 </a></li>
-                <li><a href="{{ route('history') }}" class="flex items-center px-3 py-2 text-sm {{ request()->routeIs('history') || request()->routeIs('request.history') || request()->routeIs('myrequs') || request()->routeIs('myrequest') || request()->routeIs('myupdatesystem') ? 'text-blue-600 bg-blue-50 font-medium' : 'text-slate-600 hover:bg-slate-50' }} rounded-lg transition-colors"><i class="fa-solid fa-clock-rotate-left w-5 text-center mr-2 {{ request()->routeIs('history') || request()->routeIs('request.history') || request()->routeIs('myrequs') || request()->routeIs('myrequest') || request()->routeIs('myupdatesystem') ? 'text-blue-600' : 'text-slate-400' }}"></i> History</a></li>
-                <li><a href="{{ route('activitylog') }}" class="flex items-center px-3 py-2 text-sm {{ request()->routeIs('activitylog') ? 'text-blue-600 bg-blue-50 font-medium' : 'text-slate-600 hover:bg-slate-50' }} rounded-lg transition-colors"><i class="fa-solid fa-timeline w-5 text-center mr-2 {{ request()->routeIs('activitylog') ? 'text-blue-600' : 'text-slate-400' }}"></i> Activity Log</a></li>
+                <li><a href="{{ route('history') }}" class="flex items-center px-3 py-1.5 text-sm {{ request()->routeIs('history') || request()->routeIs('request.history') || request()->routeIs('myrequs') || request()->routeIs('myrequest') || request()->routeIs('myupdatesystem') ? 'text-blue-600 bg-blue-50 font-medium' : 'text-slate-600 hover:bg-slate-50' }} rounded-lg transition-colors">
+                    <i class="fa-solid fa-clock-rotate-left w-5 text-center mr-2.5 {{ request()->routeIs('history') || request()->routeIs('request.history') || request()->routeIs('myrequs') || request()->routeIs('myrequest') || request()->routeIs('myupdatesystem') ? 'text-blue-600' : 'text-slate-400' }}"></i>
+                    <div class="flex flex-col">
+                        <span class="leading-tight">History</span>
+                        <span class="text-[10px] {{ request()->routeIs('history') || request()->routeIs('request.history') || request()->routeIs('myrequs') || request()->routeIs('myrequest') || request()->routeIs('myupdatesystem') ? 'text-blue-500/80 font-normal' : 'text-slate-400 font-normal' }}">Pengajuan Saya</span>
+                    </div>
+                </a></li>
+                <li><a href="{{ route('activitylog') }}" class="flex items-center px-3 py-2 text-sm {{ request()->routeIs('activitylog') ? 'text-blue-600 bg-blue-50 font-medium' : 'text-slate-600 hover:bg-slate-50' }} rounded-lg transition-colors"><i class="fa-solid fa-timeline w-5 text-center mr-2.5 {{ request()->routeIs('activitylog') ? 'text-blue-600' : 'text-slate-400' }}"></i> <span>Activity Log</span></a></li>
             </ul>
         </div>
         

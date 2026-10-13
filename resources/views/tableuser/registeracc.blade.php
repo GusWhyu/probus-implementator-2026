@@ -39,7 +39,7 @@
                             <label for="tag" class="block text-sm font-semibold text-slate-700 mb-2">User Tag <span class="text-red-500">*</span></label>
                             <select name="tag" id="tag" class="block w-full rounded-xl border-slate-200 focus:border-blue-500 focus:ring focus:ring-blue-500/20 shadow-sm text-sm py-2.5 px-4 transition-colors">
                                 @foreach ($tag as $item)
-                                    <option value="{{ $item->id }}">{{ $item->name }}</option>
+                                    <option value="{{ $item->id }}" {{ old('tag') == $item->id ? 'selected' : '' }}>{{ $item->name }}</option>
                                 @endforeach
                             </select>
                         </div>
@@ -48,9 +48,9 @@
                         <div>
                             <label for="usertype" class="block text-sm font-semibold text-slate-700 mb-2">User Type <span class="text-red-500">*</span></label>
                             <select name="usertype" id="usertype" class="block w-full rounded-xl border-slate-200 focus:border-blue-500 focus:ring focus:ring-blue-500/20 shadow-sm text-sm py-2.5 px-4 transition-colors">
-                                <option value="admin">Admin</option>
-                                <option value="supervisor">Supervisor</option>
-                                <option value="user" selected>User</option>
+                                <option value="admin" {{ old('usertype') == 'admin' ? 'selected' : '' }}>Admin</option>
+                                <option value="supervisor" {{ old('usertype') == 'supervisor' ? 'selected' : '' }}>Supervisor</option>
+                                <option value="user" {{ old('usertype', 'user') == 'user' ? 'selected' : '' }}>User</option>
                             </select>
                         </div>
                         

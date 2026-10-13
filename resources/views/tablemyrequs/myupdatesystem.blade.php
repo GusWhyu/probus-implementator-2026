@@ -5,7 +5,7 @@
                 
                 <div class="flex items-center justify-between gap-4 mb-6">
                     <h1 class="text-3xl font-bold text-slate-800 tracking-tight">Update System List</h1>
-                    <a href="{{ route('history') }}" class="w-10 h-10 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center transition-all shadow-sm" title="Kembali ke History">
+                    <a href="{{ route('history') }}" class="w-10 h-10 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center transition-all shadow-sm" title="Kembali ke History (Pengajuan Saya)">
                         <i class="fa-solid fa-arrow-left"></i>
                     </a>
                 </div>

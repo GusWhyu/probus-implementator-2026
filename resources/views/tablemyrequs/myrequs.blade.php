@@ -5,7 +5,8 @@
                 
                 <!-- Request List Section -->
                 <div>
-                    <h1 class="text-3xl font-bold text-slate-800 tracking-tight mb-4">Request List</h1>
+                    <h1 class="text-3xl font-bold text-slate-800 tracking-tight">History (Pengajuan Saya)</h1>
+                    <p class="text-sm text-slate-500 font-medium mt-1 mb-5">Riwayat dan progres request sistem yang pernah Anda buat.</p>
                     
                     <div class="mb-6">
                         <a href="{{ route('createrq') }}" class="inline-flex items-center gap-2 bg-black hover:bg-slate-800 text-white font-bold px-4 py-2.5 rounded-lg text-sm transition-all shadow-sm">

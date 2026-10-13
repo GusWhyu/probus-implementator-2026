@@ -6,10 +6,10 @@
             <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-8 gap-4">
                 <div>
                     <h1 class="text-2xl md:text-3xl font-extrabold text-slate-800 tracking-tight flex items-center gap-3">
-                        {{ ($isMyReq ?? true) ? 'My Request' : 'Request' }}
+                        {{ ($isMyReq ?? true) ? 'My Request (Antrean Masuk)' : 'Daftar Request (Semua Request)' }}
                     </h1>
                     <p class="text-sm text-slate-500 font-medium mt-1">
-                        {{ ($isMyReq ?? true) ? 'Pantau daftar request pengerjaan sistem yang ditugaskan untuk tim Anda.' : 'Pantau dan kelola seluruh papan request pengerjaan sistem pelanggan.' }}
+                        {{ ($isMyReq ?? true) ? 'Pantau daftar request pengerjaan sistem yang ditugaskan untuk tim/divisi Anda.' : 'Pantau dan kelola seluruh daftar request pengerjaan sistem pelanggan.' }}
                     </p>
                 </div>
                 
