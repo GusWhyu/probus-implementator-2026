@@ -1,9 +1,9 @@
 <x-app-layout>
-    <div class="py-8 bg-slate-50/50 min-h-screen">
+    <div x-data="{ activeTab: 'open' }" class="py-4 sm:py-8 bg-slate-50/50 min-h-screen">
         <div class="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
             
             {{-- Header Section --}}
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-8 gap-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-6 md:mb-8 gap-4">
                 <div>
                     <h1 class="text-2xl md:text-3xl font-extrabold text-slate-800 tracking-tight flex items-center gap-3">
                         {{ ($isMyReq ?? true) ? 'My Request (Antrean Masuk)' : 'Daftar Request (Semua Request)' }}
@@ -36,9 +36,44 @@
                         @endif
                     </form>
 
-                    <a href="{{ route('createrq') }}" class="inline-flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-sm transition-all active:scale-95 shrink-0">
+                    <a href="{{ route('createrq', ['from' => ($isMyReq ?? true) ? 'myreq' : 'request']) }}" class="inline-flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-sm transition-all active:scale-95 shrink-0">
                         <i class="fa-solid fa-plus text-xs"></i> Create Request
                     </a>
+                </div>
+            </div>
+
+            {{-- Mobile Segmented Tabs Selector (Only on mobile < md) --}}
+            <div class="sticky top-0 bg-[#F8FAFC]/95 backdrop-blur-sm -mx-4 px-4 sm:-mx-6 sm:px-6 py-2 mb-4 z-20 flex md:hidden">
+                <div class="w-full bg-slate-200/80 p-1 rounded-xl flex gap-1 shadow-inner">
+                    <button type="button" @click="activeTab = 'open'" 
+                        :class="activeTab === 'open' ? 'bg-white text-sky-600 shadow-sm font-bold' : 'text-slate-600 hover:text-slate-800 font-semibold'" 
+                        class="flex-1 py-2 px-2 rounded-lg text-xs flex items-center justify-center gap-1.5 transition-all">
+                        <span>Open</span>
+                        <span class="px-1.5 py-0.2 rounded-full text-[10px] font-bold" 
+                            :class="activeTab === 'open' ? 'bg-sky-100 text-sky-700' : 'bg-slate-300/80 text-slate-600'">
+                            {{ count($open) }}
+                        </span>
+                    </button>
+                    
+                    <button type="button" @click="activeTab = 'progress'" 
+                        :class="activeTab === 'progress' ? 'bg-white text-amber-600 shadow-sm font-bold' : 'text-slate-600 hover:text-slate-800 font-semibold'" 
+                        class="flex-1 py-2 px-2 rounded-lg text-xs flex items-center justify-center gap-1.5 transition-all">
+                        <span>Progress</span>
+                        <span class="px-1.5 py-0.2 rounded-full text-[10px] font-bold" 
+                            :class="activeTab === 'progress' ? 'bg-amber-100 text-amber-700' : 'bg-slate-300/80 text-slate-600'">
+                            {{ count($progress) }}
+                        </span>
+                    </button>
+                    
+                    <button type="button" @click="activeTab = 'closed'" 
+                        :class="activeTab === 'closed' ? 'bg-white text-emerald-600 shadow-sm font-bold' : 'text-slate-600 hover:text-slate-800 font-semibold'" 
+                        class="flex-1 py-2 px-2 rounded-lg text-xs flex items-center justify-center gap-1.5 transition-all">
+                        <span>Closed</span>
+                        <span class="px-1.5 py-0.2 rounded-full text-[10px] font-bold" 
+                            :class="activeTab === 'closed' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-300/80 text-slate-600'">
+                            {{ count($closed) }}
+                        </span>
+                    </button>
                 </div>
             </div>
 
@@ -46,7 +81,7 @@
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
                 
                 {{-- Column 1: Open --}}
-                <div class="flex flex-col w-full">
+                <div :class="activeTab === 'open' ? 'flex' : 'hidden md:flex'" class="flex-col w-full">
                     <div class="flex items-center justify-between mb-4 px-1">
                         <a href="{{ ($isMyReq ?? true) ? '/myproc/2' : '/mrq/2' }}" class="text-xs font-extrabold uppercase tracking-wider text-slate-600 hover:text-sky-600 flex items-center gap-1.5 transition-colors group">
                             <span>Open</span>
@@ -115,7 +150,7 @@
                 </div>
 
                 {{-- Column 2: Progress --}}
-                <div class="flex flex-col w-full">
+                <div :class="activeTab === 'progress' ? 'flex' : 'hidden md:flex'" class="flex-col w-full">
                     <div class="flex items-center justify-between mb-4 px-1">
                         <a href="{{ ($isMyReq ?? true) ? '/myproc/3' : '/mrq/3' }}" class="text-xs font-extrabold uppercase tracking-wider text-slate-600 hover:text-amber-600 flex items-center gap-1.5 transition-colors group">
                             <span>Progress</span>
@@ -184,7 +219,7 @@
                 </div>
 
                 {{-- Column 3: Closed --}}
-                <div class="flex flex-col w-full">
+                <div :class="activeTab === 'closed' ? 'flex' : 'hidden md:flex'" class="flex-col w-full">
                     <div class="flex items-center justify-between mb-4 px-1">
                         <a href="{{ ($isMyReq ?? true) ? '/myproc/4' : '/mrq/4' }}" class="text-xs font-extrabold uppercase tracking-wider text-slate-600 hover:text-emerald-600 flex items-center gap-1.5 transition-colors group">
                             <span>Closed</span>

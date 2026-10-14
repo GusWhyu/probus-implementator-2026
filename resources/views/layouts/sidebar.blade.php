@@ -1,6 +1,15 @@
 @php
     $usertag = Auth::user()->tag_id;
     $rq1 = \App\Models\Request::where('tag_id', $usertag)->where('status_id', '!=', 4)->get();
+    
+    $inboxTicketsCount = \App\Models\Ticket::where(function($q) {
+        $q->where('user_id', Auth::id())
+          ->orWhere(function($sub) {
+              $sub->where('advisor_id', Auth::id())
+                  ->whereNull('pending_advisor_id');
+          })
+          ->orWhere('pending_advisor_id', Auth::id());
+    })->where('status', '!=', 'CLOSED')->count();
 @endphp
 
 <!-- Mobile overlay -->
@@ -56,7 +65,15 @@
             <ul class="space-y-1">
                 <li><a href="{{ route('dashboard') }}" class="flex items-center px-3 py-2 text-sm {{ request()->routeIs('dashboard') ? 'text-blue-600 bg-blue-50 font-medium' : 'text-slate-600 hover:bg-slate-50' }} rounded-lg transition-colors"><i class="fa-solid fa-chart-line w-5 text-center mr-2 {{ request()->routeIs('dashboard') ? 'text-blue-600' : 'text-slate-400' }}"></i> Dashboard</a></li>
                 <li><a href="{{ route('daftartiket') }}" class="flex items-center px-3 py-2 text-sm {{ request()->routeIs('daftartiket') ? 'text-blue-600 bg-blue-50 font-medium' : 'text-slate-600 hover:bg-slate-50' }} rounded-lg transition-colors"><i class="fa-solid fa-ticket w-5 text-center mr-2 {{ request()->routeIs('daftartiket') ? 'text-blue-600' : 'text-slate-400' }}"></i> Daftar Tiket</a></li>
-                <li><a href="{{ route('inbox') }}" class="flex items-center px-3 py-2 text-sm {{ request()->routeIs('inbox') ? 'text-blue-600 bg-blue-50 font-medium' : 'text-slate-600 hover:bg-slate-50' }} rounded-lg transition-colors"><i class="fa-solid fa-inbox w-5 text-center mr-2 {{ request()->routeIs('inbox') ? 'text-blue-600' : 'text-slate-400' }}"></i> Inbox & Manajemen</a></li>
+                <li><a href="{{ route('inbox') }}" class="flex items-center px-3 py-2 text-sm {{ request()->routeIs('inbox') ? 'text-blue-600 bg-blue-50 font-medium' : 'text-slate-600 hover:bg-slate-50' }} rounded-lg transition-colors justify-between">
+                    <div class="flex items-center">
+                        <i class="fa-solid fa-inbox w-5 text-center mr-2 {{ request()->routeIs('inbox') ? 'text-blue-600' : 'text-slate-400' }}"></i> 
+                        <span>Inbox & Manajemen</span>
+                    </div>
+                    @if ($inboxTicketsCount > 0)
+                        <span class="bg-blue-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">{{ $inboxTicketsCount }}</span>
+                    @endif
+                </a></li>
                 @if(Auth::user()->usertype != 'user')
                 <li><a href="{{ route('laporan') }}" class="flex items-center px-3 py-2 text-sm {{ request()->routeIs('laporan') ? 'text-blue-600 bg-blue-50 font-medium' : 'text-slate-600 hover:bg-slate-50' }} rounded-lg transition-colors"><i class="fa-solid fa-file-lines w-5 text-center mr-2 {{ request()->routeIs('laporan') ? 'text-blue-600' : 'text-slate-400' }}"></i> Laporan</a></li>
                 @endif
@@ -105,8 +122,8 @@
     <!-- User Profile -->
     <div class="p-4 border-t border-slate-100 relative group" tabindex="0">
         <div class="flex items-center gap-3 bg-slate-50/50 p-3 rounded-xl border border-slate-100/50 hover:bg-slate-50 transition-colors cursor-pointer">
-            <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold shrink-0">
-                <img src="{{ asset('img/material/user1.png') }}" alt="" class="w-full h-full rounded-full object-cover" onerror="this.src='https://ui-avatars.com/api/?name={{ urlencode(Auth::user()->name) }}&background=bfdbfe&color=2563eb'">
+            <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold shrink-0 overflow-hidden shadow-sm">
+                <img src="{{ Auth::user()->avatar_url }}" alt="{{ Auth::user()->name }}" class="w-full h-full rounded-full object-cover">
             </div>
             <div class="overflow-hidden flex-1">
                 <div class="font-semibold text-sm text-slate-800 truncate">{{ Auth::user()->name }}</div>

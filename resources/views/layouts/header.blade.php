@@ -65,11 +65,7 @@
         <!-- User Avatar -->
         <a href="{{ route('profile') }}" class="block">
             <div class="w-9 h-9 rounded-full bg-slate-200 overflow-hidden cursor-pointer hover:ring-2 hover:ring-blue-500 hover:ring-offset-2 transition-all shadow-sm">
-                @if(Auth::user()->usertype === 'admin')
-                    <img src="https://ui-avatars.com/api/?name={{ urlencode(Auth::user()->name) }}&background=2563eb&color=fff&bold=true" alt="" class="w-full h-full object-cover">
-                @else
-                    <img src="{{ asset('img/material/user1.png') }}" alt="" class="w-full h-full object-cover" onerror="this.src='https://ui-avatars.com/api/?name={{ urlencode(Auth::user()->name) }}&background=e2e8f0&color=475569'">
-                @endif
+                <img src="{{ Auth::user()->avatar_url }}" alt="{{ Auth::user()->name }}" class="w-full h-full object-cover">
             </div>
         </a>
     </div>

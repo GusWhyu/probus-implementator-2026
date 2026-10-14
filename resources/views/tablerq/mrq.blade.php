@@ -33,7 +33,7 @@
                 </div>
 
                 <div class="flex items-center gap-3">
-                    <a href="{{ route('createrq') }}" class="inline-flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-sm transition-all active:scale-95">
+                    <a href="{{ route('createrq', ['from' => 'request']) }}" class="inline-flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-sm transition-all active:scale-95">
                         <i class="fa-solid fa-plus text-xs"></i> Create Request
                     </a>
                 </div>

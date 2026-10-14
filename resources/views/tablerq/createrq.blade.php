@@ -15,7 +15,7 @@
             <!-- Header section -->
             <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-8 gap-4">
                 <div class="flex items-center gap-4">
-                    <a href="{{ route('myreq') }}" class="w-11 h-11 bg-white border border-slate-200 rounded-full flex items-center justify-center text-slate-500 hover:text-blue-600 hover:border-blue-200 hover:bg-blue-50 transition-all shadow-sm shrink-0" title="Kembali">
+                    <a href="{{ $returnUrl ?? route('myreq') }}" class="w-11 h-11 bg-white border border-slate-200 rounded-full flex items-center justify-center text-slate-500 hover:text-blue-600 hover:border-blue-200 hover:bg-blue-50 transition-all shadow-sm shrink-0" title="Kembali">
                         <i class="fa-solid fa-arrow-left"></i>
                     </a>
                     <div>
@@ -31,6 +31,7 @@
             <div class="max-w-5xl mx-auto">
                 <form method="POST" action="/createrq" enctype="multipart/form-data">
                     @csrf
+                    <input type="hidden" name="return_url" value="{{ $returnUrl ?? '' }}">
                     
                     <!-- Section 1: Informasi Request -->
                     <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden mb-5">
@@ -186,7 +187,7 @@
 
                     <!-- Submit Actions -->
                     <div class="flex items-center justify-end gap-3 pt-2 pb-4">
-                        <a href="{{ route('myreq') }}" class="px-7 py-3 bg-white border border-slate-200 text-slate-600 font-bold text-sm rounded-xl hover:bg-slate-50 transition-colors shadow-sm">
+                        <a href="{{ $returnUrl ?? route('myreq') }}" class="px-7 py-3 bg-white border border-slate-200 text-slate-600 font-bold text-sm rounded-xl hover:bg-slate-50 transition-colors shadow-sm">
                             <i class="fa-solid fa-xmark mr-1.5 text-slate-400"></i> Batal
                         </a>
                         <button type="submit" class="px-7 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm rounded-xl shadow-md shadow-blue-500/20 transition-all active:scale-95 flex items-center gap-2">

@@ -152,6 +152,7 @@ Route::delete('/deleteclient/{id}',[ClientController::class, 'delete'])->middlew
 Route::get('/profile', [ProfileController::class, 'index'])->middleware(['auth'])->name('profile');
 Route::get('/editprofile/{id}', [ProfileController::class, 'edit'])->middleware(['auth'])->name('editprofile');
 Route::post('/editprofile/{id}', [ProfileController::class, 'updateprofile'])->middleware(['auth'])->name('updateprofile');
+Route::post('/profile/delete-photo/{id}', [ProfileController::class, 'deletePhoto'])->middleware(['auth'])->name('profile.deletePhoto');
 Route::get('/editpassacc', [ProfileController::class, 'editpass'])->middleware(['auth'])->name('editpassacc');
 Route::post('/editpassacc', [ProfileController::class, 'updatepass'])->middleware(['auth'])->name('updatepassacc');
 

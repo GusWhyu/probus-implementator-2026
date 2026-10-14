@@ -384,12 +384,12 @@
 
                             <!-- Row 5 -->
                             <div>
-                                <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wide mb-1.5">{{ $datarq->closed_at ? 'Closed At' : 'Updated At' }}</p>
-                                <p class="font-bold text-slate-800 text-sm">{{ Carbon::parse($datarq->closed_at ?? $datarq->updated_at)->format('d/m/Y') }}</p>
-                            </div>
-                            <div>
                                 <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wide mb-1.5">Handle At</p>
                                 <p class="font-bold text-slate-800 text-sm">{{ $datarq->handle_at ? Carbon::parse($datarq->handle_at)->format('d/m/Y') : '-' }}</p>
+                            </div>
+                            <div>
+                                <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wide mb-1.5">{{ $datarq->closed_at ? 'Closed At' : 'Updated At' }}</p>
+                                <p class="font-bold text-slate-800 text-sm">{{ Carbon::parse($datarq->closed_at ?? $datarq->updated_at)->format('d/m/Y') }}</p>
                             </div>
                         </div>
                     </div>
@@ -512,7 +512,9 @@
                             <option value="" disabled selected>Pilih user...</option>
                             @php
                                 $currentUser = Auth::user();
-                                $takeoverQuery = \App\Models\User::where('id', '!=', $datarq->user_id);
+                                // Kecualikan user pemilik tiket saat ini dan user yang sedang login
+                                $takeoverQuery = \App\Models\User::where('id', '!=', $datarq->user_id)
+                                    ->where('id', '!=', $currentUser->id);
 
                                 // 1. Filter departemen: hanya user dalam 1 departemen yang sama
                                 if ($currentUser->departemen_id) {
@@ -524,7 +526,7 @@
                                 if ($currentUser->usertype === 'user') {
                                     $takeoverQuery->where('usertype', 'user');
                                 } else {
-                                    // Admin atau Supervisor bisa ke semua user dalam 1 departemen
+                                    // Admin atau Supervisor bisa ke semua user lain dalam 1 departemen
                                     $takeoverQuery->whereIn('usertype', ['admin', 'supervisor', 'user']);
                                 }
 
@@ -535,20 +537,20 @@
                                 <option value="" disabled>Tidak ada user lain di departemen ini</option>
                             @else
                                 @foreach($eligibleUsers as $usr)
-                                    <option value="{{ $usr->id }}">{{ $usr->name }} @if($currentUser->usertype !== 'user') ({{ ucfirst($usr->usertype) }}) @endif @if($usr->id == Auth::id()) (Anda) @endif</option>
+                                    <option value="{{ $usr->id }}">{{ $usr->name }} @if($currentUser->usertype !== 'user') ({{ ucfirst($usr->usertype) }}) @endif</option>
                                 @endforeach
                             @endif
 
                             {{-- Hidden option for "Ambil Alih" tab by Admin/Supervisor --}}
-                            @if(($ust == 'admin' || $ust == 'supervisor') && $datarq->user_id != Auth::id() && !$eligibleUsers->contains('id', Auth::id()))
+                            @if(($ust == 'admin' || $ust == 'supervisor') && $datarq->user_id != Auth::id())
                                 <option value="{{ Auth::id() }}" class="hidden">{{ Auth::user()->name }} (Ambil Alih)</option>
                             @endif
                         </select>
                         <i class="fa-solid fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 text-[10px] pointer-events-none group-hover:text-blue-500 transition-colors"></i>
                     </div>
-                    @if($currentUser->usertype === 'user' && $eligibleUsers->isEmpty())
+                    @if($eligibleUsers->isEmpty())
                         <p class="text-[10px] text-amber-600 font-medium mt-1.5 flex items-center gap-1">
-                            <i class="fa-solid fa-circle-info"></i> Tidak ada user lain berlevel User dalam departemen Anda untuk dialihkan.
+                            <i class="fa-solid fa-circle-info"></i> Tidak ada user lain dalam departemen Anda untuk dialihkan.
                         </p>
                     @endif
                 </div>

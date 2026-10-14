@@ -41,8 +41,8 @@
                             <tr class="hover:bg-slate-50/50 transition-colors group">
                                 <td class="py-4 px-4 text-sm font-semibold text-slate-700">
                                     <div class="flex items-center gap-3">
-                                        <div class="w-8 h-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center text-xs">
-                                            <i class="fa-solid fa-user"></i>
+                                        <div class="w-8 h-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center text-xs overflow-hidden shadow-xs shrink-0">
+                                            <img src="{{ $item->avatar_url }}" alt="{{ $item->name }}" class="w-full h-full object-cover">
                                         </div>
                                         {{ $item->name }}
                                     </div>

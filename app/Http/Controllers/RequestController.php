@@ -302,14 +302,60 @@ class RequestController extends Controller
         ]);
     }
 
-    public function createrq(){
+    public function createrq(Request $request){
         // Divisi / Tim Pelaksana (Tag model)
         $tag = \App\Models\Tag::orderBy('name')->get(); 
         // System / Aplikasi (Kategori model)
         $kategori = \App\Models\Kategori::orderBy('name')->get();
         // Client: Mengambil data dari tabel moutlet (Outlet model)
         $clients = \App\Models\Outlet::orderBy('nm_out')->get();
-        return view('tablerq.createrq', compact('tag', 'kategori', 'clients'));
+
+        // Tentukan URL kembali sesuai halaman asal pengguna
+        $returnUrl = null;
+        $previousUrl = url()->previous();
+        $isFromCreaterq = empty($previousUrl) || str_contains($previousUrl, '/createrq');
+
+        if ($request->filled('from')) {
+            $from = $request->query('from');
+            if (!$isFromCreaterq && (
+                ($from === 'request' && str_contains($previousUrl, '/request')) ||
+                ($from === 'myreq' && str_contains($previousUrl, '/myreq')) ||
+                ($from === 'history' && (str_contains($previousUrl, '/history') || str_contains($previousUrl, '/myrequs'))) ||
+                ($from === 'myrequest' && str_contains($previousUrl, '/myrequest'))
+            )) {
+                $returnUrl = $previousUrl;
+            } else {
+                if ($from === 'board' || $from === 'request' || $from === 'daftar_request') {
+                    $returnUrl = route('request.board');
+                } elseif ($from === 'myreq') {
+                    $returnUrl = route('myreq');
+                } elseif ($from === 'history' || $from === 'myrequs') {
+                    $returnUrl = route('history');
+                } elseif ($from === 'myrequest') {
+                    $returnUrl = route('myrequest');
+                } elseif ($from === 'dashboard') {
+                    $returnUrl = route('request.dashboard');
+                }
+            }
+        } elseif ($request->filled('return_url')) {
+            $returnUrl = $request->input('return_url');
+        } elseif (old('return_url')) {
+            $returnUrl = old('return_url');
+        }
+
+        if (!$returnUrl) {
+            if (!$isFromCreaterq) {
+                $returnUrl = $previousUrl;
+            } else {
+                $returnUrl = session('createrq_return_url', route('request.board'));
+            }
+        }
+
+        if ($returnUrl && !str_contains($returnUrl, '/createrq')) {
+            session(['createrq_return_url' => $returnUrl]);
+        }
+
+        return view('tablerq.createrq', compact('tag', 'kategori', 'clients', 'returnUrl'));
     }
 
     public function editrq($id){
