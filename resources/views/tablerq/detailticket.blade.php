@@ -387,6 +387,10 @@
                                 <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wide mb-1.5">{{ $datarq->closed_at ? 'Closed At' : 'Updated At' }}</p>
                                 <p class="font-bold text-slate-800 text-sm">{{ Carbon::parse($datarq->closed_at ?? $datarq->updated_at)->format('d/m/Y') }}</p>
                             </div>
+                            <div>
+                                <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wide mb-1.5">Handle At</p>
+                                <p class="font-bold text-slate-800 text-sm">{{ $datarq->handle_at ? Carbon::parse($datarq->handle_at)->format('d/m/Y') : '-' }}</p>
+                            </div>
                         </div>
                     </div>
 
@@ -507,17 +511,46 @@
                         <select id="target_advisor_id" name="target_advisor_id" class="w-full bg-white border border-slate-200 text-slate-800 text-xs rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 p-3.5 pl-10 outline-none font-bold appearance-none shadow-sm cursor-pointer hover:bg-slate-50 transition-colors" required>
                             <option value="" disabled selected>Pilih user...</option>
                             @php
-                                $takeoverQuery = \App\Models\User::where('id', '!=', $datarq->user_id)->whereIn('usertype', ['admin', 'supervisor', 'user']);
-                                if (Auth::user()->departemen_id) {
-                                    $takeoverQuery->where('departemen_id', Auth::user()->departemen_id);
+                                $currentUser = Auth::user();
+                                $takeoverQuery = \App\Models\User::where('id', '!=', $datarq->user_id);
+
+                                // 1. Filter departemen: hanya user dalam 1 departemen yang sama
+                                if ($currentUser->departemen_id) {
+                                    $takeoverQuery->where('departemen_id', $currentUser->departemen_id);
                                 }
+
+                                // 2. Filter leveling:
+                                // User dengan usertype 'user' tidak bisa alihkan ke admin atau supervisor (hanya sesama user)
+                                if ($currentUser->usertype === 'user') {
+                                    $takeoverQuery->where('usertype', 'user');
+                                } else {
+                                    // Admin atau Supervisor bisa ke semua user dalam 1 departemen
+                                    $takeoverQuery->whereIn('usertype', ['admin', 'supervisor', 'user']);
+                                }
+
+                                $eligibleUsers = $takeoverQuery->orderBy('name')->get();
                             @endphp
-                            @foreach($takeoverQuery->get() as $usr)
-                                <option value="{{ $usr->id }}">{{ $usr->name }} @if($usr->id == Auth::id()) (Anda) @endif</option>
-                            @endforeach
+
+                            @if($eligibleUsers->isEmpty())
+                                <option value="" disabled>Tidak ada user lain di departemen ini</option>
+                            @else
+                                @foreach($eligibleUsers as $usr)
+                                    <option value="{{ $usr->id }}">{{ $usr->name }} @if($currentUser->usertype !== 'user') ({{ ucfirst($usr->usertype) }}) @endif @if($usr->id == Auth::id()) (Anda) @endif</option>
+                                @endforeach
+                            @endif
+
+                            {{-- Hidden option for "Ambil Alih" tab by Admin/Supervisor --}}
+                            @if(($ust == 'admin' || $ust == 'supervisor') && $datarq->user_id != Auth::id() && !$eligibleUsers->contains('id', Auth::id()))
+                                <option value="{{ Auth::id() }}" class="hidden">{{ Auth::user()->name }} (Ambil Alih)</option>
+                            @endif
                         </select>
                         <i class="fa-solid fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 text-[10px] pointer-events-none group-hover:text-blue-500 transition-colors"></i>
                     </div>
+                    @if($currentUser->usertype === 'user' && $eligibleUsers->isEmpty())
+                        <p class="text-[10px] text-amber-600 font-medium mt-1.5 flex items-center gap-1">
+                            <i class="fa-solid fa-circle-info"></i> Tidak ada user lain berlevel User dalam departemen Anda untuk dialihkan.
+                        </p>
+                    @endif
                 </div>
 
                 <!-- Waiting Duration Setting -->
@@ -527,63 +560,38 @@
                         <span class="text-[10px] font-medium text-slate-400">Hitung mundur otomatis</span>
                     </div>
 
-                    <!-- Preset Options Grid -->
-                    <div class="grid grid-cols-3 gap-2 mb-2">
-                        <label class="cursor-pointer">
-                            <input type="radio" name="waiting_duration_preset" value="15" class="peer hidden" onchange="toggleCustomDuration(false)">
-                            <div class="py-2 text-center text-xs font-bold rounded-xl border border-slate-200 peer-checked:bg-blue-50 peer-checked:border-blue-500 peer-checked:text-blue-600 transition-all hover:bg-slate-50">
+                    <!-- Preset Options Grid (Maksimal 3 Jam) -->
+                    <div class="grid grid-cols-6 gap-2 mb-2">
+                        <label class="col-span-2 cursor-pointer">
+                            <input type="radio" name="waiting_duration_preset" value="15" class="peer hidden">
+                            <div class="py-2.5 text-center text-xs font-bold rounded-xl border border-slate-200 peer-checked:bg-blue-50 peer-checked:border-blue-500 peer-checked:text-blue-600 transition-all hover:bg-slate-50">
                                 15 Menit
                             </div>
                         </label>
-                        <label class="cursor-pointer">
-                            <input type="radio" name="waiting_duration_preset" value="30" class="peer hidden" onchange="toggleCustomDuration(false)">
-                            <div class="py-2 text-center text-xs font-bold rounded-xl border border-slate-200 peer-checked:bg-blue-50 peer-checked:border-blue-500 peer-checked:text-blue-600 transition-all hover:bg-slate-50">
+                        <label class="col-span-2 cursor-pointer">
+                            <input type="radio" name="waiting_duration_preset" value="30" class="peer hidden">
+                            <div class="py-2.5 text-center text-xs font-bold rounded-xl border border-slate-200 peer-checked:bg-blue-50 peer-checked:border-blue-500 peer-checked:text-blue-600 transition-all hover:bg-slate-50">
                                 30 Menit
                             </div>
                         </label>
-                        <label class="cursor-pointer">
-                            <input type="radio" name="waiting_duration_preset" value="60" class="peer hidden" checked onchange="toggleCustomDuration(false)">
-                            <div class="py-2 text-center text-xs font-bold rounded-xl border border-slate-200 peer-checked:bg-blue-50 peer-checked:border-blue-500 peer-checked:text-blue-600 transition-all hover:bg-slate-50">
+                        <label class="col-span-2 cursor-pointer">
+                            <input type="radio" name="waiting_duration_preset" value="60" class="peer hidden" checked>
+                            <div class="py-2.5 text-center text-xs font-bold rounded-xl border border-slate-200 peer-checked:bg-blue-50 peer-checked:border-blue-500 peer-checked:text-blue-600 transition-all hover:bg-slate-50">
                                 1 Jam
                             </div>
                         </label>
-                        <label class="cursor-pointer">
-                            <input type="radio" name="waiting_duration_preset" value="120" class="peer hidden" onchange="toggleCustomDuration(false)">
-                            <div class="py-2 text-center text-xs font-bold rounded-xl border border-slate-200 peer-checked:bg-blue-50 peer-checked:border-blue-500 peer-checked:text-blue-600 transition-all hover:bg-slate-50">
+                        <label class="col-span-3 cursor-pointer">
+                            <input type="radio" name="waiting_duration_preset" value="120" class="peer hidden">
+                            <div class="py-2.5 text-center text-xs font-bold rounded-xl border border-slate-200 peer-checked:bg-blue-50 peer-checked:border-blue-500 peer-checked:text-blue-600 transition-all hover:bg-slate-50">
                                 2 Jam
                             </div>
                         </label>
-                        <label class="cursor-pointer">
-                            <input type="radio" name="waiting_duration_preset" value="1440" class="peer hidden" onchange="toggleCustomDuration(false)">
-                            <div class="py-2 text-center text-xs font-bold rounded-xl border border-slate-200 peer-checked:bg-blue-50 peer-checked:border-blue-500 peer-checked:text-blue-600 transition-all hover:bg-slate-50">
-                                1 Hari
+                        <label class="col-span-3 cursor-pointer">
+                            <input type="radio" name="waiting_duration_preset" value="180" class="peer hidden">
+                            <div class="py-2.5 text-center text-xs font-bold rounded-xl border border-slate-200 peer-checked:bg-blue-50 peer-checked:border-blue-500 peer-checked:text-blue-600 transition-all hover:bg-slate-50">
+                                3 Jam
                             </div>
                         </label>
-                        <label class="cursor-pointer">
-                            <input type="radio" name="waiting_duration_preset" value="custom" id="preset_custom" class="peer hidden" onchange="toggleCustomDuration(true)">
-                            <div class="py-2 text-center text-xs font-bold rounded-xl border border-slate-200 peer-checked:bg-blue-50 peer-checked:border-blue-500 peer-checked:text-blue-600 transition-all hover:bg-slate-50 flex items-center justify-center gap-1">
-                                <i class="fa-solid fa-sliders text-[10px]"></i> Kustom
-                            </div>
-                        </label>
-                    </div>
-
-                    <input type="hidden" name="waiting_duration_type" id="waiting_duration_type" value="preset">
-
-                    <!-- Custom Duration Input (Hidden by default) -->
-                    <div id="custom-duration-fields" class="hidden mt-2 p-3 bg-slate-50 rounded-xl border border-slate-200">
-                        <div class="flex items-center gap-2">
-                            <div class="flex-1 relative">
-                                <input type="number" name="custom_duration_value" id="custom_duration_value" min="1" max="1000" placeholder="Contoh: 45" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 outline-none focus:border-blue-500">
-                            </div>
-                            <div class="w-28 relative">
-                                <select name="custom_duration_unit" id="custom_duration_unit" class="w-full bg-white border border-slate-200 rounded-xl px-2.5 py-2 text-xs font-bold text-slate-800 outline-none focus:border-blue-500 cursor-pointer">
-                                    <option value="minutes">Menit</option>
-                                    <option value="hours">Jam</option>
-                                    <option value="days">Hari</option>
-                                </select>
-                            </div>
-                        </div>
-                        <p class="text-[10px] text-slate-400 mt-1.5 font-medium">Masukkan durasi angka bebas dan pilih satuannya.</p>
                     </div>
                 </div>
 
@@ -622,22 +630,6 @@
                 
                 // Ambil alih (Take over by myself)
                 if (targetSelect) targetSelect.value = "{{ Auth::id() }}";
-            }
-        }
-
-        function toggleCustomDuration(isCustom) {
-            const customFields = document.getElementById('custom-duration-fields');
-            const typeInput = document.getElementById('waiting_duration_type');
-            const customVal = document.getElementById('custom_duration_value');
-
-            if (isCustom) {
-                customFields.classList.remove('hidden');
-                typeInput.value = 'custom';
-                if (!customVal.value) customVal.value = 45;
-                customVal.focus();
-            } else {
-                customFields.classList.add('hidden');
-                typeInput.value = 'preset';
             }
         }
     </script>

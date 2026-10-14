@@ -44,6 +44,9 @@
 
             <form action="{{ route('penilaian.store', $user->id ?? 1) }}" method="POST">
                 @csrf
+                <input type="hidden" name="total_ticket" value="{{ $tiket_ditangani }}">
+                <input type="hidden" name="total_ticket_yang_di_advice" value="{{ $tiket_di_advice }}">
+                <input type="hidden" name="rata_rata_waktu" value="{{ $rata_rata_waktu }}">
                 <div class="space-y-6">
                     
                     <!-- Top 2 Columns -->
@@ -71,10 +74,17 @@
                                 </div>
                                 <div class="flex items-center justify-between py-2 border-b border-slate-50 last:border-0">
                                     <div class="flex items-center gap-3">
-                                        <i class="fa-regular fa-clock text-slate-400 text-sm w-4"></i>
-                                        <span class="text-sm font-medium text-slate-500">Rata-rata respon</span>
+                                        <i class="fa-solid fa-user-shield text-slate-400 text-sm w-4"></i>
+                                        <span class="text-sm font-medium text-slate-500">Tiket yang di-advice</span>
                                     </div>
-                                    <span class="text-sm font-extrabold text-slate-800">12 menit</span>
+                                    <span class="text-sm font-extrabold text-slate-800">{{ $tiket_di_advice }}</span>
+                                </div>
+                                <div class="flex items-center justify-between py-2 border-b border-slate-50 last:border-0">
+                                    <div class="flex items-center gap-3">
+                                        <i class="fa-regular fa-clock text-slate-400 text-sm w-4"></i>
+                                        <span class="text-sm font-medium text-slate-500">Rata-rata waktu</span>
+                                    </div>
+                                    <span class="text-sm font-extrabold text-slate-800">{{ $rata_rata_waktu }}</span>
                                 </div>
                                 <div class="flex items-center justify-between py-2 border-b border-slate-50 last:border-0">
                                     <div class="flex items-center gap-3">
@@ -100,20 +110,23 @@
                         </div>
                     </div>
 
-                    <!-- Detail Ticket -->
+                    <!-- Detail Ticket per Modul -->
                     <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
                         <h3 class="text-sm font-extrabold text-slate-800 flex items-center gap-2 mb-6">
-                            <i class="fa-solid fa-layer-group text-blue-500"></i> Detail Ticket
+                            <i class="fa-solid fa-layer-group text-blue-500"></i> Detail Ticket per Modul
                         </h3>
                         <div class="space-y-1">
-                            @foreach(['Accounting', 'POS', 'FO', 'BO', 'Store'] as $module)
+                            @forelse($module_details ?? [] as $md)
                             <div class="flex flex-col sm:flex-row sm:items-center justify-between py-4 border-b border-slate-50 last:border-0 gap-2">
-                                <span class="text-sm font-medium text-slate-600 w-32">{{ $module }}</span>
-                                <span class="text-sm font-medium text-slate-600 w-32">Beban: 80</span>
-                                <span class="text-sm font-medium text-slate-600 w-40">Jumlah Ticket: 124</span>
-                                <span class="text-sm font-medium text-slate-400 text-right flex-1">Nilai Akhir: 9920</span>
+                                <span class="text-sm font-semibold text-slate-700 w-36">{{ $md['name'] }}</span>
+                                <span class="text-sm font-medium text-slate-500 w-28">Beban: <strong class="text-slate-700">{{ $md['bobot'] }}</strong></span>
+                                <span class="text-sm font-medium text-slate-500 w-36">Jumlah: <strong class="text-slate-700">{{ $md['total_ticket'] }}</strong> Tiket</span>
+                                <span class="text-sm font-medium text-slate-500 w-44">Rata-rata Waktu: <strong class="text-slate-700">{{ $md['rata_rata_waktu'] }}</strong></span>
+                                <span class="text-sm font-bold text-blue-600 text-right flex-1">Nilai: {{ $md['score'] }}</span>
                             </div>
-                            @endforeach
+                            @empty
+                            <p class="text-xs font-medium text-slate-400 py-3">Tidak ada aktivitas tiket modul pada periode ini.</p>
+                            @endforelse
                         </div>
                     </div>
 

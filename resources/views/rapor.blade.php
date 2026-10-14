@@ -100,6 +100,39 @@
                 </div>
             </div>
 
+            <!-- Ticket Stats Row -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-6">
+                <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+                        <i class="fa-solid fa-ticket text-lg"></i>
+                    </div>
+                    <div>
+                        <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Total Ticket</span>
+                        <span class="text-2xl font-extrabold text-slate-800">{{ $rapor->total_ticket ?? 0 }}</span>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
+                        <i class="fa-solid fa-user-shield text-lg"></i>
+                    </div>
+                    <div>
+                        <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Total Ticket di Advice</span>
+                        <span class="text-2xl font-extrabold text-slate-800">{{ $rapor->total_ticket_yang_di_advice ?? 0 }}</span>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
+                        <i class="fa-regular fa-clock text-lg"></i>
+                    </div>
+                    <div>
+                        <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Rata-rata Waktu</span>
+                        <span class="text-2xl font-extrabold text-slate-800">{{ $rapor->rata_rata_waktu ?? '-' }}</span>
+                    </div>
+                </div>
+            </div>
+
             <!-- Middle Section -->
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
                 <!-- Bar Chart -->
@@ -230,6 +263,39 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Rincian Modul Tiket -->
+            @if($rapor && $rapor->moduleDetails && $rapor->moduleDetails->count() > 0)
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 mb-6">
+                <h3 class="text-sm font-extrabold text-slate-800 flex items-center gap-2 mb-4">
+                    <i class="fa-solid fa-layer-group text-blue-500"></i> Rincian Penilaian per Modul
+                </h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="border-b border-slate-200 bg-slate-50/50">
+                                <th class="py-3 px-4 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Modul</th>
+                                <th class="py-3 px-4 text-[10px] font-bold text-slate-400 uppercase tracking-wider text-center">Beban</th>
+                                <th class="py-3 px-4 text-[10px] font-bold text-slate-400 uppercase tracking-wider text-center">Total Ticket</th>
+                                <th class="py-3 px-4 text-[10px] font-bold text-slate-400 uppercase tracking-wider text-center">Rata-rata Waktu</th>
+                                <th class="py-3 px-4 text-[10px] font-bold text-slate-400 uppercase tracking-wider text-right">Skor</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                            @foreach($rapor->moduleDetails as $md)
+                            <tr>
+                                <td class="py-3 px-4 text-xs font-bold text-slate-700">{{ $md->moduleSystem->name ?? $md->module->name ?? 'Modul' }}</td>
+                                <td class="py-3 px-4 text-xs font-semibold text-slate-600 text-center">{{ $md->bobot }}</td>
+                                <td class="py-3 px-4 text-xs font-bold text-slate-800 text-center">{{ $md->total_ticket }}</td>
+                                <td class="py-3 px-4 text-xs font-semibold text-slate-600 text-center">{{ $md->rata_rata_waktu ?? '-' }}</td>
+                                <td class="py-3 px-4 text-xs font-extrabold text-blue-600 text-right">{{ $md->score }}</td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            @endif
 
             <!-- Bottom Section -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">

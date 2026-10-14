@@ -10,7 +10,19 @@ class PerformanceReview extends Model
     use HasFactory;
 
     protected $fillable = [
-        'user_id', 'reviewer_id', 'periode', 'total_score', 'module_score', 'performance_score', 'review_score', 'status', 'catatan', 'saran'
+        'user_id',
+        'reviewer_id',
+        'periode',
+        'total_score',
+        'module_score',
+        'performance_score',
+        'review_score',
+        'total_ticket',
+        'rata_rata_waktu',
+        'total_ticket_yang_di_advice',
+        'status',
+        'catatan',
+        'saran'
     ];
 
     public function user()
@@ -30,6 +42,48 @@ class PerformanceReview extends Model
 
     public function moduleDetails()
     {
-        return $this->hasMany(PerformanceReviewModuleDetail::class);
+        return $this->hasMany(PerformanceReviewModuleDetail::class, 'p_rev_id');
+    }
+
+    // Accessors & Mutators for flexibility with ticket advice field naming
+    public function getTotalTicketAdviceAttribute()
+    {
+        return $this->attributes['total_ticket_yang_di_advice'] ?? 0;
+    }
+
+    public function setTotalTicketAdviceAttribute($value)
+    {
+        $this->attributes['total_ticket_yang_di_advice'] = $value;
+    }
+
+    public function getTotalTicketDiAdviceAttribute()
+    {
+        return $this->attributes['total_ticket_yang_di_advice'] ?? 0;
+    }
+
+    public function setTotalTicketDiAdviceAttribute($value)
+    {
+        $this->attributes['total_ticket_yang_di_advice'] = $value;
+    }
+
+    // Compatibility accessors for legacy score column names in views
+    public function getNilaiTiketAttribute()
+    {
+        return $this->attributes['module_score'] ?? 0;
+    }
+
+    public function getKualitasCsAttribute()
+    {
+        return $this->attributes['performance_score'] ?? 0;
+    }
+
+    public function getKepuasanKlienAttribute()
+    {
+        return $this->attributes['review_score'] ?? 0;
+    }
+
+    public function getNilaiAkhirAttribute()
+    {
+        return $this->attributes['total_score'] ?? 0;
     }
 }

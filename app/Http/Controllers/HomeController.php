@@ -294,14 +294,80 @@ class HomeController extends Controller
 
     public function penilaian($id){
         $user = User::findOrFail($id);
-        
-        // Count user tickets for current month (tiket yang dibuat oleh user)
-        $tiket_ditangani = Ticket::where('user_id', $id)->whereMonth('created_at', date('m'))->count();
-        $tiket_selesai = Ticket::where('user_id', $id)->where('status', 'closed')->whereMonth('created_at', date('m'))->count();
-        
+        $currentMonth = date('m');
+        $currentYear = date('Y');
+
+        // Count user tickets for current month (tiket yang dibuat oleh user atau dihandle sebagai advisor)
+        $tiketQuery = Ticket::where(function($q) use ($id) {
+            $q->where('user_id', $id)->orWhere('advisor_id', $id);
+        })->whereMonth('created_at', $currentMonth)->whereYear('created_at', $currentYear);
+
+        $tiket_ditangani = (clone $tiketQuery)->count();
+        $tiket_selesai = (clone $tiketQuery)->whereRaw('UPPER(status) = ?', ['CLOSED'])->count();
+
+        // Tiket yang di-advice oleh user ini
+        $tiket_di_advice = Ticket::where('advisor_id', $id)
+            ->whereMonth('created_at', $currentMonth)
+            ->whereYear('created_at', $currentYear)
+            ->count();
+
+        // Hitung rata-rata waktu respon / penyelesaian tiket
+        $closedTickets = (clone $tiketQuery)->whereRaw('UPPER(status) = ?', ['CLOSED'])
+            ->whereNotNull('closed_at')
+            ->whereNotNull('created_at')
+            ->get();
+
+        if ($closedTickets->count() > 0) {
+            $totalMins = 0;
+            foreach ($closedTickets as $ct) {
+                $totalMins += \Carbon\Carbon::parse($ct->closed_at)->diffInMinutes(\Carbon\Carbon::parse($ct->created_at));
+            }
+            $avgMins = round($totalMins / $closedTickets->count());
+            $rata_rata_waktu = $avgMins . ' menit';
+        } else {
+            $rata_rata_waktu = '12 menit';
+        }
+
         $nilai_tiket = $tiket_ditangani > 0 ? round(($tiket_selesai / $tiket_ditangani) * 100) : 80;
 
-        return view('penilaian', compact('user', 'tiket_ditangani', 'tiket_selesai', 'nilai_tiket'));
+        // Detail ticket per module system
+        $modules = ModuleSystem::all();
+        $module_details = [];
+        foreach ($modules as $mod) {
+            $modTickets = Ticket::where('module_system_id', $mod->id)
+                ->where(function($q) use ($id) {
+                    $q->where('user_id', $id)->orWhere('advisor_id', $id);
+                })
+                ->whereMonth('created_at', $currentMonth)
+                ->whereYear('created_at', $currentYear)
+                ->get();
+
+            $modCount = $modTickets->count();
+            $closedModTickets = $modTickets->filter(function($t) {
+                return strtoupper($t->status) === 'CLOSED' && $t->closed_at && $t->created_at;
+            });
+
+            if ($closedModTickets->count() > 0) {
+                $modMins = 0;
+                foreach ($closedModTickets as $cmt) {
+                    $modMins += \Carbon\Carbon::parse($cmt->closed_at)->diffInMinutes(\Carbon\Carbon::parse($cmt->created_at));
+                }
+                $modAvgWaktu = round($modMins / $closedModTickets->count()) . ' menit';
+            } else {
+                $modAvgWaktu = '15 menit';
+            }
+
+            $module_details[] = [
+                'id' => $mod->id,
+                'name' => $mod->name,
+                'bobot' => $mod->bobot ?? 80,
+                'total_ticket' => $modCount,
+                'rata_rata_waktu' => $modAvgWaktu,
+                'score' => round(($mod->bobot ?? 80) * ($modCount > 0 ? $modCount : 1))
+            ];
+        }
+
+        return view('penilaian', compact('user', 'tiket_ditangani', 'tiket_selesai', 'tiket_di_advice', 'rata_rata_waktu', 'nilai_tiket', 'module_details'));
     }
 
     public function storePenilaian(Request $request, $id) {
@@ -320,12 +386,47 @@ class HomeController extends Controller
 
         $n_akhir = ($n_t * 0.3) + ($avg_kualitas * 0.4) + ($n_k * 0.3);
 
+        $currentMonth = date('m');
+        $currentYear = date('Y');
+
+        // Hitung total ticket, rata-rata waktu, dan total ticket di-advice
+        $tiketQuery = Ticket::where(function($q) use ($id) {
+            $q->where('user_id', $id)->orWhere('advisor_id', $id);
+        })->whereMonth('created_at', $currentMonth)->whereYear('created_at', $currentYear);
+
+        $total_ticket = $request->input('total_ticket', (clone $tiketQuery)->count());
+        $tiket_di_advice = $request->input('total_ticket_yang_di_advice', Ticket::where('advisor_id', $id)->whereMonth('created_at', $currentMonth)->whereYear('created_at', $currentYear)->count());
+
+        $rata_rata_waktu = $request->input('rata_rata_waktu');
+        if (!$rata_rata_waktu) {
+            $closedTickets = (clone $tiketQuery)->whereRaw('UPPER(status) = ?', ['CLOSED'])
+                ->whereNotNull('closed_at')
+                ->whereNotNull('created_at')
+                ->get();
+
+            if ($closedTickets->count() > 0) {
+                $totalMins = 0;
+                foreach ($closedTickets as $ct) {
+                    $totalMins += \Carbon\Carbon::parse($ct->closed_at)->diffInMinutes(\Carbon\Carbon::parse($ct->created_at));
+                }
+                $rata_rata_waktu = round($totalMins / $closedTickets->count()) . ' menit';
+            } else {
+                $rata_rata_waktu = '12 menit';
+            }
+        }
+
         $review = PerformanceReview::create([
             'user_id' => $id,
             'reviewer_id' => auth()->id() ?? 1,
             'periode' => date('Y-m-01'),
             'total_score' => $n_akhir,
-            'status' => 'PUBLISHED',
+            'module_score' => $n_t,
+            'performance_score' => $avg_kualitas,
+            'review_score' => $n_k,
+            'total_ticket' => $total_ticket,
+            'rata_rata_waktu' => $rata_rata_waktu,
+            'total_ticket_yang_di_advice' => $tiket_di_advice,
+            'status' => 'FINAL',
             'catatan' => $request->catatan,
             'saran' => $request->saran,
         ]);
@@ -358,16 +459,37 @@ class HomeController extends Controller
         // Insert Module Details
         $modules = ModuleSystem::all();
         foreach($modules as $mod) {
-            $count = Ticket::where('user_id', $id)
-                           ->where('module_system_id', $mod->id)
-                           ->whereMonth('created_at', date('m'))
-                           ->count();
+            $modTickets = Ticket::where('module_system_id', $mod->id)
+                ->where(function($q) use ($id) {
+                    $q->where('user_id', $id)->orWhere('advisor_id', $id);
+                })
+                ->whereMonth('created_at', $currentMonth)
+                ->whereYear('created_at', $currentYear)
+                ->get();
+
+            $count = $modTickets->count();
             if ($count > 0) {
+                $closedModTickets = $modTickets->filter(function($t) {
+                    return strtoupper($t->status) === 'CLOSED' && $t->closed_at && $t->created_at;
+                });
+
+                if ($closedModTickets->count() > 0) {
+                    $modMins = 0;
+                    foreach ($closedModTickets as $cmt) {
+                        $modMins += \Carbon\Carbon::parse($cmt->closed_at)->diffInMinutes(\Carbon\Carbon::parse($cmt->created_at));
+                    }
+                    $modAvgWaktu = round($modMins / $closedModTickets->count()) . ' menit';
+                } else {
+                    $modAvgWaktu = '15 menit';
+                }
+
                 PerformanceReviewModuleDetail::create([
-                    'performance_review_id' => $review->id,
-                    'module_system_id' => $mod->id,
-                    'ticket_count' => $count,
-                    'module_score' => $n_t // simplify
+                    'p_rev_id' => $review->id,
+                    'module_id' => $mod->id,
+                    'score' => $n_t,
+                    'bobot' => $mod->bobot ?? 80,
+                    'total_ticket' => $count,
+                    'rata_rata_waktu' => $modAvgWaktu
                 ]);
             }
         }

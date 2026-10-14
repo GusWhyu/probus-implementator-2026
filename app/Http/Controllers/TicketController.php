@@ -145,6 +145,7 @@ class TicketController extends Controller
             'due_date' => $request->due_date,
             'status' => 'OPEN',
             'link_id' => \Illuminate\Support\Str::random(10),
+            'handle_at' => now(),
         ]);
         
         $imagedata = [];
@@ -390,35 +391,38 @@ class TicketController extends Controller
     public function takeover(Request $request, $id) {
         $request->validate([
             'target_advisor_id' => 'required|exists:users,id',
-            'waiting_duration_type' => 'nullable|string',
-            'waiting_duration_preset' => 'nullable|string',
-            'custom_duration_value' => 'nullable|numeric|min:1',
-            'custom_duration_unit' => 'nullable|string'
+            'waiting_duration_preset' => 'nullable|numeric|in:15,30,60,120,180',
         ]);
 
         $ticket = \App\Models\Ticket::findOrFail($id);
         $currentUser = Auth::user();
         $targetUserId = $request->target_advisor_id;
+        $targetUser = \App\Models\User::findOrFail($targetUserId);
 
-        // Calculate custom duration in minutes
-        $durationMinutes = 60; // default 1 hour
-        $isCustom = ($request->input('waiting_duration_type') === 'custom' || $request->input('waiting_duration_preset') === 'custom');
+        // 1. Validasi Departemen: Harus dalam satu departemen yang sama
+        if ($currentUser->departemen_id && $targetUser->departemen_id != $currentUser->departemen_id) {
+            Alert::error('Gagal!', 'Anda hanya dapat mengalihkan tiket ke user dalam satu departemen yang sama.');
+            return redirect()->back();
+        }
 
-        if ($isCustom) {
-            $val = (int) $request->input('custom_duration_value', 15);
-            if ($val <= 0) $val = 15;
-            $unit = $request->input('custom_duration_unit', 'minutes');
-            if ($unit === 'hours') {
-                $durationMinutes = $val * 60;
-            } elseif ($unit === 'days') {
-                $durationMinutes = $val * 1440;
-            } else {
-                $durationMinutes = $val;
+        // 2. Validasi Leveling: User biasa tidak bisa alihkan ke Admin atau Supervisor
+        if ($currentUser->usertype === 'user') {
+            if (in_array($targetUser->usertype, ['admin', 'supervisor'])) {
+                Alert::error('Akses Ditolak!', 'User dengan level user tidak dapat mengalihkan tiket ke Admin atau Supervisor.');
+                return redirect()->back();
             }
-        } elseif ($request->filled('waiting_duration_preset') && is_numeric($request->input('waiting_duration_preset'))) {
+            if ($targetUserId == $currentUser->id) {
+                Alert::error('Gagal!', 'Anda tidak dapat mengalihkan tiket ke diri Anda sendiri.');
+                return redirect()->back();
+            }
+        }
+
+        // Calculate duration in minutes (default 60 mins / 1 hour, max 180 mins / 3 hours)
+        $durationMinutes = 60;
+        if ($request->filled('waiting_duration_preset') && is_numeric($request->input('waiting_duration_preset'))) {
             $presetVal = (int) $request->input('waiting_duration_preset');
             if ($presetVal > 0) {
-                $durationMinutes = $presetVal;
+                $durationMinutes = min($presetVal, 180);
             }
         }
 
@@ -426,6 +430,7 @@ class TicketController extends Controller
         if (in_array($currentUser->usertype, ['admin', 'supervisor'])) {
             $ticket->update([
                 'user_id' => $targetUserId,
+                'handle_at' => now(),
                 'pending_advisor_id' => null,
                 'pending_advisor_at' => null,
                 'pending_advisor_expires_at' => null,
@@ -451,6 +456,7 @@ class TicketController extends Controller
         if ($ticket->pending_advisor_id == Auth::id()) {
             $ticket->update([
                 'user_id' => Auth::id(),
+                'handle_at' => now(),
                 'pending_advisor_id' => null,
                 'pending_advisor_at' => null,
                 'pending_advisor_expires_at' => null,
