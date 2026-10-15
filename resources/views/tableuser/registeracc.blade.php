@@ -33,13 +33,26 @@
                             <label for="email" class="block text-sm font-semibold text-slate-700 mb-2">Alamat Email <span class="text-red-500">*</span></label>
                             <input id="email" class="block w-full rounded-xl border-slate-200 focus:border-blue-500 focus:ring focus:ring-blue-500/20 shadow-sm text-sm py-2.5 px-4 transition-colors" type="email" name="email" value="{{ old('email') }}" required placeholder="Contoh: budi@example.com" />
                         </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                        <!-- Departemen -->
+                        <div>
+                            <label for="departemen" class="block text-sm font-semibold text-slate-700 mb-2">Departemen <span class="text-red-500">*</span></label>
+                            <select name="departemen" id="departemen" class="block w-full rounded-xl border-slate-200 focus:border-blue-500 focus:ring focus:ring-blue-500/20 shadow-sm text-sm py-2.5 px-4 transition-colors" required>
+                                <option value="" disabled {{ old('departemen') ? '' : 'selected' }}>Pilih Departemen</option>
+                                @foreach ($departemen as $dept)
+                                    <option value="{{ $dept->id }}" {{ old('departemen') == $dept->id ? 'selected' : '' }}>{{ $dept->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
                         
                         <!-- Tag -->
                         <div>
                             <label for="tag" class="block text-sm font-semibold text-slate-700 mb-2">User Tag <span class="text-red-500">*</span></label>
-                            <select name="tag" id="tag" class="block w-full rounded-xl border-slate-200 focus:border-blue-500 focus:ring focus:ring-blue-500/20 shadow-sm text-sm py-2.5 px-4 transition-colors">
+                            <select name="tag" id="tag" class="block w-full rounded-xl border-slate-200 focus:border-blue-500 focus:ring focus:ring-blue-500/20 shadow-sm text-sm py-2.5 px-4 transition-colors" required>
                                 @foreach ($tag as $item)
-                                    <option value="{{ $item->id }}">{{ $item->name }}</option>
+                                    <option value="{{ $item->id }}" {{ old('tag') == $item->id ? 'selected' : '' }}>{{ $item->name }}</option>
                                 @endforeach
                             </select>
                         </div>
@@ -47,13 +60,15 @@
                         <!-- User Type -->
                         <div>
                             <label for="usertype" class="block text-sm font-semibold text-slate-700 mb-2">User Type <span class="text-red-500">*</span></label>
-                            <select name="usertype" id="usertype" class="block w-full rounded-xl border-slate-200 focus:border-blue-500 focus:ring focus:ring-blue-500/20 shadow-sm text-sm py-2.5 px-4 transition-colors">
-                                <option value="admin">Admin</option>
-                                <option value="supervisor">Supervisor</option>
-                                <option value="user" selected>User</option>
+                            <select name="usertype" id="usertype" class="block w-full rounded-xl border-slate-200 focus:border-blue-500 focus:ring focus:ring-blue-500/20 shadow-sm text-sm py-2.5 px-4 transition-colors" required>
+                                <option value="admin" {{ old('usertype') == 'admin' ? 'selected' : '' }}>Admin</option>
+                                <option value="supervisor" {{ old('usertype') == 'supervisor' ? 'selected' : '' }}>Supervisor</option>
+                                <option value="user" {{ old('usertype', 'user') == 'user' ? 'selected' : '' }}>User</option>
                             </select>
                         </div>
-                        
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                         <!-- Password -->
                         <div>
                             <label for="password" class="block text-sm font-semibold text-slate-700 mb-2">Password <span class="text-red-500">*</span></label>

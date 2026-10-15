@@ -10,6 +10,11 @@
             border: none;
             padding: 8px;
             font-family: 'Inter', sans-serif;
+            z-index: 9999;
+        }
+        @media print {
+            .no-print { display: none !important; }
+            body { background: white !important; }
         }
     </style>
     {{-- Full-bleed wrapper: negative margin to break out of parent padding --}}
@@ -30,16 +35,26 @@
                     <h2 class="text-2xl md:text-3xl font-bold text-white flex items-center gap-2">
                         Selamat Datang, {{ Auth::user()->name }}! <span class="text-2xl">👋</span>
                     </h2>
-                    <p class="text-blue-200 text-sm mt-1.5">Berikut ringkasan data tiket Anda hari ini.</p>
+                    <p class="text-blue-200 text-sm mt-1.5 flex items-center gap-1.5 flex-wrap">
+                        <span>Berikut ringkasan data tiket Anda</span>
+                        <span id="period-title-badge" class="font-extrabold text-white bg-white/20 px-2 py-0.5 rounded-lg text-xs backdrop-blur-sm border border-white/20">
+                            {{ $periodTitle ?? 'Semua Waktu' }}
+                        </span>
+                    </p>
                 </div>
                 <div class="flex flex-row items-center gap-2 sm:gap-3 w-full lg:w-auto mt-2 lg:mt-0">
+
+                    {{-- Datepicker Container --}}
                     <div class="relative group flex-1 sm:flex-none">
-                        <i class="fa-regular fa-calendar absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 text-white pointer-events-none text-[10px] sm:text-xs"></i>
+                        <i class="fa-regular fa-calendar absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 text-white pointer-events-none text-[10px] sm:text-xs z-10"></i>
                         <input type="text" id="dateRangePicker" 
-                               class="bg-white/15 backdrop-blur-sm text-white border border-white/20 pl-8 sm:pl-10 pr-3 sm:pr-4 py-2 sm:py-2.5 rounded-xl text-[10px] sm:text-xs font-bold hover:bg-white/25 transition-all cursor-pointer focus:outline-none focus:border-white/40 focus:ring-2 focus:ring-white/20 w-full sm:w-56 lg:w-64 placeholder-white/80"
-                               value="{{ now()->format('M d, Y') }} to {{ now()->format('M d, Y') }}" readonly>
+                               class="bg-white/15 backdrop-blur-sm text-white border border-white/20 pl-8 sm:pl-10 pr-3 sm:pr-4 py-2 sm:py-2.5 rounded-xl text-[10px] sm:text-xs font-bold hover:bg-white/25 transition-all cursor-pointer focus:outline-none focus:border-white/40 focus:ring-2 focus:ring-white/20 w-full sm:w-48 lg:w-48 placeholder-white/80"
+                               placeholder="Pilih Tanggal..."
+                               value="{{ $selectedDateRaw ?? '' }}" readonly>
                     </div>
-                    <button class="bg-white text-blue-600 px-3 sm:px-5 py-2 sm:py-2.5 rounded-xl text-[10px] sm:text-xs font-bold flex items-center justify-center gap-1.5 sm:gap-2 hover:bg-blue-50 transition-colors shadow-lg shadow-blue-900/20 shrink-0">
+
+                    {{-- Export / Print Button --}}
+                    <button onclick="window.print()" type="button" class="bg-white text-blue-600 px-3 sm:px-5 py-2 sm:py-2.5 rounded-xl text-[10px] sm:text-xs font-bold flex items-center justify-center gap-1.5 sm:gap-2 hover:bg-blue-50 transition-colors shadow-lg shadow-blue-900/20 shrink-0 active:scale-95">
                         <i class="fa-solid fa-download"></i>
                         Export
                     </button>
@@ -52,7 +67,7 @@
         {{-- ============================================================ --}}
         <div class="px-6 md:px-10 -mt-16 relative z-20">
 
-            {{-- Stat cards (Moved out of blue background so they overlap) --}}
+            {{-- Stat cards --}}
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
                 {{-- Card 1: Total Tiket --}}
                 <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 hover:shadow-md transition-shadow group">
@@ -62,56 +77,40 @@
                             <i class="fa-solid fa-ticket text-sm"></i>
                         </div>
                     </div>
-                    <div class="text-3xl font-extrabold text-slate-800 mb-1">{{ $total_count ?? 0 }}</div>
-                    <div class="flex items-center gap-1 text-[10px] font-bold text-emerald-500">
-                        <i class="fa-solid fa-arrow-trend-up"></i> 8.2%
-                        <span class="text-slate-400 font-semibold ml-1">↑ 13.9%</span>
-                    </div>
+                    <div id="total-count" class="text-3xl font-extrabold text-slate-800 mb-1 dashboard-stat-number transition-all">{{ $total_count ?? 0 }}</div>
                 </div>
 
                 {{-- Card 2: Tiket Selesai --}}
                 <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 hover:shadow-md transition-shadow group">
                     <div class="flex items-center justify-between mb-3">
                         <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Tiket Selesai</span>
-                        <div class="w-9 h-9 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600 group-hover:bg-blue-100 transition-colors">
+                        <div class="w-9 h-9 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600 group-hover:bg-emerald-100 transition-colors">
                             <i class="fa-solid fa-chart-line text-sm"></i>
                         </div>
                     </div>
-                    <div class="text-3xl font-extrabold text-slate-800 mb-1">{{ $closed_count ?? 0 }}</div>
-                    <div class="flex items-center gap-1 text-[10px] font-bold text-emerald-500">
-                        <i class="fa-solid fa-arrow-trend-up"></i> 8.3%
-                        <span class="text-red-400 font-semibold ml-1">↓ 8.3%</span>
-                    </div>
+                    <div id="closed-count" class="text-3xl font-extrabold text-slate-800 mb-1 dashboard-stat-number transition-all">{{ $closed_count ?? 0 }}</div>
                 </div>
 
                 {{-- Card 3: Dalam Proses --}}
                 <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 hover:shadow-md transition-shadow group">
                     <div class="flex items-center justify-between mb-3">
                         <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Dalam Proses</span>
-                        <div class="w-9 h-9 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600 group-hover:bg-blue-100 transition-colors">
+                        <div class="w-9 h-9 bg-sky-50 rounded-xl flex items-center justify-center text-sky-600 group-hover:bg-sky-100 transition-colors">
                             <i class="fa-solid fa-arrows-rotate text-sm"></i>
                         </div>
                     </div>
-                    <div class="text-3xl font-extrabold text-slate-800 mb-1">{{ $progress_count ?? 0 }}</div>
-                    <div class="flex items-center gap-1 text-[10px] font-bold text-emerald-500">
-                        <i class="fa-solid fa-arrow-trend-up"></i> 15.2%
-                        <span class="text-red-400 font-semibold ml-1">↓ 15.7%</span>
-                    </div>
+                    <div id="progress-count" class="text-3xl font-extrabold text-slate-800 mb-1 dashboard-stat-number transition-all">{{ $progress_count ?? 0 }}</div>
                 </div>
 
                 {{-- Card 4: Terbuka --}}
                 <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 hover:shadow-md transition-shadow group">
                     <div class="flex items-center justify-between mb-3">
                         <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Terbuka</span>
-                        <div class="w-9 h-9 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600 group-hover:bg-blue-100 transition-colors">
-                            <i class="fa-solid fa-percent text-sm"></i>
+                        <div class="w-9 h-9 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600 group-hover:bg-indigo-100 transition-colors">
+                            <i class="fa-solid fa-door-open text-sm"></i>
                         </div>
                     </div>
-                    <div class="text-3xl font-extrabold text-slate-800 mb-1">{{ $open_count ?? 0 }}</div>
-                    <div class="flex items-center gap-1 text-[10px] font-bold text-emerald-500">
-                        <i class="fa-solid fa-arrow-trend-up"></i> 8.4%
-                        <span class="text-emerald-500 font-semibold ml-1">↑ 6.4%</span>
-                    </div>
+                    <div id="open-count" class="text-3xl font-extrabold text-slate-800 mb-1 dashboard-stat-number transition-all">{{ $open_count ?? 0 }}</div>
                 </div>
             </div>
 
@@ -121,21 +120,12 @@
                 <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 lg:col-span-2">
                     <div class="flex items-center justify-between mb-6">
                         <div>
-                            <h3 class="text-sm font-bold text-slate-800">Overview</h3>
-                            <div class="flex items-center gap-4 mt-2">
-                                <div class="flex items-center gap-1.5 text-[10px] font-bold text-slate-500">
-                                    <div class="w-6 h-[3px] rounded-full bg-blue-600"></div> Tiket Masuk
-                                </div>
-                                <div class="flex items-center gap-1.5 text-[10px] font-bold text-slate-500">
-                                    <div class="w-6 h-[3px] rounded-full bg-teal-500 border-dashed" style="border-top: 2px dashed #14b8a6; background: transparent; height: 0;"></div> Tiket Selesai
-                                </div>
-                            </div>
+                            <h3 class="text-sm font-bold text-slate-800">Volume Tiket (Tren 7 Hari)</h3>
+                            <p class="text-[11px] text-slate-400 mt-0.5">Aktivitas volume tiket menuju tanggal yang dipilih</p>
                         </div>
-                        <select class="bg-slate-50 border border-slate-200 text-slate-600 text-[11px] font-bold rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-100">
-                            <option>Harian</option>
-                            <option>Mingguan</option>
-                            <option>Bulanan</option>
-                        </select>
+                        <span class="bg-slate-50 border border-slate-200 text-slate-600 text-[11px] font-bold rounded-lg px-2.5 py-1">
+                            Harian
+                        </span>
                     </div>
                     <div class="h-64 w-full relative">
                         <canvas id="overviewChart"></canvas>
@@ -148,77 +138,34 @@
                     <div class="flex-1 w-full relative flex justify-center items-center">
                         <canvas id="statusChart" class="max-h-[180px]"></canvas>
                         <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                            <span class="text-3xl font-extrabold text-slate-800">{{ $total_count ?? 0 }}</span>
+                            <span id="donut-total-count" class="text-3xl font-extrabold text-slate-800 dashboard-stat-number">{{ $total_count ?? 0 }}</span>
                             <span class="text-[10px] font-bold text-slate-400 mt-0.5">Total</span>
                         </div>
                     </div>
                     <div class="mt-5 flex flex-col gap-2.5">
                         <div class="flex items-center justify-between text-xs">
                             <div class="flex items-center gap-2"><div class="w-2.5 h-2.5 rounded-full bg-blue-600"></div> <span class="font-semibold text-slate-700">Selesai</span></div>
-                            <span class="font-bold text-slate-800">{{ $closed_count ?? 0 }}</span>
+                            <span id="legend-closed-count" class="font-bold text-slate-800">{{ $closed_count ?? 0 }}</span>
                         </div>
                         <div class="flex items-center justify-between text-xs">
                             <div class="flex items-center gap-2"><div class="w-2.5 h-2.5 rounded-full bg-sky-500"></div> <span class="font-semibold text-slate-700">Dalam Proses</span></div>
-                            <span class="font-bold text-slate-800">{{ $progress_count ?? 0 }}</span>
+                            <span id="legend-progress-count" class="font-bold text-slate-800">{{ $progress_count ?? 0 }}</span>
                         </div>
                         <div class="flex items-center justify-between text-xs">
                             <div class="flex items-center gap-2"><div class="w-2.5 h-2.5 rounded-full bg-indigo-400"></div> <span class="font-semibold text-slate-700">Terbuka</span></div>
-                            <span class="font-bold text-slate-800">{{ $open_count ?? 0 }}</span>
+                            <span id="legend-open-count" class="font-bold text-slate-800">{{ $open_count ?? 0 }}</span>
                         </div>
                     </div>
                 </div>
             </div>
 
-            {{-- Row 2: Performa Agen + Top Client + Jenis Kendala --}}
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-                {{-- Performa Agen --}}
+            {{-- Row 2: Performa Agen --}}
+            <div class="mb-6">
+                <h2 class="text-sm font-bold text-slate-800 mb-4 px-2">Performa Agen</h2>
                 <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
-                    <div class="flex items-center justify-between mb-1">
-                        <h3 class="text-sm font-bold text-slate-800">Performa Agen</h3>
-                    </div>
-                    <p class="text-[11px] text-slate-400 font-medium mb-5">Tiket diselesaikan per agen</p>
                     <div class="h-56 w-full relative">
                         <canvas id="agentChart"></canvas>
                     </div>
-                    <a href="#" class="text-[11px] font-bold text-blue-600 hover:text-blue-700 mt-3 inline-flex items-center gap-1 transition-colors">View full report <i class="fa-solid fa-chevron-right text-[8px]"></i></a>
-                </div>
-
-                {{-- Volume Tiket Harian (Heatmap-style bar) --}}
-                <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
-                    <div class="flex items-center justify-between mb-1">
-                        <h3 class="text-sm font-bold text-slate-800">Volume Tiket</h3>
-                    </div>
-                    <p class="text-[11px] text-slate-400 font-medium mb-5">Tiket masuk per hari</p>
-                    <div class="h-56 w-full relative">
-                        <canvas id="volumeChart"></canvas>
-                    </div>
-                    <a href="#" class="text-[11px] font-bold text-blue-600 hover:text-blue-700 mt-3 inline-flex items-center gap-1 transition-colors">View full report <i class="fa-solid fa-chevron-right text-[8px]"></i></a>
-                </div>
-
-                {{-- Top Client Donut --}}
-                <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 flex flex-col">
-                    <div class="flex items-center justify-between mb-1">
-                        <h3 class="text-sm font-bold text-slate-800">Top Client</h3>
-                    </div>
-                    <p class="text-[11px] text-slate-400 font-medium mb-5">Berdasarkan jumlah tiket</p>
-                    <div class="flex-1 w-full relative flex justify-center items-center">
-                        <canvas id="clientDonutChart" class="max-h-[160px]"></canvas>
-                    </div>
-                    <div class="mt-4 flex flex-col gap-2">
-                        @foreach(array_slice($clientDonutLabels ?? [], 0, 3) as $index => $label)
-                        <div class="flex items-center justify-between text-[11px]">
-                            <div class="flex items-center gap-2">
-                                @php
-                                    $bgColors = ['bg-blue-600', 'bg-sky-500', 'bg-indigo-500'];
-                                @endphp
-                                <div class="w-2 h-2 rounded-full {{ $bgColors[$index] }}"></div> 
-                                <span class="font-semibold text-slate-600">{{ $label }}</span>
-                            </div>
-                            <span class="font-bold text-slate-700">{{ $clientDonutData[$index] ?? 0 }} Tiket</span>
-                        </div>
-                        @endforeach
-                    </div>
-                    <a href="#" class="text-[11px] font-bold text-blue-600 hover:text-blue-700 mt-3 inline-flex items-center gap-1 transition-colors">View full report <i class="fa-solid fa-chevron-right text-[8px]"></i></a>
                 </div>
             </div>
 
@@ -235,7 +182,7 @@
 
             {{-- Row 4: Jenis Kendala --}}
             <div class="mb-6">
-                <h2 class="text-sm font-bold text-slate-800 mb-4 px-2">Jenis Kendala</h2>
+                <h2 class="text-sm font-bold text-slate-800 mb-4 px-2">Jenis Kendala (Modul)</h2>
                 <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
                     <div class="h-[280px] w-full relative">
                         <canvas id="kendalaChart"></canvas>
@@ -246,8 +193,13 @@
             {{-- Row 5: Tiket Terbaru Table --}}
             <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
                 <div class="flex items-center justify-between mb-5">
-                    <h3 class="text-sm font-bold text-slate-800">Tiket Terbaru</h3>
-                    <a href="{{ route('daftartiket') }}" class="text-[11px] font-bold text-blue-600 hover:text-blue-700 inline-flex items-center gap-1 transition-colors">View full report <i class="fa-solid fa-chevron-right text-[8px]"></i></a>
+                    <div>
+                        <h3 class="text-sm font-bold text-slate-800">Daftar Tiket</h3>
+                        <p class="text-[11px] text-slate-400 mt-0.5">Tiket pada periode tanggal yang dipilih</p>
+                    </div>
+                    <a href="{{ route('daftartiket') }}" class="text-[11px] font-bold text-blue-600 hover:text-blue-700 inline-flex items-center gap-1 transition-colors">
+                        Lihat Semua Tiket <i class="fa-solid fa-chevron-right text-[8px]"></i>
+                    </a>
                 </div>
                 <div class="overflow-x-auto">
                     <table class="w-full text-left">
@@ -260,44 +212,8 @@
                                 <th class="pb-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Tanggal</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            @forelse(($all_tickets ?? collect())->take(5) as $ticket)
-                            <tr class="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
-                                <td class="py-3.5 text-sm font-semibold text-slate-700">{{ $ticket->title ?? 'N/A' }}</td>
-                                <td class="py-3.5 text-sm text-slate-600">{{ $ticket->client->nama ?? 'N/A' }}</td>
-                                <td class="py-3.5 text-sm text-slate-600">{{ $ticket->kategori->nama ?? 'N/A' }}</td>
-                                <td class="py-3.5">
-                                    @php
-                                        $statusColors = [
-                                            1 => 'bg-red-100 text-red-700',
-                                            2 => 'bg-blue-100 text-blue-700',
-                                            3 => 'bg-amber-100 text-amber-700',
-                                            4 => 'bg-emerald-100 text-emerald-700',
-                                        ];
-                                        $statusNames = [
-                                            1 => 'Open',
-                                            2 => 'Progress',
-                                            3 => 'Closed',
-                                        ];
-                                    @endphp
-                                    <span class="px-2.5 py-1 rounded-lg text-[10px] font-bold {{ $statusColors[$ticket->status_id] ?? 'bg-slate-100 text-slate-600' }}">
-                                        {{ $statusNames[$ticket->status_id] ?? 'Unknown' }}
-                                    </span>
-                                </td>
-                                <td class="py-3.5 text-sm text-slate-500">{{ $ticket->created_at->format('d M Y') }}</td>
-                            </tr>
-                            @empty
-                            <tr>
-                                <td colspan="5" class="py-10 text-center">
-                                    <div class="flex flex-col items-center">
-                                        <div class="w-12 h-12 bg-slate-50 rounded-full flex items-center justify-center mb-3">
-                                            <i class="fa-solid fa-inbox text-slate-300 text-xl"></i>
-                                        </div>
-                                        <p class="text-sm font-medium text-slate-400">Belum ada tiket</p>
-                                    </div>
-                                </td>
-                            </tr>
-                            @endforelse
+                        <tbody id="recent-tickets-tbody">
+                            @include('partials.dashboard_tickets', ['all_tickets' => $all_tickets])
                         </tbody>
                     </table>
                 </div>
@@ -307,96 +223,36 @@
     </div>
 
     {{-- ============================================================ --}}
-    {{-- CHART.JS SCRIPTS                                              --}}
+    {{-- CHART.JS & REALTIME SCRIPTS                                   --}}
     {{-- ============================================================ --}}
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // ── Initialize Flatpickr ──
-            flatpickr("#dateRangePicker", {
-                mode: "range",
-                dateFormat: "M d, Y",
-                showMonths: window.innerWidth > 768 ? 2 : 1,
-                onReady: function(selectedDates, dateStr, instance) {
-                    // Create preset container
-                    const presetContainer = document.createElement("div");
-                    presetContainer.className = "flatpickr-presets flex flex-wrap justify-center gap-2 pt-3 mt-3 border-t border-slate-100";
-                    
-                    const presets = [
-                        { label: '1 Hari', days: 0 },
-                        { label: '7 Hari', days: 6 },
-                        { label: '1 Bulan', days: 29 },
-                        { label: '1 Tahun', days: 364 }
-                    ];
-
-                    presets.forEach(preset => {
-                        const btn = document.createElement("button");
-                        btn.type = "button";
-                        btn.className = "text-[11px] font-bold px-3 py-1.5 bg-slate-50 border border-slate-200 text-slate-600 rounded-lg hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200 transition-colors cursor-pointer";
-                        btn.textContent = preset.label;
-                        
-                        btn.addEventListener("click", function(e) {
-                            e.preventDefault();
-                            const end = new Date();
-                            const start = new Date();
-                            start.setDate(end.getDate() - preset.days);
-                            instance.setDate([start, end], true);
-                            instance.close();
-                        });
-                        
-                        presetContainer.appendChild(btn);
-                    });
-
-                    instance.calendarContainer.appendChild(presetContainer);
-                },
-                onChange: function(selectedDates, dateStr, instance) {
-                    if (selectedDates.length === 2) {
-                        console.log('Date range selected:', dateStr);
-                        // Trigger your filter functions here
-                    }
-                }
-            });
             // Global defaults
             Chart.defaults.font.family = "'Inter', sans-serif";
             Chart.defaults.color = '#64748b';
 
+            let overviewChartInstance = null;
+            let statusChartInstance = null;
+            let agentChartInstance = null;
+            let topClientBarChartInstance = null;
+            let kendalaChartInstance = null;
+
             // ── 1. Overview Line Chart ──
             const overviewCtx = document.getElementById('overviewChart').getContext('2d');
-            const gradient1 = overviewCtx.createLinearGradient(0, 0, 0, 250);
-            gradient1.addColorStop(0, 'rgba(37, 99, 235, 0.15)'); // Blue
-            gradient1.addColorStop(1, 'rgba(37, 99, 235, 0.01)');
-
-            new Chart(overviewCtx, {
-                type: 'line',
+            overviewChartInstance = new Chart(overviewCtx, {
+                type: 'bar',
                 data: {
                     labels: {!! json_encode($chartLabels ?? []) !!},
                     datasets: [{
-                        label: 'Tiket Masuk',
+                        label: 'Volume Tiket',
                         data: {!! json_encode($masukData ?? []) !!},
-                        borderColor: '#2563eb', // blue-600
-                        backgroundColor: gradient1,
-                        borderWidth: 2.5,
-                        pointBackgroundColor: '#2563eb',
-                        pointBorderColor: '#fff',
-                        pointBorderWidth: 2,
-                        pointRadius: 4,
-                        pointHoverRadius: 6,
-                        fill: true,
-                        tension: 0.4
-                    }, {
-                        label: 'Tiket Selesai',
-                        data: {!! json_encode($selesaiData ?? []) !!},
-                        borderColor: '#14b8a6', // teal-500
-                        borderWidth: 2,
-                        borderDash: [6, 4],
-                        pointBackgroundColor: '#14b8a6',
-                        pointBorderColor: '#fff',
-                        pointBorderWidth: 2,
-                        pointRadius: 3,
-                        pointHoverRadius: 5,
-                        fill: false,
-                        tension: 0.4
+                        backgroundColor: function(ctx) {
+                            return ctx.dataIndex === 6 ? '#2563eb' : '#eff6ff';
+                        },
+                        borderRadius: 4,
+                        barPercentage: 0.5
                     }]
                 },
                 options: {
@@ -407,7 +263,7 @@
                         y: {
                             beginAtZero: true,
                             grid: { color: '#f1f5f9', drawBorder: false },
-                            ticks: { font: { size: 10, weight: '600' }, stepSize: 20 }
+                            ticks: { font: { size: 10, weight: '600' }, precision: 0 }
                         },
                         x: {
                             grid: { display: false, drawBorder: false },
@@ -419,13 +275,14 @@
             });
 
             // ── 2. Status Donut ──
-            new Chart(document.getElementById('statusChart').getContext('2d'), {
+            const statusCtx = document.getElementById('statusChart').getContext('2d');
+            statusChartInstance = new Chart(statusCtx, {
                 type: 'doughnut',
                 data: {
                     labels: ['Selesai', 'Proses', 'Terbuka'],
                     datasets: [{
                         data: [{{ $closed_count ?? 0 }}, {{ $progress_count ?? 0 }}, {{ $open_count ?? 0 }}],
-                        backgroundColor: ['#2563eb', '#0ea5e9', '#818cf8'], // blue, sky, indigo-400
+                        backgroundColor: ['#2563eb', '#0ea5e9', '#818cf8'],
                         borderWidth: 0,
                         cutout: '72%',
                         borderRadius: 3
@@ -441,16 +298,15 @@
             });
 
             // ── 3. Performa Agen (Horizontal Bar) ──
-            new Chart(document.getElementById('agentChart').getContext('2d'), {
+            const agentCtx = document.getElementById('agentChart').getContext('2d');
+            agentChartInstance = new Chart(agentCtx, {
                 type: 'bar',
                 data: {
                     labels: {!! json_encode($agentLabels ?? []) !!},
                     datasets: [{
                         data: {!! json_encode($agentData ?? []) !!},
                         backgroundColor: function(ctx) {
-                            // Monochromatic blues for harmony: blue-800 to blue-400
-                            const colors = ['#1e40af', '#1d4ed8', '#2563eb', '#3b82f6', '#60a5fa']; 
-                            return colors[ctx.dataIndex] || '#e2e8f0';
+                            return ctx.dataIndex === 0 ? '#2563eb' : '#eff6ff';
                         },
                         borderRadius: 6,
                         barPercentage: 0.6
@@ -471,57 +327,9 @@
                 }
             });
 
-            // ── 4. Volume Tiket (Vertical Bar) ──
-            new Chart(document.getElementById('volumeChart').getContext('2d'), {
-                type: 'bar',
-                data: {
-                    labels: {!! json_encode($chartLabels ?? []) !!},
-                    datasets: [{
-                        data: {!! json_encode($masukData ?? []) !!},
-                        backgroundColor: function(ctx) {
-                            return ctx.dataIndex === 5 ? '#2563eb' : '#bfdbfe'; // blue-600 for highlight, blue-200 for rest
-                        },
-                        hoverBackgroundColor: '#1d4ed8', // blue-700 on hover
-                        borderRadius: 8,
-                        barPercentage: 0.5
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: {
-                        y: { display: false, beginAtZero: true },
-                        x: {
-                            grid: { display: false, drawBorder: false },
-                            ticks: { font: { size: 10, weight: '600' } }
-                        }
-                    }
-                }
-            });
-
-            // ── 5. Client Donut ──
-            new Chart(document.getElementById('clientDonutChart').getContext('2d'), {
-                type: 'doughnut',
-                data: {
-                    labels: {!! json_encode($clientDonutLabels ?? []) !!},
-                    datasets: [{
-                        data: {!! json_encode($clientDonutData ?? []) !!},
-                        backgroundColor: ['#2563eb', '#0ea5e9', '#6366f1', '#cbd5e1'], // blue, sky, indigo, slate
-                        borderWidth: 0,
-                        cutout: '68%',
-                        borderRadius: 3
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false }, tooltip: { enabled: true } }
-                }
-            });
-
-            // ── 6. Top 10 Client (Vertical Bar) ──
-            new Chart(document.getElementById('topClientBarChart').getContext('2d'), {
+            // ── 4. Top 10 Client (Vertical Bar) ──
+            const topClientCtx = document.getElementById('topClientBarChart').getContext('2d');
+            topClientBarChartInstance = new Chart(topClientCtx, {
                 type: 'bar',
                 data: {
                     labels: {!! json_encode($clientBarLabels ?? []) !!},
@@ -546,7 +354,7 @@
                                 minRotation: 0,
                                 callback: function(value) {
                                     const label = this.getLabelForValue(value);
-                                    return label.split('\n');
+                                    return typeof label === 'string' ? label.split('\n') : label;
                                 }
                             }
                         }
@@ -554,8 +362,9 @@
                 }
             });
 
-            // ── 7. Jenis Kendala (Horizontal Bar) ──
-            new Chart(document.getElementById('kendalaChart').getContext('2d'), {
+            // ── 5. Jenis Kendala (Horizontal Bar) ──
+            const kendalaCtx = document.getElementById('kendalaChart').getContext('2d');
+            kendalaChartInstance = new Chart(kendalaCtx, {
                 type: 'bar',
                 data: {
                     labels: {!! json_encode($kendalaLabels ?? []) !!},
@@ -577,6 +386,128 @@
                             grid: { display: false, drawBorder: false },
                             ticks: { font: { size: 10, weight: '600' }, color: '#475569' }
                         }
+                    }
+                }
+            });
+
+            // ── 6. REALTIME FETCH DASHBOARD DATA ──
+            function fetchDashboardData(dateStr) {
+                const numbers = document.querySelectorAll('.dashboard-stat-number');
+                numbers.forEach(el => el.classList.add('opacity-40', 'animate-pulse'));
+
+                const params = new URLSearchParams();
+                if (dateStr && dateStr !== 'all') {
+                    params.set('date', dateStr);
+                } else {
+                    params.set('date', 'all');
+                }
+
+                fetch('/dashboard?' + params.toString(), {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json'
+                    }
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (!data.success) return;
+
+                    // Update Top Counters
+                    const totalEl = document.getElementById('total-count');
+                    const closedEl = document.getElementById('closed-count');
+                    const progressEl = document.getElementById('progress-count');
+                    const openEl = document.getElementById('open-count');
+
+                    if (totalEl) totalEl.textContent = data.total_count;
+                    if (closedEl) closedEl.textContent = data.closed_count;
+                    if (progressEl) progressEl.textContent = data.progress_count;
+                    if (openEl) openEl.textContent = data.open_count;
+
+                    // Update Period Badge
+                    const badge = document.getElementById('period-title-badge');
+                    if (badge) badge.textContent = data.periodTitle;
+
+                    // Update Donut Center & Legend
+                    const donutTotal = document.getElementById('donut-total-count');
+                    const legClosed = document.getElementById('legend-closed-count');
+                    const legProgress = document.getElementById('legend-progress-count');
+                    const legOpen = document.getElementById('legend-open-count');
+
+                    if (donutTotal) donutTotal.textContent = data.total_count;
+                    if (legClosed) legClosed.textContent = data.closed_count;
+                    if (legProgress) legProgress.textContent = data.progress_count;
+                    if (legOpen) legOpen.textContent = data.open_count;
+
+                    // Update Overview Volume Chart
+                    if (overviewChartInstance) {
+                        overviewChartInstance.data.labels = data.chartLabels;
+                        overviewChartInstance.data.datasets[0].data = data.masukData;
+                        overviewChartInstance.update();
+                    }
+
+                    // Update Status Donut
+                    if (statusChartInstance) {
+                        statusChartInstance.data.datasets[0].data = [data.closed_count, data.progress_count, data.open_count];
+                        statusChartInstance.update();
+                    }
+
+                    // Update Agent Chart
+                    if (agentChartInstance) {
+                        agentChartInstance.data.labels = data.agentLabels;
+                        agentChartInstance.data.datasets[0].data = data.agentData;
+                        agentChartInstance.update();
+                    }
+
+                    // Update Client Bar Chart
+                    if (topClientBarChartInstance) {
+                        topClientBarChartInstance.data.labels = data.clientBarLabels;
+                        topClientBarChartInstance.data.datasets[0].data = data.clientBarData;
+                        topClientBarChartInstance.update();
+                    }
+
+                    // Update Kendala Chart
+                    if (kendalaChartInstance) {
+                        kendalaChartInstance.data.labels = data.kendalaLabels;
+                        kendalaChartInstance.data.datasets[0].data = data.kendalaData;
+                        kendalaChartInstance.update();
+                    }
+
+                    // Update Recent Tickets Table
+                    const tbody = document.getElementById('recent-tickets-tbody');
+                    if (tbody && data.tickets_html) {
+                        tbody.innerHTML = data.tickets_html;
+                    }
+
+
+                    // Update URL without page reload
+                    const nextUrl = data.hasDate ? `/dashboard?date=${data.date}` : '/dashboard?date=all';
+                    window.history.pushState({ date: data.date }, '', nextUrl);
+                })
+                .catch(err => {
+                    console.error('Error updating dashboard data:', err);
+                })
+                .finally(() => {
+                    numbers.forEach(el => el.classList.remove('opacity-40', 'animate-pulse'));
+                });
+            }
+
+            // ── 7. Initialize Flatpickr ──
+            const dateInput = document.getElementById('dateRangePicker');
+            const fp = flatpickr(dateInput, {
+                mode: "single",
+                dateFormat: "Y-m-d",
+                altInput: true,
+                altFormat: "M d, Y",
+                altInputClass: "bg-white/15 backdrop-blur-sm text-white border border-white/20 pl-8 sm:pl-10 pr-3 sm:pr-4 py-2 sm:py-2.5 rounded-xl text-[10px] sm:text-xs font-bold hover:bg-white/25 transition-all cursor-pointer focus:outline-none focus:border-white/40 focus:ring-2 focus:ring-white/20 w-full sm:w-48 lg:w-48 placeholder-white/80",
+                defaultDate: {!! $selectedDateRaw ? json_encode($selectedDateRaw) : "null" !!},
+                onChange: function(selectedDates, dateStr, instance) {
+                    if (selectedDates.length > 0) {
+                        const d = selectedDates[0];
+                        const year = d.getFullYear();
+                        const month = String(d.getMonth() + 1).padStart(2, '0');
+                        const day = String(d.getDate()).padStart(2, '0');
+                        const isoDate = `${year}-${month}-${day}`;
+                        fetchDashboardData(isoDate);
                     }
                 }
             });

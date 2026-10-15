@@ -44,16 +44,13 @@
                                         </div>
                                     </td>
                                     <td class="py-4 px-4 text-right">
-                                        <div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <div class="flex items-center justify-end gap-1.5">
                                             <a href="/edittag/{{ $item->id }}" class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 hover:bg-emerald-100 flex items-center justify-center transition-colors" title="Edit">
                                                 <i class="fa-solid fa-pen text-[10px]"></i>
                                             </a>
                                             <a href="/deletetag/{{ $item->id }}" data-confirm-delete="true" class="w-8 h-8 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 flex items-center justify-center transition-colors" title="Hapus">
                                                 <i class="fa-solid fa-trash-can text-[10px]"></i>
                                             </a>
-                                        </div>
-                                        <div class="flex items-center justify-end gap-2 group-hover:hidden transition-opacity">
-                                            <span class="text-slate-300 text-xs"><i class="fa-solid fa-ellipsis"></i></span>
                                         </div>
                                     </td>
                                 </tr>

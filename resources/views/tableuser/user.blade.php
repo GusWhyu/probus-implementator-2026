@@ -30,6 +30,7 @@
                         <tr class="bg-slate-50 rounded-lg">
                             <th class="py-3 px-4 text-[11px] font-bold text-slate-500 uppercase tracking-wider rounded-l-lg">Nama</th>
                             <th class="py-3 px-4 text-[11px] font-bold text-slate-500 uppercase tracking-wider">Email</th>
+                            <th class="py-3 px-4 text-[11px] font-bold text-slate-500 uppercase tracking-wider">Departemen</th>
                             <th class="py-3 px-4 text-[11px] font-bold text-slate-500 uppercase tracking-wider">User Type</th>
                             <th class="py-3 px-4 text-[11px] font-bold text-slate-500 uppercase tracking-wider">User Tag</th>
                             <th class="py-3 px-4 text-[11px] font-bold text-slate-500 uppercase tracking-wider text-right rounded-r-lg w-36">Aksi</th>
@@ -40,14 +41,23 @@
                             <tr class="hover:bg-slate-50/50 transition-colors group">
                                 <td class="py-4 px-4 text-sm font-semibold text-slate-700">
                                     <div class="flex items-center gap-3">
-                                        <div class="w-8 h-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center text-xs">
-                                            <i class="fa-solid fa-user"></i>
+                                        <div class="w-8 h-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center text-xs overflow-hidden shadow-xs shrink-0">
+                                            <img src="{{ $item->avatar_url }}" alt="{{ $item->name }}" class="w-full h-full object-cover">
                                         </div>
                                         {{ $item->name }}
                                     </div>
                                 </td>
                                 <td class="py-4 px-4 text-sm text-slate-600">
                                     {{ $item->email }}
+                                </td>
+                                <td class="py-4 px-4 text-sm">
+                                    @if($item->departemen)
+                                        <span class="inline-flex items-center px-2.5 py-1 rounded-md text-[11px] font-bold bg-blue-50 text-blue-700 border border-blue-100 uppercase">
+                                            {{ $item->departemen->name }}
+                                        </span>
+                                    @else
+                                        <span class="text-slate-400 text-xs italic">-</span>
+                                    @endif
                                 </td>
                                 <td class="py-4 px-4 text-sm">
                                     @if($item->usertype == 'admin')
@@ -62,7 +72,7 @@
                                     {{ $item->tag->name ?? '-' }}
                                 </td>
                                 <td class="py-4 px-4 text-right">
-                                    <div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <div class="flex items-center justify-end gap-1.5">
                                         <a href="/editpass/{{ $item->id }}" class="w-8 h-8 rounded-lg bg-sky-50 text-sky-600 hover:bg-sky-100 flex items-center justify-center transition-colors" title="Ganti Password">
                                             <i class="fa-solid fa-key text-[10px]"></i>
                                         </a>
@@ -75,14 +85,11 @@
                                             </a>
                                         @endif
                                     </div>
-                                    <div class="flex items-center justify-end gap-2 group-hover:hidden transition-opacity">
-                                        <span class="text-slate-300 text-xs"><i class="fa-solid fa-ellipsis"></i></span>
-                                    </div>
                                 </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="5" class="py-12 text-center">
+                                <td colspan="6" class="py-12 text-center">
                                     <div class="flex flex-col items-center">
                                         <div class="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-3">
                                             <i class="fa-solid fa-users text-slate-300 text-2xl"></i>

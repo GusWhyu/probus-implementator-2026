@@ -7,6 +7,14 @@ use App\Models\PerformanceCategory;
 
 class PerformanceCategoryController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware(function ($request, $next) {
+            $this->authorize('aspv');
+            return $next($request);
+        });
+    }
+
     public function index(Request $request)
     {
         $query = PerformanceCategory::query();

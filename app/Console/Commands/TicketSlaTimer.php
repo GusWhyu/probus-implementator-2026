@@ -44,6 +44,7 @@ class TicketSlaTimer extends Command
 
         foreach ($expiredTickets as $ticket) {
             $ticket->update([
+                'returned_at' => now(),
                 'advisor_id' => null
             ]);
             

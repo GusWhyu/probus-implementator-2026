@@ -19,7 +19,7 @@ class UpdatesystemForeignKey extends Migration
             $table->unsignedBigInteger('user_id');
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
             $table->unsignedBigInteger('outlet_id');
-            $table->foreign('outlet_id')->references('id')->on('outlet')->onDelete('cascade');
+            $table->foreign('outlet_id')->references('id')->on('moutlet')->onDelete('cascade');
         });
     }
 

@@ -25,24 +25,30 @@
                     <table class="w-full text-left border-collapse">
                         <thead>
                             <tr class="border-b border-slate-200 bg-slate-50/50">
-                                <th class="py-5 px-8 text-xs font-bold text-slate-400 uppercase tracking-wider">Periode</th>
-                                <th class="py-5 px-8 text-xs font-bold text-slate-400 uppercase tracking-wider text-center">Nilai Tiket</th>
-                                <th class="py-5 px-8 text-xs font-bold text-slate-400 uppercase tracking-wider text-center">Kualitas Solving</th>
-                                <th class="py-5 px-8 text-xs font-bold text-slate-400 uppercase tracking-wider text-center">Kepuasan Klien</th>
-                                <th class="py-5 px-8 text-xs font-bold text-slate-400 uppercase tracking-wider text-center">Nilai Akhir</th>
-                                <th class="py-5 px-8 text-xs font-bold text-slate-400 uppercase tracking-wider text-center">Status</th>
+                                <th class="py-5 px-6 text-xs font-bold text-slate-400 uppercase tracking-wider">Periode</th>
+                                <th class="py-5 px-4 text-xs font-bold text-slate-400 uppercase tracking-wider text-center">Total Tiket</th>
+                                <th class="py-5 px-4 text-xs font-bold text-slate-400 uppercase tracking-wider text-center">Di-Advice</th>
+                                <th class="py-5 px-4 text-xs font-bold text-slate-400 uppercase tracking-wider text-center">Rata Waktu</th>
+                                <th class="py-5 px-4 text-xs font-bold text-slate-400 uppercase tracking-wider text-center">Nilai Tiket</th>
+                                <th class="py-5 px-4 text-xs font-bold text-slate-400 uppercase tracking-wider text-center">Kualitas CS</th>
+                                <th class="py-5 px-4 text-xs font-bold text-slate-400 uppercase tracking-wider text-center">Kepuasan Klien</th>
+                                <th class="py-5 px-4 text-xs font-bold text-slate-400 uppercase tracking-wider text-center">Nilai Akhir</th>
+                                <th class="py-5 px-6 text-xs font-bold text-slate-400 uppercase tracking-wider text-center">Status</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100">
                             
                             @foreach($riwayat as $r)
                             <tr class="hover:bg-slate-50/50 transition-colors">
-                                <td class="py-5 px-8 text-sm font-bold text-slate-700">{{ \Carbon\Carbon::parse($r->periode)->translatedFormat('F Y') }}</td>
-                                <td class="py-5 px-8 text-sm font-semibold text-slate-600 text-center">{{ $r->nilai_tiket }}</td>
-                                <td class="py-5 px-8 text-sm font-semibold text-slate-600 text-center">{{ $r->kualitas_cs }}</td>
-                                <td class="py-5 px-8 text-sm font-semibold text-slate-600 text-center">{{ $r->kepuasan_klien }}</td>
-                                <td class="py-5 px-8 text-sm font-extrabold text-slate-800 text-center">{{ $r->nilai_akhir }}</td>
-                                <td class="py-5 px-8 text-center">
+                                <td class="py-5 px-6 text-sm font-bold text-slate-700 whitespace-nowrap">{{ \Carbon\Carbon::parse($r->periode)->translatedFormat('F Y') }}</td>
+                                <td class="py-5 px-4 text-sm font-bold text-slate-800 text-center">{{ $r->total_ticket ?? 0 }}</td>
+                                <td class="py-5 px-4 text-sm font-semibold text-slate-600 text-center">{{ $r->total_ticket_yang_di_advice ?? 0 }}</td>
+                                <td class="py-5 px-4 text-sm font-semibold text-slate-600 text-center">{{ $r->rata_rata_waktu ?? '-' }}</td>
+                                <td class="py-5 px-4 text-sm font-semibold text-slate-600 text-center">{{ $r->nilai_tiket }}</td>
+                                <td class="py-5 px-4 text-sm font-semibold text-slate-600 text-center">{{ $r->kualitas_cs }}</td>
+                                <td class="py-5 px-4 text-sm font-semibold text-slate-600 text-center">{{ $r->kepuasan_klien }}</td>
+                                <td class="py-5 px-4 text-sm font-extrabold text-slate-800 text-center">{{ $r->nilai_akhir }}</td>
+                                <td class="py-5 px-6 text-center">
                                     <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold {{ $r->nilai_akhir >= 80 ? 'bg-green-50 text-green-600 border-green-100' : ($r->nilai_akhir >= 70 ? 'bg-yellow-50 text-yellow-600 border-yellow-100' : 'bg-red-50 text-red-600 border-red-100') }} border">
                                         {{ $r->nilai_akhir >= 80 ? 'Sangat Baik' : ($r->nilai_akhir >= 70 ? 'Baik' : 'Kurang') }}
                                     </span>

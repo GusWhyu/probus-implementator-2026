@@ -23,7 +23,7 @@ class RequestTableForeignKey extends Migration
             $table->unsignedBigInteger('status_id');
             $table->foreign('status_id')->references('id')->on('status')->onDelete('cascade');
             $table->unsignedBigInteger('outlet_id');
-            $table->foreign('outlet_id')->references('id')->on('outlet')->onDelete('cascade');
+            $table->foreign('outlet_id')->references('id')->on('moutlet')->onDelete('cascade');
         });
     }
 

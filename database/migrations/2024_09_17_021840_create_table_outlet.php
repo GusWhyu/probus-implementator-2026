@@ -13,7 +13,7 @@ class CreateTableOutlet extends Migration
      */
     public function up()
     {
-        Schema::create('outlet', function (Blueprint $table) {
+        Schema::create('moutlet', function (Blueprint $table) {
             $table->id();
             $table->char('nm_out',100);
             $table->char('lokasi',100);
@@ -28,6 +28,6 @@ class CreateTableOutlet extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('outlet');
+        Schema::dropIfExists('moutlet');
     }
 }

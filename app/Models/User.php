@@ -21,6 +21,10 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'usertype',
+        'tag_id',
+        'departemen_id',
+        'profile_image',
     ];
 
     /**
@@ -60,5 +64,36 @@ class User extends Authenticatable
 
     public function clientTickets() {
         return $this->hasMany(Ticket::class, 'user_id');
+    }
+
+    public function requests() {
+        return $this->hasMany(Request::class, 'user_id');
+    }
+
+    public function approvedRequests() {
+        return $this->hasMany(Request::class, 'approved_by');
+    }
+
+    public function getAvatarUrlAttribute()
+    {
+        if ($this->profile_image) {
+            if (\Illuminate\Support\Facades\Storage::disk('public')->exists($this->profile_image)) {
+                return asset('storage/' . $this->profile_image);
+            }
+            if (file_exists(public_path('storage/' . $this->profile_image))) {
+                return asset('storage/' . $this->profile_image);
+            }
+            if (file_exists(public_path($this->profile_image))) {
+                return asset($this->profile_image);
+            }
+        }
+
+        $bg = $this->usertype === 'admin' ? '2563eb' : '3b82f6';
+        return 'https://ui-avatars.com/api/?name=' . urlencode($this->name) . '&background=' . $bg . '&color=fff&bold=true&size=200';
+    }
+
+    public function getHasCustomAvatarAttribute()
+    {
+        return !empty($this->profile_image) && \Illuminate\Support\Facades\Storage::disk('public')->exists($this->profile_image);
     }
 }

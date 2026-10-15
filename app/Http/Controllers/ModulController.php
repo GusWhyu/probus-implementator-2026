@@ -2,64 +2,128 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ModuleSystem;
+use App\Models\Ticket;
+use App\Models\PerformanceReviewModuleDetail;
 use Illuminate\Http\Request;
+use RealRashid\SweetAlert\Facades\Alert;
 
 class ModulController extends Controller
 {
-    public function index(){
+    public function index(Request $request)
+    {
         $this->authorize('aspv');
+        
         $title = 'Hapus Modul!';
-        $text = 'Apakah Anda yakin ingin menghapus data ini?';
+        $text = 'Apakah Anda yakin ingin menghapus modul ini?';
         confirmDelete($title, $text);
-        $moduls = \App\Models\ModuleSystem::all();
+
+        $query = ModuleSystem::withCount('tickets');
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where('name', 'like', "%{$search}%");
+        }
+
+        $moduls = $query->orderBy('name', 'asc')->get();
+
         return view('modul.index', compact('moduls'));
     }
 
-    public function create(){
+    public function create()
+    {
         $this->authorize('aspv');
         return view('modul.create');
     }
 
-    public function edit($id){
+    public function edit($id)
+    {
         $this->authorize('aspv');
-        $data = \App\Models\ModuleSystem::find($id);
+        $data = ModuleSystem::findOrFail($id);
         return view('modul.edit', compact('data'));
     }
 
-    public function store(Request $request){
+    public function store(Request $request)
+    {
         $this->authorize('aspv');
-        $modul = new \App\Models\ModuleSystem;
-        $request->validate([
-            'name'=>'required|max:255|unique:module_systems,name',
-            'bobot_poin'=>'required|integer'
+
+        // Allow either 'bobot' or 'bobot_poin' input
+        if (!$request->has('bobot') && $request->has('bobot_poin')) {
+            $request->merge(['bobot' => $request->bobot_poin]);
+        }
+
+        $validated = $request->validate([
+            'name' => 'required|string|max:255|unique:module_systems,name',
+            'bobot' => 'required|numeric|min:0',
+        ], [
+            'name.required' => 'Nama modul wajib diisi.',
+            'name.unique' => 'Nama modul sudah terdaftar.',
+            'bobot.required' => 'Bobot poin wajib diisi.',
+            'bobot.numeric' => 'Bobot poin harus berupa angka.',
+            'bobot.min' => 'Bobot poin minimal 0.',
         ]);
-        $modul->name = $request->input('name');
-        $modul->bobot_poin = $request->input('bobot_poin');
-        $modul->save();
-        \RealRashid\SweetAlert\Facades\Alert::success('Berhasil Menambahkan Data!');
-        return redirect('/modul'); 
+
+        ModuleSystem::create([
+            'name' => $validated['name'],
+            'bobot' => $validated['bobot'],
+        ]);
+
+        Alert::success('Berhasil!', 'Data modul berhasil ditambahkan.');
+        return redirect()->route('modul');
     }
 
-    public function update(Request $request,$id){
+    public function update(Request $request, $id)
+    {
         $this->authorize('aspv');
-        $data = \App\Models\ModuleSystem::find($id);
-        $request->validate([
-            'name'=>'required|max:255|unique:module_systems,name,'.$id,
-            'bobot_poin'=>'required|integer'
+        $data = ModuleSystem::findOrFail($id);
+
+        // Allow either 'bobot' or 'bobot_poin' input
+        if (!$request->has('bobot') && $request->has('bobot_poin')) {
+            $request->merge(['bobot' => $request->bobot_poin]);
+        }
+
+        $validated = $request->validate([
+            'name' => 'required|string|max:255|unique:module_systems,name,' . $id,
+            'bobot' => 'required|numeric|min:0',
+        ], [
+            'name.required' => 'Nama modul wajib diisi.',
+            'name.unique' => 'Nama modul sudah terdaftar.',
+            'bobot.required' => 'Bobot poin wajib diisi.',
+            'bobot.numeric' => 'Bobot poin harus berupa angka.',
+            'bobot.min' => 'Bobot poin minimal 0.',
         ]);
+
         $data->update([
-            'name'=>$request->input('name'),
-            'bobot_poin'=>$request->input('bobot_poin')
+            'name' => $validated['name'],
+            'bobot' => $validated['bobot'],
         ]);
-        \RealRashid\SweetAlert\Facades\Alert::success('Berhasil Mengedit Data!');
-        return redirect('/modul');
+
+        Alert::success('Berhasil!', 'Data modul berhasil diperbarui.');
+        return redirect()->route('modul');
     }
 
-    public function delete($id){
+    public function delete($id)
+    {
         $this->authorize('aspv');
-        $data = \App\Models\ModuleSystem::find($id);
+        $data = ModuleSystem::findOrFail($id);
+
+        // Check relational integrity with tickets
+        $ticketCount = Ticket::where('module_system_id', $id)->count();
+        if ($ticketCount > 0) {
+            Alert::error('Gagal Menghapus Data!', "Modul ini tidak dapat dihapus karena sedang digunakan oleh {$ticketCount} data tiket.");
+            return redirect()->route('modul');
+        }
+
+        // Check relational integrity with performance reviews
+        $perfCount = PerformanceReviewModuleDetail::where('module_id', $id)->count();
+        if ($perfCount > 0) {
+            Alert::error('Gagal Menghapus Data!', "Modul ini tidak dapat dihapus karena terkait dengan {$perfCount} data penilaian kinerja.");
+            return redirect()->route('modul');
+        }
+
         $data->delete();
-        \RealRashid\SweetAlert\Facades\Alert::success('Berhasil Menghapus Data!');
-        return redirect('/modul');
+        Alert::success('Berhasil!', 'Data modul berhasil dihapus.');
+        return redirect()->route('modul');
     }
 }
+

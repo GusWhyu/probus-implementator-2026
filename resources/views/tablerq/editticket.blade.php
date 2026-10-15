@@ -1,4 +1,8 @@
 <x-app-layout>
+    <!-- Tom Select CSS & JS -->
+    <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
+
     <div class="py-8 bg-slate-50/50 min-h-screen">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             
@@ -36,12 +40,17 @@
                             <!-- Client -->
                             <div>
                                 <label class="block text-[11px] font-extrabold text-slate-500 uppercase tracking-wider mb-2">Client <span class="text-rose-500">*</span></label>
-                                <select name="client" class="w-full bg-slate-50/50 border border-slate-200 text-slate-800 text-sm font-semibold rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 block p-3.5 transition-all outline-none appearance-none cursor-pointer" style="background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2394a3b8%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E'); background-repeat: no-repeat; background-position: right 1rem top 50%; background-size: 0.65rem auto;" required>
-                                    <option value="" disabled>Pilih client...</option>
-                                    @foreach ($clients as $client)
-                                        <option value="{{ $client->id }}" {{ old('client', $datarq->client_id) == $client->id ? 'selected' : '' }}>{{ $client->nm_out }}</option>
-                                    @endforeach
-                                </select>
+                                <div class="relative group">
+                                    <select id="client-select" name="client" class="w-full bg-slate-50/50 border border-slate-200 text-slate-800 text-sm font-semibold rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 block p-3.5 transition-all outline-none" required>
+                                        <option value="" disabled>Pilih client...</option>
+                                        @foreach ($clients as $client)
+                                            <option value="{{ $client->id }}" {{ old('client', $datarq->client_id) == $client->id ? 'selected' : '' }}>{{ $client->nm_out }}</option>
+                                        @endforeach
+                                    </select>
+                                    <div class="absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none flex items-center justify-center w-7 h-7 rounded-lg bg-white shadow-sm border border-slate-100 z-10 transition-colors text-slate-400">
+                                        <i class="fa-solid fa-magnifying-glass text-[11px]"></i>
+                                    </div>
+                                </div>
                             </div>
 
                             <!-- Row: System & Module -->
@@ -189,8 +198,98 @@
     </style>
     
     <script>
-        document.addEventListener('trix-file-accept', function(e){
-            e.preventDefault();
+        document.addEventListener('trix-file-accept', function(e) {
+            const maxFileSize = 1024 * 1024; // 1MB
+            if (e.file.size > maxFileSize) {
+                e.preventDefault();
+                
+                // Create custom toast
+                const toast = document.createElement('div');
+                toast.className = 'fixed bottom-4 right-4 bg-white border-l-4 border-rose-500 rounded-xl shadow-xl p-4 flex items-start gap-3 z-50 transition-all transform translate-y-10 opacity-0 duration-300';
+                toast.innerHTML = `
+                    <div class="text-rose-500 mt-0.5">
+                        <i class="fa-solid fa-circle-exclamation text-xl"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-slate-800 text-sm">Ukuran Gambar Terlalu Besar!</h4>
+                        <p class="text-xs text-slate-500 mt-1">Gambar <b class="text-slate-700">${e.file.name}</b> berukuran ${(e.file.size / (1024*1024)).toFixed(2)} MB.<br>Maksimal ukuran yang diizinkan adalah <b>1 MB</b>.</p>
+                    </div>
+                    <button class="text-slate-400 hover:text-slate-600 transition-colors ml-4" onclick="this.parentElement.remove()">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                `;
+                document.body.appendChild(toast);
+                
+                // Animate in
+                setTimeout(() => {
+                    toast.classList.remove('translate-y-10', 'opacity-0');
+                }, 10);
+                
+                // Animate out after 6 seconds
+                setTimeout(() => {
+                    toast.classList.add('translate-y-10', 'opacity-0');
+                    setTimeout(() => toast.remove(), 300);
+                }, 6000);
+            }
+        });
+
+            // Initialize Tom Select for Client searchable dropdown
+            try {
+                if (typeof TomSelect !== 'undefined') {
+                    new TomSelect("#client-select", {
+                        create: false,
+                        sortField: {
+                            field: "text",
+                            direction: "asc"
+                        },
+                        placeholder: "Cari dan pilih client..."
+                    });
+                }
+            } catch (e) { console.error("TomSelect error:", e); }
         });
     </script>
+    <style>
+        .ts-wrapper {
+            padding: 0 !important;
+            border: none !important;
+            background: transparent !important;
+            box-shadow: none !important;
+        }
+        .ts-control {
+            border-radius: 0.75rem !important; /* Tailwind rounded-xl */
+            padding: 0.875rem 3rem 0.875rem 0.875rem !important; /* space for icon on right */
+            background-color: #f8fafc !important; /* bg-slate-50 */
+            border-color: #e2e8f0 !important; /* border-slate-200 */
+            font-size: 0.875rem !important; /* text-sm */
+            color: #1e293b !important; /* text-slate-800 */
+            box-shadow: none !important;
+            min-height: 48px;
+            display: flex;
+            align-items: center;
+        }
+        .ts-control::after {
+            display: none !important; /* Hide TomSelect default chevron arrow */
+        }
+        .ts-control.focus {
+            background-color: #ffffff !important;
+            border-color: #3b82f6 !important; /* focus:border-blue-500 */
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2) !important; /* focus:ring-blue-500/20 */
+        }
+        .ts-dropdown {
+            border-radius: 0.75rem !important;
+            border-color: #e2e8f0 !important;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
+            margin-top: 4px !important;
+        }
+        .ts-dropdown .option {
+            padding: 0.75rem !important;
+            font-size: 0.875rem !important;
+            transition: all 0.2s;
+        }
+        .ts-dropdown .active {
+            background-color: #eff6ff !important; /* hover:bg-blue-50 */
+            color: #2563eb !important; /* text-blue-600 */
+            font-weight: 600;
+        }
+    </style>
 </x-app-layout>

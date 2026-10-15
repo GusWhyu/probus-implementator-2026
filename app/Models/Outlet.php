@@ -11,5 +11,22 @@ class Outlet extends Model
 
     protected $table = 'moutlet';
 
-    // protected $fillable = ['nm_out', 'lokasi'];
+    protected $guarded = [];
+
+    protected $appends = ['name'];
+
+    public function getNameAttribute()
+    {
+        return $this->attributes['nm_out'] ?? null;
+    }
+
+    public function setNameAttribute($value)
+    {
+        $this->attributes['nm_out'] = $value;
+    }
+
+    public function requests()
+    {
+        return $this->hasMany(Request::class, 'outlet_id');
+    }
 }

@@ -6,7 +6,7 @@
         <button @click="sidebarOpen = true" class="md:hidden p-2 -ml-2 text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors">
             <i class="fa-solid fa-bars text-lg"></i>
         </button>
-        <h1 class="font-bold text-[14px] md:text-[15px] text-slate-800 capitalize truncate max-w-[180px] sm:max-w-xs md:max-w-none">{{ request()->routeIs('dashboard') ? 'Dashboard Laporan & Penilaian Kinerja CS' : (request()->routeIs('daftartiket') ? 'Daftar Tiket Helpdesk CS' : (request()->routeIs('inbox') ? 'Inbox & Manajemen Tiket' : (request()->is('createrq') || request()->is('createticket') ? 'Buat Tiket Baru' : (request()->is('detailrequest/*') || request()->is('detailticket/*') ? 'Detail Workspace Pengerjaan Tiket' : (request()->is('editrq/*') || request()->is('editticket/*') ? 'Edit Tiket Pelanggan' : (str_replace('-', ' ', request()->path()) == '/' ? 'Dashboard' : str_replace('-', ' ', request()->path()))))))) }}</h1>
+        <h1 class="font-bold text-[14px] md:text-[15px] text-slate-800 capitalize truncate max-w-[180px] sm:max-w-xs md:max-w-none">{{ request()->routeIs('request.dashboard') ? 'Dashboard Request System' : (request()->routeIs('dashboard') ? 'Dashboard Laporan & Penilaian Kinerja CS' : (request()->routeIs('daftartiket') ? 'Daftar Tiket Helpdesk CS' : (request()->routeIs('inbox') ? 'Inbox & Manajemen Tiket' : (request()->is('request') ? 'Daftar Request (Semua Request)' : (request()->is('myreq') ? 'My Request (Antrean Masuk)' : (request()->is('history') || request()->is('myrequs') || request()->is('myrequest') || request()->is('myupdatesystem') ? 'History (Pengajuan Saya)' : (request()->is('createrq') ? 'Buat Request Baru' : (request()->is('createticket') ? 'Buat Tiket Baru' : (request()->is('detailrequest/*') ? 'Detail Workspace Request' : (request()->is('detailticket/*') || request()->is('detailtiket/*') ? 'Detail Workspace Pengerjaan Tiket' : (request()->is('editrq/*') ? 'Edit Request' : (request()->is('editticket/*') ? 'Edit Tiket Pelanggan' : (str_replace('-', ' ', request()->path()) == '/' ? 'Dashboard' : str_replace('-', ' ', request()->path())))))))))))))) }}</h1>
     </div>
     <div class="flex items-center gap-4">
         <!-- Notification Dropdown -->
@@ -65,11 +65,7 @@
         <!-- User Avatar -->
         <a href="{{ route('profile') }}" class="block">
             <div class="w-9 h-9 rounded-full bg-slate-200 overflow-hidden cursor-pointer hover:ring-2 hover:ring-blue-500 hover:ring-offset-2 transition-all shadow-sm">
-                @if(Auth::user()->usertype === 'admin')
-                    <img src="https://ui-avatars.com/api/?name={{ urlencode(Auth::user()->name) }}&background=2563eb&color=fff&bold=true" alt="" class="w-full h-full object-cover">
-                @else
-                    <img src="{{ asset('img/material/user1.png') }}" alt="" class="w-full h-full object-cover" onerror="this.src='https://ui-avatars.com/api/?name={{ urlencode(Auth::user()->name) }}&background=e2e8f0&color=475569'">
-                @endif
+                <img src="{{ Auth::user()->avatar_url }}" alt="{{ Auth::user()->name }}" class="w-full h-full object-cover">
             </div>
         </a>
     </div>

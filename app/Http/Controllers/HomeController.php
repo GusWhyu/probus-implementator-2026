@@ -16,77 +16,231 @@ use App\Models\User;
 
 class HomeController extends Controller
 {
-    public function index(){
-        $open_count = Ticket::where('status', 'OPEN')->count();
-        $progress_count = Ticket::where('status', 'PROGRESS')->count();
-        $closed_count = Ticket::where('status', 'CLOSED')->count();
-        $total_count = Ticket::count();
-        
+    public function index(Request $request){
+        $dateParam = $request->input('date');
+        // Default ke hari ini jika tidak ada parameter tanggal
+        if (empty($dateParam) || $dateParam === 'all') {
+            $dateParam = \Carbon\Carbon::now()->format('Y-m-d');
+        }
+        $selectedDate = null;
+        $selectedDateRaw = '';
+        $selectedDateDisplay = '';
+        $periodTitle = '';
+        $startOfMonth = null;
+        $hasDate = true;
+
+        try {
+            $selectedDate = \Carbon\Carbon::parse($dateParam)->startOfDay();
+            $selectedDateRaw = $selectedDate->format('Y-m-d');
+            $selectedDateDisplay = $selectedDate->format('M d, Y');
+            // Selalu mulai dari tanggal 1 bulan tersebut
+            $startOfMonth = $selectedDate->copy()->startOfMonth();
+            $periodTitle = '1 - ' . $selectedDate->day . ' ' . $selectedDate->locale('id')->isoFormat('MMMM Y');
+        } catch (\Exception $e) {
+            $hasDate = false;
+            $selectedDate = null;
+        }
+
+
+        // Base Ticket counts
+        if ($hasDate) {
+            // Tiket yang dibuat di bulan ini (tgl 1 s/d tanggal yang dipilih)
+            $currentMonthTotal = Ticket::whereBetween('created_at', [$startOfMonth, $selectedDate->copy()->endOfDay()])->count();
+            $closed_count = Ticket::whereBetween('created_at', [$startOfMonth, $selectedDate->copy()->endOfDay()])->where('status', 'CLOSED')->count();
+            $progress_count = Ticket::whereBetween('created_at', [$startOfMonth, $selectedDate->copy()->endOfDay()])->where('status', 'PROGRESS')->count();
+            $currentMonthOpen = Ticket::whereBetween('created_at', [$startOfMonth, $selectedDate->copy()->endOfDay()])->where('status', 'OPEN')->count();
+
+            // Tiket OPEN dari bulan-bulan sebelumnya yang masih menggantung (carry over)
+            $carryOverOpen = Ticket::where('created_at', '<', $startOfMonth)
+                ->where('status', 'OPEN')
+                ->count();
+
+            // Total open = open bulan ini + carry over dari bulan sebelumnya
+            $open_count = $currentMonthOpen + $carryOverOpen;
+            // Total keseluruhan = tiket bulan ini + carry over open dari bulan sebelumnya
+            $total_count = $currentMonthTotal + $carryOverOpen;
+        } else {
+            $total_count = Ticket::count();
+            $closed_count = Ticket::where('status', 'CLOSED')->count();
+            $progress_count = Ticket::where('status', 'PROGRESS')->count();
+            $open_count = Ticket::where('status', 'OPEN')->count();
+        }
+
         $open = Ticket::where('status', 'OPEN')->latest()->take(5)->get();
         $progress = Ticket::where('status', 'PROGRESS')->latest()->take(5)->get();
         $closed = Ticket::where('status', 'CLOSED')->latest()->take(5)->get();
         $us = UpdateSystem::latest()->take(4)->get();
 
-        $all_tickets = Ticket::latest()->paginate(9);
+        // Recent / All Tickets for the period
+        if ($hasDate) {
+            // Ambil tiket bulan ini (tgl 1 - tanggal dipilih) + carry over OPEN dari bulan sebelumnya
+            $all_tickets = Ticket::where(function($q) use ($startOfMonth, $selectedDate) {
+                    // Tiket dibuat di bulan ini (tgl 1 s/d tanggal dipilih)
+                    $q->whereBetween('created_at', [$startOfMonth, $selectedDate->copy()->endOfDay()]);
+                })
+                ->orWhere(function($q) use ($startOfMonth) {
+                    // Carry over: tiket OPEN dari bulan sebelumnya
+                    $q->where('created_at', '<', $startOfMonth)
+                      ->where('status', 'OPEN');
+                })
+                ->latest()
+                ->take(5)
+                ->get();
 
-        // Chart Data Calculation
+            if ($all_tickets->isEmpty()) {
+                $all_tickets = Ticket::latest()->take(5)->get();
+            }
+        } else {
+            $all_tickets = Ticket::where('status', '!=', 'CLOSED')
+                ->where('created_at', '>=', \Carbon\Carbon::now()->subDays(2))
+                ->latest()
+                ->take(5)
+                ->get();
+            if ($all_tickets->isEmpty()) {
+                $all_tickets = Ticket::latest()->take(5)->get();
+            }
+        }
+
+        // Chart Data Calculation (7-day trend ending on selectedDate or today)
         $chartLabels = [];
         $masukData = [];
         $selesaiData = [];
+        $endDate = $hasDate ? $selectedDate->copy() : \Carbon\Carbon::now()->startOfDay();
+
         for ($i = 6; $i >= 0; $i--) {
-            $date = \Carbon\Carbon::now()->subDays($i);
-            $chartLabels[] = $date->translatedFormat('D');
-            $masukData[] = Ticket::whereDate('created_at', $date->toDateString())->count();
-            $selesaiData[] = Ticket::whereDate('updated_at', $date->toDateString())->where('status', 'CLOSED')->count();
+            $d = $endDate->copy()->subDays($i);
+            $chartLabels[] = $d->locale('id')->isoFormat('ddd, D MMM');
+            
+            $dailyMasuk = Ticket::whereDate('created_at', $d->toDateString())->count();
+            $dailySelesai = Ticket::whereDate('updated_at', $d->toDateString())->where('status', 'CLOSED')->count();
+            
+            $masukData[] = $dailyMasuk;
+            $selesaiData[] = $dailySelesai;
         }
 
-        $topAgents = User::whereHas('advisedTickets', function($q) {
+        // Top Agents — range tgl 1 s/d tanggal dipilih + carry over open
+        $topAgents = User::whereHas('advisedTickets', function($q) use ($hasDate, $startOfMonth, $selectedDate) {
                 $q->where('status', 'CLOSED');
+                if ($hasDate) {
+                    $q->whereBetween('created_at', [$startOfMonth, $selectedDate->copy()->endOfDay()]);
+                }
             })
-            ->withCount(['advisedTickets as closed_count' => function($q) {
+            ->withCount(['advisedTickets as closed_count' => function($q) use ($hasDate, $startOfMonth, $selectedDate) {
                 $q->where('status', 'CLOSED');
+                if ($hasDate) {
+                    $q->whereBetween('created_at', [$startOfMonth, $selectedDate->copy()->endOfDay()]);
+                }
             }])
             ->orderByDesc('closed_count')
             ->take(5)->get();
         $agentLabels = $topAgents->pluck('name')->toArray();
         $agentData = $topAgents->pluck('closed_count')->toArray();
 
-        $topClients = User::whereHas('clientTickets')
-            ->withCount('clientTickets as ticket_count')
+        // Top Clients — range tgl 1 s/d tanggal dipilih + carry over open
+        $topClients = User::whereHas('clientTickets', function($q) use ($hasDate, $startOfMonth, $selectedDate) {
+                if ($hasDate) {
+                    $q->where(function($sub) use ($startOfMonth, $selectedDate) {
+                        $sub->whereBetween('created_at', [$startOfMonth, $selectedDate->copy()->endOfDay()])
+                            ->orWhere(function($carry) use ($startOfMonth) {
+                                $carry->where('created_at', '<', $startOfMonth)
+                                      ->where('status', 'OPEN');
+                            });
+                    });
+                }
+            })
+            ->withCount(['clientTickets as ticket_count' => function($q) use ($hasDate, $startOfMonth, $selectedDate) {
+                if ($hasDate) {
+                    $q->where(function($sub) use ($startOfMonth, $selectedDate) {
+                        $sub->whereBetween('created_at', [$startOfMonth, $selectedDate->copy()->endOfDay()])
+                            ->orWhere(function($carry) use ($startOfMonth) {
+                                $carry->where('created_at', '<', $startOfMonth)
+                                      ->where('status', 'OPEN');
+                            });
+                    });
+                }
+            }])
             ->orderByDesc('ticket_count')
             ->take(10)->get();
         $clientDonutLabels = $topClients->take(4)->pluck('name')->toArray();
         $clientDonutData = $topClients->take(4)->pluck('ticket_count')->toArray();
         
         $clientBarLabels = $topClients->pluck('name')->map(function($name) {
-            return wordwrap($name, 10, "\\n", true);
+            return wordwrap($name, 10, "\n", true);
         })->toArray();
         $clientBarData = $topClients->pluck('ticket_count')->toArray();
 
-        $topModules = ModuleSystem::withCount('tickets')
+        // Top Modules — range tgl 1 s/d tanggal dipilih + carry over open
+        $topModules = ModuleSystem::whereHas('tickets', function($q) use ($hasDate, $startOfMonth, $selectedDate) {
+                if ($hasDate) {
+                    $q->where(function($sub) use ($startOfMonth, $selectedDate) {
+                        $sub->whereBetween('created_at', [$startOfMonth, $selectedDate->copy()->endOfDay()])
+                            ->orWhere(function($carry) use ($startOfMonth) {
+                                $carry->where('created_at', '<', $startOfMonth)
+                                      ->where('status', 'OPEN');
+                            });
+                    });
+                }
+            })
+            ->withCount(['tickets' => function($q) use ($hasDate, $startOfMonth, $selectedDate) {
+                if ($hasDate) {
+                    $q->where(function($sub) use ($startOfMonth, $selectedDate) {
+                        $sub->whereBetween('created_at', [$startOfMonth, $selectedDate->copy()->endOfDay()])
+                            ->orWhere(function($carry) use ($startOfMonth) {
+                                $carry->where('created_at', '<', $startOfMonth)
+                                      ->where('status', 'OPEN');
+                            });
+                    });
+                }
+            }])
             ->orderByDesc('tickets_count')
             ->take(7)->get();
         $kendalaLabels = $topModules->pluck('name')->toArray();
         $kendalaData = $topModules->pluck('tickets_count')->toArray();
 
+        // If AJAX request, return JSON response
+        if ($request->ajax() || $request->wantsJson() || $request->has('ajax')) {
+            $ticketsHtml = view('partials.dashboard_tickets', compact('all_tickets'))->render();
+            return response()->json([
+                'success' => true,
+                'hasDate' => $hasDate,
+                'date' => $selectedDateRaw,
+                'periodTitle' => $periodTitle,
+                'total_count' => $total_count,
+                'closed_count' => $closed_count,
+                'progress_count' => $progress_count,
+                'open_count' => $open_count,
+                'chartLabels' => $chartLabels,
+                'masukData' => $masukData,
+                'selesaiData' => $selesaiData,
+                'agentLabels' => $agentLabels,
+                'agentData' => $agentData,
+                'clientBarLabels' => $clientBarLabels,
+                'clientBarData' => $clientBarData,
+                'kendalaLabels' => $kendalaLabels,
+                'kendalaData' => $kendalaData,
+                'tickets_html' => $ticketsHtml,
+            ]);
+        }
+
         return view('dashboard', compact(
             'open', 'progress', 'closed', 'us', 'open_count', 'progress_count', 'closed_count', 'total_count', 'all_tickets',
-            'chartLabels', 'masukData', 'selesaiData', 'agentLabels', 'agentData', 'clientDonutLabels', 'clientDonutData', 'clientBarLabels', 'clientBarData', 'kendalaLabels', 'kendalaData'
+            'chartLabels', 'masukData', 'selesaiData', 'agentLabels', 'agentData', 'clientDonutLabels', 'clientDonutData', 'clientBarLabels', 'clientBarData', 'kendalaLabels', 'kendalaData',
+            'hasDate', 'selectedDateRaw', 'selectedDateDisplay', 'periodTitle'
         ));
     }
 
     public function daftartiket(Request $request){
-        $open_count = Ticket::where('status', 'OPEN')->count();
-        $progress_count = Ticket::where('status', 'PROGRESS')->count();
-        $closed_count = Ticket::where('status', 'CLOSED')->count();
-        $total_count = Ticket::count();
+        $open_count = Ticket::withoutGlobalScope('leader')->where('status', 'OPEN')->count();
+        $progress_count = Ticket::withoutGlobalScope('leader')->where('status', 'PROGRESS')->count();
+        $closed_count = Ticket::withoutGlobalScope('leader')->where('status', 'CLOSED')->count();
+        $total_count = Ticket::withoutGlobalScope('leader')->count();
         
-        $open = Ticket::where('status', 'OPEN')->latest()->take(5)->get();
-        $progress = Ticket::where('status', 'PROGRESS')->latest()->take(5)->get();
-        $closed = Ticket::where('status', 'CLOSED')->latest()->take(5)->get();
+        $open = Ticket::withoutGlobalScope('leader')->where('status', 'OPEN')->latest()->take(5)->get();
+        $progress = Ticket::withoutGlobalScope('leader')->where('status', 'PROGRESS')->latest()->take(5)->get();
+        $closed = Ticket::withoutGlobalScope('leader')->where('status', 'CLOSED')->latest()->take(5)->get();
         $us = UpdateSystem::latest()->take(4)->get(); 
         
-        $query = Ticket::query();
+        $query = Ticket::withoutGlobalScope('leader')->with(['user.departemen', 'client', 'advisor', 'kategoriSystem', 'moduleSystem']);
 
         // Apply Search Filter
         if ($request->filled('search')) {
@@ -94,8 +248,11 @@ class HomeController extends Controller
             $query->where(function($q) use ($search) {
                 $q->where('title', 'like', "%{$search}%")
                   ->orWhere('ticket_number', 'like', "%{$search}%")
-                  ->orWhereHas('client', function($q) use ($search) {
-                      $q->where('name', 'like', "%{$search}%");
+                  ->orWhereHas('client', function($cq) use ($search) {
+                      $cq->where('nm_out', 'like', "%{$search}%");
+                  })
+                  ->orWhereHas('user', function($uq) use ($search) {
+                      $uq->where('name', 'like', "%{$search}%");
                   });
             });
         }
@@ -137,14 +294,80 @@ class HomeController extends Controller
 
     public function penilaian($id){
         $user = User::findOrFail($id);
-        
-        // Count user tickets for current month
-        $tiket_ditangani = Ticket::where('advisor_id', $id)->whereMonth('created_at', date('m'))->count();
-        $tiket_selesai = Ticket::where('advisor_id', $id)->where('status', 'closed')->whereMonth('created_at', date('m'))->count();
-        
+        $currentMonth = date('m');
+        $currentYear = date('Y');
+
+        // Count user tickets for current month (tiket yang dibuat oleh user atau dihandle sebagai advisor)
+        $tiketQuery = Ticket::where(function($q) use ($id) {
+            $q->where('user_id', $id)->orWhere('advisor_id', $id);
+        })->whereMonth('created_at', $currentMonth)->whereYear('created_at', $currentYear);
+
+        $tiket_ditangani = (clone $tiketQuery)->count();
+        $tiket_selesai = (clone $tiketQuery)->whereRaw('UPPER(status) = ?', ['CLOSED'])->count();
+
+        // Tiket yang di-advice oleh user ini
+        $tiket_di_advice = Ticket::where('advisor_id', $id)
+            ->whereMonth('created_at', $currentMonth)
+            ->whereYear('created_at', $currentYear)
+            ->count();
+
+        // Hitung rata-rata waktu respon / penyelesaian tiket
+        $closedTickets = (clone $tiketQuery)->whereRaw('UPPER(status) = ?', ['CLOSED'])
+            ->whereNotNull('closed_at')
+            ->whereNotNull('created_at')
+            ->get();
+
+        if ($closedTickets->count() > 0) {
+            $totalMins = 0;
+            foreach ($closedTickets as $ct) {
+                $totalMins += \Carbon\Carbon::parse($ct->closed_at)->diffInMinutes(\Carbon\Carbon::parse($ct->created_at));
+            }
+            $avgMins = round($totalMins / $closedTickets->count());
+            $rata_rata_waktu = $avgMins . ' menit';
+        } else {
+            $rata_rata_waktu = '12 menit';
+        }
+
         $nilai_tiket = $tiket_ditangani > 0 ? round(($tiket_selesai / $tiket_ditangani) * 100) : 80;
 
-        return view('penilaian', compact('user', 'tiket_ditangani', 'tiket_selesai', 'nilai_tiket'));
+        // Detail ticket per module system
+        $modules = ModuleSystem::all();
+        $module_details = [];
+        foreach ($modules as $mod) {
+            $modTickets = Ticket::where('module_system_id', $mod->id)
+                ->where(function($q) use ($id) {
+                    $q->where('user_id', $id)->orWhere('advisor_id', $id);
+                })
+                ->whereMonth('created_at', $currentMonth)
+                ->whereYear('created_at', $currentYear)
+                ->get();
+
+            $modCount = $modTickets->count();
+            $closedModTickets = $modTickets->filter(function($t) {
+                return strtoupper($t->status) === 'CLOSED' && $t->closed_at && $t->created_at;
+            });
+
+            if ($closedModTickets->count() > 0) {
+                $modMins = 0;
+                foreach ($closedModTickets as $cmt) {
+                    $modMins += \Carbon\Carbon::parse($cmt->closed_at)->diffInMinutes(\Carbon\Carbon::parse($cmt->created_at));
+                }
+                $modAvgWaktu = round($modMins / $closedModTickets->count()) . ' menit';
+            } else {
+                $modAvgWaktu = '15 menit';
+            }
+
+            $module_details[] = [
+                'id' => $mod->id,
+                'name' => $mod->name,
+                'bobot' => $mod->bobot ?? 80,
+                'total_ticket' => $modCount,
+                'rata_rata_waktu' => $modAvgWaktu,
+                'score' => round(($mod->bobot ?? 80) * ($modCount > 0 ? $modCount : 1))
+            ];
+        }
+
+        return view('penilaian', compact('user', 'tiket_ditangani', 'tiket_selesai', 'tiket_di_advice', 'rata_rata_waktu', 'nilai_tiket', 'module_details'));
     }
 
     public function storePenilaian(Request $request, $id) {
@@ -163,12 +386,47 @@ class HomeController extends Controller
 
         $n_akhir = ($n_t * 0.3) + ($avg_kualitas * 0.4) + ($n_k * 0.3);
 
+        $currentMonth = date('m');
+        $currentYear = date('Y');
+
+        // Hitung total ticket, rata-rata waktu, dan total ticket di-advice
+        $tiketQuery = Ticket::where(function($q) use ($id) {
+            $q->where('user_id', $id)->orWhere('advisor_id', $id);
+        })->whereMonth('created_at', $currentMonth)->whereYear('created_at', $currentYear);
+
+        $total_ticket = $request->input('total_ticket', (clone $tiketQuery)->count());
+        $tiket_di_advice = $request->input('total_ticket_yang_di_advice', Ticket::where('advisor_id', $id)->whereMonth('created_at', $currentMonth)->whereYear('created_at', $currentYear)->count());
+
+        $rata_rata_waktu = $request->input('rata_rata_waktu');
+        if (!$rata_rata_waktu) {
+            $closedTickets = (clone $tiketQuery)->whereRaw('UPPER(status) = ?', ['CLOSED'])
+                ->whereNotNull('closed_at')
+                ->whereNotNull('created_at')
+                ->get();
+
+            if ($closedTickets->count() > 0) {
+                $totalMins = 0;
+                foreach ($closedTickets as $ct) {
+                    $totalMins += \Carbon\Carbon::parse($ct->closed_at)->diffInMinutes(\Carbon\Carbon::parse($ct->created_at));
+                }
+                $rata_rata_waktu = round($totalMins / $closedTickets->count()) . ' menit';
+            } else {
+                $rata_rata_waktu = '12 menit';
+            }
+        }
+
         $review = PerformanceReview::create([
             'user_id' => $id,
             'reviewer_id' => auth()->id() ?? 1,
             'periode' => date('Y-m-01'),
             'total_score' => $n_akhir,
-            'status' => 'PUBLISHED',
+            'module_score' => $n_t,
+            'performance_score' => $avg_kualitas,
+            'review_score' => $n_k,
+            'total_ticket' => $total_ticket,
+            'rata_rata_waktu' => $rata_rata_waktu,
+            'total_ticket_yang_di_advice' => $tiket_di_advice,
+            'status' => 'FINAL',
             'catatan' => $request->catatan,
             'saran' => $request->saran,
         ]);
@@ -201,16 +459,37 @@ class HomeController extends Controller
         // Insert Module Details
         $modules = ModuleSystem::all();
         foreach($modules as $mod) {
-            $count = Ticket::where('advisor_id', $id)
-                           ->where('module_system_id', $mod->id)
-                           ->whereMonth('created_at', date('m'))
-                           ->count();
+            $modTickets = Ticket::where('module_system_id', $mod->id)
+                ->where(function($q) use ($id) {
+                    $q->where('user_id', $id)->orWhere('advisor_id', $id);
+                })
+                ->whereMonth('created_at', $currentMonth)
+                ->whereYear('created_at', $currentYear)
+                ->get();
+
+            $count = $modTickets->count();
             if ($count > 0) {
+                $closedModTickets = $modTickets->filter(function($t) {
+                    return strtoupper($t->status) === 'CLOSED' && $t->closed_at && $t->created_at;
+                });
+
+                if ($closedModTickets->count() > 0) {
+                    $modMins = 0;
+                    foreach ($closedModTickets as $cmt) {
+                        $modMins += \Carbon\Carbon::parse($cmt->closed_at)->diffInMinutes(\Carbon\Carbon::parse($cmt->created_at));
+                    }
+                    $modAvgWaktu = round($modMins / $closedModTickets->count()) . ' menit';
+                } else {
+                    $modAvgWaktu = '15 menit';
+                }
+
                 PerformanceReviewModuleDetail::create([
-                    'performance_review_id' => $review->id,
-                    'module_system_id' => $mod->id,
-                    'ticket_count' => $count,
-                    'module_score' => $n_t // simplify
+                    'p_rev_id' => $review->id,
+                    'module_id' => $mod->id,
+                    'score' => $n_t,
+                    'bobot' => $mod->bobot ?? 80,
+                    'total_ticket' => $count,
+                    'rata_rata_waktu' => $modAvgWaktu
                 ]);
             }
         }
@@ -245,18 +524,39 @@ class HomeController extends Controller
     }
 
     public function inbox(Request $request){
-        // 1. Auto expire takeovers older than 1 hour for tickets I SENT (Original Owner)
-        $myExpiredSent = Ticket::where('user_id', auth()->id())
-                               ->whereNotNull('pending_advisor_id')
-                               ->where('pending_advisor_at', '<=', now()->subMinutes(60))
-                               ->get();
+        // 1. Auto expire takeovers if deadline reached for tickets I SENT (Original Owner)
+        $mySent = Ticket::where('user_id', auth()->id())
+                        ->whereNotNull('pending_advisor_id')
+                        ->get();
         
-        if ($myExpiredSent->count() > 0) {
-            $ticketNumbers = $myExpiredSent->pluck('ticket_number')->toArray();
-            Ticket::whereIn('id', $myExpiredSent->pluck('id'))
-                  ->update(['pending_advisor_id' => null, 'pending_advisor_at' => null]);
+        $expiredSentIds = [];
+        $expiredSentNumbers = [];
+        foreach ($mySent as $tk) {
+            $isExpired = false;
+            if ($tk->pending_advisor_expires_at) {
+                $isExpired = now()->gte($tk->pending_advisor_expires_at);
+            } elseif ($tk->pending_advisor_at) {
+                $mins = $tk->takeover_duration_minutes ?: 60;
+                $isExpired = now()->diffInMinutes($tk->pending_advisor_at) >= $mins;
+            }
+            if ($isExpired) {
+                $expiredSentIds[] = $tk->id;
+                $expiredSentNumbers[] = $tk->ticket_number;
+            }
+        }
+        
+        if (!empty($expiredSentIds)) {
+            Ticket::whereIn('id', $expiredSentIds)
+                  ->update([
+                      'status' => 'OPEN',
+                      'returned_at' => now(),
+                      'pending_advisor_id' => null, 
+                      'pending_advisor_at' => null,
+                      'pending_advisor_expires_at' => null,
+                      'takeover_duration_minutes' => null
+                  ]);
             
-            Alert::warning('Pengalihan Otomatis Dibatalkan', 'Tiket (' . implode(', ', $ticketNumbers) . ') telah dikembalikan kepada Anda karena telah melewati batas 1 jam tanpa persetujuan dari advisor tujuan.')->showConfirmButton('Tutup', '#f59e0b');
+            Alert::warning('Pengalihan Otomatis Dibatalkan', 'Tiket (' . implode(', ', $expiredSentNumbers) . ') telah dikembalikan kepada Anda karena telah melewati batas waktu tanpa persetujuan dari advisor tujuan.')->showConfirmButton('Tutup', '#f59e0b')->autoClose(3000);
         }
 
         // 2. Query data
@@ -266,7 +566,37 @@ class HomeController extends Controller
                   $sub->where('advisor_id', auth()->id())
                       ->whereNull('pending_advisor_id');
               });
-        });
+        })->with(['kategoriSystem', 'moduleSystem', 'client', 'user', 'advisor']);
+
+        // Search filter
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('ticket_number', 'like', "%{$search}%")
+                  ->orWhere('title', 'like', "%{$search}%")
+                  ->orWhere('description', 'like', "%{$search}%")
+                  ->orWhere('tipe_penanganan', 'like', "%{$search}%")
+                  ->orWhereHas('client', function($cq) use ($search) {
+                      $cq->where('nm_out', 'like', "%{$search}%");
+                  })
+                  ->orWhereHas('user', function($uq) use ($search) {
+                      $uq->where('name', 'like', "%{$search}%");
+                  })
+                  ->orWhereHas('advisor', function($aq) use ($search) {
+                      $aq->where('name', 'like', "%{$search}%");
+                  })
+                  ->orWhereHas('kategoriSystem', function($kq) use ($search) {
+                      $kq->where('name', 'like', "%{$search}%");
+                  })
+                  ->orWhereHas('moduleSystem', function($mq) use ($search) {
+                      $mq->where('name', 'like', "%{$search}%");
+                  });
+            });
+        }
+
+        if ($request->filled('system')) {
+            $query->where('system', $request->system);
+        }
 
         if ($request->filled('module')) {
             $query->where('module_system_id', $request->module);
@@ -278,11 +608,25 @@ class HomeController extends Controller
 
         $pendingTakeovers = Ticket::where('pending_advisor_id', auth()->id())->latest()->get();
 
-        // 3. Auto expire takeovers older than 1 hour for tickets targeting ME
+        // 3. Auto expire takeovers if deadline reached for tickets targeting ME
         $expiredFound = false;
         foreach ($pendingTakeovers as $tk) {
-            if ($tk->pending_advisor_at && now()->diffInMinutes($tk->pending_advisor_at) >= 60) {
-                $tk->update(['pending_advisor_id' => null, 'pending_advisor_at' => null]);
+            $isExpired = false;
+            if ($tk->pending_advisor_expires_at) {
+                $isExpired = now()->gte($tk->pending_advisor_expires_at);
+            } elseif ($tk->pending_advisor_at) {
+                $mins = $tk->takeover_duration_minutes ?: 60;
+                $isExpired = now()->diffInMinutes($tk->pending_advisor_at) >= $mins;
+            }
+            if ($isExpired) {
+                $tk->update([
+                    'status' => 'OPEN',
+                    'returned_at' => now(),
+                    'pending_advisor_id' => null, 
+                    'pending_advisor_at' => null,
+                    'pending_advisor_expires_at' => null,
+                    'takeover_duration_minutes' => null
+                ]);
                 $expiredFound = true;
             }
         }
@@ -292,20 +636,21 @@ class HomeController extends Controller
             $pendingTakeovers = Ticket::where('pending_advisor_id', auth()->id())->latest()->get();
         }
 
-        $systems = \App\Models\Tag::all();
+        $systems = \App\Models\Kategori::all();
         $modules = ModuleSystem::all();
 
         return view('inbox', compact('open', 'progress', 'closed', 'systems', 'modules', 'pendingTakeovers'));
     }
 
     public function activitylog(){
-        $reqlog = RequestLog::latest()->take(10)->get();
+        $reqlog = RequestLog::with(['request', 'user', 'status'])->latest()->paginate(20);
         return view('activitylog', compact('reqlog'));
     }
 
     public function morerq($id){
-        $data = \App\Models\Request::where('status_id', $id)->latest()->paginate(12);
+        $statusIds = ($id == 1 || $id == 2) ? [1, 2] : [$id];
+        $data = \App\Models\Request::with(['outlet', 'tag', 'kategori', 'approver', 'status'])->whereIn('status_id', $statusIds)->latest()->paginate(12);
         $dataid = $id;
-        return view('tablerq.mrq',compact('data','dataid'));
+        return view('tablerq.mrq', compact('data', 'dataid'));
     }
 }

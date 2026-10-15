@@ -141,6 +141,18 @@
             <td class="info-label">Tanggal Cetak</td>
             <td>: {{ date('d F Y') }}</td>
         </tr>
+        <tr>
+            <td class="info-label">Total Tiket</td>
+            <td>: {{ $rapor->total_ticket ?? 0 }} tiket</td>
+            <td class="info-label">Tiket di-Advice</td>
+            <td>: {{ $rapor->total_ticket_yang_di_advice ?? 0 }} tiket</td>
+        </tr>
+        <tr>
+            <td class="info-label">Rata-rata Waktu</td>
+            <td>: {{ $rapor->rata_rata_waktu ?? '-' }}</td>
+            <td class="info-label">Status Penilaian</td>
+            <td>: {{ $rapor->status ?? 'FINAL' }}</td>
+        </tr>
     </table>
 
     <div class="score-box">
@@ -189,6 +201,32 @@
             </tr>
         </tfoot>
     </table>
+
+    @if($rapor && $rapor->moduleDetails && $rapor->moduleDetails->count() > 0)
+    <h3 style="color: #334155; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px;">Rincian Modul Tiket</h3>
+    <table class="details-table">
+        <thead>
+            <tr>
+                <th>Modul</th>
+                <th class="text-center">Beban</th>
+                <th class="text-center">Total Tiket</th>
+                <th class="text-center">Rata-rata Waktu</th>
+                <th class="text-right">Skor</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach($rapor->moduleDetails as $md)
+            <tr>
+                <td>{{ $md->moduleSystem->name ?? $md->module->name ?? 'Modul' }}</td>
+                <td class="text-center">{{ $md->bobot }}</td>
+                <td class="text-center">{{ $md->total_ticket }}</td>
+                <td class="text-center">{{ $md->rata_rata_waktu ?? '-' }}</td>
+                <td class="text-right">{{ $md->score }}</td>
+            </tr>
+            @endforeach
+        </tbody>
+    </table>
+    @endif
 
     <div class="notes-section">
         <div class="notes-title">Catatan Penilaian:</div>

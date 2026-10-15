@@ -22,4 +22,8 @@ class Tag extends Model
     public function request(){
         return $this->hasMany(Request::class);
     }
+
+    public function requests(){
+        return $this->hasMany(Request::class, 'tag_id');
+    }
 }

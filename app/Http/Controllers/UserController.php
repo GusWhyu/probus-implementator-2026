@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Tag;
 use App\Models\User;
+use App\Models\Departemen;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Hash;
@@ -17,21 +18,23 @@ class UserController extends Controller
         $title = 'Delete User!';
         $text = 'Are you sure you want to delete this user?';
         confirmDelete($title, $text);
-        $user = User::all();
+        $user = User::with(['tag', 'departemen'])->get();
         return view('tableuser.user', compact('user'));
     }
 
     public function registeracc(){
         $this->authorize('admin');
         $tag = Tag::all();
-        return view('tableuser.registeracc', compact('tag'));
+        $departemen = Departemen::orderBy('name')->get();
+        return view('tableuser.registeracc', compact('tag', 'departemen'));
     }
 
     public function editacc($id){
         $this->authorize('admin');
-        $user = User::find($id);
+        $user = User::findOrFail($id);
         $tag = Tag::all();
-        return view('tableuser.editacc', compact('tag','user'));
+        $departemen = Departemen::orderBy('name')->get();
+        return view('tableuser.editacc', compact('tag', 'user', 'departemen'));
     }
 
     public function editpass($id){
@@ -48,6 +51,7 @@ class UserController extends Controller
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
             'usertype' => ['required', 'string'],
             'tag'=>['required'],
+            'departemen' => ['required', 'exists:departemen,id'],
         ]);
 
         User::create([
@@ -56,6 +60,7 @@ class UserController extends Controller
             'password' => Hash::make($request->password),
             'usertype' => $request->usertype,
             'tag_id' => $request->tag,
+            'departemen_id' => $request->departemen,
         ]);
         Alert::success('Account Successfully Registered!');
         return redirect('/user');
@@ -63,12 +68,13 @@ class UserController extends Controller
 
     public function edit(Request $request,$id){
         $this->authorize('admin');
-        $user = User::find($id);
+        $user = User::findOrFail($id);
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255'],
+            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email,' . $id],
             'usertype' => ['required', 'string'],
             'tag'=>['required'],
+            'departemen' => ['required', 'exists:departemen,id'],
         ]);
 
         $user->update([
@@ -76,6 +82,7 @@ class UserController extends Controller
             'email' => $request->email,
             'usertype' => $request->usertype,
             'tag_id' => $request->tag,
+            'departemen_id' => $request->departemen,
         ]);
 
         Alert::success('Account Successfully Edited!');

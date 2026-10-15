@@ -45,9 +45,15 @@ Route::post('/penilaian/{id}', [HomeController::class, 'storePenilaian'])->middl
 Route::get('/rapor/{id}', [HomeController::class, 'rapor'])->middleware(['auth'])->name('rapor');
 Route::get('/rapor/{id}/download', [HomeController::class, 'downloadRapor'])->middleware(['auth'])->name('rapor.download');
 Route::get('/riwayat/{id}', [HomeController::class, 'riwayat'])->middleware(['auth'])->name('riwayat');
-// Old Request System Routes
+// Request System Routes
+Route::get('/request-dashboard', [RequestController::class, 'dashboard'])->middleware(['auth'])->name('request.dashboard');
+Route::get('/request/dashboard', function() { return redirect()->route('request.dashboard'); });
+Route::get('/request', [RequestController::class, 'index'])->middleware(['auth'])->name('request.board');
 Route::get('/getOutlet/{search?}', [RequestController::class, 'getOutlet'])->name('getOutlet');
-Route::get('/detailrequest/{id}',[RequestController::class, 'detailrequest'])->middleware(['auth'])->name('detailrequest');
+Route::get('/detailrequest/{id}', [RequestController::class, 'detailrequest'])->middleware(['auth'])->name('detailrequest');
+Route::get('/detailtiket/{id}', function($id) {
+    return redirect()->route('detailrequest', ['id' => $id]);
+})->middleware(['auth'])->name('detailtiket');
 Route::get('/mrq', [RequestController::class, 'mrq'])->middleware(['auth'])->name('mrq');
 Route::get('/createrq', [RequestController::class, 'createrq'])->middleware(['auth'])->name('createrq');
 Route::get('/editrq/{id}', [RequestController::class, 'editrq'])->middleware(['auth'])->name('editrq');
@@ -124,7 +130,7 @@ Route::get('/createmodul', [ModulController::class, 'create'])->middleware(['aut
 Route::get('/editmodul/{id}', [ModulController::class, 'edit'])->middleware(['auth'])->name('editmodul');
 Route::post('/createmodul', [ModulController::class, 'store'])->middleware(['auth'])->name('storemodul');
 Route::post('/editmodul/{id}', [ModulController::class, 'update'])->middleware(['auth'])->name('updatemodul');
-Route::delete('/deletemodul/{id}', [ModulController::class, 'delete'])->middleware(['auth'])->name('deletemodul');
+Route::match(['delete', 'get'], '/deletemodul/{id}', [ModulController::class, 'delete'])->middleware(['auth'])->name('deletemodul');
 
 //Route Status
 Route::get('/status', [StatusController::class, 'index'])->middleware(['auth'])->name('status');
@@ -146,11 +152,14 @@ Route::delete('/deleteclient/{id}',[ClientController::class, 'delete'])->middlew
 Route::get('/profile', [ProfileController::class, 'index'])->middleware(['auth'])->name('profile');
 Route::get('/editprofile/{id}', [ProfileController::class, 'edit'])->middleware(['auth'])->name('editprofile');
 Route::post('/editprofile/{id}', [ProfileController::class, 'updateprofile'])->middleware(['auth'])->name('updateprofile');
+Route::post('/profile/delete-photo/{id}', [ProfileController::class, 'deletePhoto'])->middleware(['auth'])->name('profile.deletePhoto');
 Route::get('/editpassacc', [ProfileController::class, 'editpass'])->middleware(['auth'])->name('editpassacc');
 Route::post('/editpassacc', [ProfileController::class, 'updatepass'])->middleware(['auth'])->name('updatepassacc');
 
-//Route My Request & Update System
-Route::get('/myrequs', [MyrequsController::class, 'index'])->middleware(['auth'])->name('myrequs');
+//Route History, My Request & Update System
+Route::get('/history', [MyrequsController::class, 'history'])->middleware(['auth'])->name('history');
+Route::get('/request/history', function() { return redirect()->route('history'); })->name('request.history');
+Route::get('/myrequs', [MyrequsController::class, 'history'])->middleware(['auth'])->name('myrequs');
 Route::get('/myrequest', [MyrequsController::class, 'myrequest'])->middleware(['auth'])->name('myrequest');
 Route::get('/myupdatesystem', [MyrequsController::class, 'myupdatesystem'])->middleware(['auth'])->name('myupdatesystem');
 
@@ -165,7 +174,7 @@ Route::get('/demo-tiket', function () {
 });
 
 // Settings -> Penilaian Soft Skill
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth', 'can:aspv'])->group(function () {
     Route::get('/pengaturan/soft-skill', [\App\Http\Controllers\PerformanceCategoryController::class, 'index'])->name('soft-skill.index');
     Route::get('/pengaturan/soft-skill/create', [\App\Http\Controllers\PerformanceCategoryController::class, 'create'])->name('soft-skill.create');
     Route::post('/pengaturan/soft-skill', [\App\Http\Controllers\PerformanceCategoryController::class, 'store'])->name('soft-skill.store');

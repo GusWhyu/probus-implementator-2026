@@ -36,6 +36,7 @@ class TicketSeeder extends Seeder
                 'tag_id' => \App\Models\Tag::first()->id ?? null,
                 'due_date' => $created_at->copy()->addDays(2),
                 'closed_at' => ($status == 'CLOSED') ? $created_at->copy()->addHours(rand(1, 48)) : null,
+                'handle_at' => $created_at,
                 'created_at' => $created_at,
                 'updated_at' => $created_at,
             ]);

@@ -25,6 +25,10 @@
     $isPendingOther = $datarq->pending_advisor_id != null && $datarq->pending_advisor_id != $aid;
     
     $showAlert = $isOverdue || $isUnassigned || $isPendingOther;
+    $prevUrl = url()->previous();
+    $currentUrl = url()->current();
+    $isInvalidBack = (!$prevUrl || $prevUrl === $currentUrl || str_contains($prevUrl, '/detailticket') || str_contains($prevUrl, '/ticket-') || str_contains($prevUrl, '/editticket'));
+    $backUrl = $isInvalidBack ? route('daftartiket') : $prevUrl;
 @endphp
 
 <x-app-layout>
@@ -34,7 +38,7 @@
             <!-- Header section -->
             <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-8 gap-4">
                 <div class="flex items-center gap-4">
-                    <a href="{{ url()->previous() !== url()->current() ? url()->previous() : route('daftartiket') }}" class="w-11 h-11 bg-white border border-slate-200 rounded-full flex items-center justify-center text-slate-500 hover:text-blue-600 hover:border-blue-200 hover:bg-blue-50 transition-all shadow-sm shrink-0">
+                    <a href="{{ $backUrl }}" onclick="if (document.referrer && !document.referrer.includes('/detailticket') && !document.referrer.includes('/ticket-') && !document.referrer.includes('/editticket')) { event.preventDefault(); window.location.href = document.referrer; }" class="w-11 h-11 bg-white border border-slate-200 rounded-full flex items-center justify-center text-slate-500 hover:text-blue-600 hover:border-blue-200 hover:bg-blue-50 transition-all shadow-sm shrink-0 cursor-pointer" title="Kembali">
                         <i class="fa-solid fa-arrow-left"></i>
                     </a>
                     <div>
@@ -193,10 +197,10 @@
                             <h3 class="text-sm font-extrabold text-slate-800 uppercase tracking-wider flex items-center gap-2">
                                 <i class="fa-regular fa-comments text-blue-500"></i> Diskusi
                             </h3>
-                            <span class="bg-blue-100 text-blue-600 text-[10px] font-extrabold px-2.5 py-1 rounded-full">{{ count($komentar) }} Pesan</span>
+                            <span id="diskusi-count-badge" class="bg-blue-100 text-blue-600 text-[10px] font-extrabold px-2.5 py-1 rounded-full">{{ count($komentar) }} Pesan</span>
                         </div>
                         
-                        <div class="p-6 md:px-8 flex-1 overflow-y-auto space-y-6 custom-scrollbar bg-slate-50/30">
+                        <div id="diskusi-messages-container" class="p-6 md:px-8 flex-1 overflow-y-auto space-y-6 custom-scrollbar bg-slate-50/30">
                             @if (count($komentar) >= 1)
                                 @foreach ($komentar as $komen)
                                 <div class="flex gap-4 {{ $komen->user_id == $aid ? 'flex-row-reverse' : '' }}">
@@ -221,7 +225,7 @@
                                 </div>
                                 @endforeach
                             @else
-                                <div class="text-center py-12 flex flex-col items-center">
+                                <div id="diskusi-empty-state" class="text-center py-12 flex flex-col items-center">
                                     <div class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center text-slate-300 mb-4">
                                         <i class="fa-regular fa-comments text-2xl"></i>
                                     </div>
@@ -244,16 +248,20 @@
                             <form id="diskusi-form" action="/ticket-komentar/{{ $datarq->id }}" method="POST">
                                 @csrf
                                 <input type="hidden" id="comment" name="comment" value="{{ old('comment') }}">
-                                <div class="bg-slate-50/50 rounded-2xl border border-slate-200 overflow-hidden focus-within:ring-4 focus-within:ring-blue-500/10 focus-within:border-blue-500 transition-all">
-                                    <trix-editor toolbar="trix-toolbar-komen" trix-attachment-remove input="comment" class="border-none min-h-[100px] text-sm font-medium p-4 focus:outline-none max-w-none prose prose-slate" placeholder="Ketik pesan Anda di sini..."></trix-editor>
-                                    @error('comment')
-                                    <p class="text-rose-500 text-xs font-bold px-4 pb-2">{{ $message }}</p>
-                                    @enderror
-                                    <div class="bg-white px-4 py-3 border-t border-slate-100 flex flex-wrap justify-between items-center gap-4">
-                                        <trix-toolbar id="trix-toolbar-komen" class="flex-1 overflow-x-auto custom-scrollbar pb-1"></trix-toolbar>
-                                        <button type="button" onclick="document.getElementById('diskusi-form').submit();" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-xl text-xs font-bold transition-all active:scale-95 shadow-sm shadow-blue-500/20 flex items-center gap-2 shrink-0">
-                                            Kirim <i class="fa-solid fa-paper-plane text-[10px]"></i>
+                                <div class="bg-slate-50/50 rounded-2xl border border-slate-200 overflow-hidden focus-within:ring-4 focus-within:ring-blue-500/10 focus-within:border-blue-500 transition-all flex flex-col">
+                                    <div class="order-2 bg-white px-4 py-3 border-t border-slate-100 flex flex-wrap sm:flex-nowrap justify-between items-center gap-3">
+                                        <div class="overflow-x-auto max-w-full flex-1">
+                                            <trix-toolbar id="trix-toolbar-komen"></trix-toolbar>
+                                        </div>
+                                        <button type="button" id="btn-kirim-diskusi" onclick="kirimPesanDiskusi()" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-xl text-xs font-bold transition-all active:scale-95 shadow-sm shadow-blue-500/20 flex items-center gap-2 shrink-0">
+                                            <span>Kirim</span> <i class="fa-solid fa-paper-plane text-[10px]"></i>
                                         </button>
+                                    </div>
+                                    <div class="order-1">
+                                        <trix-editor toolbar="trix-toolbar-komen" trix-attachment-remove input="comment" class="border-none min-h-[100px] text-sm font-medium p-4 focus:outline-none max-w-none prose prose-slate w-full" placeholder="Ketik pesan Anda di sini..."></trix-editor>
+                                        @error('comment')
+                                        <p class="text-rose-500 text-xs font-bold px-4 pb-2">{{ $message }}</p>
+                                        @enderror
                                     </div>
                                 </div>
                             </form>
@@ -265,16 +273,30 @@
                 <!-- Right Content (Sidebar Info) -->
                 <div class="w-full lg:w-5/12 xl:w-4/12 shrink-0 space-y-6">
                     
-                    @if ($datarq->pending_advisor_id == $aid)
+                    @if ($datarq->pending_advisor_id != null)
                     <!-- Pending Take Over Approval Banner -->
-                    <div class="bg-blue-50 border border-blue-200 rounded-3xl p-5 relative overflow-hidden shadow-sm mb-6">
+                    <div class="bg-amber-50 border-2 border-amber-300 rounded-3xl p-5 relative overflow-hidden shadow-sm mb-6">
                         <div class="flex items-start gap-4 relative z-10">
-                            <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center text-blue-600 shrink-0 shadow-sm">
-                                <i class="fa-solid fa-handshake text-lg"></i>
+                            <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center text-amber-600 shrink-0 shadow-sm border border-amber-200">
+                                <i class="fa-solid fa-clock-rotate-left text-lg animate-spin" style="animation-duration: 4s;"></i>
                             </div>
                             <div class="flex-1">
-                                <p class="font-bold text-blue-900 text-sm mb-1">Permintaan Alih Tiket</p>
-                                <p class="text-xs font-medium text-blue-700/80 mb-3">Seseorang meminta Anda untuk mengambil alih dan menyelesaikan tiket ini. Apakah Anda bersedia?</p>
+                                <div class="flex items-center justify-between flex-wrap gap-2 mb-1">
+                                    <p class="font-bold text-amber-900 text-sm">Permintaan Alih Tiket (Waiting Approval)</p>
+                                    @if($datarq->pending_advisor_at)
+                                    <span class="text-xs font-mono font-extrabold text-amber-800 bg-white px-2.5 py-1 rounded-lg border border-amber-200 ticket-countdown" data-expire="{{ $datarq->takeover_expire_time ? $datarq->takeover_expire_time->toISOString() : '' }}">
+                                        --:--
+                                    </span>
+                                    @endif
+                                </div>
+                                <p class="text-xs font-medium text-amber-800/80 mb-3">
+                                    @if ($datarq->pending_advisor_id == $aid)
+                                        Seseorang meminta Anda untuk mengambil alih dan menyelesaikan tiket ini. Batas waktu konfirmasi adalah <strong>{{ $datarq->takeover_duration_text }}</strong> sebelum permintaan otomatis dibatalkan. Apakah Anda bersedia?
+                                    @else
+                                        Tiket ini sedang diajukan untuk dialihkan kepada <strong>{{ $datarq->pendingAdvisor->name ?? 'Advisor lain' }}</strong>. Diskusi dikunci sementara hingga disetujui atau batas waktu <strong>{{ $datarq->takeover_duration_text }}</strong> habis.
+                                    @endif
+                                </p>
+                                @if ($datarq->pending_advisor_id == $aid)
                                 <div class="flex gap-2">
                                     <form action="{{ route('ticket.takeover.reject', $datarq->id) }}" method="POST" class="inline">
                                         @csrf
@@ -285,6 +307,7 @@
                                         <button type="submit" class="px-4 py-2 bg-blue-600 text-white font-bold text-xs rounded-xl hover:bg-blue-700 transition-colors shadow-sm shadow-blue-500/20">Terima</button>
                                     </form>
                                 </div>
+                                @endif
                             </div>
                         </div>
                     </div>
@@ -298,9 +321,21 @@
                         <!-- Ticket ID & Status Header -->
                         <div class="flex items-center justify-between mb-8">
                             <span class="text-blue-500 font-bold text-lg font-mono">{{ $datarq->ticket_number }}</span>
-                            <span class="px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider {{ $bg }}">
-                                {{ $datarq->status }}
-                            </span>
+                            <div class="flex items-center gap-2">
+                                @if ($datarq->pending_advisor_id != null)
+                                <span class="px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-amber-100 text-amber-800 border border-amber-300 animate-pulse flex items-center gap-1.5">
+                                    <i class="fa-solid fa-clock-rotate-left text-[9px]"></i> WAITING TAKEOVER
+                                </span>
+                                @endif
+                                @if ($datarq->is_new && $datarq->pending_advisor_id == null)
+                                <span class="inline-flex items-center gap-1 bg-gradient-to-r from-emerald-500 to-teal-500 text-white text-[9px] font-black px-2.5 py-1 rounded-full uppercase tracking-wider shadow-sm">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>NEW
+                                </span>
+                                @endif
+                                <span class="px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider {{ $bg }}">
+                                    {{ $datarq->status }}
+                                </span>
+                            </div>
                         </div>
                         
                         <!-- Info Grid -->
@@ -348,6 +383,10 @@
                             </div>
 
                             <!-- Row 5 -->
+                            <div>
+                                <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wide mb-1.5">Handle At</p>
+                                <p class="font-bold text-slate-800 text-sm">{{ $datarq->handle_at ? Carbon::parse($datarq->handle_at)->format('d/m/Y') : '-' }}</p>
+                            </div>
                             <div>
                                 <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wide mb-1.5">{{ $datarq->closed_at ? 'Closed At' : 'Updated At' }}</p>
                                 <p class="font-bold text-slate-800 text-sm">{{ Carbon::parse($datarq->closed_at ?? $datarq->updated_at)->format('d/m/Y') }}</p>
@@ -471,11 +510,90 @@
                         <i class="fa-regular fa-user absolute left-4 top-1/2 -translate-y-1/2 text-blue-500 text-sm"></i>
                         <select id="target_advisor_id" name="target_advisor_id" class="w-full bg-white border border-slate-200 text-slate-800 text-xs rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 p-3.5 pl-10 outline-none font-bold appearance-none shadow-sm cursor-pointer hover:bg-slate-50 transition-colors" required>
                             <option value="" disabled selected>Pilih user...</option>
-                            @foreach(\App\Models\User::where('id', '!=', $datarq->user_id)->whereIn('usertype', ['admin', 'supervisor', 'user'])->get() as $usr)
-                                <option value="{{ $usr->id }}">{{ $usr->name }} @if($usr->id == Auth::id()) (Anda) @endif</option>
-                            @endforeach
+                            @php
+                                $currentUser = Auth::user();
+                                // Kecualikan user pemilik tiket saat ini dan user yang sedang login
+                                $takeoverQuery = \App\Models\User::where('id', '!=', $datarq->user_id)
+                                    ->where('id', '!=', $currentUser->id);
+
+                                // 1. Filter departemen: hanya user dalam 1 departemen yang sama
+                                if ($currentUser->departemen_id) {
+                                    $takeoverQuery->where('departemen_id', $currentUser->departemen_id);
+                                }
+
+                                // 2. Filter leveling:
+                                // User dengan usertype 'user' tidak bisa alihkan ke admin atau supervisor (hanya sesama user)
+                                if ($currentUser->usertype === 'user') {
+                                    $takeoverQuery->where('usertype', 'user');
+                                } else {
+                                    // Admin atau Supervisor bisa ke semua user lain dalam 1 departemen
+                                    $takeoverQuery->whereIn('usertype', ['admin', 'supervisor', 'user']);
+                                }
+
+                                $eligibleUsers = $takeoverQuery->orderBy('name')->get();
+                            @endphp
+
+                            @if($eligibleUsers->isEmpty())
+                                <option value="" disabled>Tidak ada user lain di departemen ini</option>
+                            @else
+                                @foreach($eligibleUsers as $usr)
+                                    <option value="{{ $usr->id }}">{{ $usr->name }} @if($currentUser->usertype !== 'user') ({{ ucfirst($usr->usertype) }}) @endif</option>
+                                @endforeach
+                            @endif
+
+                            {{-- Hidden option for "Ambil Alih" tab by Admin/Supervisor --}}
+                            @if(($ust == 'admin' || $ust == 'supervisor') && $datarq->user_id != Auth::id())
+                                <option value="{{ Auth::id() }}" class="hidden">{{ Auth::user()->name }} (Ambil Alih)</option>
+                            @endif
                         </select>
                         <i class="fa-solid fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 text-[10px] pointer-events-none group-hover:text-blue-500 transition-colors"></i>
+                    </div>
+                    @if($eligibleUsers->isEmpty())
+                        <p class="text-[10px] text-amber-600 font-medium mt-1.5 flex items-center gap-1">
+                            <i class="fa-solid fa-circle-info"></i> Tidak ada user lain dalam departemen Anda untuk dialihkan.
+                        </p>
+                    @endif
+                </div>
+
+                <!-- Waiting Duration Setting -->
+                <div class="mb-5" id="waiting-duration-container">
+                    <div class="flex items-center justify-between mb-2">
+                        <label class="text-[11px] font-bold text-slate-700">Batas Waktu Menunggu</label>
+                        <span class="text-[10px] font-medium text-slate-400">Hitung mundur otomatis</span>
+                    </div>
+
+                    <!-- Preset Options Grid (Maksimal 3 Jam) -->
+                    <div class="grid grid-cols-6 gap-2 mb-2">
+                        <label class="col-span-2 cursor-pointer">
+                            <input type="radio" name="waiting_duration_preset" value="15" class="peer hidden">
+                            <div class="py-2.5 text-center text-xs font-bold rounded-xl border border-slate-200 peer-checked:bg-blue-50 peer-checked:border-blue-500 peer-checked:text-blue-600 transition-all hover:bg-slate-50">
+                                15 Menit
+                            </div>
+                        </label>
+                        <label class="col-span-2 cursor-pointer">
+                            <input type="radio" name="waiting_duration_preset" value="30" class="peer hidden">
+                            <div class="py-2.5 text-center text-xs font-bold rounded-xl border border-slate-200 peer-checked:bg-blue-50 peer-checked:border-blue-500 peer-checked:text-blue-600 transition-all hover:bg-slate-50">
+                                30 Menit
+                            </div>
+                        </label>
+                        <label class="col-span-2 cursor-pointer">
+                            <input type="radio" name="waiting_duration_preset" value="60" class="peer hidden" checked>
+                            <div class="py-2.5 text-center text-xs font-bold rounded-xl border border-slate-200 peer-checked:bg-blue-50 peer-checked:border-blue-500 peer-checked:text-blue-600 transition-all hover:bg-slate-50">
+                                1 Jam
+                            </div>
+                        </label>
+                        <label class="col-span-3 cursor-pointer">
+                            <input type="radio" name="waiting_duration_preset" value="120" class="peer hidden">
+                            <div class="py-2.5 text-center text-xs font-bold rounded-xl border border-slate-200 peer-checked:bg-blue-50 peer-checked:border-blue-500 peer-checked:text-blue-600 transition-all hover:bg-slate-50">
+                                2 Jam
+                            </div>
+                        </label>
+                        <label class="col-span-3 cursor-pointer">
+                            <input type="radio" name="waiting_duration_preset" value="180" class="peer hidden">
+                            <div class="py-2.5 text-center text-xs font-bold rounded-xl border border-slate-200 peer-checked:bg-blue-50 peer-checked:border-blue-500 peer-checked:text-blue-600 transition-all hover:bg-slate-50">
+                                3 Jam
+                            </div>
+                        </label>
                     </div>
                 </div>
 
@@ -497,20 +615,23 @@
             const alihkanBtn = document.getElementById('tab-alihkan');
             const ambilAlihBtn = document.getElementById('tab-ambil');
             const selectContainer = document.getElementById('select-advisor-container');
+            const waitingContainer = document.getElementById('waiting-duration-container');
             const targetSelect = document.getElementById('target_advisor_id');
 
             if (tab === 'alihkan') {
-                alihkanBtn.className = "flex-1 py-2 text-xs font-bold rounded-lg bg-blue-50 text-blue-600 shadow-sm border border-blue-100 transition-all text-center";
-                ambilAlihBtn.className = "flex-1 py-2 text-xs font-bold rounded-lg text-slate-500 hover:text-slate-700 transition-all text-center";
-                selectContainer.style.display = "block";
-                targetSelect.value = "";
+                if (alihkanBtn) alihkanBtn.className = "flex-1 py-2 text-xs font-bold rounded-lg bg-blue-50 text-blue-600 shadow-sm border border-blue-100 transition-all text-center";
+                if (ambilAlihBtn) ambilAlihBtn.className = "flex-1 py-2 text-xs font-bold rounded-lg text-slate-500 hover:text-slate-700 transition-all text-center";
+                if (selectContainer) selectContainer.style.display = "block";
+                if (waitingContainer) waitingContainer.style.display = "block";
+                if (targetSelect) targetSelect.value = "";
             } else {
-                ambilAlihBtn.className = "flex-1 py-2 text-xs font-bold rounded-lg bg-blue-50 text-blue-600 shadow-sm border border-blue-100 transition-all text-center";
-                alihkanBtn.className = "flex-1 py-2 text-xs font-bold rounded-lg text-slate-500 hover:text-slate-700 transition-all text-center";
-                selectContainer.style.display = "none";
+                if (ambilAlihBtn) ambilAlihBtn.className = "flex-1 py-2 text-xs font-bold rounded-lg bg-blue-50 text-blue-600 shadow-sm border border-blue-100 transition-all text-center";
+                if (alihkanBtn) alihkanBtn.className = "flex-1 py-2 text-xs font-bold rounded-lg text-slate-500 hover:text-slate-700 transition-all text-center";
+                if (selectContainer) selectContainer.style.display = "none";
+                if (waitingContainer) waitingContainer.style.display = "none";
                 
                 // Ambil alih (Take over by myself)
-                targetSelect.value = "{{ Auth::id() }}";
+                if (targetSelect) targetSelect.value = "{{ Auth::id() }}";
             }
         }
     </script>
@@ -606,6 +727,213 @@
                 }
             }
         });
+
+        // AJAX Chat Diskusi & Auto Scroll
+        function escapeHtml(str) {
+            if (!str) return '';
+            const p = document.createElement('p');
+            p.textContent = str;
+            return p.innerHTML;
+        }
+
+        window.kirimPesanDiskusi = async function() {
+            const diskusiForm = document.getElementById('diskusi-form');
+            if (!diskusiForm) return;
+
+            const trixEditor = document.querySelector('trix-editor[input="comment"]');
+            const commentInput = document.getElementById('comment');
+            const submitBtn = document.getElementById('btn-kirim-diskusi');
+            const messagesContainer = document.getElementById('diskusi-messages-container');
+
+            // Ambil isi HTML dari Trix editor atau hidden input
+            let messageHtml = '';
+            if (commentInput && commentInput.value) {
+                messageHtml = commentInput.value;
+            } else if (trixEditor && trixEditor.value) {
+                messageHtml = trixEditor.value;
+            } else if (trixEditor) {
+                messageHtml = trixEditor.innerHTML;
+            }
+
+            // Validasi apakah benar-benar ada teks pesan (bukan hanya tag html kosong)
+            const plainText = messageHtml.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim();
+            const hasMedia = messageHtml.includes('<img') || messageHtml.includes('<figure');
+            if (!plainText && !hasMedia) {
+                if (trixEditor) trixEditor.focus();
+                return;
+            }
+
+            // Ubah tombol ke status loading
+            const originalBtnContent = submitBtn ? submitBtn.innerHTML : '';
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<span>Mengirim...</span> <i class="fa-solid fa-spinner fa-spin text-[10px]"></i>';
+            }
+
+            try {
+                const formData = new FormData(diskusiForm);
+                formData.set('comment', messageHtml);
+
+                const csrfMeta = document.querySelector('meta[name="csrf-token"]');
+                const csrfToken = csrfMeta ? csrfMeta.getAttribute('content') : (diskusiForm.querySelector('input[name="_token"]')?.value || '');
+
+                const response = await fetch(diskusiForm.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken
+                    }
+                });
+
+                if (!response.ok) {
+                    const errData = await response.json().catch(() => null);
+                    throw new Error(errData?.message || 'Gagal mengirim pesan');
+                }
+
+                const result = await response.json();
+
+                if (result.success && result.data) {
+                    // Kosongkan editor Trix & hidden input
+                    if (trixEditor && trixEditor.editor) {
+                        trixEditor.editor.loadHTML('');
+                    }
+                    if (commentInput) {
+                        commentInput.value = '';
+                    }
+                    if (trixEditor) {
+                        trixEditor.value = '';
+                    }
+
+                    // Hapus pesan kosong bila ada
+                    const emptyState = document.getElementById('diskusi-empty-state');
+                    if (emptyState) {
+                        emptyState.remove();
+                    }
+
+                    // Perbarui badge jumlah pesan
+                    const countBadge = document.getElementById('diskusi-count-badge');
+                    if (countBadge && result.total_count !== undefined) {
+                        countBadge.textContent = `${result.total_count} Pesan`;
+                    }
+
+                    // Buat elemen bubble pesan baru
+                    const msg = result.data;
+                    const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(msg.user_name)}&background=2563eb&color=fff&bold=true`;
+
+                    const bubbleDiv = document.createElement('div');
+                    bubbleDiv.className = 'flex gap-4 flex-row-reverse transition-all duration-300 opacity-0 translate-y-2';
+                    bubbleDiv.innerHTML = `
+                        <div class="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center text-slate-500 font-bold shrink-0 overflow-hidden shadow-sm border border-white">
+                            <img src="${avatarUrl}" alt="" class="w-full h-full object-cover">
+                        </div>
+                        <div class="max-w-[85%] sm:max-w-[75%] flex flex-col items-end">
+                            <div class="flex items-center gap-2 mb-1.5 px-1">
+                                <span class="font-bold text-[11px] text-slate-700">${escapeHtml(msg.user_name)}</span>
+                                <span class="text-[10px] font-medium text-slate-400">${escapeHtml(msg.time_ago)}</span>
+                            </div>
+                            <div class="px-5 py-3.5 rounded-2xl text-sm font-medium prose prose-sm max-w-none shadow-sm bg-blue-600 text-white rounded-tr-sm prose-p:text-blue-50 prose-a:text-white">
+                                ${msg.message}
+                            </div>
+                            <a data-confirm-delete="true" href="/deletekomen/${msg.id}" class="text-[10px] font-bold text-slate-400 mt-1.5 hover:text-rose-500 transition-colors px-1">
+                                <i class="fa-solid fa-trash-can mr-1"></i>Hapus
+                            </a>
+                        </div>
+                    `;
+
+                    // Handler konfirmasi hapus pada bubble baru
+                    const delBtn = bubbleDiv.querySelector('a[data-confirm-delete]');
+                    if (delBtn) {
+                        delBtn.addEventListener('click', function(evt) {
+                            if (window.Swal) {
+                                evt.preventDefault();
+                                const url = this.getAttribute('href');
+                                Swal.fire({
+                                    title: 'Hapus Pesan?',
+                                    text: "Pesan ini akan dihapus permanen",
+                                    icon: 'warning',
+                                    showCancelButton: true,
+                                    confirmButtonColor: '#ef4444',
+                                    cancelButtonColor: '#94a3b8',
+                                    confirmButtonText: 'Ya, Hapus',
+                                    cancelButtonText: 'Batal'
+                                }).then((swalRes) => {
+                                    if (swalRes.isConfirmed) {
+                                        window.location.href = url;
+                                    }
+                                });
+                            }
+                        });
+                    }
+
+                    if (messagesContainer) {
+                        messagesContainer.appendChild(bubbleDiv);
+
+                        requestAnimationFrame(() => {
+                            bubbleDiv.classList.remove('opacity-0', 'translate-y-2');
+                        });
+
+                        messagesContainer.scrollTo({
+                            top: messagesContainer.scrollHeight,
+                            behavior: 'smooth'
+                        });
+                    }
+                }
+            } catch (error) {
+                console.error('Error sending message:', error);
+                if (window.Swal) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Gagal Mengirim',
+                        text: error.message || 'Terjadi kesalahan saat mengirim pesan. Silakan coba lagi.',
+                        toast: true,
+                        position: 'top-end',
+                        showConfirmButton: false,
+                        timer: 3000
+                    });
+                } else {
+                    alert('Gagal mengirim pesan: ' + (error.message || 'Coba lagi nanti'));
+                }
+            } finally {
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalBtnContent;
+                }
+            }
+        };
+
+        function initDiskusi() {
+            const messagesContainer = document.getElementById('diskusi-messages-container');
+            if (messagesContainer) {
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            }
+
+            const diskusiForm = document.getElementById('diskusi-form');
+            if (diskusiForm) {
+                diskusiForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    window.kirimPesanDiskusi();
+                });
+            }
+
+            // Kirim dengan Ctrl+Enter atau Cmd+Enter saat fokus di Trix
+            document.addEventListener('keydown', function(e) {
+                if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                    const trix = document.querySelector('trix-editor[input="comment"]');
+                    if (trix && (document.activeElement === trix || trix.contains(document.activeElement))) {
+                        e.preventDefault();
+                        window.kirimPesanDiskusi();
+                    }
+                }
+            });
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initDiskusi);
+        } else {
+            initDiskusi();
+        }
     </script>
     
     <style>
@@ -623,4 +951,35 @@
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background-color: #94a3b8; }
     </style>
 
+    <!-- Live Countdown Script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            function updateTicketTimers() {
+                const now = new Date().getTime();
+                document.querySelectorAll('.ticket-countdown').forEach(el => {
+                    const expireAttr = el.getAttribute('data-expire');
+                    if (!expireAttr) return;
+                    const expireAt = new Date(expireAttr).getTime();
+                    const distance = expireAt - now;
+
+                    if (distance <= 0) {
+                        el.innerHTML = "WAKTU HABIS";
+                        el.classList.add('text-rose-600');
+                        el.classList.remove('text-amber-800');
+                    } else {
+                        const hours = Math.floor(distance / (1000 * 60 * 60));
+                        const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                        const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+                        if (hours > 0) {
+                            el.innerHTML = hours.toString().padStart(2, '0') + ":" + minutes.toString().padStart(2, '0') + ":" + seconds.toString().padStart(2, '0');
+                        } else {
+                            el.innerHTML = minutes.toString().padStart(2, '0') + ":" + seconds.toString().padStart(2, '0');
+                        }
+                    }
+                });
+            }
+            updateTicketTimers();
+            setInterval(updateTicketTimers, 1000);
+        });
+    </script>
 </x-app-layout>
