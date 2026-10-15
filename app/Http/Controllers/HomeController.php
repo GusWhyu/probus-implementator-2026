@@ -322,13 +322,37 @@ class HomeController extends Controller
             return redirect()->route('dashboard')->with('error', 'Akses ditolak. Anda tidak memiliki izin untuk melihat modul Laporan.');
         }
 
-        $month = date('m');
-        $year = date('Y');
-        $users = User::with(['performanceReviews' => function($q) use ($month, $year) {
+        $month = $request->input('month', date('m'));
+        $year = $request->input('year', date('Y'));
+        
+        $usersQuery = User::with(['performanceReviews' => function($q) use ($month, $year) {
             $q->whereMonth('periode', $month)->whereYear('periode', $year);
-        }])->get();
+        }]);
 
-        return view('laporan', compact('users', 'month', 'year'));
+        if ($request->filled('search')) {
+            $s = trim($request->search);
+            $usersQuery->where('name', 'like', "%{$s}%")->orWhere('email', 'like', "%{$s}%");
+        }
+
+        $allUsers = $usersQuery->get();
+
+        if ($request->status == 'dinilai') {
+            $users = $allUsers->filter(fn($u) => $u->performanceReviews->isNotEmpty());
+        } elseif ($request->status == 'belum') {
+            $users = $allUsers->filter(fn($u) => $u->performanceReviews->isEmpty());
+        } else {
+            $users = $allUsers;
+        }
+
+        $totalCS = $allUsers->count();
+        $sudahDinilai = $allUsers->filter(fn($u) => $u->performanceReviews->isNotEmpty())->count();
+        $belumDinilai = $totalCS - $sudahDinilai;
+        $sangatBaik = $allUsers->filter(function($u) {
+            $rev = $u->performanceReviews->first();
+            return $rev && $rev->total_score >= 80;
+        })->count();
+
+        return view('laporan', compact('users', 'month', 'year', 'totalCS', 'sudahDinilai', 'belumDinilai', 'sangatBaik'));
     }
 
     public function penilaian($id){
@@ -336,21 +360,23 @@ class HomeController extends Controller
         $currentMonth = date('m');
         $currentYear = date('Y');
 
-        // Count user tickets for current month (tiket yang dibuat oleh user atau dihandle sebagai advisor)
+        // Modul-modul sistem
+        $modules = ModuleSystem::orderBy('id', 'asc')->get();
+        $moduleBobotMap = $modules->pluck('bobot', 'id');
+
+        // 1. Tiket user ini di bulan berjalan (sebagai pembuat atau advisor)
         $tiketQuery = Ticket::where(function($q) use ($id) {
             $q->where('user_id', $id)->orWhere('advisor_id', $id);
         })->whereMonth('created_at', $currentMonth)->whereYear('created_at', $currentYear);
 
         $tiket_ditangani = (clone $tiketQuery)->count();
         $tiket_selesai = (clone $tiketQuery)->whereRaw('UPPER(status) = ?', ['CLOSED'])->count();
-
-        // Tiket yang di-advice oleh user ini
         $tiket_di_advice = Ticket::where('advisor_id', $id)
             ->whereMonth('created_at', $currentMonth)
             ->whereYear('created_at', $currentYear)
             ->count();
 
-        // Hitung rata-rata waktu respon / penyelesaian tiket
+        // Rata-rata waktu penyelesaian
         $closedTickets = (clone $tiketQuery)->whereRaw('UPPER(status) = ?', ['CLOSED'])
             ->whereNotNull('closed_at')
             ->whereNotNull('created_at')
@@ -361,17 +387,16 @@ class HomeController extends Controller
             foreach ($closedTickets as $ct) {
                 $totalMins += \Carbon\Carbon::parse($ct->closed_at)->diffInMinutes(\Carbon\Carbon::parse($ct->created_at));
             }
-            $avgMins = round($totalMins / $closedTickets->count());
-            $rata_rata_waktu = $avgMins . ' menit';
+            $rata_rata_waktu = round($totalMins / $closedTickets->count()) . ' menit';
         } else {
             $rata_rata_waktu = '12 menit';
         }
 
-        $nilai_tiket = $tiket_ditangani > 0 ? round(($tiket_selesai / $tiket_ditangani) * 100) : 80;
-
-        // Detail ticket per module system
-        $modules = ModuleSystem::all();
+        // 2. Hitung Detail per Modul & Skor CS ini: Σ(bobot x qty)
         $module_details = [];
+        $raw_ticket_score = 0;
+        $total_qty = 0;
+
         foreach ($modules as $mod) {
             $modTickets = Ticket::where('module_system_id', $mod->id)
                 ->where(function($q) use ($id) {
@@ -393,20 +418,100 @@ class HomeController extends Controller
                 }
                 $modAvgWaktu = round($modMins / $closedModTickets->count()) . ' menit';
             } else {
-                $modAvgWaktu = '15 menit';
+                $modAvgWaktu = $modCount > 0 ? '15 menit' : '-';
             }
+
+            $bobot = (int)($mod->bobot ?? 0);
+            $modScore = $bobot * $modCount; // Rumus: bobot x qty per baris
+
+            $raw_ticket_score += $modScore;
+            $total_qty += $modCount;
 
             $module_details[] = [
                 'id' => $mod->id,
                 'name' => $mod->name,
-                'bobot' => $mod->bobot ?? 80,
+                'bobot' => $bobot,
                 'total_ticket' => $modCount,
                 'rata_rata_waktu' => $modAvgWaktu,
-                'score' => round(($mod->bobot ?? 80) * ($modCount > 0 ? $modCount : 1))
+                'score' => $modScore
             ];
         }
 
-        return view('penilaian', compact('user', 'tiket_ditangani', 'tiket_selesai', 'tiket_di_advice', 'rata_rata_waktu', 'nilai_tiket', 'module_details'));
+        // 3. Benchmarking terhadap Seluruh Tim CS di Periode Ini
+        $allUsers = User::all();
+        $max_ticket_score = 0;
+        $total_team_score = 0;
+        $top_performer_name = null;
+
+        $allMonthTickets = Ticket::whereMonth('created_at', $currentMonth)
+            ->whereYear('created_at', $currentYear)
+            ->get(['id', 'user_id', 'advisor_id', 'module_system_id']);
+
+        foreach ($allUsers as $u) {
+            $uTickets = $allMonthTickets->filter(function($t) use ($u) {
+                return $t->user_id == $u->id || $t->advisor_id == $u->id;
+            });
+
+            if ($uTickets->count() > 0) {
+                $uScore = 0;
+                foreach ($uTickets as $ut) {
+                    $uScore += (int)($moduleBobotMap[$ut->module_system_id] ?? 0);
+                }
+
+                $total_team_score += $uScore;
+
+                if ($uScore > $max_ticket_score) {
+                    $max_ticket_score = $uScore;
+                    $top_performer_name = $u->name;
+                }
+            }
+        }
+
+        // Pastikan max_ticket_score tidak lebih kecil dari skor user ini
+        if ($raw_ticket_score > $max_ticket_score) {
+            $max_ticket_score = $raw_ticket_score;
+            $top_performer_name = $user->name;
+        }
+
+        // 4. Hitung Nilai 0-100 = (Skor CS / Skor Tertinggi) * 100
+        if ($max_ticket_score > 0) {
+            $nilai_tiket = round(($raw_ticket_score / $max_ticket_score) * 100, 2);
+        } else {
+            $nilai_tiket = 0;
+        }
+
+        // Porsi kontribusi (%)
+        if ($total_team_score > 0) {
+            $team_portion = round(($raw_ticket_score / $total_team_score) * 100, 2);
+        } else {
+            $team_portion = $raw_ticket_score > 0 ? 100.00 : 0.00;
+        }
+
+        // Total bobot seluruh modul
+        $total_bobot = array_sum(array_column($module_details, 'bobot'));
+
+        // Cek apakah sudah ada penilaian di periode ini (draft/final)
+        $existingReview = PerformanceReview::where('user_id', $id)
+            ->whereMonth('periode', $currentMonth)
+            ->whereYear('periode', $currentYear)
+            ->first();
+
+        return view('penilaian', compact(
+            'user', 
+            'tiket_ditangani', 
+            'tiket_selesai', 
+            'tiket_di_advice', 
+            'rata_rata_waktu', 
+            'nilai_tiket', 
+            'raw_ticket_score', 
+            'max_ticket_score', 
+            'top_performer_name', 
+            'team_portion', 
+            'total_qty',
+            'total_bobot',
+            'module_details',
+            'existingReview'
+        ));
     }
 
     public function storePenilaian(Request $request, $id) {
@@ -419,11 +524,11 @@ class HomeController extends Controller
             'nilai_tiket' => 'required|numeric',
         ]);
 
-        $n_t = $request->nilai_tiket;
+        $n_t = (float)$request->nilai_tiket;
         $avg_kualitas = (($request->produktivitas + $request->kualitas_solving + $request->kecepatan_respon + $request->sikap_cs) / 20) * 100;
         $n_k = ($request->kepuasan_pelanggan / 5) * 100;
 
-        $n_akhir = ($n_t * 0.3) + ($avg_kualitas * 0.4) + ($n_k * 0.3);
+        $n_akhir = round(($n_t * 0.3) + ($avg_kualitas * 0.4) + ($n_k * 0.3), 2);
 
         $currentMonth = date('m');
         $currentYear = date('Y');
@@ -454,38 +559,67 @@ class HomeController extends Controller
             }
         }
 
-        $review = PerformanceReview::create([
-            'user_id' => $id,
-            'reviewer_id' => auth()->id() ?? 1,
-            'periode' => date('Y-m-01'),
-            'total_score' => $n_akhir,
-            'module_score' => $n_t,
-            'performance_score' => $avg_kualitas,
-            'review_score' => $n_k,
-            'total_ticket' => $total_ticket,
-            'rata_rata_waktu' => $rata_rata_waktu,
-            'total_ticket_yang_di_advice' => $tiket_di_advice,
-            'status' => 'FINAL',
-            'catatan' => $request->catatan,
-            'saran' => $request->saran,
-        ]);
+        $raw_ticket_score = (float)$request->input('raw_ticket_score', 0);
+        $max_ticket_score = (float)$request->input('max_ticket_score', 0);
+        $team_portion = (float)$request->input('team_portion', 0);
 
-        // Insert Details matching the old static categories to the new dynamic ones
-        $categories = PerformanceCategory::all();
-        foreach($categories as $cat) {
-            $score = 0;
-            if (stripos($cat->name, 'Produktivitas') !== false) {
-                $score = $n_t; 
-            } elseif (stripos($cat->name, 'Kualitas') !== false) {
-                $score = $avg_kualitas;
-            } elseif (stripos($cat->name, 'Kecepatan') !== false) {
-                $score = ($request->kecepatan_respon / 5) * 100;
-            } elseif (stripos($cat->name, 'Sikap') !== false) {
+        $periode = date('Y-m-01');
+
+        $review = PerformanceReview::updateOrCreate(
+            [
+                'user_id' => $id,
+                'periode' => $periode,
+            ],
+            [
+                'reviewer_id' => auth()->id() ?? 1,
+                'total_score' => $n_akhir,
+                'module_score' => $n_t,
+                'raw_ticket_score' => $raw_ticket_score,
+                'max_ticket_score' => $max_ticket_score,
+                'team_portion' => $team_portion,
+                'performance_score' => $avg_kualitas,
+                'review_score' => $n_k,
+                'total_ticket' => $total_ticket,
+                'rata_rata_waktu' => $rata_rata_waktu,
+                'total_ticket_yang_di_advice' => $tiket_di_advice,
+                'status' => ($request->input('action') === 'draft') ? 'DRAFT' : 'FINAL',
+                'catatan' => $request->catatan,
+                'saran' => $request->saran,
+            ]
+        );
+
+        // Hapus detail lama jika update
+        $review->details()->delete();
+        $review->moduleDetails()->delete();
+
+        // Sinkronisasi kategori penilaian dasar
+        $defaultCategories = [
+            'Produktivitas & Resolusi Tiket' => $n_t,
+            'Kualitas Solusi' => $avg_kualitas,
+            'Kepuasan Klien (Survey)' => $n_k,
+        ];
+
+        foreach ($defaultCategories as $catName => $catScore) {
+            $cat = PerformanceCategory::firstOrCreate(['name' => $catName]);
+            PerformanceReviewDetail::create([
+                'performance_review_id' => $review->id,
+                'performance_category_id' => $cat->id,
+                'score' => $catScore
+            ]);
+        }
+
+        // Tambahan nilai soft skill individual jika ada kategori di master
+        $otherCategories = PerformanceCategory::whereNotIn('name', array_keys($defaultCategories))->get();
+        foreach ($otherCategories as $cat) {
+            $score = 80;
+            if (stripos($cat->name, 'Jujur') !== false || stripos($cat->name, 'Sikap') !== false) {
                 $score = ($request->sikap_cs / 5) * 100;
-            } elseif (stripos($cat->name, 'Kepuasan') !== false) {
-                $score = $n_k;
-            } else {
-                $score = 80;
+            } elseif (stripos($cat->name, 'Disiplin') !== false || stripos($cat->name, 'Kecepatan') !== false) {
+                $score = ($request->kecepatan_respon / 5) * 100;
+            } elseif (stripos($cat->name, 'Tanggung Jawab') !== false || stripos($cat->name, 'Kualitas') !== false) {
+                $score = ($request->kualitas_solving / 5) * 100;
+            } elseif (stripos($cat->name, 'Kerjasama') !== false) {
+                $score = ($request->produktivitas / 5) * 100;
             }
 
             PerformanceReviewDetail::create([
@@ -495,7 +629,7 @@ class HomeController extends Controller
             ]);
         }
 
-        // Insert Module Details
+        // Insert Module Details dengan skor bobot x qty
         $modules = ModuleSystem::all();
         foreach($modules as $mod) {
             $modTickets = Ticket::where('module_system_id', $mod->id)
@@ -522,18 +656,25 @@ class HomeController extends Controller
                     $modAvgWaktu = '15 menit';
                 }
 
+                $bobot = (int)($mod->bobot ?? 0);
+                $modScore = $bobot * $count; // Skor per baris: bobot x qty
+
                 PerformanceReviewModuleDetail::create([
                     'p_rev_id' => $review->id,
                     'module_id' => $mod->id,
-                    'score' => $n_t,
-                    'bobot' => $mod->bobot ?? 80,
+                    'score' => $modScore,
+                    'bobot' => $bobot,
                     'total_ticket' => $count,
                     'rata_rata_waktu' => $modAvgWaktu
                 ]);
             }
         }
 
-        return redirect()->route('laporan')->with('success', 'Penilaian berhasil disimpan dengan struktur baru!');
+        if ($request->input('action') === 'draft') {
+            return redirect()->route('laporan')->with('success', 'Draft penilaian CS berhasil disimpan!');
+        }
+
+        return redirect()->route('rapor', $id)->with('success', 'Penilaian berhasil disimpan dengan rumus bobot x qty!');
     }
 
     public function rapor($id){
@@ -549,8 +690,36 @@ class HomeController extends Controller
         $rapor = PerformanceReview::with(['details.category', 'moduleDetails.moduleSystem'])->where('user_id', $id)->orderBy('periode', 'desc')->first();
         $history = PerformanceReview::where('user_id', $id)->orderBy('periode', 'asc')->take(4)->get();
         
-        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('rapor_pdf', compact('user', 'rapor', 'history'))
-                ->setPaper('a4', 'portrait');
+        $periode = $rapor ? \Carbon\Carbon::parse($rapor->periode) : \Carbon\Carbon::now();
+        $m = $periode->format('m');
+        $y = $periode->format('Y');
+
+        $tiketQuery = Ticket::where(function($q) use ($id) {
+            $q->where('user_id', $id)->orWhere('advisor_id', $id);
+        })->whereMonth('created_at', $m)->whereYear('created_at', $y);
+
+        $tiket_selesai = (clone $tiketQuery)->whereRaw('UPPER(status) = ?', ['CLOSED'])->count();
+        $tiket_ditangani = ($rapor && $rapor->total_ticket > 0) ? $rapor->total_ticket : (clone $tiketQuery)->count();
+
+        $total_bobot = 0;
+        $total_qty = 0;
+        if ($rapor && $rapor->moduleDetails) {
+            $total_bobot = $rapor->moduleDetails->sum('bobot');
+            $total_qty = $rapor->moduleDetails->sum('total_ticket');
+        }
+
+        $avg_rating = $rapor ? number_format(min(5.0, max(1.0, $rapor->total_score / 20)), 1) : '4.0';
+
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('rapor_pdf', compact(
+            'user', 
+            'rapor', 
+            'history', 
+            'tiket_ditangani', 
+            'tiket_selesai', 
+            'total_bobot', 
+            'total_qty', 
+            'avg_rating'
+        ))->setPaper('a4', 'portrait');
                 
         return $pdf->stream('Rapor_Kinerja_CS_' . str_replace(' ', '_', $user->name) . '_' . date('M_Y') . '.pdf');
     }

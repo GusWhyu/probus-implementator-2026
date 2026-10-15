@@ -47,7 +47,7 @@
                         <span class="font-bold text-slate-500 text-sm">Nilai Tiket</span>
                     </div>
                     <div class="flex items-end gap-2">
-                        <span class="text-4xl font-extrabold text-blue-600">{{ ($rapor->details->firstWhere("category.name", "Produktivitas & Resolusi Tiket")?->score ?? 0) ?? '0' }}</span>
+                        <span class="text-4xl font-extrabold text-blue-600">{{ $rapor->module_score ?? optional($rapor->details->firstWhere("category.name", "Produktivitas & Resolusi Tiket"))->score ?? 0 }}</span>
                         <span class="text-sm font-bold text-slate-400 mb-1">/ 100</span>
                     </div>
                 </div>
@@ -61,7 +61,7 @@
                         <span class="font-bold text-slate-500 text-sm">Kualitas Solving</span>
                     </div>
                     <div class="flex items-end gap-2">
-                        <span class="text-4xl font-extrabold text-emerald-500">{{ ($rapor->details->firstWhere("category.name", "Kualitas Solusi")?->score ?? 0) ?? '0' }}</span>
+                        <span class="text-4xl font-extrabold text-emerald-500">{{ $rapor->performance_score ?? optional($rapor->details->firstWhere("category.name", "Kualitas Solusi"))->score ?? 0 }}</span>
                         <span class="text-sm font-bold text-slate-400 mb-1">/ 100</span>
                     </div>
                 </div>
@@ -75,7 +75,7 @@
                         <span class="font-bold text-slate-500 text-sm">Kepuasan Klien</span>
                     </div>
                     <div class="flex items-end gap-2">
-                        <span class="text-4xl font-extrabold text-purple-500">{{ ($rapor->details->firstWhere("category.name", "Kepuasan Klien (Survey)")?->score ?? 0) ?? '0' }}</span>
+                        <span class="text-4xl font-extrabold text-purple-500">{{ $rapor->review_score ?? optional($rapor->details->firstWhere("category.name", "Kepuasan Klien (Survey)"))->score ?? 0 }}</span>
                         <span class="text-sm font-bold text-slate-400 mb-1">/ 100</span>
                     </div>
                 </div>
@@ -233,22 +233,22 @@
                             </thead>
                             <tbody class="divide-y divide-slate-100">
                                 <tr>
-                                    <td class="py-4 text-xs font-semibold text-slate-600">Nilai Tiket</td>
+                                    <td class="py-4 text-xs font-semibold text-slate-600">Nilai Tiket (Σ bobot × qty)</td>
                                     <td class="py-4 text-xs font-bold text-slate-700 text-center">30%</td>
-                                    <td class="py-4 text-xs font-bold text-slate-700 text-center">{{ ($rapor->details->firstWhere("category.name", "Produktivitas & Resolusi Tiket")?->score ?? 0) ?? 0 }}</td>
-                                    <td class="py-4 text-xs font-bold text-emerald-500 text-right">{{ (($rapor->details->firstWhere("category.name", "Produktivitas & Resolusi Tiket")?->score ?? 0) ?? 0) * 0.3 }}</td>
+                                    <td class="py-4 text-xs font-bold text-slate-700 text-center">{{ $rapor->module_score ?? optional($rapor->details->firstWhere("category.name", "Produktivitas & Resolusi Tiket"))->score ?? 0 }}</td>
+                                    <td class="py-4 text-xs font-bold text-emerald-500 text-right">{{ round(($rapor->module_score ?? optional($rapor->details->firstWhere("category.name", "Produktivitas & Resolusi Tiket"))->score ?? 0) * 0.3, 2) }}</td>
                                 </tr>
                                 <tr>
                                     <td class="py-4 text-xs font-semibold text-slate-600">Kualitas Solving</td>
                                     <td class="py-4 text-xs font-bold text-slate-700 text-center">40%</td>
-                                    <td class="py-4 text-xs font-bold text-slate-700 text-center">{{ ($rapor->details->firstWhere("category.name", "Kualitas Solusi")?->score ?? 0) ?? 0 }}</td>
-                                    <td class="py-4 text-xs font-bold text-emerald-500 text-right">{{ (($rapor->details->firstWhere("category.name", "Kualitas Solusi")?->score ?? 0) ?? 0) * 0.4 }}</td>
+                                    <td class="py-4 text-xs font-bold text-slate-700 text-center">{{ $rapor->performance_score ?? optional($rapor->details->firstWhere("category.name", "Kualitas Solusi"))->score ?? 0 }}</td>
+                                    <td class="py-4 text-xs font-bold text-emerald-500 text-right">{{ round(($rapor->performance_score ?? optional($rapor->details->firstWhere("category.name", "Kualitas Solusi"))->score ?? 0) * 0.4, 2) }}</td>
                                 </tr>
                                 <tr>
                                     <td class="py-4 text-xs font-semibold text-slate-600">Kepuasan Klien</td>
                                     <td class="py-4 text-xs font-bold text-slate-700 text-center">30%</td>
-                                    <td class="py-4 text-xs font-bold text-slate-700 text-center">{{ ($rapor->details->firstWhere("category.name", "Kepuasan Klien (Survey)")?->score ?? 0) ?? 0 }}</td>
-                                    <td class="py-4 text-xs font-bold text-emerald-500 text-right">{{ (($rapor->details->firstWhere("category.name", "Kepuasan Klien (Survey)")?->score ?? 0) ?? 0) * 0.3 }}</td>
+                                    <td class="py-4 text-xs font-bold text-slate-700 text-center">{{ $rapor->review_score ?? optional($rapor->details->firstWhere("category.name", "Kepuasan Klien (Survey)"))->score ?? 0 }}</td>
+                                    <td class="py-4 text-xs font-bold text-emerald-500 text-right">{{ round(($rapor->review_score ?? optional($rapor->details->firstWhere("category.name", "Kepuasan Klien (Survey)"))->score ?? 0) * 0.3, 2) }}</td>
                                 </tr>
                             </tbody>
                             <tfoot>
@@ -267,18 +267,29 @@
             <!-- Rincian Modul Tiket -->
             @if($rapor && $rapor->moduleDetails && $rapor->moduleDetails->count() > 0)
             <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 mb-6">
-                <h3 class="text-sm font-extrabold text-slate-800 flex items-center gap-2 mb-4">
-                    <i class="fa-solid fa-layer-group text-blue-500"></i> Rincian Penilaian per Modul
-                </h3>
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+                    <div>
+                        <h3 class="text-sm font-extrabold text-slate-800 flex items-center gap-2">
+                            <i class="fa-solid fa-layer-group text-blue-500"></i> Rincian Penilaian per Modul
+                        </h3>
+                        <p class="text-xs text-slate-400 font-medium mt-0.5">Rumus: Skor = Σ (Bobot Modul × Qty Tiket) | Nilai = (Skor CS / Skor Tertinggi) × 100</p>
+                    </div>
+                    @if(($rapor->max_ticket_score ?? 0) > 0)
+                    <div class="text-xs bg-blue-50 border border-blue-200 text-blue-700 px-3 py-1 rounded-xl font-bold">
+                        Benchmark Tertinggi: {{ number_format($rapor->max_ticket_score, 0, ',', '.') }} poin
+                    </div>
+                    @endif
+                </div>
+
                 <div class="overflow-x-auto">
                     <table class="w-full text-left border-collapse">
                         <thead>
                             <tr class="border-b border-slate-200 bg-slate-50/50">
                                 <th class="py-3 px-4 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Modul</th>
-                                <th class="py-3 px-4 text-[10px] font-bold text-slate-400 uppercase tracking-wider text-center">Beban</th>
-                                <th class="py-3 px-4 text-[10px] font-bold text-slate-400 uppercase tracking-wider text-center">Total Ticket</th>
+                                <th class="py-3 px-4 text-[10px] font-bold text-slate-400 uppercase tracking-wider text-center">Beban (Bobot)</th>
+                                <th class="py-3 px-4 text-[10px] font-bold text-slate-400 uppercase tracking-wider text-center">Total Tiket (Qty)</th>
                                 <th class="py-3 px-4 text-[10px] font-bold text-slate-400 uppercase tracking-wider text-center">Rata-rata Waktu</th>
-                                <th class="py-3 px-4 text-[10px] font-bold text-slate-400 uppercase tracking-wider text-right">Skor</th>
+                                <th class="py-3 px-4 text-[10px] font-bold text-slate-400 uppercase tracking-wider text-right">Skor (Bobot × Qty)</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100">
@@ -288,12 +299,40 @@
                                 <td class="py-3 px-4 text-xs font-semibold text-slate-600 text-center">{{ $md->bobot }}</td>
                                 <td class="py-3 px-4 text-xs font-bold text-slate-800 text-center">{{ $md->total_ticket }}</td>
                                 <td class="py-3 px-4 text-xs font-semibold text-slate-600 text-center">{{ $md->rata_rata_waktu ?? '-' }}</td>
-                                <td class="py-3 px-4 text-xs font-extrabold text-blue-600 text-right">{{ $md->score }}</td>
+                                <td class="py-3 px-4 text-xs font-extrabold text-blue-600 text-right font-mono">{{ number_format($md->score, 0, ',', '.') }}</td>
                             </tr>
                             @endforeach
                         </tbody>
+                        <tfoot>
+                            <tr class="bg-slate-50 border-t-2 border-slate-200 font-extrabold text-xs text-slate-800">
+                                <td class="py-3.5 px-4 uppercase text-slate-500 font-bold">Total Keseluruhan</td>
+                                <td class="py-3.5 px-4 text-center text-slate-400">&ndash;</td>
+                                <td class="py-3.5 px-4 text-center text-blue-600 font-black">{{ $rapor->moduleDetails->sum('total_ticket') }} tiket</td>
+                                <td class="py-3.5 px-4 text-center text-slate-500 font-semibold">{{ $rapor->rata_rata_waktu ?? '-' }}</td>
+                                <td class="py-3.5 px-4 text-right font-mono font-black text-blue-700 text-sm">{{ number_format($rapor->raw_ticket_score ?? $rapor->moduleDetails->sum('score'), 0, ',', '.') }} poin</td>
+                            </tr>
+                        </tfoot>
                     </table>
                 </div>
+
+                @if(($rapor->max_ticket_score ?? 0) > 0)
+                <div class="mt-4 pt-3 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between text-xs text-slate-600 gap-2 bg-slate-50/70 p-3 rounded-xl">
+                    <div>
+                        <span class="font-bold text-slate-700">Hasil Normalisasi Nilai:</span>
+                        <span class="font-mono text-slate-500">({{ number_format($rapor->raw_ticket_score ?? $rapor->moduleDetails->sum('score'), 0, ',', '.') }} : {{ number_format($rapor->max_ticket_score, 0, ',', '.') }}) × 100</span>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        @if(($rapor->team_portion ?? 0) > 0)
+                        <span class="text-indigo-600 font-bold bg-indigo-50 px-2.5 py-1 rounded-lg border border-indigo-100">
+                            Porsi Tim: {{ $rapor->team_portion }}%
+                        </span>
+                        @endif
+                        <span class="text-blue-700 font-extrabold bg-blue-100 px-3 py-1 rounded-lg">
+                            Nilai Tiket: {{ $rapor->module_score }} / 100
+                        </span>
+                    </div>
+                </div>
+                @endif
             </div>
             @endif
 
