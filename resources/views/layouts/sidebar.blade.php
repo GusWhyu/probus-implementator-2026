@@ -2,14 +2,9 @@
     $usertag = Auth::user()->tag_id;
     $rq1 = \App\Models\Request::where('tag_id', $usertag)->where('status_id', '!=', 4)->get();
     
-    $inboxTicketsCount = \App\Models\Ticket::where(function($q) {
-        $q->where('user_id', Auth::id())
-          ->orWhere(function($sub) {
-              $sub->where('advisor_id', Auth::id())
-                  ->whereNull('pending_advisor_id');
-          })
-          ->orWhere('pending_advisor_id', Auth::id());
-    })->where('status', '!=', 'CLOSED')->count();
+    $inboxTicketsCount = \App\Models\Ticket::where('user_id', Auth::id())
+        ->where('status', '!=', 'CLOSED')
+        ->count();
 @endphp
 
 <!-- Mobile overlay -->

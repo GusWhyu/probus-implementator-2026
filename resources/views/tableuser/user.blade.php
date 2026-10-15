@@ -24,8 +24,8 @@
                 <h3 class="text-sm font-bold text-slate-800">Daftar Pengguna</h3>
             </div>
             
-            <div class="overflow-x-auto">
-                <table class="w-full text-left">
+            <div class="overflow-x-auto custom-scrollbar">
+                <table class="w-full text-left min-w-[650px]">
                     <thead>
                         <tr class="bg-slate-50 rounded-lg">
                             <th class="py-3 px-4 text-[11px] font-bold text-slate-500 uppercase tracking-wider rounded-l-lg">Nama</th>

@@ -43,8 +43,8 @@
                 </div>
             </div>
 
-            {{-- Mobile Segmented Tabs Selector (Only on mobile < md) --}}
-            <div class="sticky top-0 bg-[#F8FAFC]/95 backdrop-blur-sm -mx-4 px-4 sm:-mx-6 sm:px-6 py-2 mb-4 z-20 flex md:hidden">
+            {{-- Mobile & Split-Screen Segmented Tabs Selector (Only visible < lg) --}}
+            <div class="sticky top-0 bg-[#F8FAFC]/95 backdrop-blur-sm -mx-4 px-4 sm:-mx-6 sm:px-6 py-2 mb-4 z-20 flex lg:hidden">
                 <div class="w-full bg-slate-200/80 p-1 rounded-xl flex gap-1 shadow-inner">
                     <button type="button" @click="activeTab = 'open'" 
                         :class="activeTab === 'open' ? 'bg-white text-sky-600 shadow-sm font-bold' : 'text-slate-600 hover:text-slate-800 font-semibold'" 
@@ -79,10 +79,10 @@
             </div>
 
             {{-- 3 Columns Kanban Grid (Open, Progress, Closed) --}}
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
                 
                 {{-- Column 1: Open --}}
-                <div :class="activeTab === 'open' ? 'flex' : 'hidden md:flex'" class="flex-col w-full">
+                <div :class="activeTab === 'open' ? 'flex' : 'hidden lg:flex'" class="flex-col w-full">
                     <div class="flex items-center justify-between mb-4 px-1">
                         <a href="{{ ($isMyReq ?? true) ? '/myproc/2' : '/mrq/2' }}" class="text-xs font-extrabold uppercase tracking-wider text-slate-600 hover:text-sky-600 flex items-center gap-1.5 transition-colors group">
                             <span>Open</span>
@@ -151,7 +151,7 @@
                 </div>
 
                 {{-- Column 2: Progress --}}
-                <div :class="activeTab === 'progress' ? 'flex' : 'hidden md:flex'" class="flex-col w-full">
+                <div :class="activeTab === 'progress' ? 'flex' : 'hidden lg:flex'" class="flex-col w-full">
                     <div class="flex items-center justify-between mb-4 px-1">
                         <a href="{{ ($isMyReq ?? true) ? '/myproc/3' : '/mrq/3' }}" class="text-xs font-extrabold uppercase tracking-wider text-slate-600 hover:text-amber-600 flex items-center gap-1.5 transition-colors group">
                             <span>Progress</span>
@@ -220,7 +220,7 @@
                 </div>
 
                 {{-- Column 3: Closed --}}
-                <div :class="activeTab === 'closed' ? 'flex' : 'hidden md:flex'" class="flex-col w-full">
+                <div :class="activeTab === 'closed' ? 'flex' : 'hidden lg:flex'" class="flex-col w-full">
                     <div class="flex items-center justify-between mb-4 px-1">
                         <a href="{{ ($isMyReq ?? true) ? '/myproc/4' : '/mrq/4' }}" class="text-xs font-extrabold uppercase tracking-wider text-slate-600 hover:text-emerald-600 flex items-center gap-1.5 transition-colors group">
                             <span>Closed</span>

@@ -20,7 +20,7 @@
 
             <div x-show="notifOpen" 
                  x-cloak
-                 class="absolute right-0 z-[100] flex flex-col p-0 shadow-2xl shadow-slate-200/80 bg-white rounded-2xl w-[320px] sm:w-[360px] mt-3 border border-slate-200 overflow-hidden"
+                 class="absolute -right-12 sm:right-0 z-[100] flex flex-col p-0 shadow-2xl shadow-slate-200/80 bg-white rounded-2xl w-[calc(100vw-2rem)] max-w-[360px] sm:w-[360px] mt-3 border border-slate-200 overflow-hidden"
                  x-transition:enter="transition ease-out duration-150"
                  x-transition:enter-start="transform opacity-0 scale-95"
                  x-transition:enter-end="transform opacity-100 scale-100"

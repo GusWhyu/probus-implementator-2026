@@ -244,16 +244,55 @@ class HomeController extends Controller
 
         // Apply Search Filter
         if ($request->filled('search')) {
-            $search = $request->search;
-            $query->where(function($q) use ($search) {
+            $search = trim($request->search);
+            $noSpaceSearch = str_replace(' ', '', $search);
+
+            $extractedNumber = null;
+            if (preg_match('/^(?:tck[-\s]*|no\.?\s*|#\s*)?(\d+)$/i', $search, $matches)) {
+                $extractedNumber = (int)$matches[1];
+            }
+
+            $query->where(function($q) use ($search, $noSpaceSearch, $extractedNumber) {
+                // 1. Judul & Deskripsi
                 $q->where('title', 'like', "%{$search}%")
-                  ->orWhere('ticket_number', 'like', "%{$search}%")
-                  ->orWhereHas('client', function($cq) use ($search) {
-                      $cq->where('nm_out', 'like', "%{$search}%");
-                  })
-                  ->orWhereHas('user', function($uq) use ($search) {
-                      $uq->where('name', 'like', "%{$search}%");
-                  });
+                  ->orWhere('description', 'like', "%{$search}%");
+
+                // 2. ID & Nomor Tiket
+                if ($extractedNumber !== null) {
+                    $q->orWhere('id', $extractedNumber)
+                      ->orWhere('ticket_number', 'like', '%-' . str_pad($extractedNumber, 4, '0', STR_PAD_LEFT));
+                }
+                if (strlen($search) >= 3) {
+                    $q->orWhere('ticket_number', 'like', "%{$search}%");
+                }
+
+                // 3. User (pembuat tiket)
+                $q->orWhereHas('user', function($uq) use ($search, $noSpaceSearch) {
+                    $uq->where('name', 'like', "%{$search}%")
+                       ->orWhere('email', 'like', "%{$search}%");
+                    if (!empty($noSpaceSearch) && $noSpaceSearch !== $search) {
+                        $uq->orWhereRaw("REPLACE(name, ' ', '') LIKE ?", ["%{$noSpaceSearch}%"]);
+                    }
+                });
+
+                // 4. Advisor (advisor penangan tiket)
+                $q->orWhereHas('advisor', function($aq) use ($search, $noSpaceSearch) {
+                    $aq->where('name', 'like', "%{$search}%")
+                       ->orWhere('email', 'like', "%{$search}%");
+                    if (!empty($noSpaceSearch) && $noSpaceSearch !== $search) {
+                        $aq->orWhereRaw("REPLACE(name, ' ', '') LIKE ?", ["%{$noSpaceSearch}%"]);
+                    }
+                });
+
+                // 5. Client (Pelanggan / Outlet & Lokasi)
+                $q->orWhereHas('client', function($cq) use ($search, $noSpaceSearch) {
+                    $cq->where('nm_out', 'like', "%{$search}%")
+                       ->orWhere('lokasi', 'like', "%{$search}%");
+                    if (!empty($noSpaceSearch) && $noSpaceSearch !== $search) {
+                        $cq->orWhereRaw("REPLACE(nm_out, ' ', '') LIKE ?", ["%{$noSpaceSearch}%"])
+                           ->orWhereRaw("REPLACE(lokasi, ' ', '') LIKE ?", ["%{$noSpaceSearch}%"]);
+                    }
+                });
             });
         }
 
@@ -559,31 +598,54 @@ class HomeController extends Controller
             Alert::warning('Pengalihan Otomatis Dibatalkan', 'Tiket (' . implode(', ', $expiredSentNumbers) . ') telah dikembalikan kepada Anda karena telah melewati batas waktu tanpa persetujuan dari advisor tujuan.')->showConfirmButton('Tutup', '#f59e0b')->autoClose(3000);
         }
 
-        // 2. Query data
-        $query = Ticket::query()->where(function($q) {
-            $q->where('user_id', auth()->id())
-              ->orWhere(function($sub) {
-                  $sub->where('advisor_id', auth()->id())
-                      ->whereNull('pending_advisor_id');
-              });
-        })->with(['kategoriSystem', 'moduleSystem', 'client', 'user', 'advisor']);
+        // 2. Query data - hanya tiket milik user yang login
+        $query = Ticket::query()->where('user_id', auth()->id())
+            ->with(['kategoriSystem', 'moduleSystem', 'client', 'user', 'advisor']);
 
         // Search filter
         if ($request->filled('search')) {
-            $search = $request->search;
-            $query->where(function($q) use ($search) {
-                $q->where('ticket_number', 'like', "%{$search}%")
-                  ->orWhere('title', 'like', "%{$search}%")
+            $search = trim($request->search);
+            $noSpaceSearch = str_replace(' ', '', $search);
+
+            $extractedNumber = null;
+            if (preg_match('/^(?:tck[-\s]*|no\.?\s*|#\s*)?(\d+)$/i', $search, $matches)) {
+                $extractedNumber = (int)$matches[1];
+            }
+
+            $query->where(function($q) use ($search, $noSpaceSearch, $extractedNumber) {
+                $q->where('title', 'like', "%{$search}%")
                   ->orWhere('description', 'like', "%{$search}%")
-                  ->orWhere('tipe_penanganan', 'like', "%{$search}%")
-                  ->orWhereHas('client', function($cq) use ($search) {
-                      $cq->where('nm_out', 'like', "%{$search}%");
+                  ->orWhere('tipe_penanganan', 'like', "%{$search}%");
+
+                if ($extractedNumber !== null) {
+                    $q->orWhere('id', $extractedNumber)
+                      ->orWhere('ticket_number', 'like', '%-' . str_pad($extractedNumber, 4, '0', STR_PAD_LEFT));
+                }
+                if (strlen($search) >= 3) {
+                    $q->orWhere('ticket_number', 'like', "%{$search}%");
+                }
+
+                $q->orWhereHas('client', function($cq) use ($search, $noSpaceSearch) {
+                      $cq->where('nm_out', 'like', "%{$search}%")
+                         ->orWhere('lokasi', 'like', "%{$search}%");
+                      if (!empty($noSpaceSearch) && $noSpaceSearch !== $search) {
+                          $cq->orWhereRaw("REPLACE(nm_out, ' ', '') LIKE ?", ["%{$noSpaceSearch}%"])
+                             ->orWhereRaw("REPLACE(lokasi, ' ', '') LIKE ?", ["%{$noSpaceSearch}%"]);
+                      }
                   })
-                  ->orWhereHas('user', function($uq) use ($search) {
-                      $uq->where('name', 'like', "%{$search}%");
+                  ->orWhereHas('user', function($uq) use ($search, $noSpaceSearch) {
+                      $uq->where('name', 'like', "%{$search}%")
+                         ->orWhere('email', 'like', "%{$search}%");
+                      if (!empty($noSpaceSearch) && $noSpaceSearch !== $search) {
+                          $uq->orWhereRaw("REPLACE(name, ' ', '') LIKE ?", ["%{$noSpaceSearch}%"]);
+                      }
                   })
-                  ->orWhereHas('advisor', function($aq) use ($search) {
-                      $aq->where('name', 'like', "%{$search}%");
+                  ->orWhereHas('advisor', function($aq) use ($search, $noSpaceSearch) {
+                      $aq->where('name', 'like', "%{$search}%")
+                         ->orWhere('email', 'like', "%{$search}%");
+                      if (!empty($noSpaceSearch) && $noSpaceSearch !== $search) {
+                          $aq->orWhereRaw("REPLACE(name, ' ', '') LIKE ?", ["%{$noSpaceSearch}%"]);
+                      }
                   })
                   ->orWhereHas('kategoriSystem', function($kq) use ($search) {
                       $kq->where('name', 'like', "%{$search}%");

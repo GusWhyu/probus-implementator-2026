@@ -21,7 +21,7 @@
                     </div>
                 </div>
                 
-                <div class="flex flex-col items-end gap-2">
+                <div class="flex flex-col items-start sm:items-end gap-2">
                     <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Periode</span>
                     <div class="flex items-center gap-3">
                         <div class="relative bg-white border border-slate-200 rounded-xl shadow-sm text-sm font-bold text-slate-700 flex items-center px-4 py-2 cursor-pointer hover:border-slate-300 transition-colors">
@@ -142,7 +142,7 @@
                     </h3>
                     
                     <!-- Legend -->
-                    <div class="flex items-center justify-center gap-6 mb-8 text-[11px] font-bold">
+                    <div class="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 mb-8 text-[11px] font-bold">
                         <div class="flex items-center gap-2 text-slate-500"><div class="w-2 h-2 rounded bg-blue-400"></div> Nilai Tiket</div>
                         <div class="flex items-center gap-2 text-slate-500"><div class="w-2 h-2 rounded bg-blue-600"></div> Kualitas CS</div>
                         <div class="flex items-center gap-2 text-slate-500"><div class="w-2 h-2 rounded bg-emerald-400"></div> Kepuasan Klien</div>

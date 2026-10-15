@@ -96,8 +96,8 @@
 
             <!-- Main Table Card -->
             <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden mb-6">
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse">
+                <div class="overflow-x-auto custom-scrollbar">
+                    <table class="w-full text-left border-collapse min-w-[700px]">
                         <thead>
                             <tr class="bg-slate-50/80 border-b border-slate-200">
                                 <th class="py-4 px-6 text-[11px] font-bold text-slate-400 uppercase tracking-wider w-16">No</th>
