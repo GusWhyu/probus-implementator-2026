@@ -33,8 +33,9 @@
                 </div>
 
                 <div class="flex items-center gap-3">
-                    <a href="{{ route('createrq', ['from' => 'myreq']) }}" class="inline-flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-sm transition-all active:scale-95">
-                        <i class="fa-solid fa-plus text-xs"></i> Create Request
+                    <a href="{{ route('createrq', ['from' => 'myreq']) }}" class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 sm:px-5 py-2.5 rounded-xl text-xs sm:text-sm shadow-md shadow-blue-500/20 active:scale-95 transition-all">
+                        <i class="fa-solid fa-plus text-xs"></i>
+                        <span>Buat Request Baru</span>
                     </a>
                 </div>
             </div>

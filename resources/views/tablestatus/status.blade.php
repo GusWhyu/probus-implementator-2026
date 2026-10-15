@@ -16,8 +16,8 @@
                         <p class="text-center text-3xl font-bold">Client List</p>
                         <a href="{{ url()->previous() }}" class="text-black hover:text-gray-700 text-3xl"><i class="fa-solid fa-circle-arrow-left"></i></a>
                     </div>
-                    <div class="mt-5 mb-20">
-                        <a href="{{ route('createstatus') }}" class="bg-black font-bold text-white px-2 py-2 rounded-md border-black border-solid border-2 hover:bg-white hover:text-black transition delay-50 duration-300"><i class="fa-solid fa-plus"></i> Create new client</a>
+                    <div class="mt-5 mb-8">
+                        <a href="{{ route('createstatus') }}" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 py-2.5 rounded-xl text-sm shadow-md shadow-blue-500/20 active:scale-95 transition-all inline-flex items-center gap-2"><i class="fa-solid fa-plus text-xs"></i> Create new status</a>
                     </div>
                     <div class="mt-5">
                         <table class="table-fixed w-full">

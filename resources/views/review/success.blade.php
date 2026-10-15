@@ -32,7 +32,7 @@
                 Penilaian dan masukan Anda telah berhasil kami simpan. Hal ini sangat berharga untuk terus meningkatkan kualitas layanan kami.
             </p>
 
-            <button onclick="window.close(); if(!window.closed) { window.history.back(); }" class="w-full bg-slate-900 hover:bg-slate-800 active:scale-[0.98] text-white font-extrabold text-sm py-4 rounded-2xl shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer">
+            <button onclick="window.close(); if(!window.closed) { window.history.back(); }" class="w-full bg-blue-600 hover:bg-blue-700 active:scale-[0.98] text-white font-extrabold text-sm py-4 rounded-2xl shadow-lg shadow-blue-500/25 transition-all flex items-center justify-center gap-2 cursor-pointer">
                 <i class="fa-solid fa-arrow-left text-xs"></i>
                 <span>Tutup Halaman</span>
             </button>

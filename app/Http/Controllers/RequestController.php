@@ -515,7 +515,7 @@ class RequestController extends Controller
             'user_id' => Auth::user()->id
         ]);
         $creator = $data->user;
-        if ($creator) {
+        if ($creator && $creator->id !== Auth::id()) {
             $creator->notify(new RequestStatusChanged($data));
         }
         Alert::success('Status Changed!');
@@ -578,6 +578,11 @@ class RequestController extends Controller
             'approval_note' => null
         ]);
 
+        $creator = $data->user;
+        if ($creator && $creator->id !== Auth::id()) {
+            $creator->notify(new RequestStatusChanged($data, "Pengajuan request '" . $data->judul . "' telah disetujui.", "Request Disetujui"));
+        }
+
         Alert::success('Request Approved!');
         return redirect()->back();
     }
@@ -612,8 +617,8 @@ class RequestController extends Controller
             'user_id' => Auth::user()->id
         ]);
 
-        if ($data->user) {
-            $data->user->notify(new RequestStatusChanged($data));
+        if ($data->user && $data->user->id !== Auth::id()) {
+            $data->user->notify(new RequestStatusChanged($data, "Pengajuan request '" . $data->judul . "' ditolak. Alasan: " . $request->reason, "Request Ditolak"));
         }
 
         Alert::success('Request Rejected!');

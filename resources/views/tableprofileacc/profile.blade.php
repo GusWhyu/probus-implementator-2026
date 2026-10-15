@@ -30,7 +30,7 @@
                         <!-- Circular Avatar with Camera Quick Action (Exclusive Negative Margin) -->
                         <div class="relative shrink-0 -mt-14 sm:-mt-18 md:-mt-20 group">
                             <div class="w-28 h-28 sm:w-32 sm:h-32 md:w-36 md:h-36 rounded-full border-4 border-white bg-white shadow-xl overflow-hidden relative z-10 ring-4 ring-slate-100">
-                                <img src="{{ Auth::user()->avatar_url }}" alt="{{ Auth::user()->name }}" class="w-full h-full object-cover">
+                                <img src="{{ Auth::user()->avatar_url }}" alt="{{ Auth::user()->name }}" class="w-full h-full object-cover" onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name={{ urlencode(Auth::user()->name) }}&background=2563eb&color=fff&bold=true';">
                             </div>
                             <a href="{{ route('editprofile', Auth::user()->id) }}" title="Ubah Foto Profil" class="absolute bottom-1 right-1 z-20 w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center shadow-lg border-2 border-white transition-all transform active:scale-90 hover:scale-105">
                                 <i class="fa-solid fa-camera text-xs"></i>

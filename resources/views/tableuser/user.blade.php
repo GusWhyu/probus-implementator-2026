@@ -12,7 +12,7 @@
                 </div>
             </div>
             <div>
-                <a href="{{ route('registeracc') }}" class="bg-slate-900 text-white px-5 py-2.5 rounded-xl text-sm font-bold flex items-center justify-center gap-2 hover:bg-slate-800 transition-colors shadow-sm">
+                <a href="{{ route('registeracc') }}" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl text-sm font-bold flex items-center justify-center gap-2 shadow-md shadow-blue-500/20 active:scale-95 transition-all">
                     <i class="fa-solid fa-user-plus"></i> Tambah Pengguna
                 </a>
             </div>
@@ -42,7 +42,7 @@
                                 <td class="py-4 px-4 text-sm font-semibold text-slate-700">
                                     <div class="flex items-center gap-3">
                                         <div class="w-8 h-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center text-xs overflow-hidden shadow-xs shrink-0">
-                                            <img src="{{ $item->avatar_url }}" alt="{{ $item->name }}" class="w-full h-full object-cover">
+                                            <img src="{{ $item->avatar_url }}" alt="{{ $item->name }}" class="w-full h-full object-cover" onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name={{ urlencode($item->name) }}&background=2563eb&color=fff&bold=true';">
                                         </div>
                                         {{ $item->name }}
                                     </div>

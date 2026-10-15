@@ -147,6 +147,13 @@ class TicketController extends Controller
             'link_id' => \Illuminate\Support\Str::random(10),
             'handle_at' => now(),
         ]);
+
+        if ($data->advisor_id && $data->advisor_id != Auth::id()) {
+            $advisor = \App\Models\User::find($data->advisor_id);
+            if ($advisor) {
+                $advisor->notify(new RequestStatusChanged($data, Auth::user()->name . " menugaskan tiket baru '" . $data->title . "' kepada Anda.", "Penugasan Tiket Baru"));
+            }
+        }
         
         $imagedata = [];
         if($request->hasfile('images')){
@@ -264,8 +271,11 @@ class TicketController extends Controller
             'user_id' => Auth::user()->id
         ]);
         $creator = $data->user;
-        if ($creator) {
+        if ($creator && $creator->id !== Auth::id()) {
             $creator->notify(new RequestStatusChanged($data));
+        }
+        if ($data->advisor && $data->advisor_id !== Auth::id() && $data->advisor_id !== $data->user_id) {
+            $data->advisor->notify(new RequestStatusChanged($data));
         }
         
         Alert::success('Berhasil!', 'Status tiket telah diperbarui.')->showConfirmButton('Tutup', '#3b82f6')->autoClose(2500);
@@ -380,8 +390,8 @@ class TicketController extends Controller
             'user_id' => Auth::user()->id
         ]);
 
-        if ($data->user) {
-            $data->user->notify(new RequestStatusChanged($data));
+        if ($data->user && $data->user->id !== Auth::id()) {
+            $data->user->notify(new RequestStatusChanged($data, "Tiket '" . $data->title . "' telah ditolak.", "Tiket Ditolak"));
         }
 
         Alert::success('Request Rejected!');
@@ -445,6 +455,7 @@ class TicketController extends Controller
                 'takeover_duration_minutes' => $durationMinutes,
                 'pending_advisor_expires_at' => now()->addMinutes($durationMinutes)
             ]);
+            $targetUser->notify(new RequestStatusChanged($ticket, Auth::user()->name . " meminta pengalihan tiket '" . $ticket->title . "' kepada Anda.", "Permintaan Pengalihan Tiket"));
             Alert::success('Terkirim!', 'Permintaan pengalihan tiket telah dikirim ke user tersebut.')->showConfirmButton('Tutup', '#3b82f6')->autoClose(2500);
         }
         
@@ -462,6 +473,9 @@ class TicketController extends Controller
                 'pending_advisor_expires_at' => null,
                 'takeover_duration_minutes' => null
             ]);
+            if ($ticket->user && $ticket->user->id !== Auth::id()) {
+                $ticket->user->notify(new RequestStatusChanged($ticket, Auth::user()->name . " telah menyetujui pengalihan tiket '" . $ticket->title . "'.", "Pengalihan Tiket Disetujui"));
+            }
             Alert::success('Berhasil!', 'Anda telah mengambil alih tiket ini.')->showConfirmButton('Tutup', '#3b82f6')->autoClose(2500);
         }
         return redirect()->back();
@@ -478,6 +492,9 @@ class TicketController extends Controller
                 'pending_advisor_expires_at' => null,
                 'takeover_duration_minutes' => null
             ]);
+            if ($ticket->user && $ticket->user->id !== Auth::id()) {
+                $ticket->user->notify(new RequestStatusChanged($ticket, Auth::user()->name . " menolak permintaan pengalihan tiket '" . $ticket->title . "'.", "Pengalihan Tiket Ditolak"));
+            }
             Alert::info('Ditolak!', 'Anda telah menolak permintaan alih tiket.')->autoClose(2500);
         }
         return redirect()->back();

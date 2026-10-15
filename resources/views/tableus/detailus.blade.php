@@ -10,7 +10,7 @@
                     <div class="flex flex-col md:px-40">
                         <div class="mb-5 flex flex-row justify-between">
                             @if ($data->user_id == $aid || $ust == 'admin' || $ust == 'supervisor')
-                            <a href="/editus/{{ $data->id }}" class="btn btn-neutral mt-3 bg-black rounded-[28px]"><i class="fa-solid fa-pen"></i> Edit Update System</a>
+                            <a href="/editus/{{ $data->id }}" class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 py-2.5 rounded-xl text-sm shadow-md shadow-blue-500/20 active:scale-95 transition-all mt-3"><i class="fa-solid fa-pen text-xs"></i> Edit Update System</a>
                             @endif
                             <a href="/" class="text-5xl text-black mt-2 hover:text-gray-700"><i class="fa-solid fa-house"></i></a>
                         </div>

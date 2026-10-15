@@ -163,11 +163,13 @@ Route::get('/myrequs', [MyrequsController::class, 'history'])->middleware(['auth
 Route::get('/myrequest', [MyrequsController::class, 'myrequest'])->middleware(['auth'])->name('myrequest');
 Route::get('/myupdatesystem', [MyrequsController::class, 'myupdatesystem'])->middleware(['auth'])->name('myupdatesystem');
 
-//Route Notification
-Route::get('/notifications/mark-as-read', function () {
-    Auth::user()->unreadNotifications->markAsRead();
-    return back();
-})->name('notifications.markAsRead');
+// Route Notification (Real-time & Management)
+Route::middleware(['auth'])->group(function () {
+    Route::get('/notifications', [\App\Http\Controllers\NotificationController::class, 'index'])->name('notifications.index');
+    Route::get('/notifications/unread', [\App\Http\Controllers\NotificationController::class, 'getUnread'])->name('notifications.unread');
+    Route::get('/notifications/mark-as-read', [\App\Http\Controllers\NotificationController::class, 'markAsRead'])->name('notifications.markAsRead');
+    Route::post('/notifications/mark-as-read/{id?}', [\App\Http\Controllers\NotificationController::class, 'markAsRead'])->name('notifications.markReadAjax');
+});
 
 Route::get('/demo-tiket', function () {
     return view('demo_tiket');
@@ -185,6 +187,15 @@ Route::middleware(['auth', 'can:aspv'])->group(function () {
 // Review Routes (Public)
 Route::get('/review/{ticket_number}', [\App\Http\Controllers\ReviewController::class, 'show'])->name('review.show');
 Route::post('/review/{ticket_number}', [\App\Http\Controllers\ReviewController::class, 'store'])->name('review.store');
+
+// Fallback route for storage files when symlink is not available or blocked
+Route::get('/storage/{path}', function ($path) {
+    $filePath = storage_path('app/public/' . $path);
+    if (!file_exists($filePath)) {
+        abort(404);
+    }
+    return response()->file($filePath);
+})->where('path', '.*');
 
 require __DIR__.'/auth.php';
 
