@@ -352,7 +352,110 @@ class HomeController extends Controller
             return $rev && $rev->total_score >= 80;
         })->count();
 
-        return view('laporan', compact('users', 'month', 'year', 'totalCS', 'sudahDinilai', 'belumDinilai', 'sangatBaik'));
+        // --- Kalkulasi Top 3 Profile CS (Best Performance, Client's Favorite, Best Team Player) ---
+        $modulesBobot = ModuleSystem::pluck('bobot', 'id');
+        $monthTickets = Ticket::whereMonth('created_at', $month)
+            ->whereYear('created_at', $year)
+            ->get();
+
+        $reviews = PerformanceReview::with(['user', 'details.category'])
+            ->whereMonth('periode', $month)
+            ->whereYear('periode', $year)
+            ->get();
+
+        $csMetrics = [];
+        foreach ($allUsers as $u) {
+            $rev = $reviews->firstWhere('user_id', $u->id);
+
+            $uHandled = $monthTickets->filter(fn($t) => $t->user_id == $u->id || $t->advisor_id == $u->id);
+            $uClosed = $uHandled->filter(fn($t) => strtoupper($t->status) === 'CLOSED');
+            $uAsAdvisor = $monthTickets->filter(fn($t) => $t->advisor_id == $u->id && $t->user_id != $u->id);
+
+            $rawTicketPoints = 0;
+            foreach ($uHandled as $ht) {
+                $rawTicketPoints += (int)($modulesBobot[$ht->module_system_id] ?? 50);
+            }
+
+            $surveyRatings = \Illuminate\Support\Facades\DB::table('ticket_surveys')
+                ->join('tickets', 'ticket_surveys.ticket_id', '=', 'tickets.id')
+                ->where(function($q) use ($u) {
+                    $q->where('tickets.user_id', $u->id)->orWhere('tickets.advisor_id', $u->id);
+                })
+                ->whereMonth('tickets.created_at', $month)
+                ->whereYear('tickets.created_at', $year)
+                ->pluck('rating');
+            $avgSurvey = $surveyRatings->count() > 0 ? round($surveyRatings->avg(), 1) : null;
+
+            $teamworkScore = null;
+            if ($rev && $rev->details) {
+                $twDetail = $rev->details->first(function($d) {
+                    return $d->category && stripos($d->category->name, 'kerjasama') !== false;
+                });
+                if ($twDetail) {
+                    $teamworkScore = $twDetail->score;
+                }
+            }
+
+            $csMetrics[$u->id] = [
+                'user' => $u,
+                'has_review' => !is_null($rev),
+                'review' => $rev,
+                'total_score' => $rev ? (float)$rev->total_score : ($rawTicketPoints > 0 ? round(min(100, ($rawTicketPoints / 10)), 1) : 0),
+                'raw_ticket_points' => $rawTicketPoints,
+                'handled_count' => $uHandled->count(),
+                'closed_count' => $uClosed->count(),
+                'client_score' => $rev ? (float)$rev->review_score : ($avgSurvey ? ($avgSurvey * 20) : ($uClosed->count() > 0 ? 85 : 0)),
+                'client_rating' => $rev ? round(($rev->review_score / 20), 1) : ($avgSurvey ?: ($uClosed->count() > 0 ? 4.5 : 0)),
+                'advice_count' => $rev && $rev->total_ticket_yang_di_advice ? $rev->total_ticket_yang_di_advice : $uAsAdvisor->count(),
+                'teamwork_soft_score' => $teamworkScore ?: ($uAsAdvisor->count() > 0 ? 5 : 3),
+                'team_player_score' => ($rev && $rev->total_ticket_yang_di_advice ? $rev->total_ticket_yang_di_advice * 10 : $uAsAdvisor->count() * 10) + ($teamworkScore ?: ($uAsAdvisor->count() > 0 ? 10 : 0)),
+            ];
+        }
+
+        $selectedUserIds = [];
+
+        // 1. Best Performance (Tertinggi total_score)
+        $sortedBestPerf = collect($csMetrics)->sortByDesc(function($item) {
+            return ($item['has_review'] ? 1000 : 0) + $item['total_score'];
+        });
+        $bestPerfItem = $sortedBestPerf->first();
+        if ($bestPerfItem && ($bestPerfItem['total_score'] > 0 || $bestPerfItem['handled_count'] > 0)) {
+            $selectedUserIds[] = $bestPerfItem['user']->id;
+        } else {
+            $bestPerfItem = null;
+        }
+
+        // 2. Client's Favorite (Tertinggi kepuasan klien)
+        $sortedClientsFav = collect($csMetrics)->reject(fn($item) => in_array($item['user']->id, $selectedUserIds))
+            ->sortByDesc(function($item) {
+                return ($item['has_review'] ? 1000 : 0) + $item['client_score'];
+            });
+        $clientsFavItem = $sortedClientsFav->first();
+        if ($clientsFavItem && ($clientsFavItem['client_score'] > 0 || $clientsFavItem['closed_count'] > 0)) {
+            $selectedUserIds[] = $clientsFavItem['user']->id;
+        } else {
+            $clientsFavItem = null;
+        }
+
+        // 3. Best Team Player (Tertinggi kolaborasi / bantuan alih tiket)
+        $sortedTeamPlayer = collect($csMetrics)->reject(fn($item) => in_array($item['user']->id, $selectedUserIds))
+            ->sortByDesc(function($item) {
+                return ($item['has_review'] ? 1000 : 0) + $item['team_player_score'];
+            });
+        $teamPlayerItem = $sortedTeamPlayer->first();
+        if ($teamPlayerItem && ($teamPlayerItem['advice_count'] > 0 || $teamPlayerItem['team_player_score'] > 0)) {
+            $selectedUserIds[] = $teamPlayerItem['user']->id;
+        } else {
+            $teamPlayerItem = null;
+        }
+
+        $topCS = [
+            'best_performance' => $bestPerfItem,
+            'clients_favorite' => $clientsFavItem,
+            'best_team_player' => $teamPlayerItem,
+        ];
+
+        return view('laporan', compact('users', 'month', 'year', 'totalCS', 'sudahDinilai', 'belumDinilai', 'sangatBaik', 'topCS'));
     }
 
     public function penilaian($id){
