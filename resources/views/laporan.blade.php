@@ -6,14 +6,38 @@
             <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-8 gap-4">
                 <div>
                     <h1 class="text-2xl font-extrabold text-slate-800 tracking-tight">Penilaian Kinerja CS</h1>
-                    <p class="text-sm text-slate-500 font-medium mt-1">Kelola penilaian dan pantau performa Customer Support</p>
+                    <p class="text-sm text-slate-500 font-medium mt-1 flex flex-wrap items-center gap-2">
+                        <span>Kelola penilaian dan pantau performa Customer Support</span>
+                        <span class="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-600 bg-white border border-slate-200 px-2.5 py-0.5 rounded-lg shadow-xs">
+                            <i class="fa-regular fa-calendar-check text-blue-500"></i> Cut-off Akhir Bulan: {{ \Carbon\Carbon::createFromDate($year, $month, 1)->endOfMonth()->translatedFormat('d F Y') }}
+                        </span>
+                    </p>
                 </div>
                 <div class="flex items-center gap-3">
-                    <div class="relative bg-white border border-slate-200 rounded-xl shadow-sm text-sm font-bold text-slate-700 flex items-center px-4 py-2.5 cursor-pointer hover:border-slate-300 transition-colors">
-                        <i class="fa-regular fa-calendar text-blue-500 mr-2"></i>
-                        <span>{{ \Carbon\Carbon::createFromDate($year, $month, 1)->locale('id')->translatedFormat('F Y') }}</span>
-                        <i class="fa-solid fa-chevron-down text-slate-400 ml-3 text-xs"></i>
-                    </div>
+                    <form action="{{ route('laporan') }}" method="GET" class="relative">
+                        @if(request('search'))
+                            <input type="hidden" name="search" value="{{ request('search') }}">
+                        @endif
+                        @if(request('status'))
+                            <input type="hidden" name="status" value="{{ request('status') }}">
+                        @endif
+                        <div class="relative bg-white border border-slate-200 rounded-xl shadow-sm text-sm font-bold text-slate-700 flex items-center hover:border-slate-300 transition-colors focus-within:border-blue-500 focus-within:ring-4 focus-within:ring-blue-500/10">
+                            <i class="fa-regular fa-calendar text-blue-500 ml-4 pointer-events-none text-base"></i>
+                            <select name="period" onchange="this.form.submit()" class="bg-transparent border-0 text-sm font-bold text-slate-700 py-2.5 pl-2.5 pr-9 focus:ring-0 cursor-pointer appearance-none">
+                                @for ($i = 0; $i < 12; $i++)
+                                    @php
+                                        $d = \Carbon\Carbon::now()->subMonths($i);
+                                        $optVal = $d->format('Y-m');
+                                        $currentSelected = sprintf('%04d-%02d', $year, $month);
+                                    @endphp
+                                    <option value="{{ $optVal }}" {{ $optVal === $currentSelected ? 'selected' : '' }}>
+                                        {{ $d->locale('id')->translatedFormat('F Y') }} {{ $i === 0 ? '(Bulan Berjalan)' : '' }}
+                                    </option>
+                                @endfor
+                            </select>
+                            <i class="fa-solid fa-chevron-down absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs pointer-events-none"></i>
+                        </div>
+                    </form>
                 </div>
             </div>
 
@@ -119,27 +143,30 @@
                                     <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Juara 1</span>
                                 </div>
 
-                                <!-- User Info -->
-                                <div class="flex items-center gap-3.5 mb-4">
+                                <!-- User Info Highlight Box -->
+                                <div class="flex items-center gap-4 mb-4 p-3 bg-amber-50/50 border border-amber-200/60 rounded-2xl">
                                     <div class="relative shrink-0">
-                                        <img src="{{ $avatarBp }}" alt="{{ $bpUser->name }}" class="w-14 h-14 rounded-full object-cover shadow-sm ring-4 ring-amber-400/30 bg-white" style="{{ $isFemaleBp && !$bpUser->profile_image ? 'object-position: top;' : '' }}">
-                                        <div class="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-amber-500 text-white flex items-center justify-center text-[10px] shadow">
-                                            <i class="fa-solid fa-trophy text-[9px]"></i>
+                                        <div class="w-20 h-20 rounded-2xl p-1 bg-white border-2 border-amber-400 shadow-md ring-4 ring-amber-400/20 overflow-hidden">
+                                            <img src="{{ $avatarBp }}" alt="{{ $bpUser->name }}" class="w-full h-full rounded-xl object-cover bg-amber-50/30" style="{{ $isFemaleBp && !$bpUser->profile_image ? 'object-position: top;' : '' }}">
+                                        </div>
+                                        <div class="absolute -bottom-1 -right-1 w-6 h-6 rounded-lg bg-amber-500 text-white flex items-center justify-center text-[10px] shadow-sm border-2 border-white">
+                                            <i class="fa-solid fa-trophy"></i>
                                         </div>
                                     </div>
                                     <div class="min-w-0 flex-1">
-                                        <h3 class="font-extrabold text-slate-800 text-sm sm:text-base truncate group-hover:text-amber-600 transition-colors" title="{{ $bpUser->name }}">
+                                        <div class="text-[10px] font-bold text-amber-700 uppercase tracking-wider mb-0.5">Penerima Penghargaan</div>
+                                        <h3 class="font-extrabold text-slate-800 text-base sm:text-lg leading-tight truncate group-hover:text-amber-600 transition-colors" title="{{ $bpUser->name }}">
                                             {{ $bpUser->name }}
                                         </h3>
-                                        <p class="text-xs text-slate-400 font-medium truncate">{{ $bpUser->email }}</p>
-                                        <span class="inline-block mt-1 text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md">
+                                        <p class="text-xs text-slate-500 font-medium truncate mt-0.5">{{ $bpUser->email }}</p>
+                                        <span class="inline-block mt-2 text-[10px] font-bold text-amber-800 bg-amber-100/80 border border-amber-200 px-2.5 py-0.5 rounded-lg uppercase tracking-wider">
                                             {{ $bpUser->usertype ?? 'Customer Support' }}
                                         </span>
                                     </div>
                                 </div>
 
                                 <!-- Key Metric Highlight Box -->
-                                <div class="bg-amber-50/70 border border-amber-200/60 rounded-xl p-3 text-center mb-3">
+                                <div class="bg-amber-50/70 border border-amber-200/60 rounded-xl p-3 text-center">
                                     <div class="text-2xl font-black text-amber-700 leading-none mb-1">
                                         {{ number_format($bp['total_score'], 1) }}
                                         <span class="text-xs font-bold text-amber-500">/ 100</span>
@@ -149,21 +176,6 @@
                                         {{ $bp['handled_count'] }} tiket ditangani ({{ $bp['closed_count'] }} selesai)
                                     </div>
                                 </div>
-                            </div>
-
-                            <!-- Action Button -->
-                            <div class="pt-2 border-t border-slate-100">
-                                @if($bp['has_review'])
-                                    <a href="{{ route('rapor', $bpUser->id) }}" class="w-full py-2 px-3 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold flex items-center justify-center gap-1.5 transition-all shadow-sm shadow-amber-500/20 active:scale-95">
-                                        <span>Lihat Rapor Digital</span>
-                                        <i class="fa-solid fa-arrow-right text-[10px]"></i>
-                                    </a>
-                                @else
-                                    <a href="{{ route('penilaian', $bpUser->id) }}" class="w-full py-2 px-3 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 text-xs font-bold flex items-center justify-center gap-1.5 transition-all active:scale-95">
-                                        <i class="fa-solid fa-star text-[10px]"></i>
-                                        <span>Evaluasi & Beri Nilai</span>
-                                    </a>
-                                @endif
                             </div>
                         </div>
                     </div>
@@ -189,27 +201,30 @@
                                     <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Favorit</span>
                                 </div>
 
-                                <!-- User Info -->
-                                <div class="flex items-center gap-3.5 mb-4">
+                                <!-- User Info Highlight Box -->
+                                <div class="flex items-center gap-4 mb-4 p-3 bg-rose-50/50 border border-rose-200/60 rounded-2xl">
                                     <div class="relative shrink-0">
-                                        <img src="{{ $avatarCf }}" alt="{{ $cfUser->name }}" class="w-14 h-14 rounded-full object-cover shadow-sm ring-4 ring-rose-400/30 bg-white" style="{{ $isFemaleCf && !$cfUser->profile_image ? 'object-position: top;' : '' }}">
-                                        <div class="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-rose-500 text-white flex items-center justify-center text-[10px] shadow">
-                                            <i class="fa-solid fa-star text-[9px]"></i>
+                                        <div class="w-20 h-20 rounded-2xl p-1 bg-white border-2 border-rose-400 shadow-md ring-4 ring-rose-400/20 overflow-hidden">
+                                            <img src="{{ $avatarCf }}" alt="{{ $cfUser->name }}" class="w-full h-full rounded-xl object-cover bg-rose-50/30" style="{{ $isFemaleCf && !$cfUser->profile_image ? 'object-position: top;' : '' }}">
+                                        </div>
+                                        <div class="absolute -bottom-1 -right-1 w-6 h-6 rounded-lg bg-rose-500 text-white flex items-center justify-center text-[10px] shadow-sm border-2 border-white">
+                                            <i class="fa-solid fa-star"></i>
                                         </div>
                                     </div>
                                     <div class="min-w-0 flex-1">
-                                        <h3 class="font-extrabold text-slate-800 text-sm sm:text-base truncate group-hover:text-rose-600 transition-colors" title="{{ $cfUser->name }}">
+                                        <div class="text-[10px] font-bold text-rose-700 uppercase tracking-wider mb-0.5">Penerima Penghargaan</div>
+                                        <h3 class="font-extrabold text-slate-800 text-base sm:text-lg leading-tight truncate group-hover:text-rose-600 transition-colors" title="{{ $cfUser->name }}">
                                             {{ $cfUser->name }}
                                         </h3>
-                                        <p class="text-xs text-slate-400 font-medium truncate">{{ $cfUser->email }}</p>
-                                        <span class="inline-block mt-1 text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md">
+                                        <p class="text-xs text-slate-500 font-medium truncate mt-0.5">{{ $cfUser->email }}</p>
+                                        <span class="inline-block mt-2 text-[10px] font-bold text-rose-800 bg-rose-100/80 border border-rose-200 px-2.5 py-0.5 rounded-lg uppercase tracking-wider">
                                             {{ $cfUser->usertype ?? 'Customer Support' }}
                                         </span>
                                     </div>
                                 </div>
 
                                 <!-- Key Metric Highlight Box -->
-                                <div class="bg-rose-50/70 border border-rose-200/60 rounded-xl p-3 text-center mb-3">
+                                <div class="bg-rose-50/70 border border-rose-200/60 rounded-xl p-3 text-center">
                                     <div class="text-2xl font-black text-rose-700 leading-none mb-1 flex items-center justify-center gap-1.5">
                                         <i class="fa-solid fa-star text-amber-400 text-lg"></i>
                                         <span>{{ number_format($cf['client_rating'], 1) }}</span>
@@ -220,21 +235,6 @@
                                         Skor CSAT: {{ number_format($cf['client_score'], 0) }}% Kepuasan
                                     </div>
                                 </div>
-                            </div>
-
-                            <!-- Action Button -->
-                            <div class="pt-2 border-t border-slate-100">
-                                @if($cf['has_review'])
-                                    <a href="{{ route('rapor', $cfUser->id) }}" class="w-full py-2 px-3 rounded-xl bg-rose-500 hover:bg-rose-600 text-white text-xs font-bold flex items-center justify-center gap-1.5 transition-all shadow-sm shadow-rose-500/20 active:scale-95">
-                                        <span>Lihat Rapor Digital</span>
-                                        <i class="fa-solid fa-arrow-right text-[10px]"></i>
-                                    </a>
-                                @else
-                                    <a href="{{ route('penilaian', $cfUser->id) }}" class="w-full py-2 px-3 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-bold flex items-center justify-center gap-1.5 transition-all active:scale-95">
-                                        <i class="fa-solid fa-star text-[10px]"></i>
-                                        <span>Evaluasi & Beri Nilai</span>
-                                    </a>
-                                @endif
                             </div>
                         </div>
                     </div>
@@ -260,27 +260,30 @@
                                     <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Kolaboratif</span>
                                 </div>
 
-                                <!-- User Info -->
-                                <div class="flex items-center gap-3.5 mb-4">
+                                <!-- User Info Highlight Box -->
+                                <div class="flex items-center gap-4 mb-4 p-3 bg-indigo-50/50 border border-indigo-200/60 rounded-2xl">
                                     <div class="relative shrink-0">
-                                        <img src="{{ $avatarTp }}" alt="{{ $tpUser->name }}" class="w-14 h-14 rounded-full object-cover shadow-sm ring-4 ring-indigo-400/30 bg-white" style="{{ $isFemaleTp && !$tpUser->profile_image ? 'object-position: top;' : '' }}">
-                                        <div class="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-indigo-600 text-white flex items-center justify-center text-[10px] shadow">
-                                            <i class="fa-solid fa-users text-[9px]"></i>
+                                        <div class="w-20 h-20 rounded-2xl p-1 bg-white border-2 border-indigo-500 shadow-md ring-4 ring-indigo-500/20 overflow-hidden">
+                                            <img src="{{ $avatarTp }}" alt="{{ $tpUser->name }}" class="w-full h-full rounded-xl object-cover bg-indigo-50/30" style="{{ $isFemaleTp && !$tpUser->profile_image ? 'object-position: top;' : '' }}">
+                                        </div>
+                                        <div class="absolute -bottom-1 -right-1 w-6 h-6 rounded-lg bg-indigo-600 text-white flex items-center justify-center text-[10px] shadow-sm border-2 border-white">
+                                            <i class="fa-solid fa-users"></i>
                                         </div>
                                     </div>
                                     <div class="min-w-0 flex-1">
-                                        <h3 class="font-extrabold text-slate-800 text-sm sm:text-base truncate group-hover:text-indigo-600 transition-colors" title="{{ $tpUser->name }}">
+                                        <div class="text-[10px] font-bold text-indigo-700 uppercase tracking-wider mb-0.5">Penerima Penghargaan</div>
+                                        <h3 class="font-extrabold text-slate-800 text-base sm:text-lg leading-tight truncate group-hover:text-indigo-600 transition-colors" title="{{ $tpUser->name }}">
                                             {{ $tpUser->name }}
                                         </h3>
-                                        <p class="text-xs text-slate-400 font-medium truncate">{{ $tpUser->email }}</p>
-                                        <span class="inline-block mt-1 text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md">
+                                        <p class="text-xs text-slate-500 font-medium truncate mt-0.5">{{ $tpUser->email }}</p>
+                                        <span class="inline-block mt-2 text-[10px] font-bold text-indigo-800 bg-indigo-100/80 border border-indigo-200 px-2.5 py-0.5 rounded-lg uppercase tracking-wider">
                                             {{ $tpUser->usertype ?? 'Customer Support' }}
                                         </span>
                                     </div>
                                 </div>
 
                                 <!-- Key Metric Highlight Box -->
-                                <div class="bg-indigo-50/70 border border-indigo-200/60 rounded-xl p-3 text-center mb-3">
+                                <div class="bg-indigo-50/70 border border-indigo-200/60 rounded-xl p-3 text-center">
                                     <div class="text-2xl font-black text-indigo-700 leading-none mb-1">
                                         {{ $tp['advice_count'] }}
                                         <span class="text-xs font-bold text-indigo-500">Tiket</span>
@@ -290,21 +293,6 @@
                                         Skor Kolaborasi: {{ $tp['team_player_score'] }} Poin Tim
                                     </div>
                                 </div>
-                            </div>
-
-                            <!-- Action Button -->
-                            <div class="pt-2 border-t border-slate-100">
-                                @if($tp['has_review'])
-                                    <a href="{{ route('rapor', $tpUser->id) }}" class="w-full py-2 px-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold flex items-center justify-center gap-1.5 transition-all shadow-sm shadow-indigo-600/20 active:scale-95">
-                                        <span>Lihat Rapor Digital</span>
-                                        <i class="fa-solid fa-arrow-right text-[10px]"></i>
-                                    </a>
-                                @else
-                                    <a href="{{ route('penilaian', $tpUser->id) }}" class="w-full py-2 px-3 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 text-xs font-bold flex items-center justify-center gap-1.5 transition-all active:scale-95">
-                                        <i class="fa-solid fa-star text-[10px]"></i>
-                                        <span>Evaluasi & Beri Nilai</span>
-                                    </a>
-                                @endif
                             </div>
                         </div>
                     </div>
@@ -316,6 +304,7 @@
 
             <!-- Filters & Search Row -->
             <form action="{{ route('laporan') }}" method="GET" class="flex flex-col sm:flex-row gap-4 mb-6">
+                <input type="hidden" name="period" value="{{ sprintf('%04d-%02d', $year, $month) }}">
                 <!-- Search -->
                 <div class="relative flex-1">
                     <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
@@ -335,7 +324,7 @@
                 </div>
 
                 @if(request('search') || request('status'))
-                <a href="{{ route('laporan') }}" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-sm font-bold flex items-center justify-center gap-1.5 transition-colors shadow-sm">
+                <a href="{{ route('laporan', ['period' => sprintf('%04d-%02d', $year, $month)]) }}" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-sm font-bold flex items-center justify-center gap-1.5 transition-colors shadow-sm">
                     <i class="fa-solid fa-rotate-left text-xs"></i> Reset
                 </a>
                 @endif
@@ -406,12 +395,12 @@
                                 <td class="py-4 px-6">
                                     <div class="flex items-center gap-2">
                                         @if($isAssessed)
-                                            <a href="{{ route('rapor', $u->id) }}" class="px-4 py-1.5 text-xs font-bold text-blue-600 border border-blue-200 rounded-lg hover:bg-blue-50 transition-colors bg-white">Lihat Rapor</a>
-                                            <a href="{{ route('penilaian', $u->id) }}" class="px-3 py-1.5 text-xs font-semibold text-slate-500 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors bg-white" title="Nilai Ulang">
+                                            <a href="{{ route('rapor', ['id' => $u->id, 'month' => $month, 'year' => $year]) }}" class="px-4 py-1.5 text-xs font-bold text-blue-600 border border-blue-200 rounded-lg hover:bg-blue-50 transition-colors bg-white">Lihat Rapor</a>
+                                            <a href="{{ route('penilaian', ['id' => $u->id, 'month' => $month, 'year' => $year]) }}" class="px-3 py-1.5 text-xs font-semibold text-slate-500 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors bg-white" title="Nilai Ulang">
                                                 <i class="fa-solid fa-pencil"></i>
                                             </a>
                                         @else
-                                            <a href="{{ route('penilaian', $u->id) }}" class="px-5 py-1.5 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-sm shadow-blue-500/25 transition-all active:scale-95 flex items-center gap-1.5">
+                                            <a href="{{ route('penilaian', ['id' => $u->id, 'month' => $month, 'year' => $year]) }}" class="px-5 py-1.5 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-sm shadow-blue-500/25 transition-all active:scale-95 flex items-center gap-1.5">
                                                 <i class="fa-solid fa-star text-[10px]"></i> Nilai
                                             </a>
                                         @endif

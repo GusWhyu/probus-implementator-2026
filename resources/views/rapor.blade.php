@@ -1,11 +1,23 @@
 <x-app-layout>
+    @php
+        $scoreTicket = $rapor ? (float)($rapor->module_score ?: (optional($rapor->details ? $rapor->details->firstWhere("category.name", "Produktivitas & Resolusi Tiket") : null)->score ?: 0)) : 0;
+        $scoreQuality = $rapor ? (float)($rapor->performance_score ?: (optional($rapor->details ? $rapor->details->firstWhere("category.name", "Kualitas Solusi") : null)->score ?: 0)) : 0;
+        $scoreSurvey = $rapor ? (float)($rapor->review_score ?: (optional($rapor->details ? $rapor->details->firstWhere("category.name", "Kepuasan Klien (Survey)") : null)->score ?: 0)) : 0;
+        $scoreTotal = $rapor ? (float)($rapor->total_score ?: 0) : 0;
+        $totalTicket = $rapor ? (int)($rapor->total_ticket ?: 0) : 0;
+        $ticketDiAdvice = $rapor ? (int)($rapor->total_ticket_yang_di_advice ?: 0) : 0;
+        $rataRataWaktu = $rapor ? ($rapor->rata_rata_waktu ?: '-') : '-';
+        $predikat = $scoreTotal >= 80 ? 'Sangat Baik' : ($scoreTotal >= 70 ? 'Baik' : 'Cukup');
+        $badgeClass = $scoreTotal >= 80 ? 'bg-teal-50 text-teal-700 border-teal-200' : ($scoreTotal >= 70 ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-rose-50 text-rose-700 border-rose-200');
+    @endphp
+
     <div class="pt-4 pb-8 bg-slate-50/50 min-h-screen">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             
             <!-- Top Bar -->
             <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
                 <div>
-                    <a href="{{ route('laporan') }}" class="inline-flex items-center gap-1.5 text-sm font-semibold text-blue-600 hover:text-blue-700 mb-2 transition-colors">
+                    <a href="{{ route('laporan', ['month' => $month, 'year' => $year]) }}" class="inline-flex items-center gap-1.5 text-sm font-semibold text-blue-600 hover:text-blue-700 mb-2 transition-colors">
                         <i class="fa-solid fa-chevron-left text-[10px]"></i> Kembali ke daftar
                     </a>
                     
@@ -21,20 +33,75 @@
                     </div>
                 </div>
                 
-                <div class="flex flex-col items-start sm:items-end gap-2">
-                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Periode</span>
-                    <div class="flex items-center gap-3">
-                        <div class="relative bg-white border border-slate-200 rounded-xl shadow-sm text-sm font-bold text-slate-700 flex items-center px-4 py-2 cursor-pointer hover:border-slate-300 transition-colors">
-                            <i class="fa-regular fa-calendar text-slate-500 mr-2"></i>
-                            <span>Februari 2025</span>
-                            <i class="fa-solid fa-chevron-down text-slate-400 ml-3 text-xs"></i>
-                        </div>
-                        <span class="px-3 py-1.5 bg-teal-50 text-teal-600 font-bold text-xs rounded-lg border border-teal-100">{{ ($rapor->total_score ?? 0) >= 80 ? 'Sangat Baik' : (($rapor->total_score ?? 0) >= 70 ? 'Baik' : 'Cukup') }}</span>
-                        <a href="{{ route('rapor.download', $user->id) }}" target="_blank" class="w-9 h-9 bg-white border border-slate-200 text-slate-600 rounded-xl hover:bg-slate-50 flex items-center justify-center transition-colors shadow-sm">
-                            <i class="fa-solid fa-download text-sm"></i></a>
+                <div class="flex flex-col items-start sm:items-end gap-1.5">
+                    <div class="flex items-center gap-2">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Periode Evaluasi</span>
+                        <span class="inline-flex items-center gap-1 text-[11px] font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md border border-blue-100">
+                            <i class="fa-solid fa-calendar-check text-[10px]"></i>
+                            Cut-off: <strong>{{ \Carbon\Carbon::createFromDate($year, $month, 1)->endOfMonth()->locale('id')->translatedFormat('d F Y') }}</strong>
+                        </span>
+                    </div>
+
+                    <div class="flex items-center gap-2.5">
+                        <form action="{{ route('rapor', ['id' => $user->id]) }}" method="GET" class="relative">
+                            <div class="relative bg-white border border-slate-200 rounded-xl shadow-sm text-sm font-bold text-slate-700 flex items-center hover:border-slate-300 transition-colors focus-within:border-blue-500 focus-within:ring-4 focus-within:ring-blue-500/10">
+                                <i class="fa-regular fa-calendar text-blue-500 ml-3.5 pointer-events-none text-base"></i>
+                                <select name="period" onchange="this.form.submit()" class="bg-transparent border-0 text-sm font-bold text-slate-700 py-2 pl-2.5 pr-8 focus:ring-0 cursor-pointer appearance-none">
+                                    @for ($i = 0; $i < 12; $i++)
+                                        @php
+                                            $d = \Carbon\Carbon::now()->subMonths($i);
+                                            $optVal = $d->format('Y-m');
+                                            $currentSelected = sprintf('%04d-%02d', $year, $month);
+                                        @endphp
+                                        <option value="{{ $optVal }}" {{ $optVal === $currentSelected ? 'selected' : '' }}>
+                                            {{ $d->locale('id')->translatedFormat('F Y') }} {{ $i === 0 ? '(Bulan Berjalan)' : '' }}
+                                        </option>
+                                    @endfor
+                                </select>
+                                <i class="fa-solid fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs pointer-events-none"></i>
+                            </div>
+                        </form>
+
+                        @if($rapor)
+                            @php
+                                $score = (float)($rapor->total_score ?? 0);
+                                $predikat = $score >= 80 ? 'Sangat Baik' : ($score >= 70 ? 'Baik' : 'Cukup');
+                                $badgeClass = $score >= 80 ? 'bg-teal-50 text-teal-700 border-teal-200' : ($score >= 70 ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-rose-50 text-rose-700 border-rose-200');
+                            @endphp
+                            <span class="px-3 py-2 {{ $badgeClass }} font-extrabold text-xs rounded-xl border shadow-xs whitespace-nowrap">
+                                {{ $predikat }}
+                            </span>
+                            <a href="{{ route('rapor.download', ['id' => $user->id, 'month' => $month, 'year' => $year]) }}" target="_blank" class="w-9 h-9 bg-white border border-slate-200 text-slate-600 rounded-xl hover:bg-slate-50 hover:text-blue-600 hover:border-blue-300 flex items-center justify-center transition-all shadow-sm" title="Download PDF">
+                                <i class="fa-solid fa-download text-sm"></i>
+                            </a>
+                        @else
+                            <span class="px-3 py-2 bg-slate-100 text-slate-500 font-bold text-xs rounded-xl border border-slate-200 shadow-xs whitespace-nowrap">
+                                Belum Dinilai
+                            </span>
+                            <a href="{{ route('penilaian', ['id' => $user->id, 'month' => $month, 'year' => $year]) }}" class="inline-flex items-center gap-1.5 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-sm transition-colors whitespace-nowrap">
+                                <i class="fa-solid fa-star text-[11px]"></i> Beri Nilai
+                            </a>
+                        @endif
                     </div>
                 </div>
             </div>
+
+            @if(!$rapor)
+            <div class="mb-6 p-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center shrink-0">
+                        <i class="fa-solid fa-circle-exclamation text-base"></i>
+                    </div>
+                    <div>
+                        <h4 class="text-sm font-bold text-amber-900">Belum Ada Rapor Kinerja Final untuk Periode Ini</h4>
+                        <p class="text-xs text-amber-700">Kinerja CS <strong>{{ $user->name }}</strong> untuk periode <strong>{{ \Carbon\Carbon::createFromDate($year, $month, 1)->locale('id')->translatedFormat('F Y') }}</strong> (Cut-off: {{ \Carbon\Carbon::createFromDate($year, $month, 1)->endOfMonth()->locale('id')->translatedFormat('d F Y') }}) belum dievaluasi.</p>
+                    </div>
+                </div>
+                <a href="{{ route('penilaian', ['id' => $user->id, 'month' => $month, 'year' => $year]) }}" class="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition-colors shrink-0 shadow-sm">
+                    <i class="fa-solid fa-star text-xs"></i> Input Penilaian Sekarang
+                </a>
+            </div>
+            @endif
 
             <!-- 4 Top Cards -->
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
@@ -47,7 +114,7 @@
                         <span class="font-bold text-slate-500 text-sm">Nilai Tiket</span>
                     </div>
                     <div class="flex items-end gap-2">
-                        <span class="text-4xl font-extrabold text-blue-600">{{ $rapor->module_score ?? optional($rapor->details->firstWhere("category.name", "Produktivitas & Resolusi Tiket"))->score ?? 0 }}</span>
+                        <span class="text-4xl font-extrabold text-blue-600">{{ $scoreTicket }}</span>
                         <span class="text-sm font-bold text-slate-400 mb-1">/ 100</span>
                     </div>
                 </div>
@@ -61,7 +128,7 @@
                         <span class="font-bold text-slate-500 text-sm">Kualitas Solving</span>
                     </div>
                     <div class="flex items-end gap-2">
-                        <span class="text-4xl font-extrabold text-emerald-500">{{ $rapor->performance_score ?? optional($rapor->details->firstWhere("category.name", "Kualitas Solusi"))->score ?? 0 }}</span>
+                        <span class="text-4xl font-extrabold text-emerald-500">{{ $scoreQuality }}</span>
                         <span class="text-sm font-bold text-slate-400 mb-1">/ 100</span>
                     </div>
                 </div>
@@ -75,7 +142,7 @@
                         <span class="font-bold text-slate-500 text-sm">Kepuasan Klien</span>
                     </div>
                     <div class="flex items-end gap-2">
-                        <span class="text-4xl font-extrabold text-purple-500">{{ $rapor->review_score ?? optional($rapor->details->firstWhere("category.name", "Kepuasan Klien (Survey)"))->score ?? 0 }}</span>
+                        <span class="text-4xl font-extrabold text-purple-500">{{ $scoreSurvey }}</span>
                         <span class="text-sm font-bold text-slate-400 mb-1">/ 100</span>
                     </div>
                 </div>
@@ -88,15 +155,15 @@
                             <!-- Background track -->
                             <path d="M 10 50 A 40 40 0 0 1 90 50" fill="none" stroke="#f1f5f9" stroke-width="12" stroke-linecap="round" />
                             <!-- Progress -->
-                            <path d="M 10 50 A 40 40 0 0 1 90 50" fill="none" stroke="#10b981" stroke-width="12" stroke-linecap="round" stroke-dasharray="125.6" stroke-dashoffset="{{ 125.6 - (($rapor->total_score ?? 0) / 100 * 125.6) }}" />
+                            <path d="M 10 50 A 40 40 0 0 1 90 50" fill="none" stroke="#10b981" stroke-width="12" stroke-linecap="round" stroke-dasharray="125.6" stroke-dashoffset="{{ 125.6 - ($scoreTotal / 100 * 125.6) }}" />
                         </svg>
                         <div class="absolute inset-0 flex flex-col items-center justify-end pb-0">
                             <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Nilai Akhir</span>
-                            <span class="text-3xl font-extrabold text-slate-800 leading-none">{{ $rapor->total_score ?? '0' }}</span>
+                            <span class="text-3xl font-extrabold text-slate-800 leading-none">{{ $scoreTotal }}</span>
                         </div>
                     </div>
                     <span class="text-[10px] font-bold text-slate-400">/ 100</span>
-                    <div class="mt-2 text-[10px] font-bold bg-teal-50 text-teal-600 px-2.5 py-0.5 rounded-full">{{ ($rapor->total_score ?? 0) >= 80 ? 'Sangat Baik' : (($rapor->total_score ?? 0) >= 70 ? 'Baik' : 'Cukup') }}</div>
+                    <div class="mt-2 text-[10px] font-bold {{ $badgeClass }} px-2.5 py-0.5 rounded-full border shadow-2xs">{{ $predikat }}</div>
                 </div>
             </div>
 
@@ -108,7 +175,7 @@
                     </div>
                     <div>
                         <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Total Ticket</span>
-                        <span class="text-2xl font-extrabold text-slate-800">{{ $rapor->total_ticket ?? 0 }}</span>
+                        <span class="text-2xl font-extrabold text-slate-800">{{ $totalTicket }}</span>
                     </div>
                 </div>
 
@@ -118,7 +185,7 @@
                     </div>
                     <div>
                         <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Total Ticket di Advice</span>
-                        <span class="text-2xl font-extrabold text-slate-800">{{ $rapor->total_ticket_yang_di_advice ?? 0 }}</span>
+                        <span class="text-2xl font-extrabold text-slate-800">{{ $ticketDiAdvice }}</span>
                     </div>
                 </div>
 
@@ -128,7 +195,7 @@
                     </div>
                     <div>
                         <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Rata-rata Waktu</span>
-                        <span class="text-2xl font-extrabold text-slate-800">{{ $rapor->rata_rata_waktu ?? '-' }}</span>
+                        <span class="text-2xl font-extrabold text-slate-800">{{ $rataRataWaktu }}</span>
                     </div>
                 </div>
             </div>
@@ -169,49 +236,31 @@
                             <div class="w-full h-0"></div>
                         </div>
 
-                        <!-- Nov 2024 -->
-                        <div class="relative z-10 flex flex-col items-center group">
-                            <div class="flex items-end gap-1 h-36">
-                                <div class="w-3 sm:w-4 bg-blue-400 rounded-t-sm" style="height: 70%"></div>
-                                <div class="w-3 sm:w-4 bg-blue-600 rounded-t-sm" style="height: 82%"></div>
-                                <div class="w-3 sm:w-4 bg-emerald-400 rounded-t-sm" style="height: 75%"></div>
-                                <div class="w-3 sm:w-4 bg-teal-600 rounded-t-sm" style="height: 86%"></div>
+                        @if(isset($chartHistory) && count($chartHistory) > 0)
+                            @foreach($chartHistory as $ch)
+                            <div class="relative z-10 flex flex-col items-center group">
+                                <div class="flex items-end gap-1 h-36">
+                                    <div class="w-3 sm:w-4 bg-blue-400 rounded-t-sm transition-all" style="height: {{ max(4, min(100, $ch['ticket_score'])) }}%" title="Nilai Tiket: {{ $ch['ticket_score'] }}"></div>
+                                    <div class="w-3 sm:w-4 bg-blue-600 rounded-t-sm transition-all" style="height: {{ max(4, min(100, $ch['quality_score'])) }}%" title="Kualitas CS: {{ $ch['quality_score'] }}"></div>
+                                    <div class="w-3 sm:w-4 bg-emerald-400 rounded-t-sm transition-all" style="height: {{ max(4, min(100, $ch['survey_score'])) }}%" title="Kepuasan Klien: {{ $ch['survey_score'] }}"></div>
+                                    <div class="w-3 sm:w-4 bg-teal-600 rounded-t-sm transition-all" style="height: {{ max(4, min(100, $ch['total_score'])) }}%" title="Nilai Akhir: {{ $ch['total_score'] }}"></div>
+                                </div>
+                                <span class="absolute -bottom-6 text-[10px] font-bold {{ $ch['is_current'] ? 'text-blue-700 font-extrabold underline underline-offset-2' : 'text-slate-400' }} whitespace-nowrap">
+                                    {{ $ch['label'] }}
+                                </span>
                             </div>
-                            <span class="absolute -bottom-6 text-[10px] font-bold text-slate-400 whitespace-nowrap">Nov 2024</span>
-                        </div>
-
-                        <!-- Des 2024 -->
-                        <div class="relative z-10 flex flex-col items-center group">
-                            <div class="flex items-end gap-1 h-36">
-                                <div class="w-3 sm:w-4 bg-blue-400 rounded-t-sm" style="height: 75%"></div>
-                                <div class="w-3 sm:w-4 bg-blue-600 rounded-t-sm" style="height: 86%"></div>
-                                <div class="w-3 sm:w-4 bg-emerald-400 rounded-t-sm" style="height: 79%"></div>
-                                <div class="w-3 sm:w-4 bg-teal-600 rounded-t-sm" style="height: 94%"></div>
+                            @endforeach
+                        @else
+                            <div class="relative z-10 flex flex-col items-center group">
+                                <div class="flex items-end gap-1 h-36">
+                                    <div class="w-3 sm:w-4 bg-blue-400 rounded-t-sm" style="height: {{ max(4, min(100, $rapor->module_score ?? 0)) }}%"></div>
+                                    <div class="w-3 sm:w-4 bg-blue-600 rounded-t-sm" style="height: {{ max(4, min(100, $rapor->performance_score ?? 0)) }}%"></div>
+                                    <div class="w-3 sm:w-4 bg-emerald-400 rounded-t-sm" style="height: {{ max(4, min(100, $rapor->review_score ?? 0)) }}%"></div>
+                                    <div class="w-3 sm:w-4 bg-teal-600 rounded-t-sm" style="height: {{ max(4, min(100, $rapor->total_score ?? 0)) }}%"></div>
+                                </div>
+                                <span class="absolute -bottom-6 text-[10px] font-bold text-blue-600 whitespace-nowrap">{{ \Carbon\Carbon::createFromDate($year, $month, 1)->locale('id')->translatedFormat('M Y') }}</span>
                             </div>
-                            <span class="absolute -bottom-6 text-[10px] font-bold text-slate-400 whitespace-nowrap">Des 2024</span>
-                        </div>
-
-                        <!-- Jan 2025 -->
-                        <div class="relative z-10 flex flex-col items-center group">
-                            <div class="flex items-end gap-1 h-36">
-                                <div class="w-3 sm:w-4 bg-blue-400 rounded-t-sm" style="height: 74%"></div>
-                                <div class="w-3 sm:w-4 bg-blue-600 rounded-t-sm" style="height: 83%"></div>
-                                <div class="w-3 sm:w-4 bg-emerald-400 rounded-t-sm" style="height: 76%"></div>
-                                <div class="w-3 sm:w-4 bg-teal-600 rounded-t-sm" style="height: 88%"></div>
-                            </div>
-                            <span class="absolute -bottom-6 text-[10px] font-bold text-slate-400 whitespace-nowrap">Jan 2025</span>
-                        </div>
-
-                        <!-- Feb 2025 -->
-                        <div class="relative z-10 flex flex-col items-center group">
-                            <div class="flex items-end gap-1 h-36">
-                                <div class="w-3 sm:w-4 bg-blue-400 rounded-t-sm" style="height: 82%"></div>
-                                <div class="w-3 sm:w-4 bg-blue-600 rounded-t-sm" style="height: 91%"></div>
-                                <div class="w-3 sm:w-4 bg-emerald-400 rounded-t-sm" style="height: 87%"></div>
-                                <div class="w-3 sm:w-4 bg-teal-600 rounded-t-sm" style="height: 98%"></div>
-                            </div>
-                            <span class="absolute -bottom-6 text-[10px] font-bold text-slate-600 whitespace-nowrap">Feb 2025</span>
-                        </div>
+                        @endif
                     </div>
                 </div>
 
@@ -235,28 +284,28 @@
                                 <tr>
                                     <td class="py-4 text-xs font-semibold text-slate-600">Nilai Tiket (Σ bobot × qty)</td>
                                     <td class="py-4 text-xs font-bold text-slate-700 text-center">30%</td>
-                                    <td class="py-4 text-xs font-bold text-slate-700 text-center">{{ $rapor->module_score ?? optional($rapor->details->firstWhere("category.name", "Produktivitas & Resolusi Tiket"))->score ?? 0 }}</td>
-                                    <td class="py-4 text-xs font-bold text-emerald-500 text-right">{{ round(($rapor->module_score ?? optional($rapor->details->firstWhere("category.name", "Produktivitas & Resolusi Tiket"))->score ?? 0) * 0.3, 2) }}</td>
+                                    <td class="py-4 text-xs font-bold text-slate-700 text-center">{{ $scoreTicket }}</td>
+                                    <td class="py-4 text-xs font-bold text-emerald-500 text-right">{{ round($scoreTicket * 0.3, 2) }}</td>
                                 </tr>
                                 <tr>
                                     <td class="py-4 text-xs font-semibold text-slate-600">Kualitas Solving</td>
                                     <td class="py-4 text-xs font-bold text-slate-700 text-center">40%</td>
-                                    <td class="py-4 text-xs font-bold text-slate-700 text-center">{{ $rapor->performance_score ?? optional($rapor->details->firstWhere("category.name", "Kualitas Solusi"))->score ?? 0 }}</td>
-                                    <td class="py-4 text-xs font-bold text-emerald-500 text-right">{{ round(($rapor->performance_score ?? optional($rapor->details->firstWhere("category.name", "Kualitas Solusi"))->score ?? 0) * 0.4, 2) }}</td>
+                                    <td class="py-4 text-xs font-bold text-slate-700 text-center">{{ $scoreQuality }}</td>
+                                    <td class="py-4 text-xs font-bold text-emerald-500 text-right">{{ round($scoreQuality * 0.4, 2) }}</td>
                                 </tr>
                                 <tr>
                                     <td class="py-4 text-xs font-semibold text-slate-600">Kepuasan Klien</td>
                                     <td class="py-4 text-xs font-bold text-slate-700 text-center">30%</td>
-                                    <td class="py-4 text-xs font-bold text-slate-700 text-center">{{ $rapor->review_score ?? optional($rapor->details->firstWhere("category.name", "Kepuasan Klien (Survey)"))->score ?? 0 }}</td>
-                                    <td class="py-4 text-xs font-bold text-emerald-500 text-right">{{ round(($rapor->review_score ?? optional($rapor->details->firstWhere("category.name", "Kepuasan Klien (Survey)"))->score ?? 0) * 0.3, 2) }}</td>
+                                    <td class="py-4 text-xs font-bold text-slate-700 text-center">{{ $scoreSurvey }}</td>
+                                    <td class="py-4 text-xs font-bold text-emerald-500 text-right">{{ round($scoreSurvey * 0.3, 2) }}</td>
                                 </tr>
                             </tbody>
                             <tfoot>
                                 <tr class="border-t-2 border-slate-100">
                                     <td class="py-4 text-xs font-bold text-slate-800">Nilai Akhir</td>
                                     <td class="py-4 text-xs font-bold text-slate-800 text-center">100%</td>
-                                    <td class="py-4 text-xs font-bold text-slate-800 text-center">{{ $rapor->total_score ?? 0 }}</td>
-                                    <td class="py-4 text-sm font-extrabold text-emerald-500 text-right">{{ $rapor->total_score ?? 0 }}</td>
+                                    <td class="py-4 text-xs font-bold text-slate-800 text-center">{{ $scoreTotal }}</td>
+                                    <td class="py-4 text-sm font-extrabold text-emerald-500 text-right">{{ $scoreTotal }}</td>
                                 </tr>
                             </tfoot>
                         </table>
@@ -353,10 +402,10 @@
                     
                     <div class="flex items-center justify-between">
                         <div>
-                            <p class="text-xs font-extrabold text-slate-800">{{ $rapor->reviewer->name ?? '-' }}</p>
+                            <p class="text-xs font-extrabold text-slate-800">{{ ($rapor && $rapor->reviewer) ? $rapor->reviewer->name : '-' }}</p>
                             <p class="text-[10px] font-semibold text-slate-400">Supervisor Customer Support</p>
                         </div>
-                        <p class="text-[10px] font-bold text-slate-400">{{ \Carbon\Carbon::parse($rapor->created_at ?? now())->translatedFormat('d F Y') }}</p>
+                        <p class="text-[10px] font-bold text-slate-400">{{ ($rapor && $rapor->created_at) ? \Carbon\Carbon::parse($rapor->created_at)->translatedFormat('d F Y') : '-' }}</p>
                     </div>
                 </div>
 
@@ -365,7 +414,7 @@
                     <h3 class="text-sm font-extrabold text-slate-800 flex items-center gap-2 mb-4">
                         <i class="fa-regular fa-circle-check text-blue-500"></i> Saran untuk Perbaikan
                     </h3>
-                    <div class="text-sm text-slate-600 space-y-2 leading-relaxed"><p>{!! nl2br(e($rapor->saran ?? '-')) !!}</p></div>
+                    <div class="text-sm text-slate-600 space-y-2 leading-relaxed"><p>{!! nl2br(e($rapor ? ($rapor->saran ?: '-') : '-')) !!}</p></div>
                 </div>
             </div>
 

@@ -106,9 +106,7 @@
                 <li><a href="{{ route('tag') }}" class="flex items-center px-3 py-2 text-sm {{ request()->routeIs('tag') ? 'text-blue-600 bg-blue-50 font-medium' : 'text-slate-600 hover:bg-slate-50' }} rounded-lg transition-colors"><i class="fa-solid fa-tags w-5 text-center mr-2 {{ request()->routeIs('tag') ? 'text-blue-600' : 'text-slate-400' }}"></i> Tag List</a></li>
                 <li><a href="{{ route('kategori') }}" class="flex items-center px-3 py-2 text-sm {{ request()->routeIs('kategori') ? 'text-blue-600 bg-blue-50 font-medium' : 'text-slate-600 hover:bg-slate-50' }} rounded-lg transition-colors"><i class="fa-solid fa-list w-5 text-center mr-2 {{ request()->routeIs('kategori') ? 'text-blue-600' : 'text-slate-400' }}"></i> Category List</a></li>
                 <li><a href="{{ route('client') }}" class="flex items-center px-3 py-2 text-sm {{ request()->routeIs('client') ? 'text-blue-600 bg-blue-50 font-medium' : 'text-slate-600 hover:bg-slate-50' }} rounded-lg transition-colors"><i class="fa-solid fa-store w-5 text-center mr-2 {{ request()->routeIs('client') ? 'text-blue-600' : 'text-slate-400' }}"></i> Outlet List</a></li>
-                @can('admin')
                 <li><a href="{{ route('user') }}" class="flex items-center px-3 py-2 text-sm {{ request()->routeIs('user') ? 'text-blue-600 bg-blue-50 font-medium' : 'text-slate-600 hover:bg-slate-50' }} rounded-lg transition-colors"><i class="fa-solid fa-users w-5 text-center mr-2 {{ request()->routeIs('user') ? 'text-blue-600' : 'text-slate-400' }}"></i> User List</a></li>
-                @endcan
             </ul>
         </div>
         @endcan

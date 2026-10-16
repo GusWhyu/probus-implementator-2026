@@ -24,7 +24,7 @@
             <!-- Breadcrumb & Top Bar -->
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
-                    <a href="{{ route('laporan') }}" class="inline-flex items-center gap-1.5 text-xs font-semibold text-blue-600 hover:text-blue-700 mb-1.5 transition-colors">
+                    <a href="{{ route('laporan', ['month' => $currentMonth, 'year' => $currentYear]) }}" class="inline-flex items-center gap-1.5 text-xs font-semibold text-blue-600 hover:text-blue-700 mb-1.5 transition-colors">
                         <span class="text-sm font-bold">&laquo;</span> Kembali ke daftar
                     </a>
                     <h1 class="text-2xl font-bold text-slate-800 tracking-tight">
@@ -32,11 +32,10 @@
                     </h1>
                 </div>
                 <div class="flex flex-col sm:items-end">
-                    <span class="text-[11px] font-medium text-slate-400 mb-1">Periode Penilaian:</span>
-                    <div class="bg-white border border-slate-200 rounded-lg px-3.5 py-1.5 text-xs font-medium text-slate-700 shadow-sm flex items-center gap-2">
-                        <i class="fa-regular fa-calendar text-slate-400"></i>
-                        <span>{{ \Carbon\Carbon::now()->translatedFormat('F Y') }}</span>
-                        <i class="fa-solid fa-chevron-down text-[10px] text-slate-400 ml-1"></i>
+                    <span class="text-[11px] font-medium text-slate-400 mb-1">Periode Penilaian (Cut-off Akhir Bulan):</span>
+                    <div class="bg-white border border-slate-200 rounded-lg px-3.5 py-1.5 text-xs font-semibold text-slate-700 shadow-sm flex items-center gap-2">
+                        <i class="fa-regular fa-calendar-check text-blue-500"></i>
+                        <span>{{ \Carbon\Carbon::createFromDate($currentYear, $currentMonth, 1)->locale('id')->translatedFormat('F Y') }} (1 – {{ \Carbon\Carbon::createFromDate($currentYear, $currentMonth, 1)->endOfMonth()->translatedFormat('d M Y') }})</span>
                     </div>
                 </div>
             </div>
@@ -68,6 +67,8 @@
 
             <form action="{{ route('penilaian.store', $user->id) }}" method="POST">
                 @csrf
+                <input type="hidden" name="month" value="{{ $currentMonth }}">
+                <input type="hidden" name="year" value="{{ $currentYear }}">
                 <input type="hidden" name="total_ticket" value="{{ $tiket_ditangani }}">
                 <input type="hidden" name="total_ticket_yang_di_advice" value="{{ $tiket_di_advice }}">
                 <input type="hidden" name="rata_rata_waktu" value="{{ $rata_rata_waktu }}">

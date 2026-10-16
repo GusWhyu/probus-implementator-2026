@@ -50,7 +50,7 @@
                             <x-dropdown-link :href="route('kategori')">
                                     {{ __('Category List') }}
                             </x-dropdown-link>
-                            @can('admin')
+                            @can('aspv')
                             <x-dropdown-link :href="route('user')">
                                     {{ __('User List') }}
                             </x-dropdown-link>
@@ -211,7 +211,7 @@
                 {{ __('Outlet List') }}
             </x-responsive-nav-link>
             @endcan
-            @can('admin')
+            @can('aspv')
             <x-responsive-nav-link :href="route('user')" :active="request()->routeIs('user')">
                 {{ __('User List') }}
             </x-responsive-nav-link>

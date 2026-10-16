@@ -322,8 +322,14 @@ class HomeController extends Controller
             return redirect()->route('dashboard')->with('error', 'Akses ditolak. Anda tidak memiliki izin untuk melihat modul Laporan.');
         }
 
-        $month = $request->input('month', date('m'));
-        $year = $request->input('year', date('Y'));
+        if ($request->filled('period')) {
+            $parts = explode('-', $request->input('period'));
+            $year = (int)$parts[0];
+            $month = (int)$parts[1];
+        } else {
+            $month = (int)$request->input('month', date('m'));
+            $year = (int)$request->input('year', date('Y'));
+        }
         
         $usersQuery = User::with(['performanceReviews' => function($q) use ($month, $year) {
             $q->whereMonth('periode', $month)->whereYear('periode', $year);
@@ -460,8 +466,15 @@ class HomeController extends Controller
 
     public function penilaian($id){
         $user = User::findOrFail($id);
-        $currentMonth = date('m');
-        $currentYear = date('Y');
+        
+        if (request()->filled('period')) {
+            $parts = explode('-', request('period'));
+            $currentYear = isset($parts[0]) && is_numeric($parts[0]) ? (int)$parts[0] : (int)date('Y');
+            $currentMonth = isset($parts[1]) && is_numeric($parts[1]) ? (int)$parts[1] : (int)date('m');
+        } else {
+            $currentMonth = (int)request('month', date('m'));
+            $currentYear = (int)request('year', date('Y'));
+        }
 
         // Modul-modul sistem
         $modules = ModuleSystem::orderBy('id', 'asc')->get();
@@ -601,6 +614,8 @@ class HomeController extends Controller
 
         return view('penilaian', compact(
             'user', 
+            'currentMonth',
+            'currentYear',
             'tiket_ditangani', 
             'tiket_selesai', 
             'tiket_di_advice', 
@@ -633,8 +648,14 @@ class HomeController extends Controller
 
         $n_akhir = round(($n_t * 0.3) + ($avg_kualitas * 0.4) + ($n_k * 0.3), 2);
 
-        $currentMonth = date('m');
-        $currentYear = date('Y');
+        if ($request->filled('period')) {
+            $parts = explode('-', $request->input('period'));
+            $currentYear = isset($parts[0]) && is_numeric($parts[0]) ? (int)$parts[0] : (int)date('Y');
+            $currentMonth = isset($parts[1]) && is_numeric($parts[1]) ? (int)$parts[1] : (int)date('m');
+        } else {
+            $currentMonth = (int)$request->input('month', date('m'));
+            $currentYear = (int)$request->input('year', date('Y'));
+        }
 
         // Hitung total ticket, rata-rata waktu, dan total ticket di-advice
         $tiketQuery = Ticket::where(function($q) use ($id) {
@@ -666,7 +687,7 @@ class HomeController extends Controller
         $max_ticket_score = (float)$request->input('max_ticket_score', 0);
         $team_portion = (float)$request->input('team_portion', 0);
 
-        $periode = date('Y-m-01');
+        $periode = sprintf('%04d-%02d-01', $currentYear, $currentMonth);
 
         $review = PerformanceReview::updateOrCreate(
             [
@@ -774,26 +795,104 @@ class HomeController extends Controller
         }
 
         if ($request->input('action') === 'draft') {
-            return redirect()->route('laporan')->with('success', 'Draft penilaian CS berhasil disimpan!');
+            return redirect()->route('laporan', ['month' => $currentMonth, 'year' => $currentYear])->with('success', 'Draft penilaian CS berhasil disimpan!');
         }
 
-        return redirect()->route('rapor', $id)->with('success', 'Penilaian berhasil disimpan dengan rumus bobot x qty!');
+        return redirect()->route('rapor', ['id' => $id, 'month' => $currentMonth, 'year' => $currentYear])->with('success', 'Penilaian berhasil disimpan dengan rumus bobot x qty!');
     }
 
     public function rapor($id){
         $user = User::findOrFail($id);
-        $rapor = PerformanceReview::with(['details.category', 'moduleDetails.moduleSystem'])->where('user_id', $id)->orderBy('periode', 'desc')->first();
+        $query = PerformanceReview::with(['details.category', 'moduleDetails.moduleSystem'])->where('user_id', $id);
+        
+        $m = request('month');
+        $y = request('year');
+        if (request()->filled('period')) {
+            $parts = explode('-', request('period'));
+            $y = isset($parts[0]) && is_numeric($parts[0]) ? (int)$parts[0] : (int)date('Y');
+            $m = isset($parts[1]) && is_numeric($parts[1]) ? (int)$parts[1] : (int)date('m');
+        }
+        
+        if ($m && $y) {
+            $rapor = (clone $query)->whereMonth('periode', $m)->whereYear('periode', $y)->first();
+            $month = (int)$m;
+            $year = (int)$y;
+        } else {
+            $rapor = (clone $query)->orderBy('periode', 'desc')->first();
+            if ($rapor) {
+                $month = (int)\Carbon\Carbon::parse($rapor->periode)->month;
+                $year = (int)\Carbon\Carbon::parse($rapor->periode)->year;
+            } else {
+                $month = (int)date('m');
+                $year = (int)date('Y');
+            }
+        }
+        
+        $chartHistory = [];
+        for ($k = 3; $k >= 0; $k--) {
+            $refDate = \Carbon\Carbon::createFromDate($year, $month, 1)->subMonths($k);
+            $revItem = PerformanceReview::with('details.category')->where('user_id', $id)
+                ->whereMonth('periode', $refDate->month)
+                ->whereYear('periode', $refDate->year)
+                ->first();
+            
+            $ticketSc = 0;
+            $qualSc = 0;
+            $survSc = 0;
+            $totSc = 0;
+            if ($revItem) {
+                $ticketSc = (float)($revItem->module_score ?: (optional($revItem->details->firstWhere("category.name", "Produktivitas & Resolusi Tiket"))->score ?: 0));
+                $qualSc = (float)($revItem->performance_score ?: (optional($revItem->details->firstWhere("category.name", "Kualitas Solusi"))->score ?: 0));
+                $survSc = (float)($revItem->review_score ?: (optional($revItem->details->firstWhere("category.name", "Kepuasan Klien (Survey)"))->score ?: 0));
+                $totSc = (float)($revItem->total_score ?: 0);
+            }
+
+            $chartHistory[] = [
+                'label' => $refDate->locale('id')->translatedFormat('M Y'),
+                'is_current' => ($k === 0),
+                'review' => $revItem,
+                'ticket_score' => $ticketSc,
+                'quality_score' => $qualSc,
+                'survey_score' => $survSc,
+                'total_score' => $totSc,
+            ];
+        }
+
         $history = PerformanceReview::where('user_id', $id)->orderBy('periode', 'asc')->take(4)->get();
         
-        return view('rapor', compact('user', 'rapor', 'history'));
+        return view('rapor', compact('user', 'rapor', 'history', 'month', 'year', 'chartHistory'));
     }
 
     public function downloadRapor($id){
         $user = User::findOrFail($id);
-        $rapor = PerformanceReview::with(['details.category', 'moduleDetails.moduleSystem'])->where('user_id', $id)->orderBy('periode', 'desc')->first();
+        $query = PerformanceReview::with(['details.category', 'moduleDetails.moduleSystem'])->where('user_id', $id);
+        
+        $m = request('month');
+        $y = request('year');
+        if (request()->filled('period')) {
+            $parts = explode('-', request('period'));
+            $y = isset($parts[0]) && is_numeric($parts[0]) ? (int)$parts[0] : (int)date('Y');
+            $m = isset($parts[1]) && is_numeric($parts[1]) ? (int)$parts[1] : (int)date('m');
+        }
+        
+        if ($m && $y) {
+            $rapor = (clone $query)->whereMonth('periode', $m)->whereYear('periode', $y)->first();
+            $month = (int)$m;
+            $year = (int)$y;
+        } else {
+            $rapor = (clone $query)->orderBy('periode', 'desc')->first();
+            if ($rapor) {
+                $month = (int)\Carbon\Carbon::parse($rapor->periode)->month;
+                $year = (int)\Carbon\Carbon::parse($rapor->periode)->year;
+            } else {
+                $month = (int)date('m');
+                $year = (int)date('Y');
+            }
+        }
+        
         $history = PerformanceReview::where('user_id', $id)->orderBy('periode', 'asc')->take(4)->get();
         
-        $periode = $rapor ? \Carbon\Carbon::parse($rapor->periode) : \Carbon\Carbon::now();
+        $periode = $rapor ? \Carbon\Carbon::parse($rapor->periode) : \Carbon\Carbon::createFromDate($year, $month, 1);
         $m = $periode->format('m');
         $y = $periode->format('Y');
 
@@ -821,10 +920,13 @@ class HomeController extends Controller
             'tiket_selesai', 
             'total_bobot', 
             'total_qty', 
-            'avg_rating'
+            'avg_rating',
+            'month',
+            'year',
+            'periode'
         ))->setPaper('a4', 'portrait');
                 
-        return $pdf->stream('Rapor_Kinerja_CS_' . str_replace(' ', '_', $user->name) . '_' . date('M_Y') . '.pdf');
+        return $pdf->stream('Rapor_Kinerja_CS_' . str_replace(' ', '_', $user->name) . '_' . $periode->format('M_Y') . '.pdf');
     }
 
     public function riwayat($id){
