@@ -52,12 +52,6 @@
                                placeholder="Pilih Tanggal..."
                                value="{{ $selectedDateRaw ?? '' }}" readonly>
                     </div>
-
-                    {{-- Export / Print Button --}}
-                    <button onclick="window.print()" type="button" class="bg-white text-blue-600 px-3 sm:px-5 py-2 sm:py-2.5 rounded-xl text-[10px] sm:text-xs font-bold flex items-center justify-center gap-1.5 sm:gap-2 hover:bg-blue-50 transition-colors shadow-lg shadow-blue-900/20 shrink-0 active:scale-95">
-                        <i class="fa-solid fa-download"></i>
-                        Export
-                    </button>
                 </div>
             </div>
         </div>

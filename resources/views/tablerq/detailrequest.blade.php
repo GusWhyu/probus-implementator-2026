@@ -42,7 +42,7 @@
                         <i class="fa-solid fa-arrow-left"></i>
                     </a>
                     <div>
-                        <h1 class="text-2xl font-extrabold text-slate-800 tracking-tight">Detail Request <span class="text-blue-600">#{{ $datarq->id }}</span></h1>
+                        <h1 class="text-2xl font-extrabold text-slate-800 tracking-tight">Detail Request <span class="text-blue-600">RQ-{{ $datarq->id }}</span></h1>
                         <p class="text-sm text-slate-500 font-medium mt-1">Pantau deskripsi, progres, dan diskusi terkait request pengerjaan sistem ini.</p>
                     </div>
                 </div>

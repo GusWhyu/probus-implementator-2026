@@ -20,8 +20,30 @@
 
         {{-- Content Section --}}
         <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
-            <div class="flex items-center justify-between mb-6">
-                <h3 class="text-sm font-bold text-slate-800">Daftar Outlet</h3>
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+                <div class="flex items-center gap-3">
+                    <h3 class="text-base font-bold text-slate-800">Daftar Outlet</h3>
+                    <span class="text-xs font-bold px-2.5 py-0.5 bg-blue-50 text-blue-600 rounded-full border border-blue-100">
+                        {{ method_exists($client, 'total') ? $client->total() : count($client) }} Outlet
+                    </span>
+                </div>
+
+                {{-- Search Bar --}}
+                <form method="GET" action="{{ route('client') }}" class="w-full sm:w-80">
+                    <div class="relative">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                        <input type="text" name="search" value="{{ request('search') }}" 
+                               placeholder="Cari nama outlet atau lokasi..." 
+                               autocomplete="off" 
+                               class="w-full pl-9 pr-9 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm font-medium text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white transition-all shadow-xs">
+                        @if(request('search'))
+                        <a href="{{ route('client') }}" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors" title="Hapus pencarian">
+                            <i class="fa-solid fa-circle-xmark text-xs"></i>
+                        </a>
+                        @endif
+                        <button type="submit" class="hidden"></button>
+                    </div>
+                </form>
             </div>
             
             <div class="overflow-x-auto">
@@ -62,10 +84,22 @@
                             <tr>
                                 <td colspan="3" class="py-12 text-center">
                                     <div class="flex flex-col items-center">
-                                        <div class="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-3">
-                                            <i class="fa-solid fa-store text-slate-300 text-2xl"></i>
+                                        <div class="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-3 text-slate-300 text-2xl">
+                                            @if(request('search'))
+                                                <i class="fa-solid fa-magnifying-glass"></i>
+                                            @else
+                                                <i class="fa-solid fa-store"></i>
+                                            @endif
                                         </div>
-                                        <p class="text-sm font-medium text-slate-400">Belum ada outlet yang ditambahkan.</p>
+                                        @if(request('search'))
+                                            <p class="text-sm font-bold text-slate-700">Tidak ada outlet yang cocok</p>
+                                            <p class="text-xs text-slate-400 mt-1">Tidak ditemukan outlet dengan kata kunci "<span class="font-semibold text-slate-600">{{ request('search') }}</span>".</p>
+                                            <a href="{{ route('client') }}" class="mt-4 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition-colors">
+                                                Reset Pencarian
+                                            </a>
+                                        @else
+                                            <p class="text-sm font-medium text-slate-400">Belum ada outlet yang ditambahkan.</p>
+                                        @endif
                                     </div>
                                 </td>
                             </tr>
