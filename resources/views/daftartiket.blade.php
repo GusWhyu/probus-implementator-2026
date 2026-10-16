@@ -233,7 +233,7 @@
                                         </button>
                                         <ul tabindex="0" class="dropdown-content z-[50] menu p-2 shadow-lg bg-white rounded-xl w-36 border border-slate-100">
                                             <li><a href="/detailticket/{{ $rq->id }}" class="text-xs font-medium text-slate-700 hover:bg-slate-50 hover:text-blue-600"><i class="fa-regular fa-eye mr-2"></i> Detail</a></li>
-                                            @if($rq->status != 'CLOSED')
+                                            @if($rq->status != 'CLOSED' && ($rq->user_id == Auth::id() || in_array(Auth::user()->usertype, ['admin', 'supervisor'])))
                                                 <li><a href="/editticket/{{ $rq->id }}" class="text-xs font-medium text-slate-700 hover:bg-slate-50 hover:text-blue-600"><i class="fa-regular fa-pen-to-square mr-2"></i> Edit</a></li>
                                             @endif
                                         </ul>

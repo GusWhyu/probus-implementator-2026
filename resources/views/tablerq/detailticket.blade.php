@@ -395,10 +395,27 @@
                     </div>
 
                     @php
-                        $isOwner = ($datarq->user_id == $aid || $datarq->advisor_id == $aid);
+                        // Hanya pembuat tiket (owner) atau Admin/SPV yang memiliki hak tindakan tiket (advisor tidak bisa memproses/mengubah tiket di-advice)
+                        $isOwner = ($datarq->user_id == $aid);
                         $isAdminOrSpv = ($ust == 'admin' || $ust == 'supervisor');
                         $canSeeActions = ($isAdminOrSpv || $isOwner) && $datarq->pending_advisor_id == null;
+                        $isAdvisorOnly = ($datarq->advisor_id == $aid && $datarq->user_id != $aid && !$isAdminOrSpv);
                     @endphp
+                    @if($isAdvisorOnly)
+                    <div class="bg-blue-50/70 rounded-3xl border border-blue-200/80 p-5 shadow-sm mb-6">
+                        <div class="flex items-start gap-3.5">
+                            <div class="w-10 h-10 rounded-2xl bg-blue-100 text-blue-600 flex items-center justify-center shrink-0 shadow-sm border border-blue-200/50">
+                                <i class="fa-solid fa-headset text-base"></i>
+                            </div>
+                            <div>
+                                <h4 class="text-xs font-bold text-blue-900 uppercase tracking-wide">Status: Advisor (Konsultasi)</h4>
+                                <p class="text-xs text-blue-800/80 mt-1 leading-relaxed">
+                                    Anda ditugaskan sebagai <strong>Advisor</strong> pada tiket ini. Sesuai hak akses sistem, Advisor bertindak memberikan saran/arahan melalui diskusi. Tindakan pemrosesan dan penyelesaian tiket dilakukan oleh pemilik tiket (<strong>{{ $datarq->user->name ?? 'User' }}</strong>) atau Supervisor.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    @endif
                     @if($canSeeActions)
                     <!-- Action Buttons -->
                     <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6">

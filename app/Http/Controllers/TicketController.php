@@ -248,6 +248,14 @@ class TicketController extends Controller
     public function updatestatus($id,$stid){
         $reqlog = RequestLog::class;
         $data = \App\Models\Ticket::findOrFail($id);
+
+        // Authorization check: Advisor tidak dapat memproses atau mengubah status tiket di-advice
+        $user = Auth::user();
+        if ($data->user_id != $user->id && !in_array($user->usertype, ['admin', 'supervisor'])) {
+            Alert::error('Akses Ditolak', 'Advisor tidak memiliki wewenang untuk memproses atau mengubah status tiket ini. Hanya pembuat tiket atau supervisor yang berhak.');
+            return redirect()->back();
+        }
+
         $updateData = ['status' => $stid];
         
         // Record closed_at timestamp when ticket is closed
@@ -288,6 +296,14 @@ class TicketController extends Controller
         ]);
 
         $data = \App\Models\Ticket::findOrFail($id);
+
+        // Authorization check: Advisor tidak dapat memproses atau mengubah status tiket di-advice
+        $user = Auth::user();
+        if ($data->user_id != $user->id && !in_array($user->usertype, ['admin', 'supervisor'])) {
+            Alert::error('Akses Ditolak', 'Advisor tidak memiliki wewenang untuk memproses atau mengubah status tiket ini. Hanya pembuat tiket atau supervisor yang berhak.');
+            return redirect()->back();
+        }
+
         $data->update([
             'advisor_id' => $request->advisor_id
         ]);
@@ -406,6 +422,13 @@ class TicketController extends Controller
 
         $ticket = \App\Models\Ticket::findOrFail($id);
         $currentUser = Auth::user();
+
+        // 0. Validasi Kepemilikan: Advisor tidak boleh mengalihkan tiket di-advice
+        if ($ticket->user_id != $currentUser->id && !in_array($currentUser->usertype, ['admin', 'supervisor'])) {
+            Alert::error('Akses Ditolak!', 'Advisor tidak dapat mengalihkan tiket ini. Tindakan tiket hanya dapat dilakukan oleh pemilik tiket atau supervisor.');
+            return redirect()->back();
+        }
+
         $targetUserId = $request->target_advisor_id;
         $targetUser = \App\Models\User::findOrFail($targetUserId);
 

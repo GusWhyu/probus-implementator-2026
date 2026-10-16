@@ -230,17 +230,17 @@ class HomeController extends Controller
     }
 
     public function daftartiket(Request $request){
-        $open_count = Ticket::withoutGlobalScope('leader')->where('status', 'OPEN')->count();
-        $progress_count = Ticket::withoutGlobalScope('leader')->where('status', 'PROGRESS')->count();
-        $closed_count = Ticket::withoutGlobalScope('leader')->where('status', 'CLOSED')->count();
-        $total_count = Ticket::withoutGlobalScope('leader')->count();
+        $open_count = Ticket::where('status', 'OPEN')->count();
+        $progress_count = Ticket::where('status', 'PROGRESS')->count();
+        $closed_count = Ticket::where('status', 'CLOSED')->count();
+        $total_count = Ticket::count();
         
-        $open = Ticket::withoutGlobalScope('leader')->where('status', 'OPEN')->latest()->take(5)->get();
-        $progress = Ticket::withoutGlobalScope('leader')->where('status', 'PROGRESS')->latest()->take(5)->get();
-        $closed = Ticket::withoutGlobalScope('leader')->where('status', 'CLOSED')->latest()->take(5)->get();
+        $open = Ticket::where('status', 'OPEN')->latest()->take(5)->get();
+        $progress = Ticket::where('status', 'PROGRESS')->latest()->take(5)->get();
+        $closed = Ticket::where('status', 'CLOSED')->latest()->take(5)->get();
         $us = UpdateSystem::latest()->take(4)->get(); 
         
-        $query = Ticket::withoutGlobalScope('leader')->with(['user.departemen', 'client', 'advisor', 'kategoriSystem', 'moduleSystem']);
+        $query = Ticket::with(['user.departemen', 'client', 'advisor', 'kategoriSystem', 'moduleSystem']);
 
         // Apply Search Filter
         if ($request->filled('search')) {
