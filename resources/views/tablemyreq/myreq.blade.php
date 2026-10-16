@@ -14,23 +14,29 @@
                 </div>
                 
                 <div class="flex flex-wrap items-center gap-3">
-                    <form method="GET" action="{{ url()->current() }}" class="flex flex-wrap items-center gap-3">
-                        <select name="system" onchange="this.form.submit()" class="px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-xs sm:text-sm font-semibold text-slate-700 hover:border-slate-300 focus:outline-none focus:ring-4 focus:ring-blue-500/10 shadow-sm min-w-[140px] appearance-none cursor-pointer transition-all" style="background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2394a3b8%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E'); background-repeat: no-repeat; background-position: right 1rem top 50%; background-size: 0.65rem auto;">
-                            <option value="">Semua System</option>
-                            @foreach(($systems ?? []) as $sys)
-                                <option value="{{ data_get($sys, 'id') }}" {{ request('system') == data_get($sys, 'id') ? 'selected' : '' }}>{{ data_get($sys, 'name') }}</option>
-                            @endforeach
-                        </select>
+                    <form method="GET" action="{{ url()->current() }}" class="flex flex-wrap items-center gap-2.5 sm:gap-3">
+                        <div class="relative w-40 sm:w-48">
+                            <select name="system" onchange="this.form.submit()" class="w-full appearance-none pl-3.5 sm:pl-4 pr-9 sm:pr-10 py-2 sm:py-2.5 bg-white border border-slate-200 rounded-xl text-xs sm:text-sm font-semibold text-slate-700 hover:border-slate-300 focus:outline-none focus:ring-4 focus:ring-blue-500/10 shadow-sm cursor-pointer transition-all truncate">
+                                <option value="">Semua System</option>
+                                @foreach(($systems ?? []) as $sys)
+                                    <option value="{{ data_get($sys, 'id') }}" {{ request('system') == data_get($sys, 'id') ? 'selected' : '' }}>{{ data_get($sys, 'name') }}</option>
+                                @endforeach
+                            </select>
+                            <i class="fa-solid fa-chevron-down absolute right-3.5 top-1/2 -translate-y-1/2 text-[10px] sm:text-xs text-slate-400 pointer-events-none"></i>
+                        </div>
 
-                        <select name="module" onchange="this.form.submit()" class="px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-xs sm:text-sm font-semibold text-slate-700 hover:border-slate-300 focus:outline-none focus:ring-4 focus:ring-blue-500/10 shadow-sm min-w-[140px] appearance-none cursor-pointer transition-all" style="background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2394a3b8%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E'); background-repeat: no-repeat; background-position: right 1rem top 50%; background-size: 0.65rem auto;">
-                            <option value="">Semua Module</option>
-                            @foreach(($modules ?? []) as $mod)
-                                <option value="{{ data_get($mod, 'id') }}" {{ request('module') == data_get($mod, 'id') ? 'selected' : '' }}>{{ data_get($mod, 'name') }}</option>
-                            @endforeach
-                        </select>
+                        <div class="relative w-40 sm:w-48">
+                            <select name="module" onchange="this.form.submit()" class="w-full appearance-none pl-3.5 sm:pl-4 pr-9 sm:pr-10 py-2 sm:py-2.5 bg-white border border-slate-200 rounded-xl text-xs sm:text-sm font-semibold text-slate-700 hover:border-slate-300 focus:outline-none focus:ring-4 focus:ring-blue-500/10 shadow-sm cursor-pointer transition-all truncate">
+                                <option value="">Semua Module</option>
+                                @foreach(($modules ?? []) as $mod)
+                                    <option value="{{ data_get($mod, 'id') }}" {{ request('module') == data_get($mod, 'id') ? 'selected' : '' }}>{{ data_get($mod, 'name') }}</option>
+                                @endforeach
+                            </select>
+                            <i class="fa-solid fa-chevron-down absolute right-3.5 top-1/2 -translate-y-1/2 text-[10px] sm:text-xs text-slate-400 pointer-events-none"></i>
+                        </div>
 
                         @if(request('system') || request('module'))
-                        <a href="{{ url()->current() }}" class="px-3 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5" title="Reset Filter">
+                        <a href="{{ url()->current() }}" class="px-3.5 py-2 sm:py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-1.5" title="Reset Filter">
                             <i class="fa-solid fa-xmark"></i> Reset
                         </a>
                         @endif

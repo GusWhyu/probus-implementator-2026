@@ -37,30 +37,30 @@
                 <!-- Dropdowns & Actions Toolbar -->
                 <div class="flex items-center gap-2 sm:gap-3 shrink-0">
                     <!-- System Dropdown -->
-                    <div class="relative flex-1 sm:flex-initial">
-                        <select name="system" onchange="this.form.submit()" class="w-full sm:min-w-[150px] px-3 sm:px-4 py-2 sm:py-2.5 pr-8 bg-white border border-slate-200 rounded-xl text-xs sm:text-sm font-medium text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 shadow-sm appearance-none cursor-pointer hover:border-slate-300 transition-colors">
+                    <div class="relative w-40 sm:w-48">
+                        <select name="system" onchange="this.form.submit()" class="w-full appearance-none pl-3.5 sm:pl-4 pr-9 sm:pr-10 py-2 sm:py-2.5 bg-white border border-slate-200 rounded-xl text-xs sm:text-sm font-semibold text-slate-700 hover:border-slate-300 focus:outline-none focus:ring-4 focus:ring-blue-500/10 shadow-sm cursor-pointer transition-all truncate">
                             <option value="">Semua System</option>
                             @foreach($systems as $sys)
                                 <option value="{{ $sys->id }}" {{ request('system') == $sys->id ? 'selected' : '' }}>{{ $sys->name }}</option>
                             @endforeach
                         </select>
-                        <i class="fa-solid fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-slate-400 pointer-events-none"></i>
+                        <i class="fa-solid fa-chevron-down absolute right-3.5 top-1/2 -translate-y-1/2 text-[10px] sm:text-xs text-slate-400 pointer-events-none"></i>
                     </div>
                     
                     <!-- Module Dropdown -->
-                    <div class="relative flex-1 sm:flex-initial">
-                        <select name="module" onchange="this.form.submit()" class="w-full sm:min-w-[150px] px-3 sm:px-4 py-2 sm:py-2.5 pr-8 bg-white border border-slate-200 rounded-xl text-xs sm:text-sm font-medium text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 shadow-sm appearance-none cursor-pointer hover:border-slate-300 transition-colors">
+                    <div class="relative w-40 sm:w-48">
+                        <select name="module" onchange="this.form.submit()" class="w-full appearance-none pl-3.5 sm:pl-4 pr-9 sm:pr-10 py-2 sm:py-2.5 bg-white border border-slate-200 rounded-xl text-xs sm:text-sm font-semibold text-slate-700 hover:border-slate-300 focus:outline-none focus:ring-4 focus:ring-blue-500/10 shadow-sm cursor-pointer transition-all truncate">
                             <option value="">Semua Module</option>
                             @foreach($modules as $mod)
                                 <option value="{{ $mod->id }}" {{ request('module') == $mod->id ? 'selected' : '' }}>{{ $mod->name }}</option>
                             @endforeach
                         </select>
-                        <i class="fa-solid fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-slate-400 pointer-events-none"></i>
+                        <i class="fa-solid fa-chevron-down absolute right-3.5 top-1/2 -translate-y-1/2 text-[10px] sm:text-xs text-slate-400 pointer-events-none"></i>
                     </div>
 
                     @if(request()->filled('search') || request()->filled('system') || request()->filled('module'))
                     <!-- Reset Filter Button -->
-                    <a href="{{ route('inbox') }}" class="px-3 py-2 sm:py-2.5 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-1.5 transition-colors shadow-sm shrink-0" title="Reset filter & pencarian">
+                    <a href="{{ route('inbox') }}" class="px-3.5 py-2 sm:py-2.5 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-1.5 transition-colors shadow-sm shrink-0" title="Reset filter & pencarian">
                         <i class="fa-solid fa-rotate-left text-xs"></i>
                         <span class="hidden md:inline">Reset</span>
                     </a>

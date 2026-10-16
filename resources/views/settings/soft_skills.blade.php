@@ -25,19 +25,6 @@
                 </div>
             @endif
 
-            <!-- Info Box -->
-            <div class="mb-8 p-4 bg-blue-50/50 border border-blue-100/50 rounded-2xl flex items-start gap-4">
-                <div class="w-8 h-8 rounded-full bg-blue-100/50 flex items-center justify-center text-blue-600 shrink-0 mt-0.5">
-                    <i class="fa-solid fa-circle-info text-sm"></i>
-                </div>
-                <div>
-                    <h4 class="text-[13px] font-bold text-blue-900 mb-1">Bobot yang ditampilkan adalah contoh</h4>
-                    <p class="text-xs font-medium text-blue-700/80 leading-relaxed max-w-4xl">
-                        Nilai bobot belum ditetapkan. Persentase di bawah hanya ilustrasi, bukan data produksi. Bobot menunjukkan porsi tiap kriteria dalam penilaian soft skill.
-                    </p>
-                </div>
-            </div>
-
             <!-- Table Card -->
             <div class="bg-white rounded-3xl shadow-sm border border-slate-200/60 overflow-hidden">
                 <div class="p-5 sm:p-6 border-b border-slate-100">
@@ -47,12 +34,9 @@
                                 <i class="fa-solid fa-check-double text-[15px]"></i>
                             </div>
                             <div>
-                                <div class="flex items-center gap-3 mb-1">
+                                <div class="flex items-center gap-3">
                                     <h2 class="text-base font-bold text-slate-800">Daftar Kriteria</h2>
                                     <span class="px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-600 text-[11px] font-bold">{{ $categories->total() }} kriteria</span>
-                                </div>
-                                <div class="text-xs font-bold text-slate-500">
-                                    Total bobot contoh: <span class="text-blue-600">{{ $total_bobot }}%</span>
                                 </div>
                             </div>
                         </div>
@@ -75,7 +59,7 @@
                             <tr>
                                 <th class="py-4 px-6 bg-slate-50/30 text-[10px] font-extrabold text-slate-400 uppercase tracking-widest border-b border-slate-100 whitespace-nowrap w-16">No.</th>
                                 <th class="py-4 px-6 bg-slate-50/30 text-[10px] font-extrabold text-slate-400 uppercase tracking-widest border-b border-slate-100 whitespace-nowrap">Nama</th>
-                                <th class="py-4 px-6 bg-slate-50/30 text-[10px] font-extrabold text-slate-400 uppercase tracking-widest border-b border-slate-100 whitespace-nowrap w-40">Bobot (%) <span class="text-slate-300 font-medium normal-case ml-1 inline-block">Contoh</span></th>
+                                <th class="py-4 px-6 bg-slate-50/30 text-[10px] font-extrabold text-slate-400 uppercase tracking-widest border-b border-slate-100 whitespace-nowrap w-40">Bobot (%)</th>
                                 <th class="py-4 px-6 bg-slate-50/30 text-[10px] font-extrabold text-slate-400 uppercase tracking-widest border-b border-slate-100 whitespace-nowrap text-right w-40">Aksi</th>
                             </tr>
                         </thead>
