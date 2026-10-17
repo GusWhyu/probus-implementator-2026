@@ -367,7 +367,7 @@
                                         </div>
                                     </div>
                                 </td>
-                                <td class="py-4 px-6 text-sm font-medium {{ $isAssessed ? 'text-slate-600' : 'text-slate-400' }}">{{ $isAssessed ? \Carbon\Carbon::parse($penilaian->periode)->translatedFormat('M Y') : '&ndash;' }}</td>
+                                <td class="py-4 px-6 text-sm font-medium {{ $isAssessed ? 'text-slate-600' : 'text-slate-400' }}">{{ \Carbon\Carbon::createFromDate($year, $month, 1)->translatedFormat('M Y') }}</td>
                                 <td class="py-4 px-6 text-sm font-bold {{ $isAssessed ? 'text-slate-800' : 'text-slate-400' }}">
                                     @if($isAssessed)
                                         <div class="flex items-center gap-2">

@@ -14,7 +14,7 @@
             padding: 0;
         }
         body {
-            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            font-family: 'DejaVu Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
             color: #1e293b;
             margin: 0;
             padding: 0;
@@ -32,24 +32,54 @@
     <div style="background-color: #eef2f7; padding: 8px;">
 
         {{-- Main white card --}}
-        <div style="border: 1.5px solid #d6dce6; border-radius: 16px; padding: 16px 18px 12px 18px; background-color: #ffffff;">
+        <div style="border: 1.5px solid #d6dce6; border-radius: 16px; padding: 14px 18px 10px 18px; background-color: #ffffff;">
+
+            @php
+                $pdfAvatarSrc = null;
+                if (!empty($user->profile_image)) {
+                    $pPath = public_path('storage/' . $user->profile_image);
+                    if (file_exists($pPath)) {
+                        $ext = strtolower(pathinfo($pPath, PATHINFO_EXTENSION));
+                        $mime = ($ext === 'jpg' || $ext === 'jpeg') ? 'image/jpeg' : (($ext === 'png') ? 'image/png' : 'image/jpeg');
+                        $pdfAvatarSrc = 'data:' . $mime . ';base64,' . base64_encode(file_get_contents($pPath));
+                    } else {
+                        $sPath = storage_path('app/public/' . $user->profile_image);
+                        if (file_exists($sPath)) {
+                            $ext = strtolower(pathinfo($sPath, PATHINFO_EXTENSION));
+                            $mime = ($ext === 'jpg' || $ext === 'jpeg') ? 'image/jpeg' : (($ext === 'png') ? 'image/png' : 'image/jpeg');
+                            $pdfAvatarSrc = 'data:' . $mime . ';base64,' . base64_encode(file_get_contents($sPath));
+                        }
+                    }
+                }
+                if (!$pdfAvatarSrc) {
+                    $isFemale = in_array(strtolower(trim($user->name ?? '')), ['dyah kusuma', 'dewi', 'siti rahma', 'dewi anggraini', 'rina wulandari', 'ayu lestari']);
+                    $defaultPath = public_path($isFemale ? 'img/avatar-female.png' : 'img/avatar-default.png');
+                    if (file_exists($defaultPath)) {
+                        $pdfAvatarSrc = 'data:image/png;base64,' . base64_encode(file_get_contents($defaultPath));
+                    }
+                }
+            @endphp
 
             {{-- ============================================= --}}
             {{-- HEADER: Avatar + Name  |  Document Title      --}}
             {{-- ============================================= --}}
-            <table style="width: 100%; margin-bottom: 12px;">
+            <table style="width: 100%; margin-bottom: 10px;">
                 <tr>
                     <td style="width: 55%; vertical-align: middle;">
                         <table>
                             <tr>
-                                <td style="vertical-align: middle; padding-right: 10px; width: 50px;">
-                                    <div style="width: 46px; height: 46px; border-radius: 50%; background-color: #6366f1; text-align: center; line-height: 46px; color: #ffffff; font-weight: bold; font-size: 20px; letter-spacing: 0.5px;">
-                                        {{ strtoupper(substr($user->name, 0, 1)) }}
-                                    </div>
+                                <td style="vertical-align: middle; padding-right: 12px; width: 74px;">
+                                    @if ($pdfAvatarSrc)
+                                        <img src="{{ $pdfAvatarSrc }}" width="70" height="70" style="width: 70px; height: 70px; border-radius: 50%; object-fit: cover; border: 2px solid #cbd5e1; display: block;" />
+                                    @else
+                                        <div style="width: 70px; height: 70px; border-radius: 50%; background-color: #6366f1; text-align: center; line-height: 70px; color: #ffffff; font-weight: bold; font-size: 28px; letter-spacing: 0.5px;">
+                                            {{ strtoupper(substr($user->name, 0, 1)) }}
+                                        </div>
+                                    @endif
                                 </td>
                                 <td style="vertical-align: middle;">
-                                    <div style="font-size: 17px; font-weight: bold; color: #0f172a; line-height: 1.15;">{{ $user->name }}</div>
-                                    <div style="font-size: 10px; color: #64748b; margin-top: 2px;">{{ $user->usertype ?? 'Customer Support' }}</div>
+                                    <div style="font-size: 18px; font-weight: bold; color: #0f172a; line-height: 1.2;">{{ $user->name }}</div>
+                                    <div style="font-size: 10.5px; color: #64748b; margin-top: 2px;">{{ $user->usertype ?? 'Customer Support' }}</div>
                                 </td>
                             </tr>
                         </table>
@@ -89,13 +119,13 @@
                             </tr>
                             <tr>
                                 <td style="color: #475569; padding: 2px 0;">
-                                    <span style="color: #94a3b8;">&#9201;</span> Rata-rata respon
+                                    <span style="color: #94a3b8;">&#9656;</span> Rata-rata respon
                                 </td>
                                 <td style="text-align: right; font-weight: bold; color: #0f172a;">{{ $rapor->rata_rata_waktu ?? '12 menit' }}</td>
                             </tr>
                             <tr>
                                 <td style="color: #475569; padding: 2px 0;">
-                                    <span style="color: #94a3b8;">&#128200;</span> Persentase tiket selesai
+                                    <span style="color: #94a3b8;">&#9656;</span> Persentase tiket selesai
                                 </td>
                                 <td style="text-align: right; font-weight: bold; color: #0f172a;">
                                     @php

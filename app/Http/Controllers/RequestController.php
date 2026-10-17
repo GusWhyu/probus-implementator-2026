@@ -84,10 +84,6 @@ class RequestController extends Controller
                 ->latest()
                 ->take(5)
                 ->get();
-
-            if ($all_requests->isEmpty()) {
-                $all_requests = \App\Models\Request::with(['outlet', 'tag', 'kategori', 'status', 'user', 'approver'])->latest()->take(5)->get();
-            }
         } else {
             $all_requests = \App\Models\Request::with(['outlet', 'tag', 'kategori', 'status', 'user', 'approver'])
                 ->where('status_id', '!=', 4)
@@ -95,9 +91,6 @@ class RequestController extends Controller
                 ->latest()
                 ->take(5)
                 ->get();
-            if ($all_requests->isEmpty()) {
-                $all_requests = \App\Models\Request::with(['outlet', 'tag', 'kategori', 'status', 'user', 'approver'])->latest()->take(5)->get();
-            }
         }
 
         // Chart Data Calculation (7-day trend ending on selectedDate or today)

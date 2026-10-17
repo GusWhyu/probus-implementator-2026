@@ -86,19 +86,12 @@ class HomeController extends Controller
                 ->latest()
                 ->take(5)
                 ->get();
-
-            if ($all_tickets->isEmpty()) {
-                $all_tickets = Ticket::latest()->take(5)->get();
-            }
         } else {
             $all_tickets = Ticket::where('status', '!=', 'CLOSED')
                 ->where('created_at', '>=', \Carbon\Carbon::now()->subDays(2))
                 ->latest()
                 ->take(5)
                 ->get();
-            if ($all_tickets->isEmpty()) {
-                $all_tickets = Ticket::latest()->take(5)->get();
-            }
         }
 
         // Chart Data Calculation (7-day trend ending on selectedDate or today)

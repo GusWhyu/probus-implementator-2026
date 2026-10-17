@@ -22,8 +22,11 @@
                     </a>
                     
                     <div class="flex items-center gap-4">
-                        @php $isFemale = in_array(strtolower(trim($user->name ?? '')), ['dyah kusuma', 'dewi', 'siti rahma', 'dewi anggraini', 'rina wulandari', 'ayu lestari']); @endphp
-                        <img src="{{ asset($isFemale ? 'img/avatar-female.png' : 'img/avatar-default.png') }}" alt="Avatar" class="w-14 h-14 rounded-full object-cover shrink-0 shadow-sm bg-white border border-slate-100" style="{{ $isFemale ? 'object-position: top;' : '' }}">
+                        @php 
+                            $isFemale = in_array(strtolower(trim($user->name ?? '')), ['dyah kusuma', 'dewi', 'siti rahma', 'dewi anggraini', 'rina wulandari', 'ayu lestari']);
+                            $userAvatar = $user->profile_image ? asset('storage/' . $user->profile_image) : asset($isFemale ? 'img/avatar-female.png' : 'img/avatar-default.png');
+                        @endphp
+                        <img src="{{ $userAvatar }}" alt="Avatar" class="w-14 h-14 rounded-full object-cover shrink-0 shadow-sm bg-white border border-slate-100" style="{{ $isFemale && !$user->profile_image ? 'object-position: top;' : '' }}">
                         <div>
                             <h1 class="text-2xl font-extrabold text-slate-800 tracking-tight flex items-center gap-3">
                                 Rapor Kinerja CS
