@@ -471,6 +471,84 @@
                         </div>
                     </div>
                     @endif
+
+                    <!-- Riwayat & Log Aktivitas Card -->
+                    <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 overflow-hidden">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-xs font-extrabold text-slate-800 uppercase tracking-wider flex items-center gap-2">
+                                <i class="fa-solid fa-clock-rotate-left text-blue-500 text-sm"></i> Riwayat & Aktivitas
+                            </h3>
+                            <span class="text-[10px] font-bold bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full">
+                                {{ isset($ticketLogs) ? $ticketLogs->count() : 0 }} catatan
+                            </span>
+                        </div>
+
+                        @if (isset($ticketLogs) && $ticketLogs->isNotEmpty())
+                        <div class="relative pl-6 space-y-4 before:content-[''] before:absolute before:left-2.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-100 max-h-96 overflow-y-auto custom-scrollbar pr-1">
+                            @foreach ($ticketLogs as $log)
+                                @php
+                                    $logIcon = 'fa-circle-dot text-slate-400';
+                                    $logBg = 'bg-slate-100 text-slate-600 border-slate-200';
+                                    if ($log->action == 'CREATED') {
+                                        $logIcon = 'fa-plus text-blue-600';
+                                        $logBg = 'bg-blue-50 text-blue-600 border-blue-200';
+                                    } elseif ($log->action == 'ASSIGNED') {
+                                        $logIcon = 'fa-user-check text-sky-600';
+                                        $logBg = 'bg-sky-50 text-sky-600 border-sky-200';
+                                    } elseif ($log->action == 'STATUS_CHANGED') {
+                                        $logIcon = 'fa-arrows-rotate text-amber-600';
+                                        $logBg = 'bg-amber-50 text-amber-600 border-amber-200';
+                                    } elseif (str_contains($log->action, 'TAKEOVER')) {
+                                        if ($log->action == 'TAKEOVER_APPROVED') {
+                                            $logIcon = 'fa-handshake text-emerald-600';
+                                            $logBg = 'bg-emerald-50 text-emerald-600 border-emerald-200';
+                                        } elseif ($log->action == 'TAKEOVER_REJECTED') {
+                                            $logIcon = 'fa-xmark text-rose-600';
+                                            $logBg = 'bg-rose-50 text-rose-600 border-rose-200';
+                                        } elseif ($log->action == 'TAKEOVER_EXPIRED') {
+                                            $logIcon = 'fa-hourglass-end text-slate-600';
+                                            $logBg = 'bg-slate-100 text-slate-600 border-slate-200';
+                                        } else {
+                                            $logIcon = 'fa-right-left text-amber-600';
+                                            $logBg = 'bg-amber-50 text-amber-600 border-amber-200';
+                                        }
+                                    } elseif ($log->action == 'CLOSED') {
+                                        $logIcon = 'fa-circle-check text-emerald-600';
+                                        $logBg = 'bg-emerald-50 text-emerald-600 border-emerald-200';
+                                    } elseif ($log->action == 'SURVEY_SUBMITTED') {
+                                        $logIcon = 'fa-star text-amber-500';
+                                        $logBg = 'bg-amber-50 text-amber-600 border-amber-200';
+                                    } elseif ($log->action == 'UPDATED') {
+                                        $logIcon = 'fa-pen text-blue-600';
+                                        $logBg = 'bg-blue-50 text-blue-600 border-blue-200';
+                                    }
+                                @endphp
+                                <div class="relative group">
+                                    <!-- Bullet indicator -->
+                                    <div class="absolute -left-6 top-1 w-5 h-5 rounded-full {{ $logBg }} border flex items-center justify-center text-[9px] shadow-xs">
+                                        <i class="fa-solid {{ $logIcon }}"></i>
+                                    </div>
+                                    <div class="text-[11px] leading-snug">
+                                        <p class="font-bold text-slate-700">{{ $log->description }}</p>
+                                        <div class="flex items-center gap-2 mt-1 text-[10px] text-slate-400 font-medium">
+                                            @if ($log->user)
+                                            <span class="text-slate-500 font-bold"><i class="fa-regular fa-user mr-1 text-[9px]"></i>{{ $log->user->name }}</span>
+                                            <span>•</span>
+                                            @endif
+                                            <span><i class="fa-regular fa-clock mr-1 text-[9px]"></i>{{ $log->created_at->diffForHumans() }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                        @else
+                        <div class="text-center py-6 bg-slate-50/50 rounded-2xl border border-dashed border-slate-200">
+                            <i class="fa-solid fa-list-check text-slate-300 text-xl mb-2"></i>
+                            <p class="text-[11px] font-bold text-slate-500">Belum ada riwayat aktivitas</p>
+                            <p class="text-[10px] text-slate-400 mt-0.5">Setiap perubahan tiket dan alih tiket akan dicatat di sini.</p>
+                        </div>
+                        @endif
+                    </div>
                     
                 </div>
             </div>
@@ -612,6 +690,12 @@
                             </div>
                         </label>
                     </div>
+                </div>
+
+                <!-- Reason Input (Optional) -->
+                <div class="mb-5">
+                    <label class="text-[11px] font-bold text-slate-700 block mb-2">Alasan Pengalihan (Opsional)</label>
+                    <textarea name="reason" rows="2" placeholder="Tuliskan alasan pengalihan tiket ini jika ada..." class="w-full bg-white border border-slate-200 text-slate-800 text-xs rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 p-3 outline-none font-medium resize-none shadow-sm"></textarea>
                 </div>
 
                 <p class="text-[10px] text-slate-500 mb-6 leading-relaxed font-medium">

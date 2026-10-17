@@ -10,6 +10,11 @@ use App\Models\Kategori;
 use App\Models\Komentar;
 use App\Models\DataImage;
 use App\Models\UpdateSystem;
+use App\Models\Ticket;
+use App\Models\TicketLog;
+use App\Models\TicketTakeover;
+use App\Models\TicketDiscussion;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use RealRashid\SweetAlert\Facades\Alert;
@@ -21,7 +26,7 @@ class TicketController extends Controller
         $title = 'Delete Comment!';
         $text = 'Are you sure you want to delete this comment?';
         confirmDelete($title, $text);
-        $datarq = \App\Models\Ticket::findOrFail($id);
+        $datarq = Ticket::findOrFail($id);
         
         // Auto-expire takeover if deadline reached
         $isExpired = false;
@@ -42,16 +47,39 @@ class TicketController extends Controller
                 'pending_advisor_expires_at' => null,
                 'takeover_duration_minutes' => null
             ]);
+
+            // Update status pending takeover di tabel ticket_takeovers
+            $pendingTakeover = TicketTakeover::where('ticket_id', $datarq->id)
+                ->where('status', 'PENDING')
+                ->latest()
+                ->first();
+            if ($pendingTakeover) {
+                $pendingTakeover->update([
+                    'status' => 'REJECTED',
+                    'processed_at' => now(),
+                ]);
+            }
+
+            // Catat ke ticket_logs
+            TicketLog::create([
+                'ticket_id' => $datarq->id,
+                'user_id' => null,
+                'action' => 'TAKEOVER_EXPIRED',
+                'description' => 'Permintaan pengalihan tiket otomatis dibatalkan karena batas waktu ' . $durationText . ' habis.',
+            ]);
+
             if (Auth::id() == $datarq->user_id) {
                 Alert::warning('Pengalihan Otomatis Dibatalkan', 'Tiket ini telah dikembalikan kepada Anda karena telah melewati batas ' . $durationText . ' tanpa persetujuan dari advisor tujuan.')->showConfirmButton('Tutup', '#f59e0b')->autoClose(3000);
             }
         }
 
         $dataimg = DataImage::where('ticket_id', $id)->get();
-        $komentar = \App\Models\TicketDiscussion::where('ticket_id', $id)->orderBy('created_at', 'asc')->get();
+        $komentar = TicketDiscussion::where('ticket_id', $id)->orderBy('created_at', 'asc')->get();
         $dataus = UpdateSystem::where('request_id', $id)->get();
         $reqlog = RequestLog::where('request_id', $id)->first();
-        return view('tablerq.detailticket', compact('datarq', 'dataimg','komentar','dataus','reqlog'));
+        $ticketLogs = TicketLog::with('user')->where('ticket_id', $id)->orderBy('created_at', 'desc')->get();
+        $ticketTakeovers = TicketTakeover::with(['fromUser', 'toUser'])->where('ticket_id', $id)->orderBy('created_at', 'desc')->get();
+        return view('tablerq.detailticket', compact('datarq', 'dataimg','komentar','dataus','reqlog', 'ticketLogs', 'ticketTakeovers'));
     }
 
     public function mrq(){
@@ -132,7 +160,7 @@ class TicketController extends Controller
         $nextId = $latestTicket ? $latestTicket->id + 1 : 1;
         $ticketNumber = 'TCK-' . date('Ym') . '-' . str_pad($nextId, 4, '0', STR_PAD_LEFT);
 
-        $data = \App\Models\Ticket::create([
+        $data = Ticket::create([
             'ticket_number' => $ticketNumber,
             'title' => $request->title,
             'description' => $request->body,
@@ -148,11 +176,24 @@ class TicketController extends Controller
             'handle_at' => now(),
         ]);
 
-        if ($data->advisor_id && $data->advisor_id != Auth::id()) {
-            $advisor = \App\Models\User::find($data->advisor_id);
-            if ($advisor) {
+        TicketLog::create([
+            'ticket_id' => $data->id,
+            'user_id' => Auth::id(),
+            'action' => 'CREATED',
+            'description' => 'Tiket #' . $ticketNumber . ' berhasil dibuat oleh ' . Auth::user()->name . ' dengan status OPEN.',
+        ]);
+
+        if ($data->advisor_id) {
+            $advisor = User::find($data->advisor_id);
+            if ($advisor && $data->advisor_id != Auth::id()) {
                 $advisor->notify(new RequestStatusChanged($data, Auth::user()->name . " menugaskan tiket baru '" . $data->title . "' kepada Anda.", "Penugasan Tiket Baru"));
             }
+            TicketLog::create([
+                'ticket_id' => $data->id,
+                'user_id' => Auth::id(),
+                'action' => 'ASSIGNED',
+                'description' => 'Tiket ditugaskan kepada ' . ($advisor ? $advisor->name : '#' . $data->advisor_id) . '.',
+            ]);
         }
         
         $imagedata = [];
@@ -216,6 +257,13 @@ class TicketController extends Controller
             'due_date' => $request->due_date,
         ]);
 
+        TicketLog::create([
+            'ticket_id' => $datarq->id,
+            'user_id' => Auth::id(),
+            'action' => 'UPDATED',
+            'description' => 'Informasi tiket diperbarui oleh ' . Auth::user()->name . '.',
+        ]);
+
         if($request->hasfile('images')){
             $imagedata = [];
             foreach ($request->file('images') as $image) {
@@ -267,6 +315,13 @@ class TicketController extends Controller
         }
 
         $data->update($updateData);
+
+        TicketLog::create([
+            'ticket_id' => $data->id,
+            'user_id' => Auth::id(),
+            'action' => $stid == 'CLOSED' ? 'CLOSED' : 'STATUS_CHANGED',
+            'description' => 'Status tiket diubah menjadi ' . $stid . ' oleh ' . Auth::user()->name . '.',
+        ]);
         
         // Map string status to old status_id for backward compatibility in RequestLog
         $logStatusId = 2;
@@ -295,7 +350,7 @@ class TicketController extends Controller
             'advisor_id' => 'required|exists:users,id'
         ]);
 
-        $data = \App\Models\Ticket::findOrFail($id);
+        $data = Ticket::findOrFail($id);
 
         // Authorization check: Advisor tidak dapat memproses atau mengubah status tiket di-advice
         $user = Auth::user();
@@ -304,8 +359,16 @@ class TicketController extends Controller
             return redirect()->back();
         }
 
+        $advisorUser = User::find($request->advisor_id);
         $data->update([
             'advisor_id' => $request->advisor_id
+        ]);
+
+        TicketLog::create([
+            'ticket_id' => $data->id,
+            'user_id' => Auth::id(),
+            'action' => 'ASSIGNED',
+            'description' => 'Advisor tiket ditugaskan kepada ' . ($advisorUser ? $advisorUser->name : '#' . $request->advisor_id) . ' oleh ' . Auth::user()->name . '.',
         ]);
 
         return $this->updatestatus($id, $stid);
@@ -418,9 +481,10 @@ class TicketController extends Controller
         $request->validate([
             'target_advisor_id' => 'required|exists:users,id',
             'waiting_duration_preset' => 'nullable|numeric|in:15,30,60,120,180',
+            'reason' => 'nullable|string|max:500',
         ]);
 
-        $ticket = \App\Models\Ticket::findOrFail($id);
+        $ticket = Ticket::findOrFail($id);
         $currentUser = Auth::user();
 
         // 0. Validasi Kepemilikan: Advisor tidak boleh mengalihkan tiket di-advice
@@ -430,7 +494,7 @@ class TicketController extends Controller
         }
 
         $targetUserId = $request->target_advisor_id;
-        $targetUser = \App\Models\User::findOrFail($targetUserId);
+        $targetUser = User::findOrFail($targetUserId);
 
         // 1. Validasi Departemen: Harus dalam satu departemen yang sama
         if ($currentUser->departemen_id && $targetUser->departemen_id != $currentUser->departemen_id) {
@@ -461,6 +525,7 @@ class TicketController extends Controller
 
         // If current user is Admin or SPV, force assign directly
         if (in_array($currentUser->usertype, ['admin', 'supervisor'])) {
+            $oldOwnerName = ($ticket->user && $ticket->user->name) ? $ticket->user->name : 'User';
             $ticket->update([
                 'user_id' => $targetUserId,
                 'handle_at' => now(),
@@ -469,6 +534,27 @@ class TicketController extends Controller
                 'pending_advisor_expires_at' => null,
                 'takeover_duration_minutes' => null
             ]);
+
+            $reasonText = $request->input('reason') ?: ('Pengalihan langsung oleh ' . ucfirst($currentUser->usertype) . ' (' . $currentUser->name . ')');
+
+            // Catat ke ticket_takeovers
+            TicketTakeover::create([
+                'ticket_id' => $ticket->id,
+                'from_user_id' => $currentUser->id,
+                'to_user_id' => $targetUserId,
+                'reason' => $reasonText,
+                'status' => 'APPROVED',
+                'processed_at' => now(),
+            ]);
+
+            // Catat ke ticket_logs
+            TicketLog::create([
+                'ticket_id' => $ticket->id,
+                'user_id' => $currentUser->id,
+                'action' => 'TAKEOVER_APPROVED',
+                'description' => 'Tiket dialihkan langsung dari ' . $oldOwnerName . ' kepada ' . $targetUser->name . ' oleh ' . $currentUser->name . '. Alasan: ' . $reasonText,
+            ]);
+
             Alert::success('Berhasil!', 'Tiket telah berhasil dialihkan.')->showConfirmButton('Tutup', '#3b82f6')->autoClose(2500);
         } else {
             // User asks another user -> Need approval with custom duration
@@ -478,6 +564,35 @@ class TicketController extends Controller
                 'takeover_duration_minutes' => $durationMinutes,
                 'pending_advisor_expires_at' => now()->addMinutes($durationMinutes)
             ]);
+
+            $reasonText = $request->input('reason') ?: ('Permintaan alih tiket oleh ' . $currentUser->name);
+
+            // Batalkan permintaan pending sebelumnya jika ada
+            TicketTakeover::where('ticket_id', $ticket->id)
+                ->where('status', 'PENDING')
+                ->update([
+                    'status' => 'REJECTED',
+                    'processed_at' => now(),
+                ]);
+
+            // Catat ke ticket_takeovers
+            TicketTakeover::create([
+                'ticket_id' => $ticket->id,
+                'from_user_id' => $currentUser->id,
+                'to_user_id' => $targetUserId,
+                'reason' => $reasonText,
+                'status' => 'PENDING',
+                'processed_at' => null,
+            ]);
+
+            // Catat ke ticket_logs
+            TicketLog::create([
+                'ticket_id' => $ticket->id,
+                'user_id' => $currentUser->id,
+                'action' => 'TAKEOVER_REQUESTED',
+                'description' => 'Permintaan pengalihan tiket diajukan kepada ' . $targetUser->name . ' (Batas waktu: ' . $durationMinutes . ' menit) oleh ' . $currentUser->name . '. Alasan: ' . $reasonText,
+            ]);
+
             $targetUser->notify(new RequestStatusChanged($ticket, Auth::user()->name . " meminta pengalihan tiket '" . $ticket->title . "' kepada Anda.", "Permintaan Pengalihan Tiket"));
             Alert::success('Terkirim!', 'Permintaan pengalihan tiket telah dikirim ke user tersebut.')->showConfirmButton('Tutup', '#3b82f6')->autoClose(2500);
         }
@@ -486,8 +601,9 @@ class TicketController extends Controller
     }
 
     public function takeoverAccept($id) {
-        $ticket = \App\Models\Ticket::findOrFail($id);
+        $ticket = Ticket::findOrFail($id);
         if ($ticket->pending_advisor_id == Auth::id()) {
+            $prevUserName = ($ticket->user && $ticket->user->name) ? $ticket->user->name : 'User';
             $ticket->update([
                 'user_id' => Auth::id(),
                 'handle_at' => now(),
@@ -496,6 +612,28 @@ class TicketController extends Controller
                 'pending_advisor_expires_at' => null,
                 'takeover_duration_minutes' => null
             ]);
+
+            // Update ticket_takeovers
+            $pendingTakeover = TicketTakeover::where('ticket_id', $ticket->id)
+                ->where('to_user_id', Auth::id())
+                ->where('status', 'PENDING')
+                ->latest()
+                ->first();
+            if ($pendingTakeover) {
+                $pendingTakeover->update([
+                    'status' => 'APPROVED',
+                    'processed_at' => now(),
+                ]);
+            }
+
+            // Catat ke ticket_logs
+            TicketLog::create([
+                'ticket_id' => $ticket->id,
+                'user_id' => Auth::id(),
+                'action' => 'TAKEOVER_APPROVED',
+                'description' => 'Pengalihan tiket disetujui oleh ' . Auth::user()->name . '. Kepemilikan tiket resmi berpindah dari ' . $prevUserName . ' ke ' . Auth::user()->name . '.',
+            ]);
+
             if ($ticket->user && $ticket->user->id !== Auth::id()) {
                 $ticket->user->notify(new RequestStatusChanged($ticket, Auth::user()->name . " telah menyetujui pengalihan tiket '" . $ticket->title . "'.", "Pengalihan Tiket Disetujui"));
             }
@@ -505,7 +643,7 @@ class TicketController extends Controller
     }
 
     public function takeoverReject($id) {
-        $ticket = \App\Models\Ticket::findOrFail($id);
+        $ticket = Ticket::findOrFail($id);
         if ($ticket->pending_advisor_id == Auth::id()) {
             $ticket->update([
                 'status' => 'OPEN',
@@ -515,6 +653,28 @@ class TicketController extends Controller
                 'pending_advisor_expires_at' => null,
                 'takeover_duration_minutes' => null
             ]);
+
+            // Update ticket_takeovers
+            $pendingTakeover = TicketTakeover::where('ticket_id', $ticket->id)
+                ->where('to_user_id', Auth::id())
+                ->where('status', 'PENDING')
+                ->latest()
+                ->first();
+            if ($pendingTakeover) {
+                $pendingTakeover->update([
+                    'status' => 'REJECTED',
+                    'processed_at' => now(),
+                ]);
+            }
+
+            // Catat ke ticket_logs
+            TicketLog::create([
+                'ticket_id' => $ticket->id,
+                'user_id' => Auth::id(),
+                'action' => 'TAKEOVER_REJECTED',
+                'description' => 'Permintaan pengalihan tiket ditolak oleh ' . Auth::user()->name . '. Tiket dikembalikan ke pengirim.',
+            ]);
+
             if ($ticket->user && $ticket->user->id !== Auth::id()) {
                 $ticket->user->notify(new RequestStatusChanged($ticket, Auth::user()->name . " menolak permintaan pengalihan tiket '" . $ticket->title . "'.", "Pengalihan Tiket Ditolak"));
             }
