@@ -13,10 +13,32 @@ use App\Models\PerformanceReviewDetail;
 use App\Models\PerformanceReviewModuleDetail;
 use App\Models\ModuleSystem;
 use App\Models\User;
+use App\Models\Departemen;
 
 class HomeController extends Controller
 {
     public function index(Request $request){
+        $currentUser = auth()->user();
+        $userDeptId = $currentUser ? $currentUser->departemen_id : null;
+
+        // Default to user's department.
+        // For admin/supervisor, allow selecting another department or 'all'.
+        // For standard user, strictly lock to their department.
+        $selectedDeptId = $request->input('department_id', $userDeptId);
+        if ($currentUser && $currentUser->usertype === 'user') {
+            $selectedDeptId = $userDeptId;
+        }
+
+        $isDeptFiltered = (!empty($selectedDeptId) && $selectedDeptId !== 'all');
+
+        $applyDeptFilter = function($query) use ($isDeptFiltered, $selectedDeptId) {
+            if ($isDeptFiltered) {
+                $query->whereHas('user', function($q) use ($selectedDeptId) {
+                    $q->where('departemen_id', $selectedDeptId);
+                });
+            }
+        };
+
         $dateParam = $request->input('date');
         // Default ke hari ini jika tidak ada parameter tanggal
         if (empty($dateParam) || $dateParam === 'all') {
@@ -41,58 +63,85 @@ class HomeController extends Controller
             $selectedDate = null;
         }
 
-
         // Base Ticket counts
         if ($hasDate) {
             // Tiket yang dibuat di bulan ini (tgl 1 s/d tanggal yang dipilih)
-            $currentMonthTotal = Ticket::whereBetween('created_at', [$startOfMonth, $selectedDate->copy()->endOfDay()])->count();
-            $closed_count = Ticket::whereBetween('created_at', [$startOfMonth, $selectedDate->copy()->endOfDay()])->where('status', 'CLOSED')->count();
-            $progress_count = Ticket::whereBetween('created_at', [$startOfMonth, $selectedDate->copy()->endOfDay()])->where('status', 'PROGRESS')->count();
-            $currentMonthOpen = Ticket::whereBetween('created_at', [$startOfMonth, $selectedDate->copy()->endOfDay()])->where('status', 'OPEN')->count();
+            $currentMonthTotalQ = Ticket::whereBetween('created_at', [$startOfMonth, $selectedDate->copy()->endOfDay()]);
+            $applyDeptFilter($currentMonthTotalQ);
+            $currentMonthTotal = $currentMonthTotalQ->count();
+
+            $closedCountQ = Ticket::whereBetween('created_at', [$startOfMonth, $selectedDate->copy()->endOfDay()])->where('status', 'CLOSED');
+            $applyDeptFilter($closedCountQ);
+            $closed_count = $closedCountQ->count();
+
+            $progressCountQ = Ticket::whereBetween('created_at', [$startOfMonth, $selectedDate->copy()->endOfDay()])->where('status', 'PROGRESS');
+            $applyDeptFilter($progressCountQ);
+            $progress_count = $progressCountQ->count();
+
+            $currentMonthOpenQ = Ticket::whereBetween('created_at', [$startOfMonth, $selectedDate->copy()->endOfDay()])->where('status', 'OPEN');
+            $applyDeptFilter($currentMonthOpenQ);
+            $currentMonthOpen = $currentMonthOpenQ->count();
 
             // Tiket OPEN dari bulan-bulan sebelumnya yang masih menggantung (carry over)
-            $carryOverOpen = Ticket::where('created_at', '<', $startOfMonth)
-                ->where('status', 'OPEN')
-                ->count();
+            $carryOverOpenQ = Ticket::where('created_at', '<', $startOfMonth)->where('status', 'OPEN');
+            $applyDeptFilter($carryOverOpenQ);
+            $carryOverOpen = $carryOverOpenQ->count();
 
             // Total open = open bulan ini + carry over dari bulan sebelumnya
             $open_count = $currentMonthOpen + $carryOverOpen;
             // Total keseluruhan = tiket bulan ini + carry over open dari bulan sebelumnya
             $total_count = $currentMonthTotal + $carryOverOpen;
         } else {
-            $total_count = Ticket::count();
-            $closed_count = Ticket::where('status', 'CLOSED')->count();
-            $progress_count = Ticket::where('status', 'PROGRESS')->count();
-            $open_count = Ticket::where('status', 'OPEN')->count();
+            $totalQ = Ticket::query();
+            $applyDeptFilter($totalQ);
+            $total_count = $totalQ->count();
+
+            $closedQ = Ticket::where('status', 'CLOSED');
+            $applyDeptFilter($closedQ);
+            $closed_count = $closedQ->count();
+
+            $progressQ = Ticket::where('status', 'PROGRESS');
+            $applyDeptFilter($progressQ);
+            $progress_count = $progressQ->count();
+
+            $openQ = Ticket::where('status', 'OPEN');
+            $applyDeptFilter($openQ);
+            $open_count = $openQ->count();
         }
 
-        $open = Ticket::where('status', 'OPEN')->latest()->take(5)->get();
-        $progress = Ticket::where('status', 'PROGRESS')->latest()->take(5)->get();
-        $closed = Ticket::where('status', 'CLOSED')->latest()->take(5)->get();
+        $openQ = Ticket::where('status', 'OPEN')->latest()->take(5);
+        $applyDeptFilter($openQ);
+        $open = $openQ->get();
+
+        $progressQ = Ticket::where('status', 'PROGRESS')->latest()->take(5);
+        $applyDeptFilter($progressQ);
+        $progress = $progressQ->get();
+
+        $closedQ = Ticket::where('status', 'CLOSED')->latest()->take(5);
+        $applyDeptFilter($closedQ);
+        $closed = $closedQ->get();
+
         $us = UpdateSystem::latest()->take(4)->get();
 
         // Recent / All Tickets for the period
+        $ticketsQuery = Ticket::with(['client', 'kategoriSystem', 'moduleSystem', 'user.departemen']);
+        $applyDeptFilter($ticketsQuery);
         if ($hasDate) {
             // Ambil tiket bulan ini (tgl 1 - tanggal dipilih) + carry over OPEN dari bulan sebelumnya
-            $all_tickets = Ticket::where(function($q) use ($startOfMonth, $selectedDate) {
-                    // Tiket dibuat di bulan ini (tgl 1 s/d tanggal dipilih)
-                    $q->whereBetween('created_at', [$startOfMonth, $selectedDate->copy()->endOfDay()]);
+            $ticketsQuery->where(function($q) use ($startOfMonth, $selectedDate) {
+                $q->where(function($sub) use ($startOfMonth, $selectedDate) {
+                    $sub->whereBetween('created_at', [$startOfMonth, $selectedDate->copy()->endOfDay()]);
                 })
-                ->orWhere(function($q) use ($startOfMonth) {
-                    // Carry over: tiket OPEN dari bulan sebelumnya
-                    $q->where('created_at', '<', $startOfMonth)
-                      ->where('status', 'OPEN');
-                })
-                ->latest()
-                ->take(5)
-                ->get();
+                ->orWhere(function($sub) use ($startOfMonth) {
+                    $sub->where('created_at', '<', $startOfMonth)
+                        ->where('status', 'OPEN');
+                });
+            });
         } else {
-            $all_tickets = Ticket::where('status', '!=', 'CLOSED')
-                ->where('created_at', '>=', \Carbon\Carbon::now()->subDays(2))
-                ->latest()
-                ->take(5)
-                ->get();
+            $ticketsQuery->where('status', '!=', 'CLOSED')
+                ->where('created_at', '>=', \Carbon\Carbon::now()->subDays(2));
         }
+        $all_tickets = $ticketsQuery->latest()->take(5)->get();
 
         // Chart Data Calculation (7-day trend ending on selectedDate or today)
         $chartLabels = [];
@@ -104,33 +153,69 @@ class HomeController extends Controller
             $d = $endDate->copy()->subDays($i);
             $chartLabels[] = $d->locale('id')->isoFormat('ddd, D MMM');
             
-            $dailyMasuk = Ticket::whereDate('created_at', $d->toDateString())->count();
-            $dailySelesai = Ticket::whereDate('updated_at', $d->toDateString())->where('status', 'CLOSED')->count();
+            $masukQ = Ticket::whereDate('created_at', $d->toDateString());
+            $applyDeptFilter($masukQ);
+            $dailyMasuk = $masukQ->count();
+
+            $selesaiQ = Ticket::whereDate('updated_at', $d->toDateString())->where('status', 'CLOSED');
+            $applyDeptFilter($selesaiQ);
+            $dailySelesai = $selesaiQ->count();
             
             $masukData[] = $dailyMasuk;
             $selesaiData[] = $dailySelesai;
         }
 
         // Top Agents — range tgl 1 s/d tanggal dipilih + carry over open
-        $topAgents = User::whereHas('advisedTickets', function($q) use ($hasDate, $startOfMonth, $selectedDate) {
+        $agentsQuery = User::query();
+        if ($isDeptFiltered) {
+            $agentsQuery->where('departemen_id', $selectedDeptId);
+        }
+        $topAgents = $agentsQuery->whereHas('clientTickets', function($q) use ($hasDate, $startOfMonth, $selectedDate) {
                 $q->where('status', 'CLOSED');
                 if ($hasDate) {
                     $q->whereBetween('created_at', [$startOfMonth, $selectedDate->copy()->endOfDay()]);
                 }
             })
-            ->withCount(['advisedTickets as closed_count' => function($q) use ($hasDate, $startOfMonth, $selectedDate) {
+            ->withCount(['clientTickets as closed_count' => function($q) use ($hasDate, $startOfMonth, $selectedDate) {
                 $q->where('status', 'CLOSED');
                 if ($hasDate) {
                     $q->whereBetween('created_at', [$startOfMonth, $selectedDate->copy()->endOfDay()]);
                 }
             }])
             ->orderByDesc('closed_count')
-            ->take(5)->get();
+            ->take(5)
+            ->get();
+
+        if ($topAgents->isEmpty()) {
+            $agentsQuery2 = User::query();
+            if ($isDeptFiltered) {
+                $agentsQuery2->where('departemen_id', $selectedDeptId);
+            }
+            $topAgents = $agentsQuery2->whereHas('advisedTickets', function($q) use ($hasDate, $startOfMonth, $selectedDate) {
+                    $q->where('status', 'CLOSED');
+                    if ($hasDate) {
+                        $q->whereBetween('created_at', [$startOfMonth, $selectedDate->copy()->endOfDay()]);
+                    }
+                })
+                ->withCount(['advisedTickets as closed_count' => function($q) use ($hasDate, $startOfMonth, $selectedDate) {
+                    $q->where('status', 'CLOSED');
+                    if ($hasDate) {
+                        $q->whereBetween('created_at', [$startOfMonth, $selectedDate->copy()->endOfDay()]);
+                    }
+                }])
+                ->orderByDesc('closed_count')
+                ->take(5)
+                ->get();
+        }
         $agentLabels = $topAgents->pluck('name')->toArray();
         $agentData = $topAgents->pluck('closed_count')->toArray();
 
         // Top Clients — range tgl 1 s/d tanggal dipilih + carry over open
-        $topClients = User::whereHas('clientTickets', function($q) use ($hasDate, $startOfMonth, $selectedDate) {
+        $clientsQuery = User::query();
+        if ($isDeptFiltered) {
+            $clientsQuery->where('departemen_id', $selectedDeptId);
+        }
+        $topClients = $clientsQuery->whereHas('clientTickets', function($q) use ($hasDate, $startOfMonth, $selectedDate) {
                 if ($hasDate) {
                     $q->where(function($sub) use ($startOfMonth, $selectedDate) {
                         $sub->whereBetween('created_at', [$startOfMonth, $selectedDate->copy()->endOfDay()])
@@ -163,7 +248,8 @@ class HomeController extends Controller
         $clientBarData = $topClients->pluck('ticket_count')->toArray();
 
         // Top Modules — range tgl 1 s/d tanggal dipilih + carry over open
-        $topModules = ModuleSystem::whereHas('tickets', function($q) use ($hasDate, $startOfMonth, $selectedDate) {
+        $topModules = ModuleSystem::whereHas('tickets', function($q) use ($hasDate, $startOfMonth, $selectedDate, $applyDeptFilter) {
+                $applyDeptFilter($q);
                 if ($hasDate) {
                     $q->where(function($sub) use ($startOfMonth, $selectedDate) {
                         $sub->whereBetween('created_at', [$startOfMonth, $selectedDate->copy()->endOfDay()])
@@ -174,7 +260,8 @@ class HomeController extends Controller
                     });
                 }
             })
-            ->withCount(['tickets' => function($q) use ($hasDate, $startOfMonth, $selectedDate) {
+            ->withCount(['tickets' => function($q) use ($hasDate, $startOfMonth, $selectedDate, $applyDeptFilter) {
+                $applyDeptFilter($q);
                 if ($hasDate) {
                     $q->where(function($sub) use ($startOfMonth, $selectedDate) {
                         $sub->whereBetween('created_at', [$startOfMonth, $selectedDate->copy()->endOfDay()])
@@ -190,6 +277,9 @@ class HomeController extends Controller
         $kendalaLabels = $topModules->pluck('name')->toArray();
         $kendalaData = $topModules->pluck('tickets_count')->toArray();
 
+        $currentDepartemen = $isDeptFiltered ? Departemen::find($selectedDeptId) : null;
+        $allDepartemens = Departemen::orderBy('name')->get();
+
         // If AJAX request, return JSON response
         if ($request->ajax() || $request->wantsJson() || $request->has('ajax')) {
             $ticketsHtml = view('partials.dashboard_tickets', compact('all_tickets'))->render();
@@ -198,6 +288,8 @@ class HomeController extends Controller
                 'hasDate' => $hasDate,
                 'date' => $selectedDateRaw,
                 'periodTitle' => $periodTitle,
+                'selectedDeptId' => $selectedDeptId,
+                'departmentName' => $currentDepartemen ? ucfirst($currentDepartemen->name) : 'Semua Departemen',
                 'total_count' => $total_count,
                 'closed_count' => $closed_count,
                 'progress_count' => $progress_count,
@@ -218,7 +310,7 @@ class HomeController extends Controller
         return view('dashboard', compact(
             'open', 'progress', 'closed', 'us', 'open_count', 'progress_count', 'closed_count', 'total_count', 'all_tickets',
             'chartLabels', 'masukData', 'selesaiData', 'agentLabels', 'agentData', 'clientDonutLabels', 'clientDonutData', 'clientBarLabels', 'clientBarData', 'kendalaLabels', 'kendalaData',
-            'hasDate', 'selectedDateRaw', 'selectedDateDisplay', 'periodTitle'
+            'hasDate', 'selectedDateRaw', 'selectedDateDisplay', 'periodTitle', 'selectedDeptId', 'currentDepartemen', 'allDepartemens'
         ));
     }
 

@@ -36,13 +36,38 @@
                         Selamat Datang, {{ Auth::user()->name }}! <span class="text-2xl">👋</span>
                     </h2>
                     <p class="text-blue-200 text-sm mt-1.5 flex items-center gap-1.5 flex-wrap">
-                        <span>Berikut ringkasan data tiket Anda</span>
+                        <span>Berikut ringkasan data tiket</span>
+                        <span id="dept-title-badge" class="font-extrabold text-white bg-white/20 px-2.5 py-0.5 rounded-lg text-xs backdrop-blur-sm border border-white/20">
+                            {{ $currentDepartemen ? 'Departemen ' . ucfirst($currentDepartemen->name) : 'Semua Departemen' }}
+                        </span>
+                        <span>Anda</span>
                         <span id="period-title-badge" class="font-extrabold text-white bg-white/20 px-2 py-0.5 rounded-lg text-xs backdrop-blur-sm border border-white/20">
                             {{ $periodTitle ?? 'Semua Waktu' }}
                         </span>
                     </p>
                 </div>
-                <div class="flex flex-row items-center gap-2 sm:gap-3 w-full lg:w-auto mt-2 lg:mt-0">
+                <div class="flex flex-row items-center gap-2 sm:gap-3 w-full lg:w-auto mt-2 lg:mt-0 flex-wrap">
+
+                    {{-- Departemen Filter / Badge --}}
+                    @if(in_array(Auth::user()->usertype, ['admin', 'supervisor']))
+                    <div class="relative group flex-1 sm:flex-none">
+                        <i class="fa-solid fa-building absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 text-white pointer-events-none text-[10px] sm:text-xs z-10"></i>
+                        <select id="departmentSelect" onchange="onDepartmentChange(this.value)" class="bg-white/15 backdrop-blur-sm text-white border border-white/20 pl-8 sm:pl-10 pr-8 py-2 sm:py-2.5 rounded-xl text-[10px] sm:text-xs font-bold hover:bg-white/25 transition-all cursor-pointer focus:outline-none focus:border-white/40 focus:ring-2 focus:ring-white/20 w-full sm:w-auto appearance-none shadow-xs">
+                            @if(Auth::user()->usertype === 'admin')
+                            <option value="all" class="text-slate-800" {{ $selectedDeptId === 'all' ? 'selected' : '' }}>Semua Departemen</option>
+                            @endif
+                            @foreach($allDepartemens as $dpt)
+                            <option value="{{ $dpt->id }}" class="text-slate-800" {{ $selectedDeptId == $dpt->id ? 'selected' : '' }}>Dept: {{ ucfirst($dpt->name) }}</option>
+                            @endforeach
+                        </select>
+                        <i class="fa-solid fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-white pointer-events-none text-[9px]"></i>
+                    </div>
+                    @else
+                    <div class="bg-white/15 backdrop-blur-sm text-white border border-white/20 px-3.5 py-2 sm:py-2.5 rounded-xl text-[10px] sm:text-xs font-bold flex items-center gap-2 shadow-xs">
+                        <i class="fa-solid fa-building text-blue-200"></i>
+                        <span>Dept: {{ $currentDepartemen ? ucfirst($currentDepartemen->name) : (Auth::user()->departemen ? ucfirst(Auth::user()->departemen->name) : 'Umum') }}</span>
+                    </div>
+                    @endif
 
                     {{-- Datepicker Container --}}
                     <div class="relative group flex-1 sm:flex-none">
@@ -385,6 +410,15 @@
             });
 
             // ── 6. REALTIME FETCH DASHBOARD DATA ──
+            let currentDepartmentId = {!! json_encode($selectedDeptId ?? 'all') !!};
+
+            window.onDepartmentChange = function(deptId) {
+                currentDepartmentId = deptId;
+                const dateInput = document.getElementById('dateRangePicker');
+                const dateStr = dateInput ? dateInput.value : 'all';
+                fetchDashboardData(dateStr);
+            };
+
             function fetchDashboardData(dateStr) {
                 const numbers = document.querySelectorAll('.dashboard-stat-number');
                 numbers.forEach(el => el.classList.add('opacity-40', 'animate-pulse'));
@@ -394,6 +428,12 @@
                     params.set('date', dateStr);
                 } else {
                     params.set('date', 'all');
+                }
+
+                if (currentDepartmentId && currentDepartmentId !== 'all') {
+                    params.set('department_id', currentDepartmentId);
+                } else if (currentDepartmentId === 'all') {
+                    params.set('department_id', 'all');
                 }
 
                 fetch('/dashboard?' + params.toString(), {
@@ -416,6 +456,12 @@
                     if (closedEl) closedEl.textContent = data.closed_count;
                     if (progressEl) progressEl.textContent = data.progress_count;
                     if (openEl) openEl.textContent = data.open_count;
+
+                    // Update Department Badge
+                    const deptBadge = document.getElementById('dept-title-badge');
+                    if (deptBadge && data.departmentName) {
+                        deptBadge.textContent = data.departmentName !== 'Semua Departemen' ? 'Departemen ' + data.departmentName : 'Semua Departemen';
+                    }
 
                     // Update Period Badge
                     const badge = document.getElementById('period-title-badge');
@@ -472,10 +518,12 @@
                         tbody.innerHTML = data.tickets_html;
                     }
 
-
                     // Update URL without page reload
-                    const nextUrl = data.hasDate ? `/dashboard?date=${data.date}` : '/dashboard?date=all';
-                    window.history.pushState({ date: data.date }, '', nextUrl);
+                    const urlParams = new URLSearchParams();
+                    if (data.hasDate) urlParams.set('date', data.date);
+                    if (data.selectedDeptId) urlParams.set('department_id', data.selectedDeptId);
+                    const nextUrl = '/dashboard?' + urlParams.toString();
+                    window.history.pushState({ date: data.date, department_id: data.selectedDeptId }, '', nextUrl);
                 })
                 .catch(err => {
                     console.error('Error updating dashboard data:', err);
@@ -554,6 +602,12 @@
             window.addEventListener('popstate', function(event) {
                 const urlParams = new URLSearchParams(window.location.search);
                 const date = urlParams.get('date') || 'all';
+                const dept = urlParams.get('department_id');
+                if (dept) {
+                    currentDepartmentId = dept;
+                    const deptSelect = document.getElementById('departmentSelect');
+                    if (deptSelect) deptSelect.value = dept;
+                }
                 fetchDashboardData(date);
                 if (fp && date !== 'all') {
                     isProgrammaticDateChange = true;
