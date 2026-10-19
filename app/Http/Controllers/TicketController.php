@@ -306,12 +306,19 @@ class TicketController extends Controller
 
         $updateData = ['status' => $stid];
         
-        // Record closed_at timestamp when ticket is closed
+        // Record closed_at and duration_minutes when ticket is closed
         if ($stid == 'CLOSED') {
-            $updateData['closed_at'] = now();
+            $closedAt = now();
+            $updateData['closed_at'] = $closedAt;
+            $start = $data->handle_at ?? $data->created_at;
+            $updateData['duration_minutes'] = $start ? $closedAt->diffInMinutes(\Carbon\Carbon::parse($start)) : 0;
         } else {
-            // If reopened (OPEN/PROGRESS), reset closed_at
+            // If reopened (OPEN/PROGRESS), reset closed_at and duration_minutes
             $updateData['closed_at'] = null;
+            $updateData['duration_minutes'] = null;
+            if ($stid == 'PROGRESS' && empty($data->handle_at)) {
+                $updateData['handle_at'] = now();
+            }
         }
 
         $data->update($updateData);

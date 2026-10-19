@@ -391,6 +391,16 @@
                                 <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wide mb-1.5">{{ $datarq->closed_at ? 'Closed At' : 'Updated At' }}</p>
                                 <p class="font-bold text-slate-800 text-sm">{{ Carbon::parse($datarq->closed_at ?? $datarq->updated_at)->format('d/m/Y') }}</p>
                             </div>
+
+                            <!-- Row 6: Durasi Pengerjaan -->
+                            <div class="col-span-2 bg-slate-50/80 p-3 rounded-xl border border-slate-200/60 flex items-center justify-between">
+                                <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
+                                    <i class="fa-solid fa-stopwatch text-blue-500"></i> Durasi Pengerjaan:
+                                </span>
+                                <span class="font-bold text-sm {{ $datarq->status == 'CLOSED' ? 'text-emerald-700' : ($datarq->status == 'PROGRESS' ? 'text-amber-700' : 'text-slate-600') }}">
+                                    {{ $datarq->duration_text ?? '-' }}
+                                </span>
+                            </div>
                         </div>
                     </div>
 

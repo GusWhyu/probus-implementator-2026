@@ -13,7 +13,7 @@ class Ticket extends Model
     protected $fillable = [
         'ticket_number', 'title', 'description', 'status', 'priority', 
         'tipe_penanganan', 'user_id', 'client_id', 'advisor_id', 'pending_advisor_id', 'pending_advisor_at', 'takeover_duration_minutes', 'pending_advisor_expires_at', 'module_system_id', 
-        'system', 'due_date', 'closed_at', 'returned_at', 'handle_at', 'link_id'
+        'system', 'due_date', 'closed_at', 'duration_minutes', 'returned_at', 'handle_at', 'link_id'
     ];
 
     protected $casts = [
@@ -23,7 +23,54 @@ class Ticket extends Model
         'pending_advisor_expires_at' => 'datetime',
         'due_date' => 'datetime',
         'closed_at' => 'datetime',
+        'duration_minutes' => 'integer',
     ];
+
+    public function getDurationTextAttribute()
+    {
+        $start = $this->handle_at ?? $this->created_at;
+
+        if (strtoupper($this->status) === 'CLOSED') {
+            if ($this->closed_at && $start) {
+                $startCarbon = \Carbon\Carbon::parse($start);
+                $closedCarbon = \Carbon\Carbon::parse($this->closed_at);
+                $secs = $closedCarbon->diffInSeconds($startCarbon);
+                if ($secs < 60) {
+                    return '< 1 menit';
+                }
+                $mins = $this->duration_minutes !== null ? (int)$this->duration_minutes : (int)round($secs / 60);
+                return self::formatMinutesToText($mins);
+            }
+            if ($this->duration_minutes !== null) {
+                return self::formatMinutesToText((int)$this->duration_minutes);
+            }
+            return '-';
+        }
+
+        if (strtoupper($this->status) === 'PROGRESS') {
+            if ($start) {
+                $secs = now()->diffInSeconds(\Carbon\Carbon::parse($start));
+                if ($secs < 60) {
+                    return '< 1 menit (Berjalan)';
+                }
+                $mins = floor($secs / 60);
+                return self::formatMinutesToText($mins) . ' (Berjalan)';
+            }
+            return 'Sedang diproses';
+        }
+
+        return '-';
+    }
+
+    public static function formatMinutesToText($mins)
+    {
+        $mins = (int)$mins;
+        if ($mins < 1) {
+            return '< 1 menit';
+        }
+
+        return "{$mins} menit";
+    }
 
     public function getTakeoverExpireTimeAttribute()
     {

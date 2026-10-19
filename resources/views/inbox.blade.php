@@ -277,6 +277,18 @@
                                     <div class="text-[9px] font-bold text-slate-400 uppercase mb-0.5 tracking-wider">Updated At</div>
                                     <div class="text-[11px] font-medium text-slate-500">{{ $rq->updated_at ? $rq->updated_at->format('d/m/Y') : '-' }}</div>
                                 </div>
+                                <div class="col-span-2 pt-2 mt-0.5 border-t border-dashed border-slate-200/80 flex items-center justify-between">
+                                    <div class="text-[9px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                                        <i class="fa-solid fa-stopwatch text-amber-500 text-[10px]"></i> Lama Pengerjaan
+                                    </div>
+                                    <div class="text-xs font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200/60 shadow-2xs flex items-center gap-1.5">
+                                        <span class="relative flex h-1.5 w-1.5">
+                                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                                            <span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-amber-500"></span>
+                                        </span>
+                                        {{ $rq->duration_text }}
+                                    </div>
+                                </div>
                             </div>
                         </a>
                         @empty
@@ -339,7 +351,15 @@
                                 </div>
                                 <div>
                                     <div class="text-[9px] font-bold text-slate-400 uppercase mb-0.5 tracking-wider">Closed At</div>
-                                    <div class="text-[11px] font-medium text-slate-500">{{ $rq->updated_at ? $rq->updated_at->format('d/m/Y') : '-' }}</div>
+                                    <div class="text-[11px] font-medium text-slate-500">{{ $rq->closed_at ? \Carbon\Carbon::parse($rq->closed_at)->format('d/m/Y') : ($rq->updated_at ? $rq->updated_at->format('d/m/Y') : '-') }}</div>
+                                </div>
+                                <div class="col-span-2 pt-2 mt-0.5 border-t border-dashed border-slate-200/80 flex items-center justify-between">
+                                    <div class="text-[9px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                                        <i class="fa-solid fa-clock-check text-emerald-500 text-[10px]"></i> Lama Pengerjaan
+                                    </div>
+                                    <div class="text-xs font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-md border border-emerald-200/60 shadow-2xs">
+                                        {{ $rq->duration_text }}
+                                    </div>
                                 </div>
                             </div>
                         </a>

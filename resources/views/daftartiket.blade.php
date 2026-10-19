@@ -151,8 +151,10 @@
                             <th class="py-3 px-3 sm:px-4 text-[10px] font-extrabold text-slate-500 uppercase tracking-widest whitespace-nowrap">No. Tiket</th>
                             <th class="py-3 px-3 sm:px-4 text-[10px] font-extrabold text-slate-500 uppercase tracking-widest">User</th>
                             <th class="py-3 px-3 sm:px-4 text-[10px] font-extrabold text-slate-500 uppercase tracking-widest">Judul</th>
-                            <th class="py-3 px-3 sm:px-4 text-[10px] font-extrabold text-slate-500 uppercase tracking-widest">Deskripsi</th>
-                            <th class="py-3 px-3 sm:px-4 text-[10px] font-extrabold text-slate-500 uppercase tracking-widest whitespace-nowrap">Tipe Penanganan</th>
+                            <th class="py-3 px-3 sm:px-4 text-[10px] font-extrabold text-slate-500 uppercase tracking-widest whitespace-nowrap">Lama Pengerjaan</th>
+                            <th class="py-3 px-3 sm:px-4 text-[10px] font-extrabold text-slate-500 uppercase tracking-widest text-center leading-tight">
+                                Tipe<br>Penanganan
+                            </th>
                             <th class="py-3 px-3 sm:px-4 text-[10px] font-extrabold text-slate-500 uppercase tracking-widest whitespace-nowrap">System</th>
                             <th class="py-3 px-3 sm:px-4 text-[10px] font-extrabold text-slate-500 uppercase tracking-widest whitespace-nowrap">Module</th>
                             <th class="py-3 px-3 sm:px-4 text-[10px] font-extrabold text-slate-500 uppercase tracking-widest text-center whitespace-nowrap">Status</th>
@@ -178,11 +180,34 @@
                                 <td class="py-3 px-3 sm:px-4 align-top">
                                     <div class="text-sm font-bold text-slate-800 leading-snug">{{ $rq->title }}</div>
                                 </td>
-                                <td class="py-3 px-3 sm:px-4 align-top">
-                                    <div class="text-xs text-slate-500 leading-relaxed line-clamp-2">{{ strip_tags($rq->description ?? 'Tidak ada deskripsi') }}</div>
+                                <td class="py-3 px-3 sm:px-4 align-top whitespace-nowrap">
+                                    @if($rq->status == 'CLOSED')
+                                        <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/80 shadow-xs" title="Selesai dalam {{ $rq->duration_text }}">
+                                            <i class="fa-solid fa-clock-check text-[11px] text-emerald-600"></i>
+                                            <span>{{ $rq->duration_text }}</span>
+                                        </div>
+                                    @elseif($rq->status == 'PROGRESS')
+                                        <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200/80 shadow-xs" title="Sedang diproses">
+                                            <span class="relative flex h-2 w-2">
+                                                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                                                <span class="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+                                            </span>
+                                            <span>{{ $rq->duration_text }}</span>
+                                        </div>
+                                    @else
+                                        <div class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold text-slate-400 bg-slate-50 border border-slate-200/60" title="Belum diproses">
+                                            <span>-</span>
+                                        </div>
+                                    @endif
                                 </td>
-                                <td class="py-3 px-3 sm:px-4 align-top">
-                                    <span class="inline-flex items-center px-2 py-1 rounded text-[11px] font-semibold bg-slate-100 text-slate-600 border border-slate-200 whitespace-nowrap">{{ $rq->tipe_penanganan ?? 'N/A' }}</span>
+                                <td class="py-3 px-3 sm:px-4 align-top text-center whitespace-nowrap">
+                                    @if($rq->tipe_penanganan)
+                                        <span class="inline-flex items-center text-[10px] font-bold px-2 py-0.5 rounded-md {{ $rq->tipe_penanganan == 'Remote' ? 'bg-purple-50 text-purple-700 border border-purple-200' : 'bg-sky-50 text-sky-700 border border-sky-200' }}">
+                                            <i class="fa-solid {{ $rq->tipe_penanganan == 'Remote' ? 'fa-laptop-code' : 'fa-building-user' }} text-[9px] mr-1"></i>{{ $rq->tipe_penanganan }}
+                                        </span>
+                                    @else
+                                        <span class="text-slate-400 text-xs">-</span>
+                                    @endif
                                 </td>
                                 <td class="py-3 px-3 sm:px-4 align-top">
                                     <span class="inline-flex items-center px-2 py-1 rounded text-[11px] font-semibold bg-slate-100 text-slate-600 border border-slate-200 whitespace-nowrap">{{ $rq->kategoriSystem->name ?? 'N/A' }}</span>
@@ -251,7 +276,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="9" class="py-12 text-center">
+                                <td colspan="10" class="py-12 text-center">
                                     <div class="flex flex-col items-center">
                                         <div class="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-4">
                                             <i class="fa-solid fa-inbox text-slate-300 text-3xl"></i>
@@ -401,8 +426,11 @@
                                 <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5 flex items-center gap-1">
                                     <i class="fa-regular fa-circle-check text-emerald-500 text-[10px]"></i> Selesai
                                 </div>
-                                <div class="text-emerald-700 font-semibold text-xs">
-                                    {{ $rq->closed_at ? \Carbon\Carbon::parse($rq->closed_at)->format('d/m/Y') : ($rq->updated_at ? $rq->updated_at->format('d/m/Y') : '-') }}
+                                <div class="text-emerald-700 font-semibold text-xs flex items-center flex-wrap gap-1">
+                                    <span>{{ $rq->closed_at ? \Carbon\Carbon::parse($rq->closed_at)->format('d/m/Y') : ($rq->updated_at ? $rq->updated_at->format('d/m/Y') : '-') }}</span>
+                                    @if($rq->duration_text && $rq->duration_text !== '-')
+                                        <span class="text-[10px] text-emerald-600 font-bold bg-emerald-50 px-1 rounded border border-emerald-200/60" title="Durasi pengerjaan: {{ $rq->duration_text }}">({{ $rq->duration_text }})</span>
+                                    @endif
                                 </div>
                             @else
                                 <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5 flex items-center gap-1">
