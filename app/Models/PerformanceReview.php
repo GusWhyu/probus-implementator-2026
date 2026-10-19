@@ -21,6 +21,7 @@ class PerformanceReview extends Model
         'performance_score',
         'review_score',
         'total_ticket',
+        'lama_waktu',
         'rata_rata_waktu',
         'total_ticket_yang_di_advice',
         'status',

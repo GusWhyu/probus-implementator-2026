@@ -186,17 +186,27 @@
                     <span style="color: #2563eb; font-size: 11px;">&#9656;</span> Detail Ticket
                 </div>
 
-                <table style="width: 100%; font-size: 9.5px;">
+                <table style="width: 100%; font-size: 9px;">
+                    <tr style="color: #64748b; font-weight: bold; border-bottom: 1.5px solid #cbd5e1;">
+                        <td style="padding: 3px 0; width: 24%;">Modul</td>
+                        <td style="text-align: center; width: 12%;">Beban</td>
+                        <td style="text-align: center; width: 16%;">Total Ticket</td>
+                        <td style="text-align: center; width: 16%;">Lama Waktu</td>
+                        <td style="text-align: center; width: 16%;">Rata-rata Waktu</td>
+                        <td style="text-align: right; width: 16%;">Rata-rata Skor</td>
+                    </tr>
                     @forelse($rapor && $rapor->moduleDetails ? $rapor->moduleDetails : [] as $md)
                     <tr>
-                        <td style="color: #1e293b; font-weight: bold; padding: 3px 0; width: 28%; border-bottom: 1px solid #f1f5f9;">{{ optional($md->moduleSystem)->name ?? ('Modul #' . $md->module_id) }}</td>
-                        <td style="color: #64748b; width: 24%; padding: 3px 0; border-bottom: 1px solid #f1f5f9;">Beban: {{ $md->bobot }}</td>
-                        <td style="color: #64748b; width: 26%; padding: 3px 0; border-bottom: 1px solid #f1f5f9;">Jumlah Ticket: {{ $md->total_ticket }}</td>
-                        <td style="text-align: right; color: #475569; width: 22%; padding: 3px 0; border-bottom: 1px solid #f1f5f9;">Nilai Akhir: {{ number_format($md->score, 0, ',', '.') }}</td>
+                        <td style="color: #1e293b; font-weight: bold; padding: 3px 0; border-bottom: 1px solid #f1f5f9;">{{ optional($md->moduleSystem)->name ?? ('Modul #' . $md->module_id) }}</td>
+                        <td style="text-align: center; color: #64748b; padding: 3px 0; border-bottom: 1px solid #f1f5f9;">{{ $md->bobot }}</td>
+                        <td style="text-align: center; color: #0f172a; font-weight: bold; padding: 3px 0; border-bottom: 1px solid #f1f5f9;">{{ $md->total_ticket }}</td>
+                        <td style="text-align: center; color: #64748b; padding: 3px 0; border-bottom: 1px solid #f1f5f9;">{{ $md->lama_waktu ?: ($md->rata_rata_waktu ?: '-') }}</td>
+                        <td style="text-align: center; color: #64748b; padding: 3px 0; border-bottom: 1px solid #f1f5f9;">{{ $md->rata_rata_waktu ?? '-' }}</td>
+                        <td style="text-align: right; color: #2563eb; font-weight: bold; padding: 3px 0; border-bottom: 1px solid #f1f5f9;">{{ number_format($md->score, 0, ',', '.') }}</td>
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="4" style="text-align: center; color: #94a3b8; padding: 8px 0; font-style: italic;">Belum ada detail modul tiket.</td>
+                        <td colspan="6" style="text-align: center; color: #94a3b8; padding: 8px 0; font-style: italic;">Belum ada detail modul tiket.</td>
                     </tr>
                     @endforelse
                 </table>
@@ -205,12 +215,14 @@
                 <div style="border-top: 2.5px solid #2563eb; margin: 4px 0 3px 0;"></div>
 
                 {{-- Total Row --}}
-                <table style="width: 100%; font-size: 10px; font-weight: bold;">
+                <table style="width: 100%; font-size: 9.5px; font-weight: bold;">
                     <tr>
-                        <td style="color: #0f172a; width: 28%; padding: 2px 0;">Total</td>
-                        <td style="color: #334155; width: 24%; padding: 2px 0;">Beban: {{ $total_bobot ?? ($rapor && $rapor->moduleDetails ? $rapor->moduleDetails->sum('bobot') : 0) }}</td>
-                        <td style="color: #334155; width: 26%; padding: 2px 0;">Jumlah Ticket: {{ $total_qty ?? ($rapor && $rapor->moduleDetails ? $rapor->moduleDetails->sum('total_ticket') : 0) }}</td>
-                        <td style="text-align: right; color: #2563eb; width: 22%; padding: 2px 0;">Nilai Akhir: {{ number_format($rapor->raw_ticket_score ?? 0, 0, ',', '.') }}</td>
+                        <td style="color: #0f172a; width: 24%; padding: 2px 0;">Total</td>
+                        <td style="text-align: center; color: #334155; width: 12%; padding: 2px 0;">Beban: {{ $total_bobot ?? ($rapor && $rapor->moduleDetails ? $rapor->moduleDetails->sum('bobot') : 0) }}</td>
+                        <td style="text-align: center; color: #2563eb; width: 16%; padding: 2px 0;">Jumlah: {{ $total_qty ?? ($rapor && $rapor->moduleDetails ? $rapor->moduleDetails->sum('total_ticket') : 0) }}</td>
+                        <td style="text-align: center; color: #334155; width: 16%; padding: 2px 0;">{{ $rapor->lama_waktu ?: ($rapor->rata_rata_waktu ?: '-') }}</td>
+                        <td style="text-align: center; color: #334155; width: 16%; padding: 2px 0;">{{ $rapor->rata_rata_waktu ?? '-' }}</td>
+                        <td style="text-align: right; color: #2563eb; width: 16%; padding: 2px 0;">Skor: {{ number_format($rapor->raw_ticket_score ?? 0, 0, ',', '.') }}</td>
                     </tr>
                 </table>
 
@@ -222,31 +234,65 @@
             </div>
 
             {{-- ============================================= --}}
-            {{-- ROW 3: Penilaian Soft Skill                   --}}
+            {{-- ROW 3: Penilaian Soft Skill (10 Kriteria)     --}}
             {{-- ============================================= --}}
-            <div style="background: #ffffff; border: 1.2px solid #e2e8f0; border-radius: 10px; padding: 9px 12px; margin-bottom: 8px;">
+            <div style="background: #ffffff; border: 1.2px solid #e2e8f0; border-radius: 10px; padding: 8px 12px; margin-bottom: 8px;">
                 <div style="font-size: 11px; font-weight: bold; color: #0f172a; margin-bottom: 5px;">
                     <span style="color: #2563eb; font-size: 11px;">&#9656;</span> Penilaian Soft Skill
                 </div>
                 @php
-                    $softSkills = [
-                        'Produktivitas / Jumlah Tiket' => min(5, max(1, round(($rapor->module_score ?? 80) / 20))),
-                        'Kualitas Solving' => min(5, max(1, round(($rapor->performance_score ?? 80) / 20))),
-                        'Kecepatan Respon / Proses' => min(5, max(1, round(($rapor->performance_score ?? 80) / 20))),
-                        'Sikap CS' => min(5, max(1, round(($rapor->performance_score ?? 80) / 20))),
-                        'Kepuasan Pelanggan' => min(5, max(1, round(($rapor->review_score ?? 80) / 20))),
-                    ];
+                    $catScores = [];
+                    if ($rapor && $rapor->details) {
+                        foreach ($rapor->details as $d) {
+                            if ($d->category) {
+                                $catScores[$d->category->name] = (float)$d->score;
+                                $catScores[$d->performance_category_id] = (float)$d->score;
+                            }
+                        }
+                    }
+                    $allPdfCats = $categories ?? \App\Models\PerformanceCategory::orderBy('id')->get();
+                    $half = (int)ceil($allPdfCats->count() / 2);
+                    $leftCats = $allPdfCats->slice(0, $half);
+                    $rightCats = $allPdfCats->slice($half);
                 @endphp
-                <table style="width: 100%; font-size: 9.5px;">
-                    @foreach($softSkills as $skillLabel => $skillScore)
+                <table style="width: 100%; border-collapse: collapse; font-size: 9px;">
                     <tr>
-                        <td style="color: #1e293b; padding: 3px 0;">{{ $skillLabel }}</td>
-                        <td style="text-align: right; width: 60px; padding: 3px 0;">
-                            <span style="font-weight: bold; color: #0f172a; font-size: 11px;">{{ $skillScore }}</span>
-                            <span style="color: #94a3b8; font-size: 9px;"> / 5</span>
+                        <td style="width: 48%; vertical-align: top; padding: 0;">
+                            <table style="width: 100%; border-collapse: collapse;">
+                                @foreach($leftCats as $cat)
+                                @php
+                                    $score = isset($catScores[$cat->id]) ? $catScores[$cat->id] : (isset($catScores[$cat->name]) ? $catScores[$cat->name] : (float)($rapor->performance_score ?? 0));
+                                    $scale5 = round($score / 20, 1);
+                                @endphp
+                                <tr>
+                                    <td style="color: #1e293b; padding: 2px 0;">{{ $cat->name }}</td>
+                                    <td style="text-align: right; width: 45px; padding: 2px 0;">
+                                        <span style="font-weight: bold; color: #0f172a; font-size: 10px;">{{ $scale5 }}</span>
+                                        <span style="color: #94a3b8; font-size: 8px;"> / 5</span>
+                                    </td>
+                                </tr>
+                                @endforeach
+                            </table>
+                        </td>
+                        <td style="width: 4%; padding: 0;"></td>
+                        <td style="width: 48%; vertical-align: top; padding: 0;">
+                            <table style="width: 100%; border-collapse: collapse;">
+                                @foreach($rightCats as $cat)
+                                @php
+                                    $score = isset($catScores[$cat->id]) ? $catScores[$cat->id] : (isset($catScores[$cat->name]) ? $catScores[$cat->name] : (float)($rapor->performance_score ?? 0));
+                                    $scale5 = round($score / 20, 1);
+                                @endphp
+                                <tr>
+                                    <td style="color: #1e293b; padding: 2px 0;">{{ $cat->name }}</td>
+                                    <td style="text-align: right; width: 45px; padding: 2px 0;">
+                                        <span style="font-weight: bold; color: #0f172a; font-size: 10px;">{{ $scale5 }}</span>
+                                        <span style="color: #94a3b8; font-size: 8px;"> / 5</span>
+                                    </td>
+                                </tr>
+                                @endforeach
+                            </table>
                         </td>
                     </tr>
-                    @endforeach
                 </table>
             </div>
 

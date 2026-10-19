@@ -41,6 +41,18 @@
                 </div>
             </div>
 
+            @if(session('success'))
+            <div class="mb-6 p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs sm:text-sm font-semibold flex items-center justify-between shadow-xs">
+                <div class="flex items-center gap-2.5">
+                    <i class="fa-solid fa-circle-check text-emerald-500 text-base"></i>
+                    <span>{{ session('success') }}</span>
+                </div>
+                <button type="button" onclick="this.parentElement.remove()" class="text-emerald-500 hover:text-emerald-700 text-xs">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            @endif
+
             <!-- Stats Cards -->
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
                 <!-- Total CS -->
@@ -60,7 +72,7 @@
                         <i class="fa-solid fa-circle-check text-lg"></i>
                     </div>
                     <div class="flex-1">
-                        <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Sudah Dinilai</p>
+                        <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Sudah Dinilai (Final)</p>
                         <div class="flex items-end justify-between">
                             <h3 class="text-3xl font-extrabold text-slate-800 leading-none">{{ $sudahDinilai ?? 0 }}</h3>
                             <span class="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
@@ -104,7 +116,9 @@
             </div>
 
             <!-- Top 3 CS Spotlight Section -->
-            @if(!empty($topCS['best_performance']) || !empty($topCS['clients_favorite']) || !empty($topCS['best_team_player']))
+            @php
+                $hasTopCS = !empty($topCS['best_performance']) || !empty($topCS['clients_favorite']) || !empty($topCS['best_team_player']);
+            @endphp
             <div class="mb-8">
                 <div class="flex items-center justify-between mb-4">
                     <div class="flex items-center gap-2.5">
@@ -121,6 +135,7 @@
                     </div>
                 </div>
 
+                @if($hasTopCS)
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
                     
                     {{-- 1. BEST PERFORMANCE (Gold) --}}
@@ -166,7 +181,7 @@
                                 </div>
 
                                 <!-- Key Metric Highlight Box -->
-                                <div class="bg-amber-50/70 border border-amber-200/60 rounded-xl p-3 text-center">
+                                <div class="bg-amber-50/70 border border-amber-200/60 rounded-xl p-3 text-center mb-3">
                                     <div class="text-2xl font-black text-amber-700 leading-none mb-1">
                                         {{ number_format($bp['total_score'], 1) }}
                                         <span class="text-xs font-bold text-amber-500">/ 100</span>
@@ -176,6 +191,29 @@
                                         {{ $bp['handled_count'] }} tiket ditangani ({{ $bp['closed_count'] }} selesai)
                                     </div>
                                 </div>
+                            </div>
+
+                            <!-- Tombol Download Kartu Achievement HD (Poin 12) -->
+                            <div class="pt-2 border-t border-slate-100">
+                                <button type="button" 
+                                    onclick="downloadAchievementCard({
+                                        name: '{{ addslashes($bpUser->name) }}',
+                                        role: '{{ addslashes($bpUser->usertype ?? 'Customer Support Specialist') }}',
+                                        category: 'BEST PERFORMANCE',
+                                        title: 'Juara 1 - Top Performer Customer Support of the Month',
+                                        period: '{{ \Carbon\Carbon::createFromDate($year, $month, 1)->locale('id')->translatedFormat('F Y') }}',
+                                        avatar: '{{ $avatarBp }}',
+                                        theme: 'gold',
+                                        metrics: [
+                                            { label: 'Skor Kinerja', value: '{{ number_format($bp['total_score'], 1) }} / 100' },
+                                            { label: 'Tiket Ditangani', value: '{{ $bp['handled_count'] }} Tiket' },
+                                            { label: 'Tiket Selesai', value: '{{ $bp['closed_count'] }} Tiket' }
+                                        ]
+                                    })" 
+                                    class="w-full py-2 px-3 bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs rounded-xl shadow-xs transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-98">
+                                    <i class="fa-solid fa-download"></i>
+                                    <span>Download Kartu Achievement (HD)</span>
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -224,7 +262,7 @@
                                 </div>
 
                                 <!-- Key Metric Highlight Box -->
-                                <div class="bg-rose-50/70 border border-rose-200/60 rounded-xl p-3 text-center">
+                                <div class="bg-rose-50/70 border border-rose-200/60 rounded-xl p-3 text-center mb-3">
                                     <div class="text-2xl font-black text-rose-700 leading-none mb-1 flex items-center justify-center gap-1.5">
                                         <i class="fa-solid fa-star text-amber-400 text-lg"></i>
                                         <span>{{ number_format($cf['client_rating'], 1) }}</span>
@@ -235,6 +273,29 @@
                                         Skor CSAT: {{ number_format($cf['client_score'], 0) }}% Kepuasan
                                     </div>
                                 </div>
+                            </div>
+
+                            <!-- Tombol Download Kartu Achievement HD (Poin 12) -->
+                            <div class="pt-2 border-t border-slate-100">
+                                <button type="button" 
+                                    onclick="downloadAchievementCard({
+                                        name: '{{ addslashes($cfUser->name) }}',
+                                        role: '{{ addslashes($cfUser->usertype ?? 'Customer Support Specialist') }}',
+                                        category: 'CLIENT\'S FAVORITE',
+                                        title: 'Pilihan Pelanggan - Customer Satisfaction Champion',
+                                        period: '{{ \Carbon\Carbon::createFromDate($year, $month, 1)->locale('id')->translatedFormat('F Y') }}',
+                                        avatar: '{{ $avatarCf }}',
+                                        theme: 'rose',
+                                        metrics: [
+                                            { label: 'Rating Klien', value: '{{ number_format($cf['client_rating'], 1) }} / 5.0' },
+                                            { label: 'Kepuasan CSAT', value: '{{ number_format($cf['client_score'], 0) }}%' },
+                                            { label: 'Tiket Selesai', value: '{{ $cf['closed_count'] }} Tiket' }
+                                        ]
+                                    })" 
+                                    class="w-full py-2 px-3 bg-rose-500 hover:bg-rose-600 text-white font-bold text-xs rounded-xl shadow-xs transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-98">
+                                    <i class="fa-solid fa-download"></i>
+                                    <span>Download Kartu Achievement (HD)</span>
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -283,7 +344,7 @@
                                 </div>
 
                                 <!-- Key Metric Highlight Box -->
-                                <div class="bg-indigo-50/70 border border-indigo-200/60 rounded-xl p-3 text-center">
+                                <div class="bg-indigo-50/70 border border-indigo-200/60 rounded-xl p-3 text-center mb-3">
                                     <div class="text-2xl font-black text-indigo-700 leading-none mb-1">
                                         {{ $tp['advice_count'] }}
                                         <span class="text-xs font-bold text-indigo-500">Tiket</span>
@@ -294,46 +355,98 @@
                                     </div>
                                 </div>
                             </div>
+
+                            <!-- Tombol Download Kartu Achievement HD (Poin 12) -->
+                            <div class="pt-2 border-t border-slate-100">
+                                <button type="button" 
+                                    onclick="downloadAchievementCard({
+                                        name: '{{ addslashes($tpUser->name) }}',
+                                        role: '{{ addslashes($tpUser->usertype ?? 'Customer Support Specialist') }}',
+                                        category: 'BEST TEAM PLAYER',
+                                        title: 'Kolaborasi Terbaik - Team Player & Support Champion',
+                                        period: '{{ \Carbon\Carbon::createFromDate($year, $month, 1)->locale('id')->translatedFormat('F Y') }}',
+                                        avatar: '{{ $avatarTp }}',
+                                        theme: 'indigo',
+                                        metrics: [
+                                            { label: 'Tiket Didampingi', value: '{{ $tp['advice_count'] }} Tiket' },
+                                            { label: 'Poin Kolaborasi', value: '{{ $tp['team_player_score'] }} Poin' },
+                                            { label: 'Tiket Selesai', value: '{{ $tp['closed_count'] }} Tiket' }
+                                        ]
+                                    })" 
+                                    class="w-full py-2 px-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow-xs transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-98">
+                                    <i class="fa-solid fa-download"></i>
+                                    <span>Download Kartu Achievement (HD)</span>
+                                </button>
+                            </div>
                         </div>
                     </div>
                     @endif
 
                 </div>
-            </div>
-            @endif
-
-            <!-- Filters & Search Row -->
-            <form action="{{ route('laporan') }}" method="GET" class="flex flex-col sm:flex-row gap-4 mb-6">
-                <input type="hidden" name="period" value="{{ sprintf('%04d-%02d', $year, $month) }}">
-                <!-- Search -->
-                <div class="relative flex-1">
-                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                        <i class="fa-solid fa-magnifying-glass text-slate-400"></i>
+                @else
+                <div class="bg-white rounded-2xl border border-dashed border-slate-300 p-8 sm:p-10 text-center shadow-xs">
+                    <div class="w-14 h-14 rounded-2xl bg-amber-50 border border-amber-200 text-amber-500 flex items-center justify-center mx-auto mb-3.5 text-xl shadow-xs">
+                        <i class="fa-solid fa-trophy"></i>
                     </div>
-                    <input type="text" name="search" value="{{ request('search') }}" class="w-full pl-11 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium text-slate-700 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all shadow-sm" placeholder="Cari nama CS atau email...">
+                    <h3 class="text-sm sm:text-base font-extrabold text-slate-800 mb-1">Top 3 CS Belum Tersedia (Kosong)</h3>
+                    <p class="text-xs text-slate-500 max-w-lg mx-auto leading-relaxed">
+                        Data Top 3 CS masih kosong karena belum seluruh Customer Support selesai dinilai.<br>
+                        Saat ini baru <span class="font-extrabold text-slate-800">{{ $sudahDinilai }}</span> dari <span class="font-extrabold text-slate-800">{{ $totalCS }}</span> CS yang sudah selesai dinilai (<span class="font-extrabold text-amber-600">{{ $belumDinilai }}</span> CS belum dinilai).
+                    </p>
+                    <div class="mt-4 inline-flex items-center gap-2 text-xs font-bold text-amber-800 bg-amber-50 border border-amber-200 px-3.5 py-1.5 rounded-xl">
+                        <i class="fa-solid fa-circle-info text-amber-600"></i>
+                        <span>Selesaikan penilaian seluruh CS untuk mengaktifkan penghargaan Top 3 CS</span>
+                    </div>
                 </div>
-
-                <!-- Status Filter -->
-                <div class="relative sm:w-56">
-                    <select name="status" onchange="this.form.submit()" class="w-full appearance-none pl-4 pr-10 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-semibold text-slate-700 hover:border-slate-300 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all shadow-sm cursor-pointer">
-                        <option value="">Semua Status</option>
-                        <option value="dinilai" {{ request('status') == 'dinilai' ? 'selected' : '' }}>Sudah Dinilai</option>
-                        <option value="belum" {{ request('status') == 'belum' ? 'selected' : '' }}>Belum Dinilai</option>
-                    </select>
-                    <i class="fa-solid fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-xs text-slate-400 pointer-events-none"></i>
-                </div>
-
-                @if(request('search') || request('status'))
-                <a href="{{ route('laporan', ['period' => sprintf('%04d-%02d', $year, $month)]) }}" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-sm font-bold flex items-center justify-center gap-1.5 transition-colors shadow-sm">
-                    <i class="fa-solid fa-rotate-left text-xs"></i> Reset
-                </a>
                 @endif
-            </form>
+            </div>
+
+            <!-- Filters, Search & Bulk Process Action Row (Poin 13) -->
+            <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 mb-6">
+                <form action="{{ route('laporan') }}" method="GET" class="flex flex-col sm:flex-row gap-4 flex-1">
+                    <input type="hidden" name="period" value="{{ sprintf('%04d-%02d', $year, $month) }}">
+                    <!-- Search -->
+                    <div class="relative flex-1">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                            <i class="fa-solid fa-magnifying-glass text-slate-400"></i>
+                        </div>
+                        <input type="text" name="search" value="{{ request('search') }}" class="w-full pl-11 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium text-slate-700 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all shadow-sm" placeholder="Cari nama CS atau email...">
+                    </div>
+
+                    <!-- Status Filter -->
+                    <div class="relative sm:w-56">
+                        <select name="status" onchange="this.form.submit()" class="w-full appearance-none pl-4 pr-10 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-semibold text-slate-700 hover:border-slate-300 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all shadow-sm cursor-pointer">
+                            <option value="">Semua Status</option>
+                            <option value="dinilai" {{ request('status') == 'dinilai' ? 'selected' : '' }}>Sudah Dinilai (Final)</option>
+                            <option value="belum" {{ request('status') == 'belum' ? 'selected' : '' }}>Belum Dinilai</option>
+                        </select>
+                        <i class="fa-solid fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-xs text-slate-400 pointer-events-none"></i>
+                    </div>
+
+                    @if(request('search') || request('status'))
+                    <a href="{{ route('laporan', ['period' => sprintf('%04d-%02d', $year, $month)]) }}" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-sm font-bold flex items-center justify-center gap-1.5 transition-colors shadow-sm">
+                        <i class="fa-solid fa-rotate-left text-xs"></i> Reset
+                    </a>
+                    @endif
+                </form>
+
+                <!-- Tombol Proses Semua Nilai (Poin 13) -->
+                <form action="{{ route('laporan.proses_semua') }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin memproses (menghitung total dan agregat modul) seluruh CS untuk periode {{ \Carbon\Carbon::createFromDate($year, $month, 1)->locale('id')->translatedFormat('F Y') }}?');">
+                    @csrf
+                    <input type="hidden" name="month" value="{{ $month }}">
+                    <input type="hidden" name="year" value="{{ $year }}">
+                    <input type="hidden" name="period" value="{{ sprintf('%04d-%02d', $year, $month) }}">
+                    <button type="submit" class="w-full sm:w-auto px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all shadow-sm shadow-blue-500/20 active:scale-95 cursor-pointer whitespace-nowrap" title="Hitung agregat tiket seluruh CS periode ini sekaligus">
+                        <i class="fa-solid fa-bolt text-amber-300"></i>
+                        <span>Proses Semua Nilai</span>
+                    </button>
+                </form>
+            </div>
 
             <!-- Main Table Card -->
             <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden mb-6">
                 <div class="overflow-x-auto custom-scrollbar">
-                    <table class="w-full text-left border-collapse min-w-[700px]">
+                    <table class="w-full text-left border-collapse min-w-[760px]">
                         <thead>
                             <tr class="bg-slate-50/80 border-b border-slate-200">
                                 <th class="py-4 px-6 text-[11px] font-bold text-slate-400 uppercase tracking-wider w-16">No</th>
@@ -349,8 +462,9 @@
                             @forelse($users as $index => $u)
                             @php 
                                 $isFemale = in_array(strtolower(trim($u->name)), ['dyah kusuma', 'dewi', 'siti rahma', 'dewi anggraini', 'rina wulandari', 'ayu lestari']); 
-                                $isAssessed = $u->performanceReviews->count() > 0;
-                                $penilaian = $isAssessed ? $u->performanceReviews->first() : null;
+                                $penilaian = $u->performanceReviews->first();
+                                $isFinal = $penilaian && strtoupper($penilaian->status) === 'FINAL';
+                                $isDraft = $penilaian && strtoupper($penilaian->status) === 'DRAFT';
                             @endphp
                             <tr class="hover:bg-blue-50/30 transition-colors">
                                 <td class="py-4 px-6 text-sm font-medium text-slate-400">{{ $index + 1 }}</td>
@@ -367,9 +481,9 @@
                                         </div>
                                     </div>
                                 </td>
-                                <td class="py-4 px-6 text-sm font-medium {{ $isAssessed ? 'text-slate-600' : 'text-slate-400' }}">{{ \Carbon\Carbon::createFromDate($year, $month, 1)->translatedFormat('M Y') }}</td>
-                                <td class="py-4 px-6 text-sm font-bold {{ $isAssessed ? 'text-slate-800' : 'text-slate-400' }}">
-                                    @if($isAssessed)
+                                <td class="py-4 px-6 text-sm font-medium {{ $penilaian ? 'text-slate-600' : 'text-slate-400' }}">{{ \Carbon\Carbon::createFromDate($year, $month, 1)->translatedFormat('M Y') }}</td>
+                                <td class="py-4 px-6 text-sm font-bold {{ $penilaian ? 'text-slate-800' : 'text-slate-400' }}">
+                                    @if($isFinal)
                                         <div class="flex items-center gap-2">
                                             <span class="text-blue-600 font-extrabold text-base">{{ $penilaian->total_score }}</span>
                                             <span class="text-xs text-slate-400 font-semibold">/ 100</span>
@@ -377,32 +491,61 @@
                                                 {{ $penilaian->total_score >= 80 ? 'Sangat Baik' : ($penilaian->total_score >= 70 ? 'Baik' : 'Cukup') }}
                                             </span>
                                         </div>
+                                    @elseif($isDraft)
+                                        <div class="flex items-center gap-1.5 text-xs font-semibold">
+                                            <span class="text-indigo-600 font-bold font-mono">Tiket: {{ $penilaian->module_score ?? 0 }}</span>
+                                            <span class="text-slate-300">|</span>
+                                            <span class="text-[10px] font-bold bg-amber-100 text-amber-800 px-2 py-0.5 rounded-md">Draft Soft Skill</span>
+                                        </div>
                                     @else
                                         <span class="text-slate-300 font-medium">&ndash;</span>
                                     @endif
                                 </td>
                                 <td class="py-4 px-6">
-                                    @if($isAssessed)
+                                    @if($isFinal)
                                         <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                                            <i class="fa-solid fa-circle-check text-[10px] text-emerald-500"></i> Sudah Dinilai
+                                            <i class="fa-solid fa-circle-check text-[10px] text-emerald-500"></i> Sudah Dinilai (Final)
+                                        </span>
+                                    @elseif($isDraft)
+                                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                                            <i class="fa-solid fa-file-pen text-[10px] text-amber-500"></i> Terproses (Draft)
                                         </span>
                                     @else
-                                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
-                                            <i class="fa-solid fa-clock text-[10px] text-amber-500"></i> Belum Dinilai
+                                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-slate-100 text-slate-500 border border-slate-200">
+                                            <i class="fa-solid fa-clock text-[10px] text-slate-400"></i> Belum Diproses
                                         </span>
                                     @endif
                                 </td>
                                 <td class="py-4 px-6">
                                     <div class="flex items-center gap-2">
-                                        @if($isAssessed)
-                                            <a href="{{ route('rapor', ['id' => $u->id, 'month' => $month, 'year' => $year]) }}" class="px-4 py-1.5 text-xs font-bold text-blue-600 border border-blue-200 rounded-lg hover:bg-blue-50 transition-colors bg-white">Lihat Rapor</a>
-                                            <a href="{{ route('penilaian', ['id' => $u->id, 'month' => $month, 'year' => $year]) }}" class="px-3 py-1.5 text-xs font-semibold text-slate-500 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors bg-white" title="Nilai Ulang">
+                                        @if($isFinal)
+                                            <a href="{{ route('rapor', ['id' => $u->id, 'month' => $month, 'year' => $year, 'period' => sprintf('%04d-%02d', $year, $month)]) }}" class="px-3.5 py-1.5 text-xs font-bold text-blue-600 border border-blue-200 rounded-lg hover:bg-blue-50 transition-colors bg-white">Lihat Rapor</a>
+                                            <a href="{{ route('penilaian', ['id' => $u->id, 'month' => $month, 'year' => $year]) }}" class="px-2.5 py-1.5 text-xs font-semibold text-slate-500 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors bg-white" title="Edit Nilai">
                                                 <i class="fa-solid fa-pencil"></i>
                                             </a>
-                                        @else
-                                            <a href="{{ route('penilaian', ['id' => $u->id, 'month' => $month, 'year' => $year]) }}" class="px-5 py-1.5 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-sm shadow-blue-500/25 transition-all active:scale-95 flex items-center gap-1.5">
+                                        @elseif($isDraft)
+                                            <!-- Tombol Nilai untuk mengisi soft skill CS yang sudah di-sum -->
+                                            <a href="{{ route('penilaian', ['id' => $u->id, 'month' => $month, 'year' => $year]) }}" class="px-4 py-1.5 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-sm shadow-blue-500/25 transition-all active:scale-95 flex items-center gap-1.5 cursor-pointer" title="Lengkapi Evaluasi Soft Skill">
                                                 <i class="fa-solid fa-star text-[10px]"></i> Nilai
                                             </a>
+                                            <form action="{{ route('laporan.proses_nilai', $u->id) }}" method="POST" class="inline">
+                                                @csrf
+                                                <input type="hidden" name="month" value="{{ $month }}">
+                                                <input type="hidden" name="year" value="{{ $year }}">
+                                                <button type="submit" class="px-2.5 py-1.5 text-xs font-semibold text-slate-500 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors bg-white cursor-pointer" title="Hitung Ulang Tiket CS">
+                                                    <i class="fa-solid fa-arrows-rotate text-[11px]"></i>
+                                                </button>
+                                            </form>
+                                        @else
+                                            <!-- Tombol Proses Nilai untuk CS yang belum di-sum (Poin 13) -->
+                                            <form action="{{ route('laporan.proses_nilai', $u->id) }}" method="POST">
+                                                @csrf
+                                                <input type="hidden" name="month" value="{{ $month }}">
+                                                <input type="hidden" name="year" value="{{ $year }}">
+                                                <button type="submit" class="px-4 py-1.5 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow-sm shadow-indigo-500/25 transition-all active:scale-95 flex items-center gap-1.5 cursor-pointer" title="Proses dan hitung agregat tiket CS">
+                                                    <i class="fa-solid fa-calculator text-[10px]"></i> Proses Nilai
+                                                </button>
+                                            </form>
                                         @endif
                                     </div>
                                 </td>
@@ -426,8 +569,200 @@
             </div>
         </div>
     </div>
+
+    <!-- Script HTML5 Canvas Generator untuk Download Kartu Achievement HD (Poin 12) -->
+    <script>
+    function downloadAchievementCard(data) {
+        const canvas = document.createElement('canvas');
+        canvas.width = 1200;
+        canvas.height = 800;
+        const ctx = canvas.getContext('2d');
+
+        // 1. Background Gradient
+        const bgGrad = ctx.createLinearGradient(0, 0, 1200, 800);
+        if (data.theme === 'gold') {
+            bgGrad.addColorStop(0, '#0f172a');
+            bgGrad.addColorStop(0.5, '#1e293b');
+            bgGrad.addColorStop(1, '#0f172a');
+        } else if (data.theme === 'rose') {
+            bgGrad.addColorStop(0, '#1c1917');
+            bgGrad.addColorStop(0.5, '#292524');
+            bgGrad.addColorStop(1, '#0c0a09');
+        } else {
+            bgGrad.addColorStop(0, '#0f172a');
+            bgGrad.addColorStop(0.5, '#1e1b4b');
+            bgGrad.addColorStop(1, '#0f172a');
+        }
+        ctx.fillStyle = bgGrad;
+        ctx.fillRect(0, 0, 1200, 800);
+
+        // Decorative background circles
+        ctx.save();
+        ctx.strokeStyle = data.theme === 'gold' ? 'rgba(245, 158, 11, 0.15)' : (data.theme === 'rose' ? 'rgba(244, 63, 94, 0.15)' : 'rgba(99, 102, 241, 0.15)');
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(1100, 100, 260, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(100, 700, 220, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
+
+        // Outer Card Border
+        ctx.strokeStyle = data.theme === 'gold' ? '#f59e0b' : (data.theme === 'rose' ? '#fb7185' : '#818cf8');
+        ctx.lineWidth = 4;
+        ctx.strokeRect(30, 30, 1140, 740);
+
+        // Inner subtle border
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(40, 40, 1120, 720);
+
+        // Header: PROBUS SYSTEM
+        ctx.fillStyle = '#94a3b8';
+        ctx.font = 'bold 15px sans-serif';
+        ctx.fillText('PROBUS SYSTEM  •  CUSTOMER SUPPORT EXCELLENCE AWARD', 70, 85);
+
+        ctx.textAlign = 'right';
+        ctx.fillStyle = '#cbd5e1';
+        ctx.font = 'bold 15px sans-serif';
+        ctx.fillText('PERIODE: ' + data.period.toUpperCase(), 1130, 85);
+        ctx.textAlign = 'left';
+
+        // Badge Category Title
+        const badgeGrad = ctx.createLinearGradient(70, 0, 500, 0);
+        if (data.theme === 'gold') {
+            badgeGrad.addColorStop(0, '#fbbf24');
+            badgeGrad.addColorStop(1, '#d97706');
+        } else if (data.theme === 'rose') {
+            badgeGrad.addColorStop(0, '#f43f5e');
+            badgeGrad.addColorStop(1, '#be123c');
+        } else {
+            badgeGrad.addColorStop(0, '#6366f1');
+            badgeGrad.addColorStop(1, '#4338ca');
+        }
+
+        ctx.fillStyle = badgeGrad;
+        ctx.font = '900 24px sans-serif';
+        ctx.fillText('★ ' + data.category + ' ★', 70, 140);
+
+        ctx.fillStyle = '#f8fafc';
+        ctx.font = '600 18px sans-serif';
+        ctx.fillText(data.title, 70, 175);
+
+        // Load Avatar
+        const avatarImg = new Image();
+        avatarImg.crossOrigin = 'anonymous';
+        avatarImg.onload = function() {
+            drawContent(avatarImg);
+        };
+        avatarImg.onerror = function() {
+            drawContent(null);
+        };
+        avatarImg.src = data.avatar;
+
+        function drawContent(img) {
+            // Draw Avatar Area
+            const avX = 180;
+            const avY = 350;
+            const avR = 90;
+
+            ctx.save();
+            ctx.beginPath();
+            ctx.arc(avX, avY, avR + 8, 0, Math.PI * 2);
+            ctx.fillStyle = data.theme === 'gold' ? '#f59e0b' : (data.theme === 'rose' ? '#f43f5e' : '#6366f1');
+            ctx.fill();
+
+            ctx.beginPath();
+            ctx.arc(avX, avY, avR + 4, 0, Math.PI * 2);
+            ctx.fillStyle = '#1e293b';
+            ctx.fill();
+
+            ctx.beginPath();
+            ctx.arc(avX, avY, avR, 0, Math.PI * 2);
+            ctx.clip();
+
+            if (img) {
+                try {
+                    ctx.drawImage(img, avX - avR, avY - avR, avR * 2, avR * 2);
+                } catch(e) {
+                    drawFallbackAvatar();
+                }
+            } else {
+                drawFallbackAvatar();
+            }
+
+            function drawFallbackAvatar() {
+                ctx.fillStyle = '#334155';
+                ctx.fillRect(avX - avR, avY - avR, avR * 2, avR * 2);
+                ctx.fillStyle = '#ffffff';
+                ctx.font = 'bold 64px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText(data.name.charAt(0).toUpperCase(), avX, avY + 22);
+            }
+            ctx.restore();
+
+            // CS Name and Role
+            ctx.textAlign = 'left';
+            ctx.fillStyle = '#ffffff';
+            ctx.font = '900 42px sans-serif';
+            ctx.fillText(data.name, 310, 325);
+
+            ctx.fillStyle = '#94a3b8';
+            ctx.font = '500 20px sans-serif';
+            ctx.fillText(data.role, 310, 362);
+
+            // Verification Line
+            ctx.fillStyle = data.theme === 'gold' ? '#fbbf24' : (data.theme === 'rose' ? '#fb7185' : '#a5b4fc');
+            ctx.font = 'bold 15px sans-serif';
+            ctx.fillText('✓ VERIFIED TOP CS AWARDEE • PROBUS HELPDESK SYSTEM', 310, 396);
+
+            // 3 Metrics Highlight Boxes
+            const startX = 70;
+            const startY = 485;
+            const boxW = 330;
+            const boxH = 135;
+            const gap = 35;
+
+            data.metrics.forEach((m, idx) => {
+                const bx = startX + idx * (boxW + gap);
+                
+                // Box background
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.05)';
+                ctx.fillRect(bx, startY, boxW, boxH);
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+                ctx.lineWidth = 1.5;
+                ctx.strokeRect(bx, startY, boxW, boxH);
+
+                // Metric Label
+                ctx.fillStyle = '#94a3b8';
+                ctx.font = 'bold 13px sans-serif';
+                ctx.fillText(m.label.toUpperCase(), bx + 24, startY + 40);
+
+                // Metric Value
+                ctx.fillStyle = '#ffffff';
+                ctx.font = '900 32px sans-serif';
+                ctx.fillText(m.value, bx + 24, startY + 92);
+            });
+
+            // Footer
+            ctx.fillStyle = '#64748b';
+            ctx.font = 'italic 14px sans-serif';
+            ctx.fillText('Diterbitkan secara resmi sebagai bentuk apresiasi dedikasi dan kinerja layanan pelanggan prima.', 70, 700);
+
+            ctx.textAlign = 'right';
+            ctx.font = 'bold 14px sans-serif';
+            ctx.fillStyle = '#94a3b8';
+            ctx.fillText('Probus System Indonesia', 1130, 700);
+
+            // Trigger instant download
+            const link = document.createElement('a');
+            link.download = 'Achievement_' + data.name.replace(/[^a-zA-Z0-9]/g, '_') + '_' + data.category.replace(/[^a-zA-Z0-9]/g, '_') + '.png';
+            link.href = canvas.toDataURL('image/png');
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    }
+    </script>
 </x-app-layout>
-
-
-
-

@@ -122,13 +122,16 @@
                     </div>
                 </div>
 
-                <!-- Kualitas Solving -->
+                <!-- Nilai Soft Skill -->
                 <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm relative overflow-hidden">
                     <div class="flex items-center gap-3 mb-4">
-                        <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-500 flex items-center justify-center">
-                            <i class="fa-solid fa-shield-check"></i>
+                        <div class="w-10 h-10 rounded-xl bg-emerald-50 border border-emerald-100/80 text-emerald-500 flex items-center justify-center">
+                            <svg class="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                                <polyline points="9 12 11 14 15 10"></polyline>
+                            </svg>
                         </div>
-                        <span class="font-bold text-slate-500 text-sm">Kualitas Solving</span>
+                        <span class="font-bold text-slate-500 text-sm">Nilai Soft Skill</span>
                     </div>
                     <div class="flex items-end gap-2">
                         <span class="text-4xl font-extrabold text-emerald-500">{{ $scoreQuality }}</span>
@@ -214,7 +217,7 @@
                     <!-- Legend -->
                     <div class="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 mb-8 text-[11px] font-bold">
                         <div class="flex items-center gap-2 text-slate-500"><div class="w-2 h-2 rounded bg-blue-400"></div> Nilai Tiket</div>
-                        <div class="flex items-center gap-2 text-slate-500"><div class="w-2 h-2 rounded bg-blue-600"></div> Kualitas CS</div>
+                        <div class="flex items-center gap-2 text-slate-500"><div class="w-2 h-2 rounded bg-blue-600"></div> Nilai Soft Skill</div>
                         <div class="flex items-center gap-2 text-slate-500"><div class="w-2 h-2 rounded bg-emerald-400"></div> Kepuasan Klien</div>
                         <div class="flex items-center gap-2 text-slate-500"><div class="w-2 h-2 rounded bg-teal-600"></div> Nilai Akhir</div>
                     </div>
@@ -244,7 +247,7 @@
                             <div class="relative z-10 flex flex-col items-center group">
                                 <div class="flex items-end gap-1 h-36">
                                     <div class="w-3 sm:w-4 bg-blue-400 rounded-t-sm transition-all" style="height: {{ max(4, min(100, $ch['ticket_score'])) }}%" title="Nilai Tiket: {{ $ch['ticket_score'] }}"></div>
-                                    <div class="w-3 sm:w-4 bg-blue-600 rounded-t-sm transition-all" style="height: {{ max(4, min(100, $ch['quality_score'])) }}%" title="Kualitas CS: {{ $ch['quality_score'] }}"></div>
+                                    <div class="w-3 sm:w-4 bg-blue-600 rounded-t-sm transition-all" style="height: {{ max(4, min(100, $ch['quality_score'])) }}%" title="Nilai Soft Skill: {{ $ch['quality_score'] }}"></div>
                                     <div class="w-3 sm:w-4 bg-emerald-400 rounded-t-sm transition-all" style="height: {{ max(4, min(100, $ch['survey_score'])) }}%" title="Kepuasan Klien: {{ $ch['survey_score'] }}"></div>
                                     <div class="w-3 sm:w-4 bg-teal-600 rounded-t-sm transition-all" style="height: {{ max(4, min(100, $ch['total_score'])) }}%" title="Nilai Akhir: {{ $ch['total_score'] }}"></div>
                                 </div>
@@ -291,13 +294,13 @@
                                     <td class="py-4 text-xs font-bold text-emerald-500 text-right">{{ round($scoreTicket * 0.3, 2) }}</td>
                                 </tr>
                                 <tr>
-                                    <td class="py-4 text-xs font-semibold text-slate-600">Kualitas Solving</td>
+                                    <td class="py-4 text-xs font-semibold text-slate-600">Nilai Soft Skill</td>
                                     <td class="py-4 text-xs font-bold text-slate-700 text-center">40%</td>
                                     <td class="py-4 text-xs font-bold text-slate-700 text-center">{{ $scoreQuality }}</td>
                                     <td class="py-4 text-xs font-bold text-emerald-500 text-right">{{ round($scoreQuality * 0.4, 2) }}</td>
                                 </tr>
                                 <tr>
-                                    <td class="py-4 text-xs font-semibold text-slate-600">Kepuasan Klien</td>
+                                    <td class="py-4 text-xs font-semibold text-slate-600">Kepuasan Klien (Survey)</td>
                                     <td class="py-4 text-xs font-bold text-slate-700 text-center">30%</td>
                                     <td class="py-4 text-xs font-bold text-slate-700 text-center">{{ $scoreSurvey }}</td>
                                     <td class="py-4 text-xs font-bold text-emerald-500 text-right">{{ round($scoreSurvey * 0.3, 2) }}</td>
@@ -316,7 +319,7 @@
                 </div>
             </div>
 
-            <!-- Rincian Modul Tiket -->
+            <!-- Rincian Modul Tiket (6 Kolom: Modul, Beban, Total Ticket, Lama Waktu, Rata-rata Waktu, Rata-rata Skor) -->
             @if($rapor && $rapor->moduleDetails && $rapor->moduleDetails->count() > 0)
             <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 mb-6">
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
@@ -324,7 +327,7 @@
                         <h3 class="text-sm font-extrabold text-slate-800 flex items-center gap-2">
                             <i class="fa-solid fa-layer-group text-blue-500"></i> Rincian Penilaian per Modul
                         </h3>
-                        <p class="text-xs text-slate-400 font-medium mt-0.5">Rumus: Skor = Σ (Bobot Modul × Qty Tiket) | Nilai = (Skor CS / Skor Tertinggi) × 100</p>
+                        <p class="text-xs text-slate-400 font-medium mt-0.5">Rumus: Skor = Σ (Beban Modul × Total Ticket) | Nilai Tiket = (Skor CS / Skor Tertinggi) × 100</p>
                     </div>
                     @if(($rapor->max_ticket_score ?? 0) > 0)
                     <div class="text-xs bg-blue-50 border border-blue-200 text-blue-700 px-3 py-1 rounded-xl font-bold">
@@ -338,10 +341,11 @@
                         <thead>
                             <tr class="border-b border-slate-200 bg-slate-50/50">
                                 <th class="py-3 px-4 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Modul</th>
-                                <th class="py-3 px-4 text-[10px] font-bold text-slate-400 uppercase tracking-wider text-center">Beban (Bobot)</th>
-                                <th class="py-3 px-4 text-[10px] font-bold text-slate-400 uppercase tracking-wider text-center">Total Tiket (Qty)</th>
+                                <th class="py-3 px-4 text-[10px] font-bold text-slate-400 uppercase tracking-wider text-center">Beban</th>
+                                <th class="py-3 px-4 text-[10px] font-bold text-slate-400 uppercase tracking-wider text-center">Total Ticket</th>
+                                <th class="py-3 px-4 text-[10px] font-bold text-slate-400 uppercase tracking-wider text-center">Lama Waktu</th>
                                 <th class="py-3 px-4 text-[10px] font-bold text-slate-400 uppercase tracking-wider text-center">Rata-rata Waktu</th>
-                                <th class="py-3 px-4 text-[10px] font-bold text-slate-400 uppercase tracking-wider text-right">Skor (Bobot × Qty)</th>
+                                <th class="py-3 px-4 text-[10px] font-bold text-slate-400 uppercase tracking-wider text-right">Rata-rata Skor</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100">
@@ -350,7 +354,8 @@
                                 <td class="py-3 px-4 text-xs font-bold text-slate-700">{{ $md->moduleSystem->name ?? $md->module->name ?? 'Modul' }}</td>
                                 <td class="py-3 px-4 text-xs font-semibold text-slate-600 text-center">{{ $md->bobot }}</td>
                                 <td class="py-3 px-4 text-xs font-bold text-slate-800 text-center">{{ $md->total_ticket }}</td>
-                                <td class="py-3 px-4 text-xs font-semibold text-slate-600 text-center">{{ $md->rata_rata_waktu ?? '-' }}</td>
+                                <td class="py-3 px-4 text-xs font-semibold text-slate-600 text-center">{{ $md->lama_waktu ?: ($md->rata_rata_waktu ?: '-') }}</td>
+                                <td class="py-3 px-4 text-xs font-semibold text-slate-600 text-center">{{ $md->rata_rata_waktu ?: '-' }}</td>
                                 <td class="py-3 px-4 text-xs font-extrabold text-blue-600 text-right font-mono">{{ number_format($md->score, 0, ',', '.') }}</td>
                             </tr>
                             @endforeach
@@ -360,7 +365,8 @@
                                 <td class="py-3.5 px-4 uppercase text-slate-500 font-bold">Total Keseluruhan</td>
                                 <td class="py-3.5 px-4 text-center text-slate-400">&ndash;</td>
                                 <td class="py-3.5 px-4 text-center text-blue-600 font-black">{{ $rapor->moduleDetails->sum('total_ticket') }} tiket</td>
-                                <td class="py-3.5 px-4 text-center text-slate-500 font-semibold">{{ $rapor->rata_rata_waktu ?? '-' }}</td>
+                                <td class="py-3.5 px-4 text-center text-slate-500 font-semibold">{{ $rapor->lama_waktu ?: ($rapor->rata_rata_waktu ?: '-') }}</td>
+                                <td class="py-3.5 px-4 text-center text-slate-500 font-semibold">{{ $rapor->rata_rata_waktu ?: '-' }}</td>
                                 <td class="py-3.5 px-4 text-right font-mono font-black text-blue-700 text-sm">{{ number_format($rapor->raw_ticket_score ?? $rapor->moduleDetails->sum('score'), 0, ',', '.') }} poin</td>
                             </tr>
                         </tfoot>
@@ -388,6 +394,80 @@
             </div>
             @endif
 
+            <!-- Rincian Evaluasi Soft Skill CS (Poin 11 - 10 Kriteria Sesuai Pengaturan/Soft Skill) -->
+            @php
+                $catScores = [];
+                if ($rapor && $rapor->details) {
+                    foreach ($rapor->details as $d) {
+                        if ($d->category) {
+                            $catScores[$d->category->name] = (float)$d->score;
+                            $catScores[$d->performance_category_id] = (float)$d->score;
+                        }
+                    }
+                }
+                $categoriesList = $categories ?? \App\Models\PerformanceCategory::orderBy('id')->get();
+                $categoryDescriptions = [
+                    'Jujur' => 'Integritas, kejujuran dalam pelaporan tiket dan keterbukaan komunikasi operasional.',
+                    'Tanggung Jawab' => 'Komitmen dan akuntabilitas penuh terhadap penyelesaian keluhan tiket pelanggan.',
+                    'Visioner' => 'Kemampuan berpikir ke depan, proaktif melihat potensi kendala dan inisiatif solusi.',
+                    'Disiplin' => 'Kepatuhan pada SOP penanganan, kehadiran, dan ketepatan waktu respon.',
+                    'Kerjasama' => 'Kolaborasi timbal balik yang efektif dengan rekan tim implementator dan developer.',
+                    'Adil' => 'Objektivitas dan profesionalisme dalam melayani semua klien tanpa diskriminasi.',
+                    'Peduli' => 'Empati mendalam terhadap kendala yang dihadapi pengguna dan pelayanan yang ramah.',
+                    'Produktivitas & Resolusi Tiket' => 'Kemampuan menyelesaikan volume tiket harian sesuai target operasional.',
+                    'Kualitas Solusi' => 'Ketepatan analisa akar permasalahan dan solusi efektif tanpa kendala berulang.',
+                    'Kepuasan Klien (Survey)' => 'Tingkat kepuasan dan apresiasi pengguna berdasarkan ulasan & rating bintang klien.',
+                ];
+            @endphp
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 mb-6">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
+                    <div>
+                        <h3 class="text-sm font-extrabold text-slate-800 flex items-center gap-2">
+                            <i class="fa-solid fa-user-check text-blue-500"></i> Rincian Evaluasi Soft Skill CS
+                        </h3>
+                        <p class="text-xs text-slate-400 font-medium mt-0.5">Penilaian aspek perilaku dan profesionalisme pelayanan (10 Kriteria • Bobot Kontribusi: 40%)</p>
+                    </div>
+                    <div class="text-xs bg-emerald-50 border border-emerald-200 text-emerald-700 px-3 py-1 rounded-xl font-bold">
+                        Rata-rata Soft Skill: {{ $scoreQuality }} / 100
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    @foreach($categoriesList as $cat)
+                    @php
+                        $rawScore = isset($catScores[$cat->id]) ? $catScores[$cat->id] : (isset($catScores[$cat->name]) ? $catScores[$cat->name] : (float)($rapor->performance_score ?? 0));
+                        $scale5 = round($rawScore / 20, 1);
+                        $desc = $categoryDescriptions[$cat->name] ?? 'Kriteria evaluasi perilaku dan kapabilitas pelayanan implementator.';
+                    @endphp
+                    <div class="p-4 rounded-xl border border-slate-100 bg-slate-50/60 hover:bg-slate-50 transition-colors flex flex-col justify-between">
+                        <div class="flex items-start justify-between gap-2 mb-2">
+                            <div>
+                                <h4 class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                                    <span class="text-[10px] text-blue-600 font-mono font-bold bg-blue-50 border border-blue-100 px-1.5 py-0.5 rounded">{{ sprintf('%02d', $loop->iteration) }}</span>
+                                    {{ $cat->name }}
+                                </h4>
+                                <p class="text-[11px] text-slate-500 mt-1 leading-relaxed">{{ $desc }}</p>
+                            </div>
+                            <span class="text-xs font-extrabold text-slate-800 shrink-0 font-mono bg-white px-2 py-0.5 rounded-md border border-slate-200">
+                                {{ round($rawScore, 1) }} <span class="text-[10px] text-slate-400 font-normal">/ 100</span>
+                            </span>
+                        </div>
+                        <div class="flex items-center justify-between pt-2 border-t border-slate-200/60 text-xs">
+                            <div class="flex items-center gap-1 text-amber-400">
+                                @for($st = 1; $st <= 5; $st++)
+                                    <i class="fa-solid fa-star text-xs {{ $st <= round($scale5) ? 'text-amber-400' : 'text-slate-200' }}"></i>
+                                @endfor
+                                <span class="text-[11px] font-bold text-slate-600 ml-1">{{ $scale5 }} / 5.0</span>
+                            </div>
+                            <span class="text-[10px] font-bold uppercase tracking-wider {{ $rawScore >= 80 ? 'text-emerald-600' : ($rawScore >= 60 ? 'text-amber-600' : 'text-rose-600') }}">
+                                {{ $rawScore >= 80 ? 'Sangat Baik' : ($rawScore >= 60 ? 'Baik' : 'Perlu Ditingkatkan') }}
+                            </span>
+                        </div>
+                    </div>
+                    @endforeach
+                </div>
+            </div>
+
             <!-- Bottom Section -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <!-- Catatan Penilai -->
@@ -396,11 +476,7 @@
                         <i class="fa-solid fa-file-lines text-blue-500"></i> Catatan Penilai
                     </h3>
                     <div class="text-sm text-slate-600 space-y-2 mb-8 leading-relaxed">
-                        <p>&bull; Menunjukkan peningkatan produktivitas dan konsistensi dalam menangani tiket.</p>
-                        <p>&bull; Kualitas penyelesaian masalah sudah baik, namun perlu ditingkatkan pada: <br>
-                        &nbsp;&nbsp;&nbsp;- Dokumentasi solusi <br>
-                        &nbsp;&nbsp;&nbsp;- Komunikasi dan follow-up kepada pelanggan</p>
-                        <p>&bull; Respons cepat dan sikap yang profesional.</p>
+                        <p>{!! nl2br(e($rapor ? ($rapor->catatan ?: 'Menunjukkan komitmen dan dedikasi tinggi dalam menyelesaikan keluhan tiket pelanggan serta aktif berkoordinasi dengan tim support.') : '-')) !!}</p>
                     </div>
                     
                     <div class="flex items-center justify-between">

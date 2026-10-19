@@ -435,125 +435,343 @@ class HomeController extends Controller
         $allUsers = $usersQuery->get();
 
         if ($request->status == 'dinilai') {
-            $users = $allUsers->filter(fn($u) => $u->performanceReviews->isNotEmpty());
+            $users = $allUsers->filter(function($u) {
+                $rev = $u->performanceReviews->first();
+                return $rev && strtoupper($rev->status) === 'FINAL';
+            });
         } elseif ($request->status == 'belum') {
-            $users = $allUsers->filter(fn($u) => $u->performanceReviews->isEmpty());
+            $users = $allUsers->filter(function($u) {
+                $rev = $u->performanceReviews->first();
+                return !$rev || strtoupper($rev->status) !== 'FINAL';
+            });
         } else {
             $users = $allUsers;
         }
 
-        $totalCS = $allUsers->count();
-        $sudahDinilai = $allUsers->filter(fn($u) => $u->performanceReviews->isNotEmpty())->count();
-        $belumDinilai = $totalCS - $sudahDinilai;
-        $sangatBaik = $allUsers->filter(function($u) {
+        $allCsUsers = User::with(['performanceReviews' => function($q) use ($month, $year) {
+            $q->whereMonth('periode', $month)->whereYear('periode', $year);
+        }])->get();
+
+        $totalCS = $allCsUsers->count();
+        $sudahDinilai = $allCsUsers->filter(function($u) {
             $rev = $u->performanceReviews->first();
-            return $rev && $rev->total_score >= 80;
+            return $rev && strtoupper($rev->status) === 'FINAL';
+        })->count();
+        $belumDinilai = $totalCS - $sudahDinilai;
+        $sangatBaik = $allCsUsers->filter(function($u) {
+            $rev = $u->performanceReviews->first();
+            return $rev && strtoupper($rev->status) === 'FINAL' && $rev->total_score >= 80;
         })->count();
 
-        // --- Kalkulasi Top 3 Profile CS (Best Performance, Client's Favorite, Best Team Player) ---
-        $modulesBobot = ModuleSystem::pluck('bobot', 'id');
-        $monthTickets = Ticket::whereMonth('created_at', $month)
-            ->whereYear('created_at', $year)
-            ->get();
+        // --- Kalkulasi Top 3 Profile CS: Kosongkan sebelum seluruh CS selesai dinilai (FINAL) ---
+        $allCsEvaluated = ($totalCS > 0 && $belumDinilai === 0);
+        $topCS = [
+            'best_performance' => null,
+            'clients_favorite' => null,
+            'best_team_player' => null,
+        ];
 
-        $reviews = PerformanceReview::with(['user', 'details.category'])
-            ->whereMonth('periode', $month)
-            ->whereYear('periode', $year)
-            ->get();
+        if ($allCsEvaluated) {
+            $modulesBobot = ModuleSystem::pluck('bobot', 'id');
+            $monthTickets = Ticket::whereMonth('created_at', $month)
+                ->whereYear('created_at', $year)
+                ->get();
 
-        $csMetrics = [];
-        foreach ($allUsers as $u) {
-            $rev = $reviews->firstWhere('user_id', $u->id);
+            $reviews = PerformanceReview::with(['user', 'details.category'])
+                ->whereMonth('periode', $month)
+                ->whereYear('periode', $year)
+                ->where('status', 'FINAL')
+                ->get();
 
-            $uHandled = $monthTickets->filter(fn($t) => $t->user_id == $u->id || $t->advisor_id == $u->id);
-            $uClosed = $uHandled->filter(fn($t) => strtoupper($t->status) === 'CLOSED');
-            $uAsAdvisor = $monthTickets->filter(fn($t) => $t->advisor_id == $u->id && $t->user_id != $u->id);
+            $csMetrics = [];
+            foreach ($allCsUsers as $u) {
+                $rev = $reviews->firstWhere('user_id', $u->id);
 
-            $rawTicketPoints = 0;
-            foreach ($uHandled as $ht) {
-                $rawTicketPoints += (int)($modulesBobot[$ht->module_system_id] ?? 50);
-            }
+                $uHandled = $monthTickets->filter(fn($t) => $t->user_id == $u->id || $t->advisor_id == $u->id);
+                $uClosed = $uHandled->filter(fn($t) => strtoupper($t->status) === 'CLOSED');
+                $uAsAdvisor = $monthTickets->filter(fn($t) => $t->advisor_id == $u->id && $t->user_id != $u->id);
 
-            $surveyRatings = \Illuminate\Support\Facades\DB::table('ticket_surveys')
-                ->join('tickets', 'ticket_surveys.ticket_id', '=', 'tickets.id')
-                ->where(function($q) use ($u) {
-                    $q->where('tickets.user_id', $u->id)->orWhere('tickets.advisor_id', $u->id);
-                })
-                ->whereMonth('tickets.created_at', $month)
-                ->whereYear('tickets.created_at', $year)
-                ->pluck('rating');
-            $avgSurvey = $surveyRatings->count() > 0 ? round($surveyRatings->avg(), 1) : null;
-
-            $teamworkScore = null;
-            if ($rev && $rev->details) {
-                $twDetail = $rev->details->first(function($d) {
-                    return $d->category && stripos($d->category->name, 'kerjasama') !== false;
-                });
-                if ($twDetail) {
-                    $teamworkScore = $twDetail->score;
+                $rawTicketPoints = 0;
+                foreach ($uHandled as $ht) {
+                    $rawTicketPoints += (int)($modulesBobot[$ht->module_system_id] ?? 50);
                 }
+
+                $surveyRatings = \Illuminate\Support\Facades\DB::table('ticket_surveys')
+                    ->join('tickets', 'ticket_surveys.ticket_id', '=', 'tickets.id')
+                    ->where(function($q) use ($u) {
+                        $q->where('tickets.user_id', $u->id)->orWhere('tickets.advisor_id', $u->id);
+                    })
+                    ->whereMonth('tickets.created_at', $month)
+                    ->whereYear('tickets.created_at', $year)
+                    ->pluck('rating');
+                $avgSurvey = $surveyRatings->count() > 0 ? round($surveyRatings->avg(), 1) : null;
+
+                $teamworkScore = null;
+                if ($rev && $rev->details) {
+                    $twDetail = $rev->details->first(function($d) {
+                        return $d->category && stripos($d->category->name, 'kerjasama') !== false;
+                    });
+                    if ($twDetail) {
+                        $teamworkScore = $twDetail->score;
+                    }
+                }
+
+                $csMetrics[$u->id] = [
+                    'user' => $u,
+                    'has_review' => !is_null($rev),
+                    'review' => $rev,
+                    'total_score' => $rev ? (float)$rev->total_score : 0,
+                    'raw_ticket_points' => $rawTicketPoints,
+                    'handled_count' => $uHandled->count(),
+                    'closed_count' => $uClosed->count(),
+                    'client_score' => $rev ? (float)$rev->review_score : 0,
+                    'client_rating' => $rev ? round(($rev->review_score / 20), 1) : 0,
+                    'advice_count' => $rev && $rev->total_ticket_yang_di_advice ? $rev->total_ticket_yang_di_advice : $uAsAdvisor->count(),
+                    'teamwork_soft_score' => $teamworkScore ?: 0,
+                    'team_player_score' => ($rev && $rev->total_ticket_yang_di_advice ? $rev->total_ticket_yang_di_advice * 10 : $uAsAdvisor->count() * 10) + ($teamworkScore ?: 0),
+                ];
             }
 
-            $csMetrics[$u->id] = [
-                'user' => $u,
-                'has_review' => !is_null($rev),
-                'review' => $rev,
-                'total_score' => $rev ? (float)$rev->total_score : ($rawTicketPoints > 0 ? round(min(100, ($rawTicketPoints / 10)), 1) : 0),
-                'raw_ticket_points' => $rawTicketPoints,
-                'handled_count' => $uHandled->count(),
-                'closed_count' => $uClosed->count(),
-                'client_score' => $rev ? (float)$rev->review_score : ($avgSurvey ? ($avgSurvey * 20) : ($uClosed->count() > 0 ? 85 : 0)),
-                'client_rating' => $rev ? round(($rev->review_score / 20), 1) : ($avgSurvey ?: ($uClosed->count() > 0 ? 4.5 : 0)),
-                'advice_count' => $rev && $rev->total_ticket_yang_di_advice ? $rev->total_ticket_yang_di_advice : $uAsAdvisor->count(),
-                'teamwork_soft_score' => $teamworkScore ?: ($uAsAdvisor->count() > 0 ? 5 : 3),
-                'team_player_score' => ($rev && $rev->total_ticket_yang_di_advice ? $rev->total_ticket_yang_di_advice * 10 : $uAsAdvisor->count() * 10) + ($teamworkScore ?: ($uAsAdvisor->count() > 0 ? 10 : 0)),
+            $selectedUserIds = [];
+
+            // 1. Best Performance (Tertinggi total_score)
+            $sortedBestPerf = collect($csMetrics)->sortByDesc(fn($item) => $item['total_score']);
+            $bestPerfItem = $sortedBestPerf->first();
+            if ($bestPerfItem && $bestPerfItem['total_score'] > 0) {
+                $selectedUserIds[] = $bestPerfItem['user']->id;
+            } else {
+                $bestPerfItem = null;
+            }
+
+            // 2. Client's Favorite (Tertinggi kepuasan klien)
+            $sortedClientsFav = collect($csMetrics)->reject(fn($item) => in_array($item['user']->id, $selectedUserIds))
+                ->sortByDesc(fn($item) => $item['client_score']);
+            $clientsFavItem = $sortedClientsFav->first();
+            if ($clientsFavItem && $clientsFavItem['client_score'] > 0) {
+                $selectedUserIds[] = $clientsFavItem['user']->id;
+            } else {
+                $clientsFavItem = null;
+            }
+
+            // 3. Best Team Player (Tertinggi kolaborasi / bantuan alih tiket)
+            $sortedTeamPlayer = collect($csMetrics)->reject(fn($item) => in_array($item['user']->id, $selectedUserIds))
+                ->sortByDesc(fn($item) => $item['team_player_score']);
+            $teamPlayerItem = $sortedTeamPlayer->first();
+            if ($teamPlayerItem && ($teamPlayerItem['advice_count'] > 0 || $teamPlayerItem['team_player_score'] > 0)) {
+                $selectedUserIds[] = $teamPlayerItem['user']->id;
+            } else {
+                $teamPlayerItem = null;
+            }
+
+            $topCS = [
+                'best_performance' => $bestPerfItem,
+                'clients_favorite' => $clientsFavItem,
+                'best_team_player' => $teamPlayerItem,
             ];
         }
 
-        $selectedUserIds = [];
-
-        // 1. Best Performance (Tertinggi total_score)
-        $sortedBestPerf = collect($csMetrics)->sortByDesc(function($item) {
-            return ($item['has_review'] ? 1000 : 0) + $item['total_score'];
-        });
-        $bestPerfItem = $sortedBestPerf->first();
-        if ($bestPerfItem && ($bestPerfItem['total_score'] > 0 || $bestPerfItem['handled_count'] > 0)) {
-            $selectedUserIds[] = $bestPerfItem['user']->id;
-        } else {
-            $bestPerfItem = null;
-        }
-
-        // 2. Client's Favorite (Tertinggi kepuasan klien)
-        $sortedClientsFav = collect($csMetrics)->reject(fn($item) => in_array($item['user']->id, $selectedUserIds))
-            ->sortByDesc(function($item) {
-                return ($item['has_review'] ? 1000 : 0) + $item['client_score'];
-            });
-        $clientsFavItem = $sortedClientsFav->first();
-        if ($clientsFavItem && ($clientsFavItem['client_score'] > 0 || $clientsFavItem['closed_count'] > 0)) {
-            $selectedUserIds[] = $clientsFavItem['user']->id;
-        } else {
-            $clientsFavItem = null;
-        }
-
-        // 3. Best Team Player (Tertinggi kolaborasi / bantuan alih tiket)
-        $sortedTeamPlayer = collect($csMetrics)->reject(fn($item) => in_array($item['user']->id, $selectedUserIds))
-            ->sortByDesc(function($item) {
-                return ($item['has_review'] ? 1000 : 0) + $item['team_player_score'];
-            });
-        $teamPlayerItem = $sortedTeamPlayer->first();
-        if ($teamPlayerItem && ($teamPlayerItem['advice_count'] > 0 || $teamPlayerItem['team_player_score'] > 0)) {
-            $selectedUserIds[] = $teamPlayerItem['user']->id;
-        } else {
-            $teamPlayerItem = null;
-        }
-
-        $topCS = [
-            'best_performance' => $bestPerfItem,
-            'clients_favorite' => $clientsFavItem,
-            'best_team_player' => $teamPlayerItem,
-        ];
-
         return view('laporan', compact('users', 'month', 'year', 'totalCS', 'sudahDinilai', 'belumDinilai', 'sangatBaik', 'topCS'));
+    }
+
+    public function prosesNilai(Request $request, $id){
+        $user = User::findOrFail($id);
+        
+        $month = (int)$request->input('month', date('m'));
+        $year = (int)$request->input('year', date('Y'));
+        if ($request->filled('period')) {
+            $parts = explode('-', $request->input('period'));
+            $year = isset($parts[0]) && is_numeric($parts[0]) ? (int)$parts[0] : $year;
+            $month = isset($parts[1]) && is_numeric($parts[1]) ? (int)$parts[1] : $month;
+        }
+        $periode = sprintf('%04d-%02d-01', $year, $month);
+
+        // Modul sistem & bobot
+        $modules = ModuleSystem::orderBy('id', 'asc')->get();
+        $moduleBobotMap = $modules->pluck('bobot', 'id');
+
+        // Tiket CS pada periode ini
+        $tiketQuery = Ticket::where(function($q) use ($id) {
+            $q->where('user_id', $id)->orWhere('advisor_id', $id);
+        })->whereMonth('created_at', $month)->whereYear('created_at', $year);
+
+        $total_ticket = (clone $tiketQuery)->count();
+        $tiket_selesai = (clone $tiketQuery)->whereRaw('UPPER(status) = ?', ['CLOSED'])->count();
+        $tiket_di_advice = Ticket::where('advisor_id', $id)
+            ->whereMonth('created_at', $month)
+            ->whereYear('created_at', $year)
+            ->count();
+
+        // Rata-rata waktu: totalin seluruh durasi menit tiket selesai dulu, baru dibagi jumlah tiket selesai
+        $closedTickets = (clone $tiketQuery)->whereRaw('UPPER(status) = ?', ['CLOSED'])
+            ->whereNotNull('closed_at')
+            ->get();
+
+        $totalMins = 0;
+        $validClosedCount = 0;
+        foreach ($closedTickets as $ct) {
+            $start = $ct->handle_at ?? $ct->created_at;
+            if ($start && $ct->closed_at) {
+                if ($ct->duration_minutes !== null) {
+                    $totalMins += (int)$ct->duration_minutes;
+                } else {
+                    $totalMins += \Carbon\Carbon::parse($ct->closed_at)->diffInMinutes(\Carbon\Carbon::parse($start));
+                }
+                $validClosedCount++;
+            }
+        }
+
+        $rata_rata_waktu = ($validClosedCount > 0) ? round($totalMins / $validClosedCount) . ' menit' : '-';
+        $total_lama_waktu = ($totalMins > 0) ? "{$totalMins} menit" : ($validClosedCount > 0 ? "< 1 menit" : '-');
+
+        // Hitung skor per modul (bobot x qty)
+        $raw_ticket_score = 0;
+        $module_details_to_save = [];
+
+        foreach ($modules as $mod) {
+            $modTickets = Ticket::where('module_system_id', $mod->id)
+                ->where(function($q) use ($id) {
+                    $q->where('user_id', $id)->orWhere('advisor_id', $id);
+                })
+                ->whereMonth('created_at', $month)
+                ->whereYear('created_at', $year)
+                ->get();
+
+            $modCount = $modTickets->count();
+            if ($modCount > 0) {
+                $closedMod = $modTickets->filter(fn($t) => strtoupper($t->status) === 'CLOSED' && $t->closed_at);
+                $modMins = 0;
+                $modValid = 0;
+                foreach ($closedMod as $cmt) {
+                    $start = $cmt->handle_at ?? $cmt->created_at;
+                    if ($start && $cmt->closed_at) {
+                        $modMins += $cmt->duration_minutes !== null ? (int)$cmt->duration_minutes : \Carbon\Carbon::parse($cmt->closed_at)->diffInMinutes(\Carbon\Carbon::parse($start));
+                        $modValid++;
+                    }
+                }
+                $modAvgW = ($modValid > 0) ? round($modMins / $modValid) . ' menit' : '-';
+                $modLamaW = ($modMins > 0) ? "{$modMins} menit" : ($modValid > 0 ? "< 1 menit" : '-');
+                $bobot = (int)($mod->bobot ?? 0);
+                $modScore = $bobot * $modCount;
+                $raw_ticket_score += $modScore;
+
+                $module_details_to_save[] = [
+                    'module_id' => $mod->id,
+                    'score' => $modScore,
+                    'bobot' => $bobot,
+                    'total_ticket' => $modCount,
+                    'lama_waktu' => $modLamaW,
+                    'rata_rata_waktu' => $modAvgW
+                ];
+            }
+        }
+
+        // Benchmark terhadap seluruh tim CS
+        $allUsers = User::all();
+        $max_ticket_score = 0;
+        $total_team_score = 0;
+
+        $allMonthTickets = Ticket::whereMonth('created_at', $month)
+            ->whereYear('created_at', $year)
+            ->get(['id', 'user_id', 'advisor_id', 'module_system_id']);
+
+        foreach ($allUsers as $u) {
+            $uTickets = $allMonthTickets->filter(fn($t) => $t->user_id == $u->id || $t->advisor_id == $u->id);
+            if ($uTickets->count() > 0) {
+                $uScore = 0;
+                foreach ($uTickets as $ut) {
+                    $uScore += (int)($moduleBobotMap[$ut->module_system_id] ?? 0);
+                }
+                $total_team_score += $uScore;
+                if ($uScore > $max_ticket_score) {
+                    $max_ticket_score = $uScore;
+                }
+            }
+        }
+
+        if ($raw_ticket_score > $max_ticket_score) {
+            $max_ticket_score = $raw_ticket_score;
+        }
+
+        $nilai_tiket = ($max_ticket_score > 0) ? round(($raw_ticket_score / $max_ticket_score) * 100, 2) : 0;
+        $team_portion = ($total_team_score > 0) ? round(($raw_ticket_score / $total_team_score) * 100, 2) : ($raw_ticket_score > 0 ? 100.00 : 0.00);
+
+        // Ambil review by client (kepuasan survey)
+        $surveyRatings = \Illuminate\Support\Facades\DB::table('ticket_surveys')
+            ->join('tickets', 'ticket_surveys.ticket_id', '=', 'tickets.id')
+            ->where(function($q) use ($id) {
+                $q->where('tickets.user_id', $id)->orWhere('tickets.advisor_id', $id);
+            })
+            ->whereMonth('tickets.created_at', $month)
+            ->whereYear('tickets.created_at', $year)
+            ->pluck('rating');
+        $avgSurvey = $surveyRatings->count() > 0 ? round($surveyRatings->avg(), 1) : null;
+        $client_score = $avgSurvey ? ($avgSurvey * 20) : ($tiket_selesai > 0 ? 90 : 0);
+
+        // Simpan / update ke PerformanceReview sebagai PROCESSED (sudah di-sum, siap dinilai soft skill)
+        $review = PerformanceReview::updateOrCreate(
+            [
+                'user_id' => $id,
+                'periode' => $periode,
+            ],
+            [
+                'reviewer_id' => auth()->id() ?? 1,
+                'total_score' => $nilai_tiket * 0.3, // Skor awal sebelum soft skill
+                'module_score' => $nilai_tiket,
+                'raw_ticket_score' => $raw_ticket_score,
+                'max_ticket_score' => $max_ticket_score,
+                'team_portion' => $team_portion,
+                'performance_score' => 0, // Soft skill masih 0 (belum diisi)
+                'review_score' => $client_score,
+                'total_ticket' => $total_ticket,
+                'lama_waktu' => $total_lama_waktu,
+                'rata_rata_waktu' => $rata_rata_waktu,
+                'total_ticket_yang_di_advice' => $tiket_di_advice,
+                'status' => 'DRAFT', // Disimpan sebagai draft terproses
+            ]
+        );
+
+        // Simpan detail modul & pastikan soft skill tidak otomatis terisi (default 0)
+        $review->moduleDetails()->delete();
+        $review->details()->delete();
+        foreach ($module_details_to_save as $mdData) {
+            PerformanceReviewModuleDetail::create([
+                'p_rev_id' => $review->id,
+                'module_id' => $mdData['module_id'],
+                'score' => $mdData['score'],
+                'bobot' => $mdData['bobot'],
+                'total_ticket' => $mdData['total_ticket'],
+                'lama_waktu' => $mdData['lama_waktu'] ?? '-',
+                'rata_rata_waktu' => $mdData['rata_rata_waktu'] ?? '-',
+            ]);
+        }
+
+        return redirect()->route('laporan', ['month' => $month, 'year' => $year, 'period' => sprintf('%04d-%02d', $year, $month)])
+            ->with('success', "Data tiket {$user->name} berhasil di-proses (di-sum)! Silakan klik 'Nilai' untuk mengisi evaluasi soft skill.");
+    }
+
+    public function prosesSemuaNilai(Request $request){
+        $month = (int)$request->input('month', date('m'));
+        $year = (int)$request->input('year', date('Y'));
+        if ($request->filled('period')) {
+            $parts = explode('-', $request->input('period'));
+            $year = isset($parts[0]) && is_numeric($parts[0]) ? (int)$parts[0] : $year;
+            $month = isset($parts[1]) && is_numeric($parts[1]) ? (int)$parts[1] : $month;
+        }
+
+        $allUsers = User::all();
+        $processedCount = 0;
+
+        foreach ($allUsers as $u) {
+            $subReq = new Request([
+                'month' => $month,
+                'year' => $year,
+            ]);
+            $this->prosesNilai($subReq, $u->id);
+            $processedCount++;
+        }
+
+        return redirect()->route('laporan', ['month' => $month, 'year' => $year, 'period' => sprintf('%04d-%02d', $year, $month)])
+            ->with('success', "Berhasil memproses (sum) data tiket untuk {$processedCount} CS! Sekarang Anda dapat mengisi nilai soft skill per masing-masing CS.");
     }
 
     public function penilaian($id){
@@ -572,6 +790,11 @@ class HomeController extends Controller
         $modules = ModuleSystem::orderBy('id', 'asc')->get();
         $moduleBobotMap = $modules->pluck('bobot', 'id');
 
+        // Cari modul dengan bobot tertinggi
+        $highestBobotModuleObj = $modules->sortByDesc('bobot')->first();
+        $highestBobotModule = $highestBobotModuleObj ? $highestBobotModuleObj->name : '-';
+        $highestBobotVal = $highestBobotModuleObj ? (int)$highestBobotModuleObj->bobot : 0;
+
         // 1. Tiket user ini di bulan berjalan (sebagai pembuat atau advisor)
         $tiketQuery = Ticket::where(function($q) use ($id) {
             $q->where('user_id', $id)->orWhere('advisor_id', $id);
@@ -584,20 +807,32 @@ class HomeController extends Controller
             ->whereYear('created_at', $currentYear)
             ->count();
 
-        // Rata-rata waktu penyelesaian
+        // Rata-rata waktu penyelesaian: Totalin durasi seluruh tiket selesai dulu, baru dibagi jumlah tiket selesai
         $closedTickets = (clone $tiketQuery)->whereRaw('UPPER(status) = ?', ['CLOSED'])
             ->whereNotNull('closed_at')
-            ->whereNotNull('created_at')
             ->get();
 
-        if ($closedTickets->count() > 0) {
-            $totalMins = 0;
-            foreach ($closedTickets as $ct) {
-                $totalMins += \Carbon\Carbon::parse($ct->closed_at)->diffInMinutes(\Carbon\Carbon::parse($ct->created_at));
+        $totalMins = 0;
+        $validClosedCount = 0;
+        foreach ($closedTickets as $ct) {
+            $start = $ct->handle_at ?? $ct->created_at;
+            if ($start && $ct->closed_at) {
+                if ($ct->duration_minutes !== null) {
+                    $totalMins += (int)$ct->duration_minutes;
+                } else {
+                    $totalMins += \Carbon\Carbon::parse($ct->closed_at)->diffInMinutes(\Carbon\Carbon::parse($start));
+                }
+                $validClosedCount++;
             }
-            $rata_rata_waktu = round($totalMins / $closedTickets->count()) . ' menit';
+        }
+
+        if ($validClosedCount > 0) {
+            $avgMins = round($totalMins / $validClosedCount);
+            $rata_rata_waktu = $avgMins > 0 ? "{$avgMins} menit" : "< 1 menit";
+            $total_lama_waktu = $totalMins > 0 ? "{$totalMins} menit" : "< 1 menit";
         } else {
-            $rata_rata_waktu = '12 menit';
+            $rata_rata_waktu = '-';
+            $total_lama_waktu = '-';
         }
 
         // 2. Hitung Detail per Modul & Skor CS ini: Σ(bobot x qty)
@@ -616,17 +851,26 @@ class HomeController extends Controller
 
             $modCount = $modTickets->count();
             $closedModTickets = $modTickets->filter(function($t) {
-                return strtoupper($t->status) === 'CLOSED' && $t->closed_at && $t->created_at;
+                return strtoupper($t->status) === 'CLOSED' && $t->closed_at;
             });
 
-            if ($closedModTickets->count() > 0) {
-                $modMins = 0;
-                foreach ($closedModTickets as $cmt) {
-                    $modMins += \Carbon\Carbon::parse($cmt->closed_at)->diffInMinutes(\Carbon\Carbon::parse($cmt->created_at));
+            $modTotalMins = 0;
+            $modValidCount = 0;
+            foreach ($closedModTickets as $cmt) {
+                $start = $cmt->handle_at ?? $cmt->created_at;
+                if ($start && $cmt->closed_at) {
+                    $modTotalMins += $cmt->duration_minutes !== null ? (int)$cmt->duration_minutes : \Carbon\Carbon::parse($cmt->closed_at)->diffInMinutes(\Carbon\Carbon::parse($start));
+                    $modValidCount++;
                 }
-                $modAvgWaktu = round($modMins / $closedModTickets->count()) . ' menit';
+            }
+
+            if ($modValidCount > 0) {
+                $avgM = round($modTotalMins / $modValidCount);
+                $modAvgWaktu = $avgM > 0 ? "{$avgM} menit" : "< 1 menit";
+                $modLamaWaktu = $modTotalMins > 0 ? "{$modTotalMins} menit" : "< 1 menit";
             } else {
-                $modAvgWaktu = $modCount > 0 ? '15 menit' : '-';
+                $modAvgWaktu = '-';
+                $modLamaWaktu = '-';
             }
 
             $bobot = (int)($mod->bobot ?? 0);
@@ -640,6 +884,7 @@ class HomeController extends Controller
                 'name' => $mod->name,
                 'bobot' => $bobot,
                 'total_ticket' => $modCount,
+                'lama_waktu' => $modLamaWaktu,
                 'rata_rata_waktu' => $modAvgWaktu,
                 'score' => $modScore
             ];
@@ -699,10 +944,35 @@ class HomeController extends Controller
         $total_bobot = array_sum(array_column($module_details, 'bobot'));
 
         // Cek apakah sudah ada penilaian di periode ini (draft/final)
-        $existingReview = PerformanceReview::where('user_id', $id)
+        $existingReview = PerformanceReview::with(['details.category', 'moduleDetails'])
+            ->where('user_id', $id)
             ->whereMonth('periode', $currentMonth)
             ->whereYear('periode', $currentYear)
             ->first();
+
+        // Review by client (Rating Bintang)
+        $surveyRatings = \Illuminate\Support\Facades\DB::table('ticket_surveys')
+            ->join('tickets', 'ticket_surveys.ticket_id', '=', 'tickets.id')
+            ->where(function($q) use ($id) {
+                $q->where('tickets.user_id', $id)->orWhere('tickets.advisor_id', $id);
+            })
+            ->whereMonth('tickets.created_at', $currentMonth)
+            ->whereYear('tickets.created_at', $currentYear)
+            ->pluck('rating');
+        $avgSurvey = $surveyRatings->count() > 0 ? round($surveyRatings->avg(), 1) : null;
+        $client_rating = $existingReview && $existingReview->review_score ? round($existingReview->review_score / 20, 1) : ($avgSurvey ?: ($tiket_selesai > 0 ? 5.0 : 0.0));
+        $client_score = $existingReview && $existingReview->review_score ? (float)$existingReview->review_score : ($client_rating * 20);
+
+        $categories = PerformanceCategory::orderBy('id')->get();
+        $catScores = [];
+        // Jangan otomatis isi nilai: hanya load nilai jika review memiliki performance_score > 0 atau status FINAL
+        if ($existingReview && $existingReview->details && ($existingReview->performance_score > 0 || $existingReview->status === 'FINAL')) {
+            foreach ($existingReview->details as $d) {
+                if ($d->score > 0) {
+                    $catScores[$d->performance_category_id] = $d->score;
+                }
+            }
+        }
 
         return view('penilaian', compact(
             'user', 
@@ -711,6 +981,7 @@ class HomeController extends Controller
             'tiket_ditangani', 
             'tiket_selesai', 
             'tiket_di_advice', 
+            'total_lama_waktu',
             'rata_rata_waktu', 
             'nilai_tiket', 
             'raw_ticket_score', 
@@ -720,25 +991,62 @@ class HomeController extends Controller
             'total_qty',
             'total_bobot',
             'module_details',
-            'existingReview'
+            'existingReview',
+            'highestBobotModule',
+            'highestBobotVal',
+            'client_rating',
+            'client_score',
+            'categories',
+            'catScores'
         ));
     }
 
     public function storePenilaian(Request $request, $id) {
-        $request->validate([
-            'produktivitas' => 'required|numeric|min:1|max:5',
-            'kualitas_solving' => 'required|numeric|min:1|max:5',
-            'kecepatan_respon' => 'required|numeric|min:1|max:5',
-            'sikap_cs' => 'required|numeric|min:1|max:5',
-            'kepuasan_pelanggan' => 'required|numeric|min:1|max:5',
-            'nilai_tiket' => 'required|numeric',
-        ]);
+        $isDraft = ($request->input('action') === 'draft');
+        $categories = PerformanceCategory::orderBy('id')->get();
+        $softSkillInputs = $request->input('soft_skills', []);
+
+        if (!$isDraft) {
+            // Simpan Nilai (FINAL) -> Wajib seluruh kriteria soft skill diisi (1 - 5)
+            $missingCats = [];
+            foreach ($categories as $cat) {
+                $val = (int)($softSkillInputs[$cat->id] ?? 0);
+                if ($val < 1 || $val > 5) {
+                    $missingCats[] = $cat->name;
+                }
+            }
+
+            if (!empty($missingCats)) {
+                return back()->withInput()->withErrors([
+                    'soft_skill' => 'Untuk Simpan Nilai (Final), seluruh kriteria soft skill harus diisi (nilai 1 - 5). Kriteria yang belum diisi: ' . implode(', ', array_slice($missingCats, 0, 3)) . (count($missingCats) > 3 ? ' dll.' : '') . '. Jika belum lengkap, silakan gunakan Simpan Draft.'
+                ]);
+            }
+        }
 
         $n_t = (float)$request->nilai_tiket;
-        $avg_kualitas = (($request->produktivitas + $request->kualitas_solving + $request->kecepatan_respon + $request->sikap_cs) / 20) * 100;
-        $n_k = ($request->kepuasan_pelanggan / 5) * 100;
+        $client_score = (float)$request->input('client_score', 0);
 
-        $n_akhir = round(($n_t * 0.3) + ($avg_kualitas * 0.4) + ($n_k * 0.3), 2);
+        // Hitung rata-rata soft skill (skala 0 - 100)
+        $totalSkillScore = 0;
+        $filledCount = 0;
+        foreach ($categories as $cat) {
+            $val = (int)($softSkillInputs[$cat->id] ?? 0);
+            if ($val > 0) {
+                $totalSkillScore += ($val / 5) * 100;
+                $filledCount++;
+            }
+        }
+
+        $avg_kualitas = ($filledCount > 0) ? round($totalSkillScore / $filledCount, 2) : 0;
+
+        if (!$isDraft) {
+            $n_akhir = round(($n_t * 0.3) + ($avg_kualitas * 0.4) + ($client_score * 0.3), 2);
+            $status = 'FINAL';
+        } else {
+            // Draft: akumulasi yang sudah ada
+            $n_akhir = round(($n_t * 0.3) + ($avg_kualitas * 0.4) + ($client_score * 0.3), 2);
+            $status = 'DRAFT';
+        }
 
         if ($request->filled('period')) {
             $parts = explode('-', $request->input('period'));
@@ -749,7 +1057,7 @@ class HomeController extends Controller
             $currentYear = (int)$request->input('year', date('Y'));
         }
 
-        // Hitung total ticket, rata-rata waktu, dan total ticket di-advice
+        // Hitung total ticket, rata-rata waktu (totalin dulu durasi baru dirata-ratakan)
         $tiketQuery = Ticket::where(function($q) use ($id) {
             $q->where('user_id', $id)->orWhere('advisor_id', $id);
         })->whereMonth('created_at', $currentMonth)->whereYear('created_at', $currentYear);
@@ -757,22 +1065,27 @@ class HomeController extends Controller
         $total_ticket = $request->input('total_ticket', (clone $tiketQuery)->count());
         $tiket_di_advice = $request->input('total_ticket_yang_di_advice', Ticket::where('advisor_id', $id)->whereMonth('created_at', $currentMonth)->whereYear('created_at', $currentYear)->count());
 
-        $rata_rata_waktu = $request->input('rata_rata_waktu');
-        if (!$rata_rata_waktu) {
-            $closedTickets = (clone $tiketQuery)->whereRaw('UPPER(status) = ?', ['CLOSED'])
-                ->whereNotNull('closed_at')
-                ->whereNotNull('created_at')
-                ->get();
+        $closedTickets = (clone $tiketQuery)->whereRaw('UPPER(status) = ?', ['CLOSED'])
+            ->whereNotNull('closed_at')
+            ->get();
 
-            if ($closedTickets->count() > 0) {
-                $totalMins = 0;
-                foreach ($closedTickets as $ct) {
-                    $totalMins += \Carbon\Carbon::parse($ct->closed_at)->diffInMinutes(\Carbon\Carbon::parse($ct->created_at));
-                }
-                $rata_rata_waktu = round($totalMins / $closedTickets->count()) . ' menit';
-            } else {
-                $rata_rata_waktu = '12 menit';
+        $totalMins = 0;
+        $validClosedCount = 0;
+        foreach ($closedTickets as $ct) {
+            $start = $ct->handle_at ?? $ct->created_at;
+            if ($start && $ct->closed_at) {
+                $totalMins += $ct->duration_minutes !== null ? (int)$ct->duration_minutes : \Carbon\Carbon::parse($ct->closed_at)->diffInMinutes(\Carbon\Carbon::parse($start));
+                $validClosedCount++;
             }
+        }
+
+        $rata_rata_waktu = $request->input('rata_rata_waktu');
+        if (!$rata_rata_waktu || $rata_rata_waktu === '-') {
+            $rata_rata_waktu = ($validClosedCount > 0) ? round($totalMins / $validClosedCount) . ' menit' : '-';
+        }
+        $total_lama_waktu = $request->input('total_lama_waktu');
+        if (!$total_lama_waktu || $total_lama_waktu === '-') {
+            $total_lama_waktu = ($totalMins > 0) ? "{$totalMins} menit" : ($validClosedCount > 0 ? "< 1 menit" : '-');
         }
 
         $raw_ticket_score = (float)$request->input('raw_ticket_score', 0);
@@ -794,11 +1107,12 @@ class HomeController extends Controller
                 'max_ticket_score' => $max_ticket_score,
                 'team_portion' => $team_portion,
                 'performance_score' => $avg_kualitas,
-                'review_score' => $n_k,
+                'review_score' => $client_score,
                 'total_ticket' => $total_ticket,
+                'lama_waktu' => $total_lama_waktu,
                 'rata_rata_waktu' => $rata_rata_waktu,
                 'total_ticket_yang_di_advice' => $tiket_di_advice,
-                'status' => ($request->input('action') === 'draft') ? 'DRAFT' : 'FINAL',
+                'status' => $status,
                 'catatan' => $request->catatan,
                 'saran' => $request->saran,
             ]
@@ -808,40 +1122,14 @@ class HomeController extends Controller
         $review->details()->delete();
         $review->moduleDetails()->delete();
 
-        // Sinkronisasi kategori penilaian dasar
-        $defaultCategories = [
-            'Produktivitas & Resolusi Tiket' => $n_t,
-            'Kualitas Solusi' => $avg_kualitas,
-            'Kepuasan Klien (Survey)' => $n_k,
-        ];
-
-        foreach ($defaultCategories as $catName => $catScore) {
-            $cat = PerformanceCategory::firstOrCreate(['name' => $catName]);
+        // Simpan setiap kriteria soft skill dari master kategori
+        foreach ($categories as $cat) {
+            $val = (int)($softSkillInputs[$cat->id] ?? 0);
+            $catScore = ($val > 0) ? (($val / 5) * 100) : 0;
             PerformanceReviewDetail::create([
                 'performance_review_id' => $review->id,
                 'performance_category_id' => $cat->id,
                 'score' => $catScore
-            ]);
-        }
-
-        // Tambahan nilai soft skill individual jika ada kategori di master
-        $otherCategories = PerformanceCategory::whereNotIn('name', array_keys($defaultCategories))->get();
-        foreach ($otherCategories as $cat) {
-            $score = 80;
-            if (stripos($cat->name, 'Jujur') !== false || stripos($cat->name, 'Sikap') !== false) {
-                $score = ($request->sikap_cs / 5) * 100;
-            } elseif (stripos($cat->name, 'Disiplin') !== false || stripos($cat->name, 'Kecepatan') !== false) {
-                $score = ($request->kecepatan_respon / 5) * 100;
-            } elseif (stripos($cat->name, 'Tanggung Jawab') !== false || stripos($cat->name, 'Kualitas') !== false) {
-                $score = ($request->kualitas_solving / 5) * 100;
-            } elseif (stripos($cat->name, 'Kerjasama') !== false) {
-                $score = ($request->produktivitas / 5) * 100;
-            }
-
-            PerformanceReviewDetail::create([
-                'performance_review_id' => $review->id,
-                'performance_category_id' => $cat->id,
-                'score' => $score
             ]);
         }
 
@@ -859,19 +1147,21 @@ class HomeController extends Controller
             $count = $modTickets->count();
             if ($count > 0) {
                 $closedModTickets = $modTickets->filter(function($t) {
-                    return strtoupper($t->status) === 'CLOSED' && $t->closed_at && $t->created_at;
+                    return strtoupper($t->status) === 'CLOSED' && $t->closed_at;
                 });
 
-                if ($closedModTickets->count() > 0) {
-                    $modMins = 0;
-                    foreach ($closedModTickets as $cmt) {
-                        $modMins += \Carbon\Carbon::parse($cmt->closed_at)->diffInMinutes(\Carbon\Carbon::parse($cmt->created_at));
+                $modTotalMins = 0;
+                $modValidCount = 0;
+                foreach ($closedModTickets as $cmt) {
+                    $start = $cmt->handle_at ?? $cmt->created_at;
+                    if ($start && $cmt->closed_at) {
+                        $modTotalMins += $cmt->duration_minutes !== null ? (int)$cmt->duration_minutes : \Carbon\Carbon::parse($cmt->closed_at)->diffInMinutes(\Carbon\Carbon::parse($start));
+                        $modValidCount++;
                     }
-                    $modAvgWaktu = round($modMins / $closedModTickets->count()) . ' menit';
-                } else {
-                    $modAvgWaktu = '15 menit';
                 }
 
+                $modAvgWaktu = ($modValidCount > 0) ? round($modTotalMins / $modValidCount) . ' menit' : '-';
+                $modLamaWaktu = ($modTotalMins > 0) ? "{$modTotalMins} menit" : ($modValidCount > 0 ? "< 1 menit" : '-');
                 $bobot = (int)($mod->bobot ?? 0);
                 $modScore = $bobot * $count; // Skor per baris: bobot x qty
 
@@ -881,16 +1171,17 @@ class HomeController extends Controller
                     'score' => $modScore,
                     'bobot' => $bobot,
                     'total_ticket' => $count,
+                    'lama_waktu' => $modLamaWaktu,
                     'rata_rata_waktu' => $modAvgWaktu
                 ]);
             }
         }
 
-        if ($request->input('action') === 'draft') {
-            return redirect()->route('laporan', ['month' => $currentMonth, 'year' => $currentYear])->with('success', 'Draft penilaian CS berhasil disimpan!');
+        if ($isDraft) {
+            return redirect()->route('laporan', ['month' => $currentMonth, 'year' => $currentYear, 'period' => sprintf('%04d-%02d', $currentYear, $currentMonth)])->with('success', 'Draft penilaian CS berhasil disimpan!');
         }
 
-        return redirect()->route('rapor', ['id' => $id, 'month' => $currentMonth, 'year' => $currentYear])->with('success', 'Penilaian berhasil disimpan dengan rumus bobot x qty!');
+        return redirect()->route('rapor', ['id' => $id, 'month' => $currentMonth, 'year' => $currentYear, 'period' => sprintf('%04d-%02d', $currentYear, $currentMonth)])->with('success', 'Penilaian final berhasil disimpan lengkap dengan evaluasi soft skill!');
     }
 
     public function rapor($id){
@@ -951,8 +1242,9 @@ class HomeController extends Controller
         }
 
         $history = PerformanceReview::where('user_id', $id)->orderBy('periode', 'asc')->take(4)->get();
+        $categories = PerformanceCategory::orderBy('id')->get();
         
-        return view('rapor', compact('user', 'rapor', 'history', 'month', 'year', 'chartHistory'));
+        return view('rapor', compact('user', 'rapor', 'history', 'month', 'year', 'chartHistory', 'categories'));
     }
 
     public function downloadRapor($id){
@@ -983,6 +1275,7 @@ class HomeController extends Controller
         }
         
         $history = PerformanceReview::where('user_id', $id)->orderBy('periode', 'asc')->take(4)->get();
+        $categories = PerformanceCategory::orderBy('id')->get();
         
         $periode = $rapor ? \Carbon\Carbon::parse($rapor->periode) : \Carbon\Carbon::createFromDate($year, $month, 1);
         $m = $periode->format('m');
@@ -1015,7 +1308,8 @@ class HomeController extends Controller
             'avg_rating',
             'month',
             'year',
-            'periode'
+            'periode',
+            'categories'
         ))->setPaper('a4', 'portrait');
                 
         return $pdf->stream('Rapor_Kinerja_CS_' . str_replace(' ', '_', $user->name) . '_' . $periode->format('M_Y') . '.pdf');

@@ -40,6 +40,8 @@ Route::get('/mrq/{id}', [HomeController::class, 'morerq'])->middleware(['auth'])
 Route::get('/daftartiket', [HomeController::class, 'daftartiket'])->middleware(['auth'])->name('daftartiket');
 Route::get('/inbox-manajemen', [HomeController::class, 'inbox'])->middleware(['auth'])->name('inbox');
 Route::get('/laporan', [HomeController::class, 'laporan'])->middleware(['auth'])->name('laporan');
+Route::post('/laporan/{id}/proses-nilai', [HomeController::class, 'prosesNilai'])->middleware(['auth'])->name('laporan.proses_nilai');
+Route::post('/laporan/proses-semua-nilai', [HomeController::class, 'prosesSemuaNilai'])->middleware(['auth'])->name('laporan.proses_semua');
 Route::get('/penilaian/{id}', [HomeController::class, 'penilaian'])->middleware(['auth'])->name('penilaian');
 Route::post('/penilaian/{id}', [HomeController::class, 'storePenilaian'])->middleware(['auth'])->name('penilaian.store');
 Route::get('/rapor/{id}', [HomeController::class, 'rapor'])->middleware(['auth'])->name('rapor');
