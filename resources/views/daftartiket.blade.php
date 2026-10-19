@@ -16,50 +16,77 @@
         </div>
         
         {{-- Stats Cards --}}
+        @php
+            $currentStatus = request('status');
+            $isAllActive = empty($currentStatus);
+            $isOpenActive = strtoupper($currentStatus) === 'OPEN';
+            $isProgressActive = strtoupper($currentStatus) === 'PROGRESS';
+            $isClosedActive = strtoupper($currentStatus) === 'CLOSED';
+        @endphp
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
             {{-- Semua Tiket --}}
-            <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center justify-between hover:shadow-md transition-shadow">
+            <a href="{{ route('daftartiket', request()->except(['status', 'page'])) }}" 
+               class="p-5 rounded-2xl border transition-all duration-200 transform hover:-translate-y-0.5 shadow-sm hover:shadow-md flex items-center justify-between group relative {{ $isAllActive ? 'bg-white border-blue-600 ring-2 ring-blue-500/20 shadow-md' : 'bg-white border-slate-100 hover:border-slate-300' }}"
+               title="Tampilkan semua tiket (tanpa filter status)">
                 <div>
-                    <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Semua Tiket</div>
+                    <div class="text-[11px] font-bold uppercase tracking-wider mb-1 {{ $isAllActive ? 'text-blue-600' : 'text-slate-400' }}">Semua Tiket</div>
                     <div class="text-3xl font-extrabold text-slate-800">{{ $total_count }}</div>
                 </div>
-                <div class="w-12 h-12 rounded-full bg-slate-50 flex items-center justify-center text-slate-400">
+                <div class="w-12 h-12 rounded-full flex items-center justify-center transition-colors {{ $isAllActive ? 'bg-blue-600 text-white shadow-sm shadow-blue-500/30' : 'bg-slate-50 text-slate-400 group-hover:bg-slate-100 group-hover:text-slate-600' }}">
                     <i class="fa-solid fa-ticket text-xl"></i>
                 </div>
-            </div>
+                @if($isAllActive)
+                <span class="absolute top-2.5 right-3 px-2 py-0.5 text-[9px] font-extrabold uppercase rounded-full bg-blue-50 text-blue-700 border border-blue-200 tracking-wider">Aktif</span>
+                @endif
+            </a>
             
             {{-- Belum Ditangani --}}
-            <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center justify-between hover:shadow-md transition-shadow">
+            <a href="{{ route('daftartiket', $isOpenActive ? request()->except(['status', 'page']) : array_merge(request()->except('page'), ['status' => 'OPEN'])) }}" 
+               class="p-5 rounded-2xl border transition-all duration-200 transform hover:-translate-y-0.5 shadow-sm hover:shadow-md flex items-center justify-between group relative {{ $isOpenActive ? 'bg-white border-blue-500 ring-2 ring-blue-500/20 shadow-md' : 'bg-white border-slate-100 hover:border-blue-200' }}"
+               title="{{ $isOpenActive ? 'Klik untuk membatalkan filter' : 'Filter tiket Belum Ditangani (Open)' }}">
                 <div>
-                    <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Belum Ditangani</div>
+                    <div class="text-[11px] font-bold uppercase tracking-wider mb-1 {{ $isOpenActive ? 'text-blue-600' : 'text-slate-400' }}">Belum Ditangani</div>
                     <div class="text-3xl font-extrabold text-slate-800">{{ $open_count }}</div>
                 </div>
-                <div class="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center text-blue-500">
+                <div class="w-12 h-12 rounded-full flex items-center justify-center transition-colors {{ $isOpenActive ? 'bg-blue-500 text-white shadow-sm shadow-blue-500/30' : 'bg-blue-50 text-blue-500 group-hover:bg-blue-100' }}">
                     <i class="fa-regular fa-clock text-xl"></i>
                 </div>
-            </div>
+                @if($isOpenActive)
+                <span class="absolute top-2.5 right-3 px-2 py-0.5 text-[9px] font-extrabold uppercase rounded-full bg-blue-50 text-blue-700 border border-blue-200 tracking-wider">Aktif</span>
+                @endif
+            </a>
             
             {{-- Sedang Diproses --}}
-            <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center justify-between hover:shadow-md transition-shadow">
+            <a href="{{ route('daftartiket', $isProgressActive ? request()->except(['status', 'page']) : array_merge(request()->except('page'), ['status' => 'PROGRESS'])) }}" 
+               class="p-5 rounded-2xl border transition-all duration-200 transform hover:-translate-y-0.5 shadow-sm hover:shadow-md flex items-center justify-between group relative {{ $isProgressActive ? 'bg-white border-amber-500 ring-2 ring-amber-500/20 shadow-md' : 'bg-white border-slate-100 hover:border-amber-200' }}"
+               title="{{ $isProgressActive ? 'Klik untuk membatalkan filter' : 'Filter tiket Sedang Diproses (Progress)' }}">
                 <div>
-                    <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Sedang Diproses</div>
+                    <div class="text-[11px] font-bold uppercase tracking-wider mb-1 {{ $isProgressActive ? 'text-amber-600' : 'text-slate-400' }}">Sedang Diproses</div>
                     <div class="text-3xl font-extrabold text-slate-800">{{ $progress_count }}</div>
                 </div>
-                <div class="w-12 h-12 rounded-full bg-amber-50 flex items-center justify-center text-amber-500">
+                <div class="w-12 h-12 rounded-full flex items-center justify-center transition-colors {{ $isProgressActive ? 'bg-amber-500 text-white shadow-sm shadow-amber-500/30' : 'bg-amber-50 text-amber-500 group-hover:bg-amber-100' }}">
                     <i class="fa-solid fa-arrows-rotate text-xl"></i>
                 </div>
-            </div>
+                @if($isProgressActive)
+                <span class="absolute top-2.5 right-3 px-2 py-0.5 text-[9px] font-extrabold uppercase rounded-full bg-amber-50 text-amber-700 border border-amber-200 tracking-wider">Aktif</span>
+                @endif
+            </a>
             
             {{-- Selesai --}}
-            <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center justify-between hover:shadow-md transition-shadow">
+            <a href="{{ route('daftartiket', $isClosedActive ? request()->except(['status', 'page']) : array_merge(request()->except('page'), ['status' => 'CLOSED'])) }}" 
+               class="p-5 rounded-2xl border transition-all duration-200 transform hover:-translate-y-0.5 shadow-sm hover:shadow-md flex items-center justify-between group relative {{ $isClosedActive ? 'bg-white border-emerald-500 ring-2 ring-emerald-500/20 shadow-md' : 'bg-white border-slate-100 hover:border-emerald-200' }}"
+               title="{{ $isClosedActive ? 'Klik untuk membatalkan filter' : 'Filter tiket Selesai (Closed)' }}">
                 <div>
-                    <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Selesai</div>
+                    <div class="text-[11px] font-bold uppercase tracking-wider mb-1 {{ $isClosedActive ? 'text-emerald-600' : 'text-slate-400' }}">Selesai</div>
                     <div class="text-3xl font-extrabold text-slate-800">{{ $closed_count }}</div>
                 </div>
-                <div class="w-12 h-12 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-500">
+                <div class="w-12 h-12 rounded-full flex items-center justify-center transition-colors {{ $isClosedActive ? 'bg-emerald-500 text-white shadow-sm shadow-emerald-500/30' : 'bg-emerald-50 text-emerald-500 group-hover:bg-emerald-100' }}">
                     <i class="fa-regular fa-circle-check text-xl"></i>
                 </div>
-            </div>
+                @if($isClosedActive)
+                <span class="absolute top-2.5 right-3 px-2 py-0.5 text-[9px] font-extrabold uppercase rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 tracking-wider">Aktif</span>
+                @endif
+            </a>
         </div>
         
         {{-- Filters & Search --}}

@@ -68,7 +68,7 @@
                                 </td>
                                 <td class="py-4 px-5 align-middle">
                                     <div class="flex flex-col">
-                                        <a href="/detailrequest/{{ $rq->id }}" class="text-sm font-bold text-slate-800 hover:text-blue-600 transition-colors line-clamp-1" title="{{ $rq->judul }}">
+                                        <a href="/detailrequest/{{ $rq->id }}?from=history" class="text-sm font-bold text-slate-800 hover:text-blue-600 transition-colors line-clamp-1" title="{{ $rq->judul }}">
                                             {{ $rq->judul }}
                                         </a>
                                         <div class="flex items-center gap-2 mt-1">
@@ -148,7 +148,7 @@
                                 {{ $displayStatus }}
                             </span>
                         </div>
-                        <a href="/detailrequest/{{ $rq->id }}" class="block font-bold text-slate-800 hover:text-blue-600 transition-colors text-sm mb-2 leading-snug">
+                        <a href="/detailrequest/{{ $rq->id }}?from=history" class="block font-bold text-slate-800 hover:text-blue-600 transition-colors text-sm mb-2 leading-snug">
                             {{ $rq->judul }}
                         </a>
                         <div class="flex flex-wrap items-center gap-2 mb-3">

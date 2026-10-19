@@ -101,7 +101,7 @@
 
                     <div class="space-y-4 max-h-[calc(100vh-270px)] min-h-[450px] overflow-y-auto pr-2 custom-scrollbar">
                         @forelse ($open as $item)
-                        <a href="/detailrequest/{{ $item->id }}" class="block bg-white rounded-2xl p-5 border border-slate-200/90 shadow-sm hover:shadow-md hover:border-sky-200 transition-all group relative overflow-hidden">
+                        <a href="/detailrequest/{{ $item->id }}?from=myreq" class="block bg-white rounded-2xl p-5 border border-slate-200/90 shadow-sm hover:shadow-md hover:border-sky-200 transition-all group relative overflow-hidden">
                             <div class="flex items-center justify-between mb-3">
                                 <span class="text-xs font-bold text-slate-400 font-mono">#{{ $item->id }}</span>
                                 <span class="px-2.5 py-0.5 rounded-md text-[10px] font-extrabold uppercase tracking-wide text-white bg-sky-500">
@@ -170,7 +170,7 @@
 
                     <div class="space-y-4 max-h-[calc(100vh-270px)] min-h-[450px] overflow-y-auto pr-2 custom-scrollbar">
                         @forelse ($progress as $item)
-                        <a href="/detailrequest/{{ $item->id }}" class="block bg-white rounded-2xl p-5 border border-slate-200/90 shadow-sm hover:shadow-md hover:border-amber-200 transition-all group relative overflow-hidden">
+                        <a href="/detailrequest/{{ $item->id }}?from=myreq" class="block bg-white rounded-2xl p-5 border border-slate-200/90 shadow-sm hover:shadow-md hover:border-amber-200 transition-all group relative overflow-hidden">
                             <div class="flex items-center justify-between mb-3">
                                 <span class="text-xs font-bold text-slate-400 font-mono">#{{ $item->id }}</span>
                                 <span class="px-2.5 py-0.5 rounded-md text-[10px] font-extrabold uppercase tracking-wide text-white bg-amber-500">
@@ -239,7 +239,7 @@
 
                     <div class="space-y-4 max-h-[calc(100vh-270px)] min-h-[450px] overflow-y-auto pr-2 custom-scrollbar">
                         @forelse ($closed as $item)
-                        <a href="/detailrequest/{{ $item->id }}" class="block bg-white rounded-2xl p-5 border border-slate-200/90 shadow-sm hover:shadow-md hover:border-emerald-200 transition-all group relative overflow-hidden">
+                        <a href="/detailrequest/{{ $item->id }}?from=myreq" class="block bg-white rounded-2xl p-5 border border-slate-200/90 shadow-sm hover:shadow-md hover:border-emerald-200 transition-all group relative overflow-hidden">
                             <div class="flex items-center justify-between mb-3">
                                 <span class="text-xs font-bold text-slate-400 font-mono">#{{ $item->id }}</span>
                                 <span class="px-2.5 py-0.5 rounded-md text-[10px] font-extrabold uppercase tracking-wide text-white bg-emerald-500">

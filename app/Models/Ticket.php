@@ -161,6 +161,11 @@ class Ticket extends Model
 
     public function discussions()
     {
-        return $this->hasMany(TicketDiscussion::class);
+        return $this->hasMany(Komentar::class, 'ticket_id');
+    }
+
+    public function komentar()
+    {
+        return $this->hasMany(Komentar::class, 'ticket_id');
     }
 }

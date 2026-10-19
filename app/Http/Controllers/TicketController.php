@@ -13,10 +13,11 @@ use App\Models\UpdateSystem;
 use App\Models\Ticket;
 use App\Models\TicketLog;
 use App\Models\TicketTakeover;
-use App\Models\TicketDiscussion;
+use App\Models\TicketSurvey;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use RealRashid\SweetAlert\Facades\Alert;
 use App\Notifications\RequestStatusChanged;
 
@@ -74,12 +75,13 @@ class TicketController extends Controller
         }
 
         $dataimg = DataImage::where('ticket_id', $id)->get();
-        $komentar = TicketDiscussion::where('ticket_id', $id)->orderBy('created_at', 'asc')->get();
+        $komentar = Komentar::where('ticket_id', $id)->with('user')->orderBy('created_at', 'asc')->get();
         $dataus = UpdateSystem::where('request_id', $id)->get();
         $reqlog = RequestLog::where('request_id', $id)->first();
         $ticketLogs = TicketLog::with('user')->where('ticket_id', $id)->orderBy('created_at', 'desc')->get();
         $ticketTakeovers = TicketTakeover::with(['fromUser', 'toUser'])->where('ticket_id', $id)->orderBy('created_at', 'desc')->get();
-        return view('tablerq.detailticket', compact('datarq', 'dataimg','komentar','dataus','reqlog', 'ticketLogs', 'ticketTakeovers'));
+        $tags = Tag::orderBy('name')->get();
+        return view('tablerq.detailticket', compact('datarq', 'dataimg','komentar','dataus','reqlog', 'ticketLogs', 'ticketTakeovers', 'tags'));
     }
 
     public function mrq(){
@@ -385,21 +387,23 @@ class TicketController extends Controller
         $request->validate([
             'comment' => 'required'
         ]);
-        $komen = \App\Models\TicketDiscussion::create([
+        $komen = Komentar::create([
             'ticket_id' => $id,
-            'message' => $request->comment,
+            'request_id' => null,
+            'body' => $request->comment,
             'user_id' => Auth::user()->id,
         ]);
 
         if ($request->ajax() || $request->wantsJson()) {
-            $totalCount = \App\Models\TicketDiscussion::where('ticket_id', $id)->count();
+            $totalCount = Komentar::where('ticket_id', $id)->count();
             return response()->json([
                 'success' => true,
                 'message' => 'Diskusi berhasil dikirim',
                 'total_count' => $totalCount,
                 'data' => [
                     'id' => $komen->id,
-                    'message' => $komen->message,
+                    'message' => $komen->body,
+                    'body' => $komen->body,
                     'user_name' => Auth::user()->name,
                     'time_ago' => $komen->created_at->diffForHumans(),
                 ]
@@ -410,9 +414,11 @@ class TicketController extends Controller
     }
 
     public function deletekomen($id){
-        $komen = \App\Models\TicketDiscussion::find($id);
-        $komen->delete();
-        Alert::success('Comment Deleted!');
+        $komen = Komentar::find($id);
+        if ($komen) {
+            $komen->delete();
+            Alert::success('Comment Deleted!');
+        }
         return redirect()->back();
     }
 
@@ -697,12 +703,114 @@ class TicketController extends Controller
 
         $ticket = \App\Models\Ticket::findOrFail($id);
 
-        \App\Models\TicketDiscussion::create([
+        Komentar::create([
             'ticket_id' => $ticket->id,
+            'request_id' => null,
             'user_id' => Auth::id(),
-            'message' => $request->message
+            'body' => $request->message
         ]);
 
         return redirect()->back();
+    }
+
+    public function convertToRequest(Request $request, $id) {
+        $ticket = Ticket::findOrFail($id);
+        $user = Auth::user();
+
+        // Validasi hak akses: Hanya pembuat tiket atau admin/supervisor
+        $isOwner = ($ticket->user_id == $user->id);
+        $isAdminOrSpv = in_array($user->usertype, ['admin', 'supervisor']);
+
+        if (!$isOwner && !$isAdminOrSpv) {
+            Alert::error('Akses Ditolak', 'Hanya pembuat tiket atau admin/supervisor yang dapat mengalihkan tiket menjadi request.');
+            return redirect()->back();
+        }
+
+        // Tiket yang sudah closed tidak bisa dialihkan
+        if ($ticket->status == 'CLOSED') {
+            Alert::error('Gagal', 'Tiket yang sudah selesai (CLOSED) tidak dapat dialihkan menjadi request.');
+            return redirect()->back();
+        }
+
+        $request->validate([
+            'tag_id' => 'required|exists:tag,id',
+            'end_date' => 'nullable|date',
+        ]);
+
+        DB::beginTransaction();
+        try {
+            // Tentukan kategori_id (System)
+            $kategoriId = null;
+            if (is_numeric($ticket->system)) {
+                $kategoriId = (int) $ticket->system;
+            } else {
+                $kat = Kategori::where('name', $ticket->system)->first();
+                $kategoriId = $kat ? $kat->id : (Kategori::first() ? Kategori::first()->id : 1);
+            }
+
+            // Tentukan tanggal
+            $startDate = now()->toDateString();
+            $endDate = $request->end_date ?: ($ticket->due_date ? \Carbon\Carbon::parse($ticket->due_date)->toDateString() : now()->addDays(7)->toDateString());
+
+            // Deskripsi dengan catatan tiket asal
+            $descriptionWithNote = '<p><span style="color: #2563eb; font-weight: bold;">[Dialihkan dari Tiket #' . $ticket->ticket_number . ']</span></p>' . ($ticket->description ?? '');
+
+            // Buat data Request baru
+            $newRequest = \App\Models\Request::create([
+                'judul' => $ticket->title,
+                'deskripsi' => $descriptionWithNote,
+                'start_date' => $startDate,
+                'end_date' => $endDate,
+                'kategori_id' => $kategoriId,
+                'tag_id' => $request->tag_id,
+                'user_id' => $ticket->user_id, // Tetap pembuat tiket agar muncul di history pengajuannya
+                'status_id' => 2, // 2 = Open
+                'outlet_id' => $ticket->client_id,
+                'approval_status' => $isAdminOrSpv ? 'approved' : 'pending',
+                'approved_by' => $isAdminOrSpv ? $user->id : null,
+                'approval_date' => $isAdminOrSpv ? now() : null,
+                'approval_note' => 'Dialihkan dari Tiket #' . $ticket->ticket_number,
+                'module' => $ticket->moduleSystem ? $ticket->moduleSystem->name : null,
+                'tipe_penanganan' => $ticket->tipe_penanganan,
+            ]);
+
+            // Alihkan foto/lampiran tiket ke request baru
+            DataImage::where('ticket_id', $ticket->id)->update([
+                'request_id' => $newRequest->id,
+                'ticket_id' => null,
+            ]);
+
+            // Catat log pembentukan request di RequestLog
+            RequestLog::create([
+                'request_id' => $newRequest->id,
+                'status_id' => 2,
+                'user_id' => $user->id,
+            ]);
+
+            // Alihkan diskusi tiket ke komentar request baru
+            Komentar::where('ticket_id', $ticket->id)->update([
+                'request_id' => $newRequest->id,
+                'ticket_id' => null,
+            ]);
+
+            // Hapus data relasi tiket sebelum menghapus tiket
+            TicketLog::where('ticket_id', $ticket->id)->delete();
+            TicketTakeover::where('ticket_id', $ticket->id)->delete();
+            TicketSurvey::where('ticket_id', $ticket->id)->delete();
+
+            // Simpan nomor tiket untuk notifikasi & hapus tiket (tiket hilang dari menu tiket)
+            $ticketNumber = $ticket->ticket_number;
+            $ticket->delete();
+
+            DB::commit();
+
+            Alert::success('Berhasil Dialihkan!', "Tiket #{$ticketNumber} telah berhasil dialihkan menjadi Request pengerjaan.")->autoClose(3500);
+            return redirect()->route('detailrequest', ['id' => $newRequest->id]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Alert::error('Gagal Mengalihkan', 'Terjadi kesalahan saat mengalihkan tiket: ' . $e->getMessage());
+            return redirect()->back();
+        }
     }
 }

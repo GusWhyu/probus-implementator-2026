@@ -83,6 +83,7 @@ Route::delete('/deleteticket/{id}',[TicketController::class, 'delete'])->middlew
 Route::post('/ticket/{id}/takeover', [TicketController::class, 'takeover'])->middleware(['auth'])->name('ticket.takeover');
 Route::post('/ticket/{id}/takeover/accept', [TicketController::class, 'takeoverAccept'])->middleware(['auth'])->name('ticket.takeover.accept');
 Route::post('/ticket/{id}/takeover/reject', [TicketController::class, 'takeoverReject'])->middleware(['auth'])->name('ticket.takeover.reject');
+Route::post('/ticket/{id}/convert-to-request', [TicketController::class, 'convertToRequest'])->middleware(['auth'])->name('ticket.convert_to_request');
 
 //Route Update System
 Route::get('/detailus/{id}', [UpdateSystemController::class, 'detailus'])->middleware(['auth'])->name('detailus');

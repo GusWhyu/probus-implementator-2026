@@ -43,7 +43,7 @@
             {{-- Cards Grid --}}
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 items-start">
                 @forelse ($data as $rq)
-                <a href="/detailrequest/{{ $rq->id }}" class="block bg-white rounded-2xl p-5 border border-slate-200/90 shadow-sm hover:shadow-md hover:border-blue-200 transition-all group relative overflow-hidden">
+                <a href="/detailrequest/{{ $rq->id }}?from=myreq" class="block bg-white rounded-2xl p-5 border border-slate-200/90 shadow-sm hover:shadow-md hover:border-blue-200 transition-all group relative overflow-hidden">
                     <div class="flex items-center justify-between mb-3">
                         <span class="text-xs font-bold text-slate-400 font-mono">#{{ $rq->id }}</span>
                         <span class="px-2.5 py-0.5 rounded-md text-[10px] font-extrabold uppercase tracking-wide {{ $badgeClass }}">

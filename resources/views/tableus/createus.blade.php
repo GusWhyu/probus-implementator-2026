@@ -70,13 +70,13 @@
 
                             <!-- Title -->
                             <div>
-                                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Title</label>
+                                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Title <span class="text-rose-500">*</span></label>
                                 <input type="text" class="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50/50 text-sm text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:border-blue-600 focus:ring-4 focus:ring-blue-500/10 transition-all font-medium" name="title" value="{{ old('title') }}" placeholder="Enter update system title..." required>
                             </div>
 
                             <!-- Link .exe -->
                             <div>
-                                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Link .exe</label>
+                                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Link .exe <span class="text-[10px] font-normal text-slate-400 normal-case">(opsional)</span></label>
                                 <input type="text" class="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50/50 text-sm text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:border-blue-600 focus:ring-4 focus:ring-blue-500/10 transition-all font-medium" name="linkexe" value="{{ old('linkexe') }}" placeholder="Enter .exe download link...">
                             </div>
 
@@ -116,7 +116,7 @@
                                         this.open = false;
                                     }
                                 }">
-                                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Outlet</label>
+                                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Outlet <span class="text-rose-500">*</span></label>
                                     <input type="hidden" name="outlet" :value="selectedId" required>
                                     <div class="relative" @click.outside="open = false">
                                         <div class="relative flex items-center">
@@ -175,7 +175,7 @@
 
                                 <!-- Category -->
                                 <div>
-                                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Category</label>
+                                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Category <span class="text-rose-500">*</span></label>
                                     <div class="relative">
                                         <select name="category" id="category" class="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50/50 text-sm text-slate-800 focus:bg-white focus:outline-none focus:border-blue-600 focus:ring-4 focus:ring-blue-500/10 transition-all font-medium appearance-none cursor-pointer">
                                             @foreach ($kategori as $kt)
@@ -191,7 +191,7 @@
 
                             <!-- Image -->
                             <div>
-                                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Image</label>
+                                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Image <span class="text-[10px] font-normal text-slate-400 normal-case">(opsional)</span></label>
                                 <input type="file" multiple class="block w-full text-xs text-slate-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-slate-800 file:text-white hover:file:bg-slate-900 file:cursor-pointer border border-slate-200 rounded-xl bg-slate-50/50 p-2 cursor-pointer transition-all" name="images[]">
                                 <div class="mt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-[11px] text-slate-400 font-medium">
                                     <span>MAX FILES: 6 IMAGES | MAX SIZE: 200KB/IMAGE</span>
@@ -202,7 +202,7 @@
 
                         <!-- Right Column: Description -->
                         <div class="flex flex-col h-full">
-                            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Description</label>
+                            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Description <span class="text-rose-500">*</span></label>
                             <div class="border border-slate-200 rounded-2xl overflow-hidden bg-white shadow-sm flex flex-col flex-1">
                                 <div class="bg-slate-50 border-b border-slate-200 p-2">
                                     <trix-toolbar id="trix-toolbar-createus"></trix-toolbar>

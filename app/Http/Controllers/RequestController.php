@@ -256,7 +256,7 @@ class RequestController extends Controller
         return view('tablemyreq.myreq', compact('open', 'progress', 'closed', 'systems', 'modules', 'isMyReq'));
     }
 
-    public function detailrequest($id){
+    public function detailrequest(Request $request, $id){
         $title = 'Delete Comment!';
         $text = 'Are you sure you want to delete this comment?';
         confirmDelete($title, $text);
@@ -270,7 +270,75 @@ class RequestController extends Controller
         $dataus = UpdateSystem::where('request_id', $id)->get();
         $reqlog = RequestLog::where('request_id', $id)->latest()->first();
         $closedLog = RequestLog::where('request_id', $id)->where('status_id', 4)->latest()->first();
-        return view('tablerq.detailrequest', compact('datarq', 'dataimg','komentar','dataus','reqlog', 'closedLog'));
+
+        $prevUrl = url()->previous();
+        $currentUrl = url()->current();
+
+        $subpagePatterns = [
+            '/detailrequest',
+            '/createus',
+            '/editus',
+            '/detailus',
+            '/editrq',
+            '/updatestatus',
+            '/komentar',
+            '/deletekomen',
+            '/deletereq',
+            '/deleteimg',
+            '/detailtiket',
+            '/detailticket',
+            '/login',
+        ];
+
+        $isSubpageOrAction = false;
+        if (!$prevUrl || $prevUrl === $currentUrl) {
+            $isSubpageOrAction = true;
+        } else {
+            foreach ($subpagePatterns as $pattern) {
+                if (str_contains($prevUrl, $pattern)) {
+                    $isSubpageOrAction = true;
+                    break;
+                }
+            }
+        }
+
+        if ($request->filled('return_url')) {
+            $returnUrl = $request->input('return_url');
+            session([
+                'detailrequest_return_url_' . $id => $returnUrl,
+                'detailrequest_return_url' => $returnUrl,
+            ]);
+        } elseif ($request->filled('from')) {
+            $from = $request->input('from');
+            if ($from === 'myreq') {
+                $returnUrl = route('myreq');
+            } elseif ($from === 'board' || $from === 'request' || $from === 'daftar_request') {
+                $returnUrl = route('request.board');
+            } elseif ($from === 'history' || $from === 'myrequs') {
+                $returnUrl = route('history');
+            } elseif ($from === 'myrequest') {
+                $returnUrl = route('myrequest');
+            } elseif ($from === 'myupdatesystem') {
+                $returnUrl = route('myupdatesystem');
+            } elseif ($from === 'dashboard' || $from === 'request_dashboard') {
+                $returnUrl = route('request.dashboard');
+            }
+            if (!empty($returnUrl)) {
+                session([
+                    'detailrequest_return_url_' . $id => $returnUrl,
+                    'detailrequest_return_url' => $returnUrl,
+                ]);
+            }
+        } elseif (!$isSubpageOrAction) {
+            session([
+                'detailrequest_return_url_' . $id => $prevUrl,
+                'detailrequest_return_url' => $prevUrl,
+            ]);
+        }
+
+        $returnUrl = session('detailrequest_return_url_' . $id, session('detailrequest_return_url', route('myreq')));
+
+        return view('tablerq.detailrequest', compact('datarq', 'dataimg','komentar','dataus','reqlog', 'closedLog', 'returnUrl'));
     }
 
     public function mrq(){
@@ -518,17 +586,56 @@ class RequestController extends Controller
     public function komentar(Request $request,$id){
         $rq = \App\Models\Request::find($id);
         if (!$rq || $rq->status_id == 4) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Request telah ditutup, diskusi tidak dapat dilanjutkan.'
+                ], 403);
+            }
             Alert::error('Akses Ditolak', 'Request telah ditutup, diskusi tidak dapat dilanjutkan.');
             return redirect()->back();
         }
+
         $request->validate([
             'comment' => 'required'
         ]);
-        Komentar::create([
+
+        $plainText = trim(strip_tags($request->comment));
+        $hasMedia = str_contains($request->comment, '<img') || str_contains($request->comment, '<figure');
+        if (empty($plainText) && !$hasMedia) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Pesan tidak boleh kosong.'
+                ], 422);
+            }
+            return redirect()->back();
+        }
+
+        $komen = Komentar::create([
             'request_id' => $id,
+            'ticket_id' => null,
             'body' => $request->comment,
             'user_id' => Auth::user()->id,
         ]);
+
+        if ($request->ajax() || $request->wantsJson()) {
+            $totalCount = Komentar::where('request_id', $id)->count();
+            return response()->json([
+                'success' => true,
+                'message' => 'Diskusi berhasil dikirim',
+                'total_count' => $totalCount,
+                'data' => [
+                    'id' => $komen->id,
+                    'body' => $komen->body,
+                    'message' => $komen->body,
+                    'user_name' => Auth::user()->name,
+                    'time_ago' => $komen->created_at->diffForHumans(),
+                ]
+            ]);
+        }
+
+        Alert::success('Berhasil', 'Komentar berhasil dikirim!');
         return redirect()->back();
     }
 

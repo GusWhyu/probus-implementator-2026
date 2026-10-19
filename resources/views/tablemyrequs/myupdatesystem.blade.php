@@ -47,7 +47,7 @@
                                 </td>
                                 <td class="py-4 px-5 align-middle">
                                     @if($us->request)
-                                        <a href="/detailrequest/{{ $us->request_id }}" class="inline-flex items-center gap-1.5 text-xs font-semibold text-blue-600 hover:text-blue-800 bg-blue-50/70 hover:bg-blue-100/70 px-2.5 py-1 rounded-lg transition-colors line-clamp-1" title="{{ $us->request->judul }}">
+                                        <a href="/detailrequest/{{ $us->request_id }}?from=history" class="inline-flex items-center gap-1.5 text-xs font-semibold text-blue-600 hover:text-blue-800 bg-blue-50/70 hover:bg-blue-100/70 px-2.5 py-1 rounded-lg transition-colors line-clamp-1" title="{{ $us->request->judul }}">
                                             <i class="fa-solid fa-link text-[10px] text-blue-400"></i>
                                             <span class="truncate max-w-[280px]">{{ $us->request->judul }}</span>
                                         </a>
@@ -94,7 +94,7 @@
                         </a>
                         @if($us->request)
                         <div class="mb-3">
-                            <a href="/detailrequest/{{ $us->request_id }}" class="inline-flex items-center gap-1.5 text-xs font-semibold text-blue-600 hover:text-blue-800 bg-blue-50 px-2.5 py-1 rounded-lg transition-colors max-w-full">
+                            <a href="/detailrequest/{{ $us->request_id }}?from=history" class="inline-flex items-center gap-1.5 text-xs font-semibold text-blue-600 hover:text-blue-800 bg-blue-50 px-2.5 py-1 rounded-lg transition-colors max-w-full">
                                 <i class="fa-solid fa-link text-[10px] text-blue-400 shrink-0"></i>
                                 <span class="truncate">{{ $us->request->judul }}</span>
                             </a>
