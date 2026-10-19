@@ -36,4 +36,8 @@ class Request extends Model
     public function kategori(){
         return $this->belongsTo(Kategori::class);
     }
+
+    public function komentar(){
+        return $this->hasMany(Komentar::class, 'request_id');
+    }
 }

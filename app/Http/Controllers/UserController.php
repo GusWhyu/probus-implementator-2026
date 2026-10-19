@@ -14,7 +14,7 @@ use RealRashid\SweetAlert\Facades\Alert;
 class UserController extends Controller
 {
     public function index(){
-        $this->authorize('admin');
+        $this->authorize('aspv');
         $title = 'Delete User!';
         $text = 'Are you sure you want to delete this user?';
         confirmDelete($title, $text);
@@ -23,14 +23,14 @@ class UserController extends Controller
     }
 
     public function registeracc(){
-        $this->authorize('admin');
+        $this->authorize('aspv');
         $tag = Tag::all();
         $departemen = Departemen::orderBy('name')->get();
         return view('tableuser.registeracc', compact('tag', 'departemen'));
     }
 
     public function editacc($id){
-        $this->authorize('admin');
+        $this->authorize('aspv');
         $user = User::findOrFail($id);
         $tag = Tag::all();
         $departemen = Departemen::orderBy('name')->get();
@@ -38,13 +38,13 @@ class UserController extends Controller
     }
 
     public function editpass($id){
-        $this->authorize('admin');
+        $this->authorize('aspv');
         $data = User::find($id);
         return view('tableuser.editpass', compact('data'));
     }
 
     public function store(Request $request){
-        $this->authorize('admin');
+        $this->authorize('aspv');
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
@@ -67,7 +67,7 @@ class UserController extends Controller
     }
 
     public function edit(Request $request,$id){
-        $this->authorize('admin');
+        $this->authorize('aspv');
         $user = User::findOrFail($id);
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
@@ -90,7 +90,7 @@ class UserController extends Controller
     }
 
     public function delete($id){
-        $this->authorize('admin');
+        $this->authorize('aspv');
         $request = \App\Models\Request::where('user_id', $id)->get();
         $updatesystem = \App\Models\UpdateSystem::where('user_id', $id)->get();
         if ($request->count() > 0 || $updatesystem->count() > 0) {
@@ -104,7 +104,7 @@ class UserController extends Controller
     }
 
     public function updatepass(Request $request,$id){
-        $this->authorize('admin');
+        $this->authorize('aspv');
         $user = User::find($id);
         $request->validate([
             'password' => ['required', 'confirmed', Rules\Password::defaults()],

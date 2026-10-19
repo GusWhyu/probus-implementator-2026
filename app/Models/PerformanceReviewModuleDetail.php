@@ -16,6 +16,7 @@ class PerformanceReviewModuleDetail extends Model
         'score',
         'bobot',
         'total_ticket',
+        'lama_waktu',
         'rata_rata_waktu'
     ];
 

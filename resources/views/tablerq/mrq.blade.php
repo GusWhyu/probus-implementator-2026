@@ -33,8 +33,9 @@
                 </div>
 
                 <div class="flex items-center gap-3">
-                    <a href="{{ route('createrq', ['from' => 'request']) }}" class="inline-flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-sm transition-all active:scale-95">
-                        <i class="fa-solid fa-plus text-xs"></i> Create Request
+                    <a href="{{ route('createrq', ['from' => 'request']) }}" class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 sm:px-5 py-2.5 rounded-xl text-xs sm:text-sm shadow-md shadow-blue-500/20 active:scale-95 transition-all">
+                        <i class="fa-solid fa-plus text-xs"></i>
+                        <span>Buat Request Baru</span>
                     </a>
                 </div>
             </div>
@@ -42,7 +43,7 @@
             {{-- Cards Grid --}}
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 items-start">
                 @forelse ($data as $rq)
-                <a href="/detailrequest/{{ $rq->id }}" class="block bg-white rounded-2xl p-5 border border-slate-200/90 shadow-sm hover:shadow-md hover:border-blue-200 transition-all group relative overflow-hidden">
+                <a href="/detailrequest/{{ $rq->id }}?from=request" class="block bg-white rounded-2xl p-5 border border-slate-200/90 shadow-sm hover:shadow-md hover:border-blue-200 transition-all group relative overflow-hidden">
                     <div class="flex items-center justify-between mb-3">
                         <span class="text-xs font-bold text-slate-400 font-mono">#{{ $rq->id }}</span>
                         <span class="px-2.5 py-0.5 rounded-md text-[10px] font-extrabold uppercase tracking-wide {{ $badgeClass }}">

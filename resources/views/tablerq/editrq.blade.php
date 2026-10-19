@@ -1,4 +1,4 @@
-﻿<x-app-layout>
+<x-app-layout>
     <div class="py-8 bg-slate-50/50 min-h-screen">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             
@@ -9,8 +9,8 @@
                         <i class="fa-solid fa-arrow-left"></i>
                     </a>
                     <div>
-                        <h1 class="text-2xl font-extrabold text-slate-800 tracking-tight">Edit Request <span class="text-blue-600">#TK-{{ $req->id }}</span></h1>
-                        <p class="text-sm text-slate-500 font-medium mt-1">Perbarui informasi, status, atau prioritas Request pelanggan.</p>
+                        <h1 class="text-2xl font-extrabold text-slate-800 tracking-tight">Edit Request <span class="text-blue-600">RQ-{{ $req->id }}</span></h1>
+                        <p class="text-sm text-slate-500 font-medium mt-1">Perbarui informasi, status, atau detail request pengerjaan sistem pelanggan.</p>
                     </div>
                 </div>
             </div>
@@ -30,7 +30,7 @@
                             <!-- Title -->
                             <div>
                                 <label class="block text-[11px] font-extrabold text-slate-500 uppercase tracking-wider mb-2">Judul Request</label>
-                                <input type="text" class="w-full bg-slate-50/50 border border-slate-200 text-slate-800 text-sm font-semibold rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 block p-3.5 transition-all outline-none" value="{{ $req->judul }}" name="title" placeholder="Masukkan judul Request..." required>
+                                <input type="text" class="w-full bg-slate-50/50 border border-slate-200 text-slate-800 text-sm font-semibold rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 block p-3.5 transition-all outline-none" value="{{ $req->judul }}" name="title" placeholder="Masukkan judul request..." required>
                             </div>
 
                             <!-- Outlet -->

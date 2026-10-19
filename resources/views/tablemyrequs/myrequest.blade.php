@@ -1,5 +1,6 @@
 <x-app-layout>
-    <div class="w-full pb-10">
+    <div class="py-4 sm:py-8 bg-slate-50/50 min-h-screen">
+        <div class="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 pb-10">
         
         {{-- Top Header --}}
         <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-6 md:mb-8 gap-4">
@@ -67,7 +68,7 @@
                                 </td>
                                 <td class="py-4 px-5 align-middle">
                                     <div class="flex flex-col">
-                                        <a href="/detailrequest/{{ $rq->id }}" class="text-sm font-bold text-slate-800 hover:text-blue-600 transition-colors line-clamp-1" title="{{ $rq->judul }}">
+                                        <a href="/detailrequest/{{ $rq->id }}?from=history" class="text-sm font-bold text-slate-800 hover:text-blue-600 transition-colors line-clamp-1" title="{{ $rq->judul }}">
                                             {{ $rq->judul }}
                                         </a>
                                         <div class="flex items-center gap-2 mt-1">
@@ -147,7 +148,7 @@
                                 {{ $displayStatus }}
                             </span>
                         </div>
-                        <a href="/detailrequest/{{ $rq->id }}" class="block font-bold text-slate-800 hover:text-blue-600 transition-colors text-sm mb-2 leading-snug">
+                        <a href="/detailrequest/{{ $rq->id }}?from=history" class="block font-bold text-slate-800 hover:text-blue-600 transition-colors text-sm mb-2 leading-snug">
                             {{ $rq->judul }}
                         </a>
                         <div class="flex flex-wrap items-center gap-2 mb-3">
@@ -192,6 +193,6 @@
             </div>
             @endif
         </div>
-
     </div>
+</div>
 </x-app-layout>

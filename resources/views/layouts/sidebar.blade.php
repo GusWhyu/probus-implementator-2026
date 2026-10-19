@@ -2,14 +2,9 @@
     $usertag = Auth::user()->tag_id;
     $rq1 = \App\Models\Request::where('tag_id', $usertag)->where('status_id', '!=', 4)->get();
     
-    $inboxTicketsCount = \App\Models\Ticket::where(function($q) {
-        $q->where('user_id', Auth::id())
-          ->orWhere(function($sub) {
-              $sub->where('advisor_id', Auth::id())
-                  ->whereNull('pending_advisor_id');
-          })
-          ->orWhere('pending_advisor_id', Auth::id());
-    })->where('status', '!=', 'CLOSED')->count();
+    $inboxTicketsCount = \App\Models\Ticket::where('user_id', Auth::id())
+        ->where('status', '!=', 'CLOSED')
+        ->count();
 @endphp
 
 <!-- Mobile overlay -->
@@ -110,10 +105,9 @@
             <ul class="space-y-1">
                 <li><a href="{{ route('tag') }}" class="flex items-center px-3 py-2 text-sm {{ request()->routeIs('tag') ? 'text-blue-600 bg-blue-50 font-medium' : 'text-slate-600 hover:bg-slate-50' }} rounded-lg transition-colors"><i class="fa-solid fa-tags w-5 text-center mr-2 {{ request()->routeIs('tag') ? 'text-blue-600' : 'text-slate-400' }}"></i> Tag List</a></li>
                 <li><a href="{{ route('kategori') }}" class="flex items-center px-3 py-2 text-sm {{ request()->routeIs('kategori') ? 'text-blue-600 bg-blue-50 font-medium' : 'text-slate-600 hover:bg-slate-50' }} rounded-lg transition-colors"><i class="fa-solid fa-list w-5 text-center mr-2 {{ request()->routeIs('kategori') ? 'text-blue-600' : 'text-slate-400' }}"></i> Category List</a></li>
+                <li><a href="{{ route('departemen') }}" class="flex items-center px-3 py-2 text-sm {{ request()->routeIs('departemen') || request()->routeIs('createdepartemen') || request()->routeIs('editdepartemen') ? 'text-blue-600 bg-blue-50 font-medium' : 'text-slate-600 hover:bg-slate-50' }} rounded-lg transition-colors"><i class="fa-solid fa-building w-5 text-center mr-2 {{ request()->routeIs('departemen') ? 'text-blue-600' : 'text-slate-400' }}"></i> Department List</a></li>
                 <li><a href="{{ route('client') }}" class="flex items-center px-3 py-2 text-sm {{ request()->routeIs('client') ? 'text-blue-600 bg-blue-50 font-medium' : 'text-slate-600 hover:bg-slate-50' }} rounded-lg transition-colors"><i class="fa-solid fa-store w-5 text-center mr-2 {{ request()->routeIs('client') ? 'text-blue-600' : 'text-slate-400' }}"></i> Outlet List</a></li>
-                @can('admin')
                 <li><a href="{{ route('user') }}" class="flex items-center px-3 py-2 text-sm {{ request()->routeIs('user') ? 'text-blue-600 bg-blue-50 font-medium' : 'text-slate-600 hover:bg-slate-50' }} rounded-lg transition-colors"><i class="fa-solid fa-users w-5 text-center mr-2 {{ request()->routeIs('user') ? 'text-blue-600' : 'text-slate-400' }}"></i> User List</a></li>
-                @endcan
             </ul>
         </div>
         @endcan
@@ -123,7 +117,7 @@
     <div class="p-4 border-t border-slate-100 relative group" tabindex="0">
         <div class="flex items-center gap-3 bg-slate-50/50 p-3 rounded-xl border border-slate-100/50 hover:bg-slate-50 transition-colors cursor-pointer">
             <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold shrink-0 overflow-hidden shadow-sm">
-                <img src="{{ Auth::user()->avatar_url }}" alt="{{ Auth::user()->name }}" class="w-full h-full rounded-full object-cover">
+                <img src="{{ Auth::user()->avatar_url }}" alt="{{ Auth::user()->name }}" class="w-full h-full rounded-full object-cover" onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name={{ urlencode(Auth::user()->name) }}&background=2563eb&color=fff&bold=true';">
             </div>
             <div class="overflow-hidden flex-1">
                 <div class="font-semibold text-sm text-slate-800 truncate">{{ Auth::user()->name }}</div>

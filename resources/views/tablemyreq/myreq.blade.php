@@ -14,36 +14,43 @@
                 </div>
                 
                 <div class="flex flex-wrap items-center gap-3">
-                    <form method="GET" action="{{ url()->current() }}" class="flex flex-wrap items-center gap-3">
-                        <select name="system" onchange="this.form.submit()" class="px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-xs sm:text-sm font-semibold text-slate-700 hover:border-slate-300 focus:outline-none focus:ring-4 focus:ring-blue-500/10 shadow-sm min-w-[140px] appearance-none cursor-pointer transition-all" style="background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2394a3b8%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E'); background-repeat: no-repeat; background-position: right 1rem top 50%; background-size: 0.65rem auto;">
-                            <option value="">Semua System</option>
-                            @foreach(($systems ?? []) as $sys)
-                                <option value="{{ data_get($sys, 'id') }}" {{ request('system') == data_get($sys, 'id') ? 'selected' : '' }}>{{ data_get($sys, 'name') }}</option>
-                            @endforeach
-                        </select>
+                    <form method="GET" action="{{ url()->current() }}" class="flex flex-wrap items-center gap-2.5 sm:gap-3">
+                        <div class="relative w-40 sm:w-48">
+                            <select name="system" onchange="this.form.submit()" class="w-full appearance-none pl-3.5 sm:pl-4 pr-9 sm:pr-10 py-2 sm:py-2.5 bg-white border border-slate-200 rounded-xl text-xs sm:text-sm font-semibold text-slate-700 hover:border-slate-300 focus:outline-none focus:ring-4 focus:ring-blue-500/10 shadow-sm cursor-pointer transition-all truncate">
+                                <option value="">Semua System</option>
+                                @foreach(($systems ?? []) as $sys)
+                                    <option value="{{ data_get($sys, 'id') }}" {{ request('system') == data_get($sys, 'id') ? 'selected' : '' }}>{{ data_get($sys, 'name') }}</option>
+                                @endforeach
+                            </select>
+                            <i class="fa-solid fa-chevron-down absolute right-3.5 top-1/2 -translate-y-1/2 text-[10px] sm:text-xs text-slate-400 pointer-events-none"></i>
+                        </div>
 
-                        <select name="module" onchange="this.form.submit()" class="px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-xs sm:text-sm font-semibold text-slate-700 hover:border-slate-300 focus:outline-none focus:ring-4 focus:ring-blue-500/10 shadow-sm min-w-[140px] appearance-none cursor-pointer transition-all" style="background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2394a3b8%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E'); background-repeat: no-repeat; background-position: right 1rem top 50%; background-size: 0.65rem auto;">
-                            <option value="">Semua Module</option>
-                            @foreach(($modules ?? []) as $mod)
-                                <option value="{{ data_get($mod, 'id') }}" {{ request('module') == data_get($mod, 'id') ? 'selected' : '' }}>{{ data_get($mod, 'name') }}</option>
-                            @endforeach
-                        </select>
+                        <div class="relative w-40 sm:w-48">
+                            <select name="module" onchange="this.form.submit()" class="w-full appearance-none pl-3.5 sm:pl-4 pr-9 sm:pr-10 py-2 sm:py-2.5 bg-white border border-slate-200 rounded-xl text-xs sm:text-sm font-semibold text-slate-700 hover:border-slate-300 focus:outline-none focus:ring-4 focus:ring-blue-500/10 shadow-sm cursor-pointer transition-all truncate">
+                                <option value="">Semua Module</option>
+                                @foreach(($modules ?? []) as $mod)
+                                    <option value="{{ data_get($mod, 'id') }}" {{ request('module') == data_get($mod, 'id') ? 'selected' : '' }}>{{ data_get($mod, 'name') }}</option>
+                                @endforeach
+                            </select>
+                            <i class="fa-solid fa-chevron-down absolute right-3.5 top-1/2 -translate-y-1/2 text-[10px] sm:text-xs text-slate-400 pointer-events-none"></i>
+                        </div>
 
                         @if(request('system') || request('module'))
-                        <a href="{{ url()->current() }}" class="px-3 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5" title="Reset Filter">
+                        <a href="{{ url()->current() }}" class="px-3.5 py-2 sm:py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-1.5" title="Reset Filter">
                             <i class="fa-solid fa-xmark"></i> Reset
                         </a>
                         @endif
                     </form>
 
-                    <a href="{{ route('createrq', ['from' => ($isMyReq ?? true) ? 'myreq' : 'request']) }}" class="inline-flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-sm transition-all active:scale-95 shrink-0">
-                        <i class="fa-solid fa-plus text-xs"></i> Create Request
+                    <a href="{{ route('createrq', ['from' => ($isMyReq ?? true) ? 'myreq' : 'request']) }}" class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 sm:px-5 py-2.5 rounded-xl text-xs sm:text-sm shadow-md shadow-blue-500/20 active:scale-95 transition-all shrink-0">
+                        <i class="fa-solid fa-plus text-xs"></i>
+                        <span>Buat Request Baru</span>
                     </a>
                 </div>
             </div>
 
-            {{-- Mobile Segmented Tabs Selector (Only on mobile < md) --}}
-            <div class="sticky top-0 bg-[#F8FAFC]/95 backdrop-blur-sm -mx-4 px-4 sm:-mx-6 sm:px-6 py-2 mb-4 z-20 flex md:hidden">
+            {{-- Mobile & Split-Screen Segmented Tabs Selector (Only visible < lg) --}}
+            <div class="sticky top-0 bg-[#F8FAFC]/95 backdrop-blur-sm -mx-4 px-4 sm:-mx-6 sm:px-6 py-2 mb-4 z-20 flex lg:hidden">
                 <div class="w-full bg-slate-200/80 p-1 rounded-xl flex gap-1 shadow-inner">
                     <button type="button" @click="activeTab = 'open'" 
                         :class="activeTab === 'open' ? 'bg-white text-sky-600 shadow-sm font-bold' : 'text-slate-600 hover:text-slate-800 font-semibold'" 
@@ -78,10 +85,10 @@
             </div>
 
             {{-- 3 Columns Kanban Grid (Open, Progress, Closed) --}}
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
                 
                 {{-- Column 1: Open --}}
-                <div :class="activeTab === 'open' ? 'flex' : 'hidden md:flex'" class="flex-col w-full">
+                <div :class="activeTab === 'open' ? 'flex' : 'hidden lg:flex'" class="flex-col w-full">
                     <div class="flex items-center justify-between mb-4 px-1">
                         <a href="{{ ($isMyReq ?? true) ? '/myproc/2' : '/mrq/2' }}" class="text-xs font-extrabold uppercase tracking-wider text-slate-600 hover:text-sky-600 flex items-center gap-1.5 transition-colors group">
                             <span>Open</span>
@@ -94,7 +101,7 @@
 
                     <div class="space-y-4 max-h-[calc(100vh-270px)] min-h-[450px] overflow-y-auto pr-2 custom-scrollbar">
                         @forelse ($open as $item)
-                        <a href="/detailrequest/{{ $item->id }}" class="block bg-white rounded-2xl p-5 border border-slate-200/90 shadow-sm hover:shadow-md hover:border-sky-200 transition-all group relative overflow-hidden">
+                        <a href="/detailrequest/{{ $item->id }}?from=myreq" class="block bg-white rounded-2xl p-5 border border-slate-200/90 shadow-sm hover:shadow-md hover:border-sky-200 transition-all group relative overflow-hidden">
                             <div class="flex items-center justify-between mb-3">
                                 <span class="text-xs font-bold text-slate-400 font-mono">#{{ $item->id }}</span>
                                 <span class="px-2.5 py-0.5 rounded-md text-[10px] font-extrabold uppercase tracking-wide text-white bg-sky-500">
@@ -120,6 +127,11 @@
                                 @if($item->kategori)
                                 <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase bg-slate-800 text-white tracking-wider">
                                     {{ $item->kategori->name }}
+                                </span>
+                                @endif
+                                @if(!empty($item->module))
+                                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase bg-emerald-700 text-white tracking-wider">
+                                    {{ $item->module }}
                                 </span>
                                 @endif
                             </div>
@@ -150,7 +162,7 @@
                 </div>
 
                 {{-- Column 2: Progress --}}
-                <div :class="activeTab === 'progress' ? 'flex' : 'hidden md:flex'" class="flex-col w-full">
+                <div :class="activeTab === 'progress' ? 'flex' : 'hidden lg:flex'" class="flex-col w-full">
                     <div class="flex items-center justify-between mb-4 px-1">
                         <a href="{{ ($isMyReq ?? true) ? '/myproc/3' : '/mrq/3' }}" class="text-xs font-extrabold uppercase tracking-wider text-slate-600 hover:text-amber-600 flex items-center gap-1.5 transition-colors group">
                             <span>Progress</span>
@@ -163,7 +175,7 @@
 
                     <div class="space-y-4 max-h-[calc(100vh-270px)] min-h-[450px] overflow-y-auto pr-2 custom-scrollbar">
                         @forelse ($progress as $item)
-                        <a href="/detailrequest/{{ $item->id }}" class="block bg-white rounded-2xl p-5 border border-slate-200/90 shadow-sm hover:shadow-md hover:border-amber-200 transition-all group relative overflow-hidden">
+                        <a href="/detailrequest/{{ $item->id }}?from=myreq" class="block bg-white rounded-2xl p-5 border border-slate-200/90 shadow-sm hover:shadow-md hover:border-amber-200 transition-all group relative overflow-hidden">
                             <div class="flex items-center justify-between mb-3">
                                 <span class="text-xs font-bold text-slate-400 font-mono">#{{ $item->id }}</span>
                                 <span class="px-2.5 py-0.5 rounded-md text-[10px] font-extrabold uppercase tracking-wide text-white bg-amber-500">
@@ -189,6 +201,11 @@
                                 @if($item->kategori)
                                 <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase bg-slate-800 text-white tracking-wider">
                                     {{ $item->kategori->name }}
+                                </span>
+                                @endif
+                                @if(!empty($item->module))
+                                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase bg-emerald-700 text-white tracking-wider">
+                                    {{ $item->module }}
                                 </span>
                                 @endif
                             </div>
@@ -219,7 +236,7 @@
                 </div>
 
                 {{-- Column 3: Closed --}}
-                <div :class="activeTab === 'closed' ? 'flex' : 'hidden md:flex'" class="flex-col w-full">
+                <div :class="activeTab === 'closed' ? 'flex' : 'hidden lg:flex'" class="flex-col w-full">
                     <div class="flex items-center justify-between mb-4 px-1">
                         <a href="{{ ($isMyReq ?? true) ? '/myproc/4' : '/mrq/4' }}" class="text-xs font-extrabold uppercase tracking-wider text-slate-600 hover:text-emerald-600 flex items-center gap-1.5 transition-colors group">
                             <span>Closed</span>
@@ -232,7 +249,7 @@
 
                     <div class="space-y-4 max-h-[calc(100vh-270px)] min-h-[450px] overflow-y-auto pr-2 custom-scrollbar">
                         @forelse ($closed as $item)
-                        <a href="/detailrequest/{{ $item->id }}" class="block bg-white rounded-2xl p-5 border border-slate-200/90 shadow-sm hover:shadow-md hover:border-emerald-200 transition-all group relative overflow-hidden">
+                        <a href="/detailrequest/{{ $item->id }}?from=myreq" class="block bg-white rounded-2xl p-5 border border-slate-200/90 shadow-sm hover:shadow-md hover:border-emerald-200 transition-all group relative overflow-hidden">
                             <div class="flex items-center justify-between mb-3">
                                 <span class="text-xs font-bold text-slate-400 font-mono">#{{ $item->id }}</span>
                                 <span class="px-2.5 py-0.5 rounded-md text-[10px] font-extrabold uppercase tracking-wide text-white bg-emerald-500">
@@ -258,6 +275,11 @@
                                 @if($item->kategori)
                                 <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase bg-slate-800 text-white tracking-wider">
                                     {{ $item->kategori->name }}
+                                </span>
+                                @endif
+                                @if(!empty($item->module))
+                                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase bg-emerald-700 text-white tracking-wider">
+                                    {{ $item->module }}
                                 </span>
                                 @endif
                             </div>

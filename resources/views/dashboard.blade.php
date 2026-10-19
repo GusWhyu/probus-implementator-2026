@@ -36,13 +36,38 @@
                         Selamat Datang, {{ Auth::user()->name }}! <span class="text-2xl">👋</span>
                     </h2>
                     <p class="text-blue-200 text-sm mt-1.5 flex items-center gap-1.5 flex-wrap">
-                        <span>Berikut ringkasan data tiket Anda</span>
+                        <span>Berikut ringkasan data tiket</span>
+                        <span id="dept-title-badge" class="font-extrabold text-white bg-white/20 px-2.5 py-0.5 rounded-lg text-xs backdrop-blur-sm border border-white/20">
+                            {{ $currentDepartemen ? 'Departemen ' . ucfirst($currentDepartemen->name) : 'Semua Departemen' }}
+                        </span>
+                        <span>Anda</span>
                         <span id="period-title-badge" class="font-extrabold text-white bg-white/20 px-2 py-0.5 rounded-lg text-xs backdrop-blur-sm border border-white/20">
                             {{ $periodTitle ?? 'Semua Waktu' }}
                         </span>
                     </p>
                 </div>
-                <div class="flex flex-row items-center gap-2 sm:gap-3 w-full lg:w-auto mt-2 lg:mt-0">
+                <div class="flex flex-row items-center gap-2 sm:gap-3 w-full lg:w-auto mt-2 lg:mt-0 flex-wrap">
+
+                    {{-- Departemen Filter / Badge --}}
+                    @if(in_array(Auth::user()->usertype, ['admin', 'supervisor']))
+                    <div class="relative group flex-1 sm:flex-none">
+                        <i class="fa-solid fa-building absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 text-white pointer-events-none text-[10px] sm:text-xs z-10"></i>
+                        <select id="departmentSelect" onchange="onDepartmentChange(this.value)" class="bg-white/15 backdrop-blur-sm text-white border border-white/20 pl-8 sm:pl-10 pr-8 py-2 sm:py-2.5 rounded-xl text-[10px] sm:text-xs font-bold hover:bg-white/25 transition-all cursor-pointer focus:outline-none focus:border-white/40 focus:ring-2 focus:ring-white/20 w-full sm:w-auto appearance-none shadow-xs">
+                            @if(Auth::user()->usertype === 'admin')
+                            <option value="all" class="text-slate-800" {{ $selectedDeptId === 'all' ? 'selected' : '' }}>Semua Departemen</option>
+                            @endif
+                            @foreach($allDepartemens as $dpt)
+                            <option value="{{ $dpt->id }}" class="text-slate-800" {{ $selectedDeptId == $dpt->id ? 'selected' : '' }}>Dept: {{ ucfirst($dpt->name) }}</option>
+                            @endforeach
+                        </select>
+                        <i class="fa-solid fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-white pointer-events-none text-[9px]"></i>
+                    </div>
+                    @else
+                    <div class="bg-white/15 backdrop-blur-sm text-white border border-white/20 px-3.5 py-2 sm:py-2.5 rounded-xl text-[10px] sm:text-xs font-bold flex items-center gap-2 shadow-xs">
+                        <i class="fa-solid fa-building text-blue-200"></i>
+                        <span>Dept: {{ $currentDepartemen ? ucfirst($currentDepartemen->name) : (Auth::user()->departemen ? ucfirst(Auth::user()->departemen->name) : 'Umum') }}</span>
+                    </div>
+                    @endif
 
                     {{-- Datepicker Container --}}
                     <div class="relative group flex-1 sm:flex-none">
@@ -52,12 +77,6 @@
                                placeholder="Pilih Tanggal..."
                                value="{{ $selectedDateRaw ?? '' }}" readonly>
                     </div>
-
-                    {{-- Export / Print Button --}}
-                    <button onclick="window.print()" type="button" class="bg-white text-blue-600 px-3 sm:px-5 py-2 sm:py-2.5 rounded-xl text-[10px] sm:text-xs font-bold flex items-center justify-center gap-1.5 sm:gap-2 hover:bg-blue-50 transition-colors shadow-lg shadow-blue-900/20 shrink-0 active:scale-95">
-                        <i class="fa-solid fa-download"></i>
-                        Export
-                    </button>
                 </div>
             </div>
         </div>
@@ -159,7 +178,8 @@
                 </div>
             </div>
 
-            {{-- Row 2: Performa Agen --}}
+            {{-- Row 2: Performa Agen (Hanya Admin & Supervisor) --}}
+            @if(in_array(Auth::user()->usertype, ['admin', 'supervisor']))
             <div class="mb-6">
                 <h2 class="text-sm font-bold text-slate-800 mb-4 px-2">Performa Agen</h2>
                 <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
@@ -168,6 +188,7 @@
                     </div>
                 </div>
             </div>
+            @endif
 
             {{-- Row 3: Top 10 Client --}}
             <div class="mb-6">
@@ -298,34 +319,37 @@
             });
 
             // ── 3. Performa Agen (Horizontal Bar) ──
-            const agentCtx = document.getElementById('agentChart').getContext('2d');
-            agentChartInstance = new Chart(agentCtx, {
-                type: 'bar',
-                data: {
-                    labels: {!! json_encode($agentLabels ?? []) !!},
-                    datasets: [{
-                        data: {!! json_encode($agentData ?? []) !!},
-                        backgroundColor: function(ctx) {
-                            return ctx.dataIndex === 0 ? '#2563eb' : '#eff6ff';
-                        },
-                        borderRadius: 6,
-                        barPercentage: 0.6
-                    }]
-                },
-                options: {
-                    indexAxis: 'y',
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: {
-                        x: { display: false, beginAtZero: true },
-                        y: {
-                            grid: { display: false, drawBorder: false },
-                            ticks: { font: { size: 10, weight: '600' }, color: '#334155' }
+            const agentCanvas = document.getElementById('agentChart');
+            if (agentCanvas) {
+                const agentCtx = agentCanvas.getContext('2d');
+                agentChartInstance = new Chart(agentCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: {!! json_encode($agentLabels ?? []) !!},
+                        datasets: [{
+                            data: {!! json_encode($agentData ?? []) !!},
+                            backgroundColor: function(ctx) {
+                                return ctx.dataIndex === 0 ? '#2563eb' : '#eff6ff';
+                            },
+                            borderRadius: 6,
+                            barPercentage: 0.6
+                        }]
+                    },
+                    options: {
+                        indexAxis: 'y',
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            x: { display: false, beginAtZero: true },
+                            y: {
+                                grid: { display: false, drawBorder: false },
+                                ticks: { font: { size: 10, weight: '600' }, color: '#334155' }
+                            }
                         }
                     }
-                }
-            });
+                });
+            }
 
             // ── 4. Top 10 Client (Vertical Bar) ──
             const topClientCtx = document.getElementById('topClientBarChart').getContext('2d');
@@ -391,6 +415,15 @@
             });
 
             // ── 6. REALTIME FETCH DASHBOARD DATA ──
+            let currentDepartmentId = {!! json_encode($selectedDeptId ?? 'all') !!};
+
+            window.onDepartmentChange = function(deptId) {
+                currentDepartmentId = deptId;
+                const dateInput = document.getElementById('dateRangePicker');
+                const dateStr = dateInput ? dateInput.value : 'all';
+                fetchDashboardData(dateStr);
+            };
+
             function fetchDashboardData(dateStr) {
                 const numbers = document.querySelectorAll('.dashboard-stat-number');
                 numbers.forEach(el => el.classList.add('opacity-40', 'animate-pulse'));
@@ -400,6 +433,12 @@
                     params.set('date', dateStr);
                 } else {
                     params.set('date', 'all');
+                }
+
+                if (currentDepartmentId && currentDepartmentId !== 'all') {
+                    params.set('department_id', currentDepartmentId);
+                } else if (currentDepartmentId === 'all') {
+                    params.set('department_id', 'all');
                 }
 
                 fetch('/dashboard?' + params.toString(), {
@@ -422,6 +461,12 @@
                     if (closedEl) closedEl.textContent = data.closed_count;
                     if (progressEl) progressEl.textContent = data.progress_count;
                     if (openEl) openEl.textContent = data.open_count;
+
+                    // Update Department Badge
+                    const deptBadge = document.getElementById('dept-title-badge');
+                    if (deptBadge && data.departmentName) {
+                        deptBadge.textContent = data.departmentName !== 'Semua Departemen' ? 'Departemen ' + data.departmentName : 'Semua Departemen';
+                    }
 
                     // Update Period Badge
                     const badge = document.getElementById('period-title-badge');
@@ -478,10 +523,12 @@
                         tbody.innerHTML = data.tickets_html;
                     }
 
-
                     // Update URL without page reload
-                    const nextUrl = data.hasDate ? `/dashboard?date=${data.date}` : '/dashboard?date=all';
-                    window.history.pushState({ date: data.date }, '', nextUrl);
+                    const urlParams = new URLSearchParams();
+                    if (data.hasDate) urlParams.set('date', data.date);
+                    if (data.selectedDeptId) urlParams.set('department_id', data.selectedDeptId);
+                    const nextUrl = '/dashboard?' + urlParams.toString();
+                    window.history.pushState({ date: data.date, department_id: data.selectedDeptId }, '', nextUrl);
                 })
                 .catch(err => {
                     console.error('Error updating dashboard data:', err);
@@ -493,6 +540,35 @@
 
             // ── 7. Initialize Flatpickr ──
             const dateInput = document.getElementById('dateRangePicker');
+            let isProgrammaticDateChange = false;
+
+            function syncDateWithCurrentMonthYear(instance) {
+                if (isProgrammaticDateChange) return;
+                isProgrammaticDateChange = true;
+                try {
+                    const targetYear = instance.currentYear;
+                    const targetMonth = instance.currentMonth; // 0-indexed (0 = Jan, 9 = Oct)
+                    const now = new Date();
+
+                    let targetDay;
+                    if (targetYear === now.getFullYear() && targetMonth === now.getMonth()) {
+                        // Bulan berjalan: gunakan tanggal hari ini
+                        targetDay = now.getDate();
+                    } else if (new Date(targetYear, targetMonth, 1) < new Date(now.getFullYear(), now.getMonth(), 1)) {
+                        // Bulan lampau: pilih tanggal terakhir di bulan itu agar menampilkan data 1 bulan penuh
+                        targetDay = new Date(targetYear, targetMonth + 1, 0).getDate();
+                    } else {
+                        // Bulan mendatang: tanggal 1
+                        targetDay = 1;
+                    }
+
+                    const newDate = new Date(targetYear, targetMonth, targetDay);
+                    instance.setDate(newDate, true);
+                } finally {
+                    isProgrammaticDateChange = false;
+                }
+            }
+
             const fp = flatpickr(dateInput, {
                 mode: "single",
                 dateFormat: "Y-m-d",
@@ -500,6 +576,21 @@
                 altFormat: "M d, Y",
                 altInputClass: "bg-white/15 backdrop-blur-sm text-white border border-white/20 pl-8 sm:pl-10 pr-3 sm:pr-4 py-2 sm:py-2.5 rounded-xl text-[10px] sm:text-xs font-bold hover:bg-white/25 transition-all cursor-pointer focus:outline-none focus:border-white/40 focus:ring-2 focus:ring-white/20 w-full sm:w-48 lg:w-48 placeholder-white/80",
                 defaultDate: {!! $selectedDateRaw ? json_encode($selectedDateRaw) : "null" !!},
+                onReady: function(selectedDates, dateStr, instance) {
+                    if (instance.monthsDropdownContainer) {
+                        instance.monthsDropdownContainer.addEventListener('change', function() {
+                            setTimeout(function() {
+                                syncDateWithCurrentMonthYear(instance);
+                            }, 10);
+                        });
+                    }
+                },
+                onMonthChange: function(selectedDates, dateStr, instance) {
+                    syncDateWithCurrentMonthYear(instance);
+                },
+                onYearChange: function(selectedDates, dateStr, instance) {
+                    syncDateWithCurrentMonthYear(instance);
+                },
                 onChange: function(selectedDates, dateStr, instance) {
                     if (selectedDates.length > 0) {
                         const d = selectedDates[0];
@@ -509,6 +600,24 @@
                         const isoDate = `${year}-${month}-${day}`;
                         fetchDashboardData(isoDate);
                     }
+                }
+            });
+
+            // Handle browser back/forward buttons
+            window.addEventListener('popstate', function(event) {
+                const urlParams = new URLSearchParams(window.location.search);
+                const date = urlParams.get('date') || 'all';
+                const dept = urlParams.get('department_id');
+                if (dept) {
+                    currentDepartmentId = dept;
+                    const deptSelect = document.getElementById('departmentSelect');
+                    if (deptSelect) deptSelect.value = dept;
+                }
+                fetchDashboardData(date);
+                if (fp && date !== 'all') {
+                    isProgrammaticDateChange = true;
+                    fp.setDate(date, false);
+                    isProgrammaticDateChange = false;
                 }
             });
         });

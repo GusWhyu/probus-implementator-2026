@@ -27,8 +27,9 @@
     $isPendingApproval = ($datarq->approval_status !== 'approved' && $datarq->approval_status !== 'rejected');
     $prevUrl = url()->previous();
     $currentUrl = url()->current();
-    $isInvalidBack = (!$prevUrl || $prevUrl === $currentUrl || str_contains($prevUrl, '/detailrequest') || str_contains($prevUrl, '/detailtiket') || str_contains($prevUrl, '/updatestatus') || str_contains($prevUrl, '/komentar') || str_contains($prevUrl, '/editrq'));
-    $backUrl = $isInvalidBack ? route('request.board') : $prevUrl;
+    $isInvalidBack = (!$prevUrl || $prevUrl === $currentUrl || str_contains($prevUrl, '/detailrequest') || str_contains($prevUrl, '/detailtiket') || str_contains($prevUrl, '/updatestatus') || str_contains($prevUrl, '/komentar') || str_contains($prevUrl, '/editrq') || str_contains($prevUrl, '/createus') || str_contains($prevUrl, '/editus') || str_contains($prevUrl, '/detailus') || str_contains($prevUrl, '/deletekomen') || str_contains($prevUrl, '/deletereq'));
+    $fallbackUrl = session('detailrequest_return_url_' . $datarq->id, session('detailrequest_return_url', route('myreq')));
+    $backUrl = (!empty($returnUrl)) ? $returnUrl : ($isInvalidBack ? $fallbackUrl : $prevUrl);
 @endphp
 
 <x-app-layout>
@@ -38,11 +39,11 @@
             <!-- Header section -->
             <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-8 gap-4">
                 <div class="flex items-center gap-4">
-                    <a href="{{ $backUrl }}" onclick="if (document.referrer && !document.referrer.includes('/detailrequest') && !document.referrer.includes('/detailtiket') && !document.referrer.includes('/updatestatus') && !document.referrer.includes('/komentar') && !document.referrer.includes('/editrq')) { event.preventDefault(); window.location.href = document.referrer; }" class="w-11 h-11 bg-white border border-slate-200 rounded-full flex items-center justify-center text-slate-500 hover:text-blue-600 hover:border-blue-200 hover:bg-blue-50 transition-all shadow-sm shrink-0 cursor-pointer" title="Kembali">
+                    <a href="{{ $backUrl }}" onclick="if (document.referrer && !document.referrer.includes('/detailrequest') && !document.referrer.includes('/detailtiket') && !document.referrer.includes('/updatestatus') && !document.referrer.includes('/komentar') && !document.referrer.includes('/editrq') && !document.referrer.includes('/createus') && !document.referrer.includes('/editus') && !document.referrer.includes('/detailus') && !document.referrer.includes('/deletekomen') && !document.referrer.includes('/deletereq')) { event.preventDefault(); window.location.href = document.referrer; }" class="w-11 h-11 bg-white border border-slate-200 rounded-full flex items-center justify-center text-slate-500 hover:text-blue-600 hover:border-blue-200 hover:bg-blue-50 transition-all shadow-sm shrink-0 cursor-pointer" title="Kembali">
                         <i class="fa-solid fa-arrow-left"></i>
                     </a>
                     <div>
-                        <h1 class="text-2xl font-extrabold text-slate-800 tracking-tight">Detail Request <span class="text-blue-600">#{{ $datarq->id }}</span></h1>
+                        <h1 class="text-2xl font-extrabold text-slate-800 tracking-tight">Detail Request <span class="text-blue-600">RQ-{{ $datarq->id }}</span></h1>
                         <p class="text-sm text-slate-500 font-medium mt-1">Pantau deskripsi, progres, dan diskusi terkait request pengerjaan sistem ini.</p>
                     </div>
                 </div>
@@ -54,16 +55,44 @@
                 @endif
             </div>
 
-            <!-- Alert Banner -->
-            <div class="bg-amber-50 border border-amber-200/60 rounded-2xl p-4 mb-6 flex items-start sm:items-center gap-4 shadow-sm">
-                <div class="w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center text-amber-600 shrink-0 mt-1 sm:mt-0">
-                    <i class="fa-solid fa-circle-info text-lg"></i>
+            @php
+                $isFromTicket = false;
+                $fromTicketNumber = null;
+                if (!empty($datarq->approval_note) && str_contains($datarq->approval_note, 'Dialihkan dari Tiket')) {
+                    $isFromTicket = true;
+                    if (preg_match('/Tiket\s*#?([A-Za-z0-9\-]+)/i', $datarq->approval_note, $matches)) {
+                        $fromTicketNumber = $matches[1];
+                    }
+                }
+                if (!$isFromTicket && !empty($datarq->deskripsi) && str_contains($datarq->deskripsi, 'Dialihkan dari Tiket')) {
+                    $isFromTicket = true;
+                    if (preg_match('/\[Dialihkan dari Tiket\s*#?([A-Za-z0-9\-]+)\]/i', $datarq->deskripsi, $matches)) {
+                        $fromTicketNumber = $matches[1];
+                    }
+                }
+            @endphp
+
+            <!-- Alert Banner: Khusus ditampilkan untuk Request hasil pengalihan dari Tiket -->
+            @if($isFromTicket)
+            <div class="bg-amber-50 border border-amber-200/80 rounded-2xl p-4 mb-6 flex items-start sm:items-center gap-4 shadow-sm">
+                <div class="w-10 h-10 bg-amber-100 rounded-2xl flex items-center justify-center text-amber-600 shrink-0 mt-1 sm:mt-0 shadow-xs">
+                    <i class="fa-solid fa-triangle-exclamation text-lg"></i>
                 </div>
-                <div>
-                    <p class="font-bold text-amber-800 text-sm">Perhatian</p>
-                    <p class="text-[13px] font-medium text-amber-700/80 mt-0.5">Pastikan seluruh aktivitas dan pembaruan request terdokumentasi dengan baik melalui komentar atau Update System.</p>
+                <div class="flex-1">
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <p class="font-extrabold text-amber-900 text-sm">Perhatian</p>
+                        @if($fromTicketNumber)
+                        <span class="text-[10px] font-bold font-mono bg-amber-200/80 text-amber-900 px-2 py-0.5 rounded-lg border border-amber-300">
+                            #{{ $fromTicketNumber }}
+                        </span>
+                        @endif
+                    </div>
+                    <p class="text-[13px] font-medium text-amber-800/90 mt-0.5 leading-relaxed">
+                        Request ini merupakan <strong>tiket yang dialihkan menjadi request</strong>@if($fromTicketNumber) (Tiket Asal: <strong>#{{ $fromTicketNumber }}</strong>)@endif.
+                    </p>
                 </div>
             </div>
+            @endif
 
             <div class="flex flex-col lg:flex-row gap-6 items-start">
                 
@@ -174,22 +203,22 @@
                             <h3 class="text-sm font-extrabold text-slate-800 uppercase tracking-wider flex items-center gap-2">
                                 <i class="fa-regular fa-comments text-blue-500"></i> Diskusi
                             </h3>
-                            <span class="bg-blue-100 text-blue-600 text-[10px] font-extrabold px-2.5 py-1 rounded-full">{{ count($komentar) }} Pesan</span>
+                            <span id="diskusi-count-badge" class="bg-blue-100 text-blue-600 text-[10px] font-extrabold px-2.5 py-1 rounded-full">{{ count($komentar) }} Pesan</span>
                         </div>
                         
-                        <div class="p-6 md:px-8 flex-1 overflow-y-auto space-y-6 custom-scrollbar bg-slate-50/30">
+                        <div id="diskusi-messages-container" class="p-6 md:px-8 flex-1 overflow-y-auto space-y-6 custom-scrollbar bg-slate-50/30">
                             @if (count($komentar) >= 1)
                                 @foreach ($komentar as $komen)
                                 <div class="flex gap-4 {{ $komen->user_id == $aid ? 'flex-row-reverse' : '' }}">
                                     <!-- Avatar -->
                                     <div class="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center text-slate-500 font-bold shrink-0 overflow-hidden shadow-sm border border-white">
-                                        <img src="https://ui-avatars.com/api/?name={{ urlencode($komen->user->name) }}&background={{ $komen->user_id == $aid ? '2563eb' : 'e2e8f0' }}&color={{ $komen->user_id == $aid ? 'fff' : '475569' }}&bold=true" alt="" class="w-full h-full object-cover">
+                                        <img src="{{ $komen->user ? $komen->user->avatar_url : 'https://ui-avatars.com/api/?name=' . urlencode($komen->user->name ?? 'User') . '&background=' . ($komen->user_id == $aid ? '2563eb' : 'e2e8f0') . '&color=' . ($komen->user_id == $aid ? 'fff' : '475569') . '&bold=true' }}" alt="{{ $komen->user->name ?? 'User' }}" class="w-full h-full object-cover">
                                     </div>
                                     
                                     <!-- Bubble -->
                                     <div class="max-w-[85%] sm:max-w-[75%] flex flex-col {{ $komen->user_id == $aid ? 'items-end' : 'items-start' }}">
                                         <div class="flex items-center gap-2 mb-1.5 px-1">
-                                            <span class="font-bold text-[11px] text-slate-700">{{ $komen->user->name }}</span>
+                                            <span class="font-bold text-[11px] text-slate-700">{{ $komen->user->name ?? 'User' }}</span>
                                             <span class="text-[10px] font-medium text-slate-400">{{ $komen->created_at->diffForHumans() }}</span>
                                         </div>
                                         <div class="px-5 py-3.5 rounded-2xl text-sm font-medium prose prose-sm max-w-none shadow-sm {{ $komen->user_id == $aid ? 'bg-blue-600 text-white rounded-tr-sm prose-p:text-blue-50 prose-a:text-white' : 'bg-white border border-slate-100 text-slate-800 rounded-tl-sm' }}">
@@ -202,7 +231,7 @@
                                 </div>
                                 @endforeach
                             @else
-                                <div class="text-center py-12 flex flex-col items-center">
+                                <div id="diskusi-empty-state" class="text-center py-12 flex flex-col items-center">
                                     <div class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center text-slate-300 mb-4">
                                         <i class="fa-regular fa-comments text-2xl"></i>
                                     </div>
@@ -218,16 +247,23 @@
                         </div>
                         @else
                         <div class="p-6 md:p-8 border-t border-slate-100 bg-white">
-                            <form action="/komentar/{{ $datarq->id }}" method="POST">
+                            <form id="diskusi-form" action="/komentar/{{ $datarq->id }}" method="POST">
                                 @csrf
                                 <input type="hidden" id="comment" name="comment" value="{{ old('comment') }}">
-                                <div class="bg-slate-50/50 rounded-2xl border border-slate-200 overflow-hidden focus-within:ring-4 focus-within:ring-blue-500/10 focus-within:border-blue-500 transition-all">
-                                    <trix-editor trix-attachment-remove input="comment" class="border-none min-h-[100px] text-sm font-medium p-4 focus:outline-none max-w-none prose prose-slate" placeholder="Ketik pesan Anda di sini..."></trix-editor>
-                                    <div class="bg-white px-4 py-3 border-t border-slate-100 flex justify-between items-center">
-                                        <trix-toolbar id="trix-toolbar-komen"></trix-toolbar>
-                                        <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-xl text-xs font-bold transition-all active:scale-95 shadow-sm shadow-blue-500/20 flex items-center gap-2">
-                                            Kirim <i class="fa-solid fa-paper-plane text-[10px]"></i>
+                                <div class="bg-slate-50/50 rounded-2xl border border-slate-200 overflow-hidden focus-within:ring-4 focus-within:ring-blue-500/10 focus-within:border-blue-500 transition-all flex flex-col">
+                                    <div class="order-2 bg-white px-4 py-3 border-t border-slate-100 flex flex-wrap sm:flex-nowrap justify-between items-center gap-3">
+                                        <div class="overflow-x-auto max-w-full flex-1">
+                                            <trix-toolbar id="trix-toolbar-komen"></trix-toolbar>
+                                        </div>
+                                        <button type="button" id="btn-kirim-diskusi" onclick="kirimPesanDiskusi()" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-xl text-xs font-bold transition-all active:scale-95 shadow-sm shadow-blue-500/20 flex items-center gap-2 shrink-0">
+                                            <span>Kirim</span> <i class="fa-solid fa-paper-plane text-[10px]"></i>
                                         </button>
+                                    </div>
+                                    <div class="order-1">
+                                        <trix-editor toolbar="trix-toolbar-komen" trix-attachment-remove input="comment" class="border-none min-h-[100px] text-sm font-medium p-4 focus:outline-none max-w-none prose prose-slate w-full" placeholder="Ketik pesan Anda di sini..."></trix-editor>
+                                        @error('comment')
+                                        <p class="text-rose-500 text-xs font-bold px-4 pb-2">{{ $message }}</p>
+                                        @enderror
                                     </div>
                                 </div>
                             </form>
@@ -450,6 +486,189 @@
                     // Custom styling to make toolbar compact
                     toolbar.classList.add("scale-90", "origin-left", "m-0", "opacity-70", "hover:opacity-100", "transition-opacity");
                 }
+            }
+        });
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            const p = document.createElement('p');
+            p.textContent = str;
+            return p.innerHTML;
+        }
+
+        window.kirimPesanDiskusi = async function() {
+            const diskusiForm = document.getElementById('diskusi-form');
+            if (!diskusiForm) return;
+
+            const trixEditor = document.querySelector('trix-editor[input="comment"]');
+            const commentInput = document.getElementById('comment');
+            const submitBtn = document.getElementById('btn-kirim-diskusi');
+            const messagesContainer = document.getElementById('diskusi-messages-container');
+
+            let messageHtml = '';
+            if (commentInput && commentInput.value) {
+                messageHtml = commentInput.value;
+            } else if (trixEditor && trixEditor.value) {
+                messageHtml = trixEditor.value;
+            } else if (trixEditor) {
+                messageHtml = trixEditor.innerHTML;
+            }
+
+            const plainText = messageHtml.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim();
+            const hasMedia = messageHtml.includes('<img') || messageHtml.includes('<figure');
+            if (!plainText && !hasMedia) {
+                if (trixEditor) trixEditor.focus();
+                return;
+            }
+
+            const originalBtnContent = submitBtn ? submitBtn.innerHTML : '';
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<span>Mengirim...</span> <i class="fa-solid fa-spinner fa-spin text-[10px]"></i>';
+            }
+
+            try {
+                const formData = new FormData(diskusiForm);
+                formData.set('comment', messageHtml);
+
+                const csrfMeta = document.querySelector('meta[name="csrf-token"]');
+                const csrfToken = csrfMeta ? csrfMeta.getAttribute('content') : (diskusiForm.querySelector('input[name="_token"]')?.value || '');
+
+                const response = await fetch(diskusiForm.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken
+                    }
+                });
+
+                if (!response.ok) {
+                    const errData = await response.json().catch(() => null);
+                    throw new Error(errData?.message || 'Gagal mengirim pesan');
+                }
+
+                const result = await response.json();
+
+                if (result.success && result.data) {
+                    if (trixEditor && trixEditor.editor) {
+                        trixEditor.editor.loadHTML('');
+                    }
+                    if (commentInput) {
+                        commentInput.value = '';
+                    }
+                    if (trixEditor) {
+                        trixEditor.value = '';
+                    }
+
+                    const emptyState = document.getElementById('diskusi-empty-state');
+                    if (emptyState) {
+                        emptyState.remove();
+                    }
+
+                    const countBadge = document.getElementById('diskusi-count-badge');
+                    if (countBadge && result.total_count !== undefined) {
+                        countBadge.textContent = `${result.total_count} Pesan`;
+                    }
+
+                    const msg = result.data;
+                    const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(msg.user_name)}&background=2563eb&color=fff&bold=true`;
+
+                    const bubbleDiv = document.createElement('div');
+                    bubbleDiv.className = 'flex gap-4 flex-row-reverse transition-all duration-300 opacity-0 translate-y-2';
+                    bubbleDiv.innerHTML = `
+                        <div class="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center text-slate-500 font-bold shrink-0 overflow-hidden shadow-sm border border-white">
+                            <img src="${avatarUrl}" alt="" class="w-full h-full object-cover">
+                        </div>
+                        <div class="max-w-[85%] sm:max-w-[75%] flex flex-col items-end">
+                            <div class="flex items-center gap-2 mb-1.5 px-1">
+                                <span class="font-bold text-[11px] text-slate-700">${escapeHtml(msg.user_name)}</span>
+                                <span class="text-[10px] font-medium text-slate-400">${escapeHtml(msg.time_ago)}</span>
+                            </div>
+                            <div class="px-5 py-3.5 rounded-2xl text-sm font-medium prose prose-sm max-w-none shadow-sm bg-blue-600 text-white rounded-tr-sm prose-p:text-blue-50 prose-a:text-white">
+                                ${msg.body || msg.message}
+                            </div>
+                            <a data-confirm-delete="true" href="/deletekomen/${msg.id}" class="text-[10px] font-bold text-slate-400 mt-1.5 hover:text-rose-500 transition-colors px-1">
+                                <i class="fa-solid fa-trash-can mr-1"></i>Hapus
+                            </a>
+                        </div>
+                    `;
+
+                    // Handler konfirmasi hapus pada bubble baru
+                    const delBtn = bubbleDiv.querySelector('a[data-confirm-delete]');
+                    if (delBtn) {
+                        delBtn.addEventListener('click', function(evt) {
+                            if (window.Swal) {
+                                evt.preventDefault();
+                                const url = this.getAttribute('href');
+                                Swal.fire({
+                                    title: 'Hapus Pesan?',
+                                    text: "Pesan ini akan dihapus permanen",
+                                    icon: 'warning',
+                                    showCancelButton: true,
+                                    confirmButtonColor: '#ef4444',
+                                    cancelButtonColor: '#94a3b8',
+                                    confirmButtonText: 'Ya, Hapus',
+                                    cancelButtonText: 'Batal'
+                                }).then((swalRes) => {
+                                    if (swalRes.isConfirmed) {
+                                        const delForm = document.createElement('form');
+                                        delForm.method = 'POST';
+                                        delForm.action = url;
+                                        delForm.innerHTML = `<input type="hidden" name="_token" value="${csrfToken}"><input type="hidden" name="_method" value="DELETE">`;
+                                        document.body.appendChild(delForm);
+                                        delForm.submit();
+                                    }
+                                });
+                            }
+                        });
+                    }
+
+                    if (messagesContainer) {
+                        messagesContainer.appendChild(bubbleDiv);
+                        setTimeout(() => {
+                            bubbleDiv.classList.remove('opacity-0', 'translate-y-2');
+                            bubbleDiv.classList.add('opacity-100', 'translate-y-0');
+                        }, 20);
+                        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                    }
+                }
+            } catch (err) {
+                console.error(err);
+                if (window.Swal) {
+                    Swal.fire({
+                        title: 'Gagal Mengirim',
+                        text: err.message || 'Terjadi kesalahan sistem saat mengirim pesan.',
+                        icon: 'error',
+                        confirmButtonColor: '#3b82f6'
+                    });
+                } else {
+                    alert(err.message || 'Gagal mengirim pesan');
+                }
+            } finally {
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalBtnContent;
+                }
+            }
+        };
+
+        // Scroll chat ke bawah saat halaman dimuat & pasang event keydown Enter
+        document.addEventListener('DOMContentLoaded', function() {
+            const messagesContainer = document.getElementById('diskusi-messages-container');
+            if (messagesContainer) {
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            }
+
+            const trix = document.querySelector('trix-editor[input="comment"]');
+            if (trix) {
+                trix.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        window.kirimPesanDiskusi();
+                    }
+                });
             }
         });
     </script>

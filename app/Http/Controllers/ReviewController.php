@@ -59,6 +59,13 @@ class ReviewController extends Controller
             'feedback' => trim($feedback),
         ]);
 
+        \App\Models\TicketLog::create([
+            'ticket_id' => $ticket->id,
+            'user_id' => null,
+            'action' => 'SURVEY_SUBMITTED',
+            'description' => 'Client mengisi survey kepuasan bintang ' . $request->rating . (trim($feedback) ? ' ("' . trim($feedback) . '")' : '') . '.',
+        ]);
+
         return view('review.success');
     }
 }

@@ -29,4 +29,9 @@ class Outlet extends Model
     {
         return $this->hasMany(Request::class, 'outlet_id');
     }
+
+    public function tickets()
+    {
+        return $this->hasMany(Ticket::class, 'client_id');
+    }
 }

@@ -186,11 +186,11 @@
                     </div>
 
                     <!-- Submit Actions -->
-                    <div class="flex items-center justify-end gap-3 pt-2 pb-4">
-                        <a href="{{ $returnUrl ?? route('myreq') }}" class="px-7 py-3 bg-white border border-slate-200 text-slate-600 font-bold text-sm rounded-xl hover:bg-slate-50 transition-colors shadow-sm">
+                    <div class="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-3 pt-2 pb-4">
+                        <a href="{{ $returnUrl ?? route('myreq') }}" class="w-full sm:w-auto text-center px-7 py-3 bg-white border border-slate-200 text-slate-600 font-bold text-sm rounded-xl hover:bg-slate-50 transition-colors shadow-sm">
                             <i class="fa-solid fa-xmark mr-1.5 text-slate-400"></i> Batal
                         </a>
-                        <button type="submit" class="px-7 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm rounded-xl shadow-md shadow-blue-500/20 transition-all active:scale-95 flex items-center gap-2">
+                        <button type="submit" class="w-full sm:w-auto justify-center px-7 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm rounded-xl shadow-md shadow-blue-500/20 transition-all active:scale-95 flex items-center gap-2">
                             <i class="fa-solid fa-paper-plane text-blue-200 text-xs"></i> Buat Request
                         </button>
                     </div>
@@ -390,7 +390,7 @@
                     </div>
                     <h3 class="text-xl font-extrabold text-slate-800 mb-3">${type === 'error' ? 'Peringatan!' : 'Perhatian!'}</h3>
                     <p class="text-[13px] text-slate-500 font-medium leading-relaxed mb-8">${message}</p>
-                    <button class="w-full py-3.5 bg-slate-900 hover:bg-slate-800 active:scale-95 text-white rounded-xl font-bold text-sm transition-all shadow-md close-modal">
+                    <button class="w-full py-3.5 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white rounded-xl font-bold text-sm transition-all shadow-md shadow-blue-500/25 close-modal">
                         Oke
                     </button>
                 </div>

@@ -27,6 +27,7 @@
         
         <script src="https://cdn.tailwindcss.com"></script>
         <style>
+            [x-cloak] { display: none !important; }
             body { font-family: 'Inter', sans-serif; background-color: #F8FAFC; }
             /* Custom scrollbar */
             ::-webkit-scrollbar { width: 6px; height: 6px; }

@@ -16,93 +16,156 @@
         </div>
         
         {{-- Stats Cards --}}
+        @php
+            $currentStatus = request('status');
+            $isAllActive = empty($currentStatus);
+            $isOpenActive = strtoupper($currentStatus) === 'OPEN';
+            $isProgressActive = strtoupper($currentStatus) === 'PROGRESS';
+            $isClosedActive = strtoupper($currentStatus) === 'CLOSED';
+        @endphp
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
             {{-- Semua Tiket --}}
-            <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center justify-between hover:shadow-md transition-shadow">
+            <a href="{{ route('daftartiket', request()->except(['status', 'page'])) }}" 
+               class="p-5 rounded-2xl border transition-all duration-200 transform hover:-translate-y-0.5 shadow-sm hover:shadow-md flex items-center justify-between group relative {{ $isAllActive ? 'bg-white border-blue-600 ring-2 ring-blue-500/20 shadow-md' : 'bg-white border-slate-100 hover:border-slate-300' }}"
+               title="Tampilkan semua tiket (tanpa filter status)">
                 <div>
-                    <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Semua Tiket</div>
+                    <div class="text-[11px] font-bold uppercase tracking-wider mb-1 {{ $isAllActive ? 'text-blue-600' : 'text-slate-400' }}">Semua Tiket</div>
                     <div class="text-3xl font-extrabold text-slate-800">{{ $total_count }}</div>
                 </div>
-                <div class="w-12 h-12 rounded-full bg-slate-50 flex items-center justify-center text-slate-400">
+                <div class="w-12 h-12 rounded-full flex items-center justify-center transition-colors {{ $isAllActive ? 'bg-blue-600 text-white shadow-sm shadow-blue-500/30' : 'bg-slate-50 text-slate-400 group-hover:bg-slate-100 group-hover:text-slate-600' }}">
                     <i class="fa-solid fa-ticket text-xl"></i>
                 </div>
-            </div>
+                @if($isAllActive)
+                <span class="absolute top-2.5 right-3 px-2 py-0.5 text-[9px] font-extrabold uppercase rounded-full bg-blue-50 text-blue-700 border border-blue-200 tracking-wider">Aktif</span>
+                @endif
+            </a>
             
             {{-- Belum Ditangani --}}
-            <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center justify-between hover:shadow-md transition-shadow">
+            <a href="{{ route('daftartiket', $isOpenActive ? request()->except(['status', 'page']) : array_merge(request()->except('page'), ['status' => 'OPEN'])) }}" 
+               class="p-5 rounded-2xl border transition-all duration-200 transform hover:-translate-y-0.5 shadow-sm hover:shadow-md flex items-center justify-between group relative {{ $isOpenActive ? 'bg-white border-blue-500 ring-2 ring-blue-500/20 shadow-md' : 'bg-white border-slate-100 hover:border-blue-200' }}"
+               title="{{ $isOpenActive ? 'Klik untuk membatalkan filter' : 'Filter tiket Belum Ditangani (Open)' }}">
                 <div>
-                    <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Belum Ditangani</div>
+                    <div class="text-[11px] font-bold uppercase tracking-wider mb-1 {{ $isOpenActive ? 'text-blue-600' : 'text-slate-400' }}">Belum Ditangani</div>
                     <div class="text-3xl font-extrabold text-slate-800">{{ $open_count }}</div>
                 </div>
-                <div class="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center text-blue-500">
+                <div class="w-12 h-12 rounded-full flex items-center justify-center transition-colors {{ $isOpenActive ? 'bg-blue-500 text-white shadow-sm shadow-blue-500/30' : 'bg-blue-50 text-blue-500 group-hover:bg-blue-100' }}">
                     <i class="fa-regular fa-clock text-xl"></i>
                 </div>
-            </div>
+                @if($isOpenActive)
+                <span class="absolute top-2.5 right-3 px-2 py-0.5 text-[9px] font-extrabold uppercase rounded-full bg-blue-50 text-blue-700 border border-blue-200 tracking-wider">Aktif</span>
+                @endif
+            </a>
             
             {{-- Sedang Diproses --}}
-            <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center justify-between hover:shadow-md transition-shadow">
+            <a href="{{ route('daftartiket', $isProgressActive ? request()->except(['status', 'page']) : array_merge(request()->except('page'), ['status' => 'PROGRESS'])) }}" 
+               class="p-5 rounded-2xl border transition-all duration-200 transform hover:-translate-y-0.5 shadow-sm hover:shadow-md flex items-center justify-between group relative {{ $isProgressActive ? 'bg-white border-amber-500 ring-2 ring-amber-500/20 shadow-md' : 'bg-white border-slate-100 hover:border-amber-200' }}"
+               title="{{ $isProgressActive ? 'Klik untuk membatalkan filter' : 'Filter tiket Sedang Diproses (Progress)' }}">
                 <div>
-                    <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Sedang Diproses</div>
+                    <div class="text-[11px] font-bold uppercase tracking-wider mb-1 {{ $isProgressActive ? 'text-amber-600' : 'text-slate-400' }}">Sedang Diproses</div>
                     <div class="text-3xl font-extrabold text-slate-800">{{ $progress_count }}</div>
                 </div>
-                <div class="w-12 h-12 rounded-full bg-amber-50 flex items-center justify-center text-amber-500">
+                <div class="w-12 h-12 rounded-full flex items-center justify-center transition-colors {{ $isProgressActive ? 'bg-amber-500 text-white shadow-sm shadow-amber-500/30' : 'bg-amber-50 text-amber-500 group-hover:bg-amber-100' }}">
                     <i class="fa-solid fa-arrows-rotate text-xl"></i>
                 </div>
-            </div>
+                @if($isProgressActive)
+                <span class="absolute top-2.5 right-3 px-2 py-0.5 text-[9px] font-extrabold uppercase rounded-full bg-amber-50 text-amber-700 border border-amber-200 tracking-wider">Aktif</span>
+                @endif
+            </a>
             
             {{-- Selesai --}}
-            <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center justify-between hover:shadow-md transition-shadow">
+            <a href="{{ route('daftartiket', $isClosedActive ? request()->except(['status', 'page']) : array_merge(request()->except('page'), ['status' => 'CLOSED'])) }}" 
+               class="p-5 rounded-2xl border transition-all duration-200 transform hover:-translate-y-0.5 shadow-sm hover:shadow-md flex items-center justify-between group relative {{ $isClosedActive ? 'bg-white border-emerald-500 ring-2 ring-emerald-500/20 shadow-md' : 'bg-white border-slate-100 hover:border-emerald-200' }}"
+               title="{{ $isClosedActive ? 'Klik untuk membatalkan filter' : 'Filter tiket Selesai (Closed)' }}">
                 <div>
-                    <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Selesai</div>
+                    <div class="text-[11px] font-bold uppercase tracking-wider mb-1 {{ $isClosedActive ? 'text-emerald-600' : 'text-slate-400' }}">Selesai</div>
                     <div class="text-3xl font-extrabold text-slate-800">{{ $closed_count }}</div>
                 </div>
-                <div class="w-12 h-12 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-500">
+                <div class="w-12 h-12 rounded-full flex items-center justify-center transition-colors {{ $isClosedActive ? 'bg-emerald-500 text-white shadow-sm shadow-emerald-500/30' : 'bg-emerald-50 text-emerald-500 group-hover:bg-emerald-100' }}">
                     <i class="fa-regular fa-circle-check text-xl"></i>
                 </div>
-            </div>
+                @if($isClosedActive)
+                <span class="absolute top-2.5 right-3 px-2 py-0.5 text-[9px] font-extrabold uppercase rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 tracking-wider">Aktif</span>
+                @endif
+            </a>
         </div>
         
         {{-- Filters & Search --}}
-        <form method="GET" action="{{ route('daftartiket') }}" class="flex flex-col lg:flex-row gap-4 mb-6">
+        <form method="GET" action="{{ route('daftartiket') }}" class="mb-6">
             <input type="hidden" name="view" value="{{ request('view', 'list') }}">
-            <div class="relative flex-1">
-                <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari ID tiket, judul, user, atau pelanggan..." class="w-full pl-11 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all shadow-sm">
-                {{-- Invisible submit button to allow Enter to submit search --}}
-                <button type="submit" class="hidden"></button>
-            </div>
-            
-            <div class="flex items-center gap-3">
-                <select name="status" onchange="this.form.submit()" class="px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 shadow-sm min-w-[150px] appearance-none cursor-pointer" style="background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2394a3b8%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E'); background-repeat: no-repeat; background-position: right 1rem top 50%; background-size: 0.65rem auto;">
-                    <option value="">Semua Status</option>
-                    @foreach(['OPEN', 'PROGRESS', 'CLOSED'] as $st)
-                        <option value="{{ $st }}" {{ request('status') == $st ? 'selected' : '' }}>{{ ucfirst(strtolower($st)) }}</option>
-                    @endforeach
-                </select>
-                
-                <select name="system" onchange="this.form.submit()" class="px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 shadow-sm min-w-[150px] appearance-none cursor-pointer hidden md:block" style="background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2394a3b8%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E'); background-repeat: no-repeat; background-position: right 1rem top 50%; background-size: 0.65rem auto;">
-                    <option value="">Semua System</option>
-                    @foreach($systems as $sys)
-                        <option value="{{ $sys->id }}" {{ request('system') == $sys->id ? 'selected' : '' }}>{{ $sys->name }}</option>
-                    @endforeach
-                </select>
-                
-                <select name="module" onchange="this.form.submit()" class="px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 shadow-sm min-w-[150px] appearance-none cursor-pointer hidden md:block" style="background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2394a3b8%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E'); background-repeat: no-repeat; background-position: right 1rem top 50%; background-size: 0.65rem auto;">
-                    <option value="">Semua Module</option>
-                    @foreach($modules as $mod)
-                        <option value="{{ $mod->id }}" {{ request('module') == $mod->id ? 'selected' : '' }}>{{ $mod->name }}</option>
-                    @endforeach
-                </select>
-                
-                <div class="flex items-center bg-white border border-slate-200 rounded-xl p-1 shadow-sm">
-                    <a href="{{ request()->fullUrlWithQuery(['view' => 'list']) }}" class="w-8 h-8 rounded-lg {{ request('view', 'list') == 'list' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50' }} flex items-center justify-center transition-colors">
-                        <i class="fa-solid fa-list-ul"></i>
+            <div class="flex flex-col lg:flex-row gap-4">
+                <div class="relative flex-1">
+                    <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                    <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari ID tiket, judul, user, atau pelanggan..." autocomplete="off" class="w-full pl-11 pr-10 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all shadow-sm">
+                    @if(request('search'))
+                    <a href="{{ route('daftartiket', request()->except('search')) }}" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1 rounded-full transition-colors" title="Hapus pencarian">
+                        <i class="fa-solid fa-circle-xmark text-sm"></i>
                     </a>
-                    <a href="{{ request()->fullUrlWithQuery(['view' => 'grid']) }}" class="w-8 h-8 rounded-lg {{ request('view') == 'grid' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50' }} flex items-center justify-center transition-colors">
-                        <i class="fa-solid fa-border-all"></i>
+                    @endif
+                    {{-- Invisible submit button to allow Enter to submit search --}}
+                    <button type="submit" class="hidden"></button>
+                </div>
+                
+                <div class="flex flex-wrap items-center gap-2.5 sm:gap-3">
+                    <div class="relative flex-1 min-w-[120px] sm:flex-none sm:w-40 md:w-44">
+                        <select name="status" onchange="this.form.submit()" class="w-full appearance-none pl-3.5 sm:pl-4 pr-9 sm:pr-10 py-2 sm:py-2.5 bg-white border border-slate-200 rounded-xl text-xs sm:text-sm font-semibold text-slate-700 hover:border-slate-300 focus:outline-none focus:ring-4 focus:ring-blue-500/10 shadow-sm cursor-pointer transition-all truncate">
+                            <option value="">Semua Status</option>
+                            @foreach(['OPEN', 'PROGRESS', 'CLOSED'] as $st)
+                                <option value="{{ $st }}" {{ request('status') == $st ? 'selected' : '' }}>{{ ucfirst(strtolower($st)) }}</option>
+                            @endforeach
+                        </select>
+                        <i class="fa-solid fa-chevron-down absolute right-3.5 top-1/2 -translate-y-1/2 text-[10px] sm:text-xs text-slate-400 pointer-events-none"></i>
+                    </div>
+                    
+                    <div class="relative flex-1 min-w-[120px] sm:flex-none sm:w-40 md:w-44">
+                        <select name="system" onchange="this.form.submit()" class="w-full appearance-none pl-3.5 sm:pl-4 pr-9 sm:pr-10 py-2 sm:py-2.5 bg-white border border-slate-200 rounded-xl text-xs sm:text-sm font-semibold text-slate-700 hover:border-slate-300 focus:outline-none focus:ring-4 focus:ring-blue-500/10 shadow-sm cursor-pointer transition-all truncate">
+                            <option value="">Semua System</option>
+                            @foreach($systems as $sys)
+                                <option value="{{ $sys->id }}" {{ request('system') == $sys->id ? 'selected' : '' }}>{{ $sys->name }}</option>
+                            @endforeach
+                        </select>
+                        <i class="fa-solid fa-chevron-down absolute right-3.5 top-1/2 -translate-y-1/2 text-[10px] sm:text-xs text-slate-400 pointer-events-none"></i>
+                    </div>
+                    
+                    <div class="relative flex-1 min-w-[120px] sm:flex-none sm:w-40 md:w-44">
+                        <select name="module" onchange="this.form.submit()" class="w-full appearance-none pl-3.5 sm:pl-4 pr-9 sm:pr-10 py-2 sm:py-2.5 bg-white border border-slate-200 rounded-xl text-xs sm:text-sm font-semibold text-slate-700 hover:border-slate-300 focus:outline-none focus:ring-4 focus:ring-blue-500/10 shadow-sm cursor-pointer transition-all truncate">
+                            <option value="">Semua Module</option>
+                            @foreach($modules as $mod)
+                                <option value="{{ $mod->id }}" {{ request('module') == $mod->id ? 'selected' : '' }}>{{ $mod->name }}</option>
+                            @endforeach
+                        </select>
+                        <i class="fa-solid fa-chevron-down absolute right-3.5 top-1/2 -translate-y-1/2 text-[10px] sm:text-xs text-slate-400 pointer-events-none"></i>
+                    </div>
+
+                    @if(request()->filled('search') || request()->filled('status') || request()->filled('system') || request()->filled('module'))
+                    <!-- Reset Filter Button -->
+                    <a href="{{ route('daftartiket') }}" class="px-3.5 py-2 sm:py-2.5 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-1.5 transition-colors shadow-sm shrink-0" title="Reset filter & pencarian">
+                        <i class="fa-solid fa-rotate-left text-xs"></i>
+                        <span class="hidden md:inline">Reset</span>
                     </a>
+                    @endif
+                    
+                    <div class="flex items-center bg-white border border-slate-200 rounded-xl p-1 shadow-sm shrink-0">
+                        <a href="{{ request()->fullUrlWithQuery(['view' => 'list']) }}" class="w-8 h-8 rounded-lg {{ request('view', 'list') == 'list' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50' }} flex items-center justify-center transition-colors">
+                            <i class="fa-solid fa-list-ul"></i>
+                        </a>
+                        <a href="{{ request()->fullUrlWithQuery(['view' => 'grid']) }}" class="w-8 h-8 rounded-lg {{ request('view') == 'grid' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50' }} flex items-center justify-center transition-colors">
+                            <i class="fa-solid fa-border-all"></i>
+                        </a>
+                    </div>
                 </div>
             </div>
+
+            @if(request('search'))
+            <div class="flex items-center gap-2 mt-2 px-1">
+                <span class="text-xs text-slate-500 font-medium">Hasil pencarian untuk:</span>
+                <span class="inline-flex items-center gap-1.5 bg-blue-50 text-blue-700 text-xs font-bold px-2.5 py-0.5 rounded-lg border border-blue-200">
+                    "{{ request('search') }}"
+                    <a href="{{ route('daftartiket', request()->except('search')) }}" class="hover:text-blue-900 ml-0.5" title="Hapus filter pencarian">
+                        <i class="fa-solid fa-xmark text-[10px]"></i>
+                    </a>
+                </span>
+            </div>
+            @endif
         </form>
         
         @if(request('view', 'list') == 'list')
@@ -115,8 +178,12 @@
                             <th class="py-3 px-3 sm:px-4 text-[10px] font-extrabold text-slate-500 uppercase tracking-widest whitespace-nowrap">No. Tiket</th>
                             <th class="py-3 px-3 sm:px-4 text-[10px] font-extrabold text-slate-500 uppercase tracking-widest">User</th>
                             <th class="py-3 px-3 sm:px-4 text-[10px] font-extrabold text-slate-500 uppercase tracking-widest">Judul</th>
-                            <th class="py-3 px-3 sm:px-4 text-[10px] font-extrabold text-slate-500 uppercase tracking-widest">Deskripsi</th>
-                            <th class="py-3 px-3 sm:px-4 text-[10px] font-extrabold text-slate-500 uppercase tracking-widest whitespace-nowrap">Tipe Penanganan</th>
+                            <th class="py-3 px-3 sm:px-4 text-[10px] font-extrabold text-slate-500 uppercase tracking-widest text-left leading-tight">
+                                Lama<br>Pengerjaan
+                            </th>
+                            <th class="py-3 px-3 sm:px-4 text-[10px] font-extrabold text-slate-500 uppercase tracking-widest text-left leading-tight">
+                                Tipe<br>Penanganan
+                            </th>
                             <th class="py-3 px-3 sm:px-4 text-[10px] font-extrabold text-slate-500 uppercase tracking-widest whitespace-nowrap">System</th>
                             <th class="py-3 px-3 sm:px-4 text-[10px] font-extrabold text-slate-500 uppercase tracking-widest whitespace-nowrap">Module</th>
                             <th class="py-3 px-3 sm:px-4 text-[10px] font-extrabold text-slate-500 uppercase tracking-widest text-center whitespace-nowrap">Status</th>
@@ -142,11 +209,34 @@
                                 <td class="py-3 px-3 sm:px-4 align-top">
                                     <div class="text-sm font-bold text-slate-800 leading-snug">{{ $rq->title }}</div>
                                 </td>
-                                <td class="py-3 px-3 sm:px-4 align-top">
-                                    <div class="text-xs text-slate-500 leading-relaxed line-clamp-2">{{ strip_tags($rq->description ?? 'Tidak ada deskripsi') }}</div>
+                                <td class="py-3 px-3 sm:px-4 align-top text-left whitespace-nowrap">
+                                    @if($rq->status == 'CLOSED')
+                                        <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/80 shadow-xs" title="Selesai dalam {{ $rq->duration_text }}">
+                                            <i class="fa-solid fa-clock-check text-[11px] text-emerald-600"></i>
+                                            <span>{{ $rq->duration_text }}</span>
+                                        </div>
+                                    @elseif($rq->status == 'PROGRESS')
+                                        <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200/80 shadow-xs" title="Sedang diproses">
+                                            <span class="relative flex h-2 w-2">
+                                                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                                                <span class="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+                                            </span>
+                                            <span>{{ $rq->duration_text }}</span>
+                                        </div>
+                                    @else
+                                        <div class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold text-slate-400 bg-slate-50 border border-slate-200/60" title="Belum diproses">
+                                            <span>-</span>
+                                        </div>
+                                    @endif
                                 </td>
-                                <td class="py-3 px-3 sm:px-4 align-top">
-                                    <span class="inline-flex items-center px-2 py-1 rounded text-[11px] font-semibold bg-slate-100 text-slate-600 border border-slate-200 whitespace-nowrap">{{ $rq->tipe_penanganan ?? 'N/A' }}</span>
+                                <td class="py-3 px-3 sm:px-4 align-top text-left whitespace-nowrap">
+                                    @if($rq->tipe_penanganan)
+                                        <span class="inline-flex items-center text-[10px] font-bold px-2 py-0.5 rounded-md {{ $rq->tipe_penanganan == 'Remote' ? 'bg-purple-50 text-purple-700 border border-purple-200' : 'bg-sky-50 text-sky-700 border border-sky-200' }}">
+                                            <i class="fa-solid {{ $rq->tipe_penanganan == 'Remote' ? 'fa-laptop-code' : 'fa-building-user' }} text-[9px] mr-1"></i>{{ $rq->tipe_penanganan }}
+                                        </span>
+                                    @else
+                                        <span class="text-slate-400 text-xs">-</span>
+                                    @endif
                                 </td>
                                 <td class="py-3 px-3 sm:px-4 align-top">
                                     <span class="inline-flex items-center px-2 py-1 rounded text-[11px] font-semibold bg-slate-100 text-slate-600 border border-slate-200 whitespace-nowrap">{{ $rq->kategoriSystem->name ?? 'N/A' }}</span>
@@ -206,7 +296,7 @@
                                         </button>
                                         <ul tabindex="0" class="dropdown-content z-[50] menu p-2 shadow-lg bg-white rounded-xl w-36 border border-slate-100">
                                             <li><a href="/detailticket/{{ $rq->id }}" class="text-xs font-medium text-slate-700 hover:bg-slate-50 hover:text-blue-600"><i class="fa-regular fa-eye mr-2"></i> Detail</a></li>
-                                            @if($rq->status != 'CLOSED')
+                                            @if($rq->status != 'CLOSED' && ($rq->user_id == Auth::id() || in_array(Auth::user()->usertype, ['admin', 'supervisor'])))
                                                 <li><a href="/editticket/{{ $rq->id }}" class="text-xs font-medium text-slate-700 hover:bg-slate-50 hover:text-blue-600"><i class="fa-regular fa-pen-to-square mr-2"></i> Edit</a></li>
                                             @endif
                                         </ul>
@@ -215,7 +305,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="9" class="py-12 text-center">
+                                <td colspan="10" class="py-12 text-center">
                                     <div class="flex flex-col items-center">
                                         <div class="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-4">
                                             <i class="fa-solid fa-inbox text-slate-300 text-3xl"></i>
@@ -365,8 +455,11 @@
                                 <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5 flex items-center gap-1">
                                     <i class="fa-regular fa-circle-check text-emerald-500 text-[10px]"></i> Selesai
                                 </div>
-                                <div class="text-emerald-700 font-semibold text-xs">
-                                    {{ $rq->closed_at ? \Carbon\Carbon::parse($rq->closed_at)->format('d/m/Y') : ($rq->updated_at ? $rq->updated_at->format('d/m/Y') : '-') }}
+                                <div class="text-emerald-700 font-semibold text-xs flex items-center flex-wrap gap-1">
+                                    <span>{{ $rq->closed_at ? \Carbon\Carbon::parse($rq->closed_at)->format('d/m/Y') : ($rq->updated_at ? $rq->updated_at->format('d/m/Y') : '-') }}</span>
+                                    @if($rq->duration_text && $rq->duration_text !== '-')
+                                        <span class="text-[10px] text-emerald-600 font-bold bg-emerald-50 px-1 rounded border border-emerald-200/60" title="Durasi pengerjaan: {{ $rq->duration_text }}">({{ $rq->duration_text }})</span>
+                                    @endif
                                 </div>
                             @else
                                 <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5 flex items-center gap-1">

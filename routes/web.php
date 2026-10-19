@@ -15,6 +15,7 @@ use App\Http\Controllers\TicketController;
 use App\Http\Controllers\KategoriController;
 use App\Http\Controllers\UpdateSystemController;
 use App\Http\Controllers\ModulController;
+use App\Http\Controllers\DepartemenController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 
 /*
@@ -40,6 +41,8 @@ Route::get('/mrq/{id}', [HomeController::class, 'morerq'])->middleware(['auth'])
 Route::get('/daftartiket', [HomeController::class, 'daftartiket'])->middleware(['auth'])->name('daftartiket');
 Route::get('/inbox-manajemen', [HomeController::class, 'inbox'])->middleware(['auth'])->name('inbox');
 Route::get('/laporan', [HomeController::class, 'laporan'])->middleware(['auth'])->name('laporan');
+Route::post('/laporan/{id}/proses-nilai', [HomeController::class, 'prosesNilai'])->middleware(['auth'])->name('laporan.proses_nilai');
+Route::post('/laporan/proses-semua-nilai', [HomeController::class, 'prosesSemuaNilai'])->middleware(['auth'])->name('laporan.proses_semua');
 Route::get('/penilaian/{id}', [HomeController::class, 'penilaian'])->middleware(['auth'])->name('penilaian');
 Route::post('/penilaian/{id}', [HomeController::class, 'storePenilaian'])->middleware(['auth'])->name('penilaian.store');
 Route::get('/rapor/{id}', [HomeController::class, 'rapor'])->middleware(['auth'])->name('rapor');
@@ -83,6 +86,7 @@ Route::delete('/deleteticket/{id}',[TicketController::class, 'delete'])->middlew
 Route::post('/ticket/{id}/takeover', [TicketController::class, 'takeover'])->middleware(['auth'])->name('ticket.takeover');
 Route::post('/ticket/{id}/takeover/accept', [TicketController::class, 'takeoverAccept'])->middleware(['auth'])->name('ticket.takeover.accept');
 Route::post('/ticket/{id}/takeover/reject', [TicketController::class, 'takeoverReject'])->middleware(['auth'])->name('ticket.takeover.reject');
+Route::post('/ticket/{id}/convert-to-request', [TicketController::class, 'convertToRequest'])->middleware(['auth'])->name('ticket.convert_to_request');
 
 //Route Update System
 Route::get('/detailus/{id}', [UpdateSystemController::class, 'detailus'])->middleware(['auth'])->name('detailus');
@@ -132,6 +136,14 @@ Route::post('/createmodul', [ModulController::class, 'store'])->middleware(['aut
 Route::post('/editmodul/{id}', [ModulController::class, 'update'])->middleware(['auth'])->name('updatemodul');
 Route::match(['delete', 'get'], '/deletemodul/{id}', [ModulController::class, 'delete'])->middleware(['auth'])->name('deletemodul');
 
+//Route Departemen
+Route::get('/departemen', [DepartemenController::class, 'index'])->middleware(['auth'])->name('departemen');
+Route::get('/createdepartemen', [DepartemenController::class, 'createdepartemen'])->middleware(['auth'])->name('createdepartemen');
+Route::get('/editdepartemen/{id}', [DepartemenController::class, 'editdepartemen'])->middleware(['auth'])->name('editdepartemen');
+Route::post('/createdepartemen', [DepartemenController::class, 'store'])->middleware(['auth'])->name('storedepartemen');
+Route::post('/editdepartemen/{id}', [DepartemenController::class, 'updatedepartemen'])->middleware(['auth'])->name('updatedepartemen');
+Route::match(['delete', 'get'], '/deletedepartemen/{id}', [DepartemenController::class, 'delete'])->middleware(['auth'])->name('deletedepartemen');
+
 //Route Status
 Route::get('/status', [StatusController::class, 'index'])->middleware(['auth'])->name('status');
 Route::get('/createstatus', [StatusController::class, 'createstatus'])->middleware(['auth'])->name('createstatus');
@@ -163,11 +175,13 @@ Route::get('/myrequs', [MyrequsController::class, 'history'])->middleware(['auth
 Route::get('/myrequest', [MyrequsController::class, 'myrequest'])->middleware(['auth'])->name('myrequest');
 Route::get('/myupdatesystem', [MyrequsController::class, 'myupdatesystem'])->middleware(['auth'])->name('myupdatesystem');
 
-//Route Notification
-Route::get('/notifications/mark-as-read', function () {
-    Auth::user()->unreadNotifications->markAsRead();
-    return back();
-})->name('notifications.markAsRead');
+// Route Notification (Real-time & Management)
+Route::middleware(['auth'])->group(function () {
+    Route::get('/notifications', [\App\Http\Controllers\NotificationController::class, 'index'])->name('notifications.index');
+    Route::get('/notifications/unread', [\App\Http\Controllers\NotificationController::class, 'getUnread'])->name('notifications.unread');
+    Route::get('/notifications/mark-as-read', [\App\Http\Controllers\NotificationController::class, 'markAsRead'])->name('notifications.markAsRead');
+    Route::post('/notifications/mark-as-read/{id?}', [\App\Http\Controllers\NotificationController::class, 'markAsRead'])->name('notifications.markReadAjax');
+});
 
 Route::get('/demo-tiket', function () {
     return view('demo_tiket');
@@ -185,6 +199,15 @@ Route::middleware(['auth', 'can:aspv'])->group(function () {
 // Review Routes (Public)
 Route::get('/review/{ticket_number}', [\App\Http\Controllers\ReviewController::class, 'show'])->name('review.show');
 Route::post('/review/{ticket_number}', [\App\Http\Controllers\ReviewController::class, 'store'])->name('review.store');
+
+// Fallback route for storage files when symlink is not available or blocked
+Route::get('/storage/{path}', function ($path) {
+    $filePath = storage_path('app/public/' . $path);
+    if (!file_exists($filePath)) {
+        abort(404);
+    }
+    return response()->file($filePath);
+})->where('path', '.*');
 
 require __DIR__.'/auth.php';
 

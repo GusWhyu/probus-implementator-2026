@@ -1,155 +1,275 @@
 <x-app-layout>
-    <div class="pt-4 pb-8 bg-slate-50/50 min-h-screen">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="py-6 bg-slate-50 min-h-screen" x-data="{
+        nilaiTiket: {{ (float)$nilai_tiket }},
+        clientScore: {{ (float)$client_score }},
+        clientRating: {{ (float)$client_rating }},
+        softSkills: {
+            @foreach($categories as $cat)
+                {{ $cat->id }}: {{ (isset($catScores[$cat->id]) && (float)$catScores[$cat->id] > 0) ? round((float)$catScores[$cat->id] / 20) : 0 }},
+            @endforeach
+        },
+        softSkillAvg() {
+            let vals = Object.values(this.softSkills).map(Number);
+            let filled = vals.filter(v => v > 0);
+            if (filled.length === 0) return 0;
+            let sum = filled.reduce((a, b) => a + b, 0);
+            return (sum / (filled.length * 5)) * 100;
+        },
+        nilaiAkhir() {
+            return ((this.nilaiTiket * 0.3) + (this.softSkillAvg() * 0.4) + (this.clientScore * 0.3)).toFixed(2);
+        },
+        validateFinal(e) {
+            let vals = Object.values(this.softSkills).map(Number);
+            let hasZero = vals.some(v => v === 0);
+            if (hasZero) {
+                e.preventDefault();
+                alert('Perhatian: Untuk Simpan Nilai (Final), seluruh {{ $categories->count() }} kriteria Soft Skill harus diisi (nilai 1 - 5). Jika ingin menyimpan sementara tanpa melengkapi soft skill, silakan klik tombol \'Simpan Draft\'.');
+                return false;
+            }
+            return true;
+        }
+    }">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 space-y-6">
             
-            <!-- Top Bar -->
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
+            <!-- Breadcrumb & Top Bar -->
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
-                    <a href="{{ route('laporan') }}" class="inline-flex items-center gap-1.5 text-sm font-semibold text-blue-600 hover:text-blue-700 mb-2 transition-colors">
-                        <i class="fa-solid fa-chevron-left text-[10px]"></i> Kembali ke daftar
+                    <a href="{{ route('laporan', ['month' => $currentMonth, 'year' => $currentYear, 'period' => sprintf('%04d-%02d', $currentYear, $currentMonth)]) }}" class="inline-flex items-center gap-1.5 text-xs font-semibold text-blue-600 hover:text-blue-700 mb-1.5 transition-colors">
+                        <span class="text-sm font-bold">&laquo;</span> Kembali ke daftar
                     </a>
-                    <h1 class="text-2xl font-extrabold text-slate-800 tracking-tight">Penilaian Kinerja CS</h1>
+                    <h1 class="text-2xl font-bold text-slate-800 tracking-tight">
+                        Penilaian Kinerja CS
+                    </h1>
                 </div>
-                <div class="flex items-center gap-3">
-                    <span class="text-xs font-bold text-slate-400 uppercase tracking-wider hidden sm:inline">Periode Penilaian</span>
-                    <div class="relative bg-white border border-slate-200 rounded-xl shadow-sm text-sm font-bold text-slate-700 flex items-center px-4 py-2.5 cursor-pointer hover:border-slate-300 transition-colors">
-                        <i class="fa-regular fa-calendar text-blue-500 mr-2"></i>
-                        <span>Februari 2025</span>
-                        <i class="fa-solid fa-chevron-down text-slate-400 ml-3 text-xs"></i>
+                <div class="flex flex-col sm:items-end">
+                    <span class="text-[11px] font-medium text-slate-400 mb-1">Periode Penilaian (Cut-off Akhir Bulan):</span>
+                    <div class="bg-white border border-slate-200 rounded-lg px-3.5 py-1.5 text-xs font-semibold text-slate-700 shadow-sm flex items-center gap-2">
+                        <i class="fa-regular fa-calendar-check text-blue-500"></i>
+                        <span>{{ \Carbon\Carbon::createFromDate($currentYear, $currentMonth, 1)->locale('id')->translatedFormat('F Y') }} (1 – {{ \Carbon\Carbon::createFromDate($currentYear, $currentMonth, 1)->endOfMonth()->translatedFormat('d M Y') }})</span>
                     </div>
                 </div>
             </div>
+
+            @if($errors->any())
+            <div class="p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-semibold flex items-center gap-3 shadow-xs">
+                <i class="fa-solid fa-triangle-exclamation text-rose-500 text-base shrink-0"></i>
+                <div>
+                    @foreach($errors->all() as $err)
+                        <p>{{ $err }}</p>
+                    @endforeach
+                </div>
+            </div>
+            @endif
 
             <!-- Profile Card -->
-            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-6 mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-5 sm:p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div class="flex items-center gap-4">
-                    <div class="w-14 h-14 rounded-full bg-gradient-to-br from-blue-400 to-indigo-600 flex items-center justify-center text-white shrink-0 shadow-md shadow-blue-500/20 ring-4 ring-blue-100 overflow-hidden">
-                        <!-- Use a profile image if available, else fallback to icon -->
-                        <img src="https://ui-avatars.com/api/?name={{ urlencode($user->name ?? 'Siti Rahma') }}&background=6366f1&color=fff" alt="Avatar" class="w-full h-full object-cover">
+                    <div class="w-14 h-14 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white shrink-0 overflow-hidden ring-4 ring-indigo-50 shadow-sm">
+                        @if($user->profile_image)
+                            <img src="{{ asset('storage/' . $user->profile_image) }}" alt="{{ $user->name }}" class="w-full h-full object-cover">
+                        @else
+                            <img src="https://ui-avatars.com/api/?name={{ urlencode($user->name) }}&background=6366f1&color=fff&bold=true" alt="{{ $user->name }}" class="w-full h-full object-cover">
+                        @endif
                     </div>
-                    <div class="truncate">
-                        <h2 class="text-lg font-extrabold text-slate-800 truncate">{{ $user->name ?? 'Siti Rahma' }}</h2>
-                        <p class="text-sm font-medium text-slate-400 truncate">{{ $user->usertype ?? 'Customer Support' }}</p>
+                    <div>
+                        <h2 class="text-base sm:text-lg font-bold text-slate-900 leading-tight">{{ $user->name }}</h2>
+                        <p class="text-xs text-slate-400 font-medium mt-0.5">{{ $user->usertype ?? 'Customer Support' }}</p>
                     </div>
                 </div>
-                <div class="flex items-center gap-1 shrink-0">
-                    <i class="fa-solid fa-star text-blue-500 text-lg"></i>
-                    <i class="fa-solid fa-star text-blue-500 text-lg"></i>
-                    <i class="fa-solid fa-star text-blue-500 text-lg"></i>
-                    <i class="fa-solid fa-star text-blue-500 text-lg"></i>
-                    <i class="fa-solid fa-star text-slate-200 text-lg"></i>
-                    <span class="text-sm font-medium text-slate-500 ml-2">4.0</span>
+
+                <!-- Rating Stars & Score (Review by Client) -->
+                <div class="flex flex-col items-start sm:items-end">
+                    <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Review by Client</span>
+                    <div class="flex items-center gap-1.5 text-amber-400">
+                        @for($s = 1; $s <= 5; $s++)
+                            <i class="fa-solid fa-star text-sm sm:text-base {{ $s <= round($client_rating) ? 'text-amber-400' : 'text-slate-200' }}"></i>
+                        @endfor
+                        <span class="text-sm font-bold text-slate-700 ml-1.5">{{ number_format($client_rating, 1) }} / 5.0</span>
+                    </div>
                 </div>
             </div>
 
-            <form action="{{ route('penilaian.store', $user->id ?? 1) }}" method="POST">
+            <form action="{{ route('penilaian.store', $user->id) }}" method="POST">
                 @csrf
+                <input type="hidden" name="month" value="{{ $currentMonth }}">
+                <input type="hidden" name="year" value="{{ $currentYear }}">
                 <input type="hidden" name="total_ticket" value="{{ $tiket_ditangani }}">
                 <input type="hidden" name="total_ticket_yang_di_advice" value="{{ $tiket_di_advice }}">
+                <input type="hidden" name="total_lama_waktu" value="{{ $total_lama_waktu }}">
                 <input type="hidden" name="rata_rata_waktu" value="{{ $rata_rata_waktu }}">
+                <input type="hidden" name="nilai_tiket" value="{{ $nilai_tiket }}">
+                <input type="hidden" name="raw_ticket_score" value="{{ $raw_ticket_score }}">
+                <input type="hidden" name="max_ticket_score" value="{{ $max_ticket_score }}">
+                <input type="hidden" name="team_portion" value="{{ $team_portion }}">
+                <input type="hidden" name="client_score" value="{{ $client_score }}">
+
                 <div class="space-y-6">
                     
-                    <!-- Top 2 Columns -->
+                    <!-- 2 Columns: Statistik & Bobot Nilai -->
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                         
-                        <!-- Ringkasan Statistik -->
-                        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
-                            <h3 class="text-sm font-extrabold text-slate-800 flex items-center gap-2 mb-5">
-                                <i class="fa-solid fa-clipboard-list text-blue-500"></i> Ringkasan Statistik Ticket
+                        <!-- Ringkasan Statistik Ticket -->
+                        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6">
+                            <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2 mb-5">
+                                <i class="fa-regular fa-clipboard text-blue-500"></i> Ringkasan Statistik Ticket
                             </h3>
-                            <div class="space-y-1">
-                                <div class="flex items-center justify-between py-2 border-b border-slate-50 last:border-0">
-                                    <div class="flex items-center gap-3">
-                                        <i class="fa-solid fa-ticket text-slate-400 text-sm w-4"></i>
-                                        <span class="text-sm font-medium text-slate-500">Tiket ditangani</span>
-                                    </div>
-                                    <span class="text-sm font-extrabold text-slate-800">{{ $tiket_ditangani }}</span>
+                            <div class="space-y-4 text-xs sm:text-sm">
+                                <div class="flex items-center justify-between text-slate-600">
+                                    <span class="flex items-center gap-2.5">
+                                        <i class="fa-regular fa-comment-dots text-slate-400 w-4"></i> Tiket ditangani
+                                    </span>
+                                    <span class="font-bold text-slate-900">{{ $tiket_ditangani }}</span>
                                 </div>
-                                <div class="flex items-center justify-between py-2 border-b border-slate-50 last:border-0">
-                                    <div class="flex items-center gap-3">
-                                        <i class="fa-regular fa-circle-check text-slate-400 text-sm w-4"></i>
-                                        <span class="text-sm font-medium text-slate-500">Tiket selesai</span>
-                                    </div>
-                                    <span class="text-sm font-extrabold text-slate-800">{{ $tiket_selesai }}</span>
+                                <div class="flex items-center justify-between text-slate-600">
+                                    <span class="flex items-center gap-2.5">
+                                        <i class="fa-regular fa-clock text-slate-400 w-4"></i> Tiket selesai
+                                    </span>
+                                    <span class="font-bold text-slate-900">{{ $tiket_selesai }}</span>
                                 </div>
-                                <div class="flex items-center justify-between py-2 border-b border-slate-50 last:border-0">
-                                    <div class="flex items-center gap-3">
-                                        <i class="fa-solid fa-user-shield text-slate-400 text-sm w-4"></i>
-                                        <span class="text-sm font-medium text-slate-500">Tiket yang di-advice</span>
-                                    </div>
-                                    <span class="text-sm font-extrabold text-slate-800">{{ $tiket_di_advice }}</span>
+                                <div class="flex items-center justify-between text-slate-600">
+                                    <span class="flex items-center gap-2.5">
+                                        <i class="fa-solid fa-stopwatch text-slate-400 w-4"></i> Rata-rata respon
+                                    </span>
+                                    <span class="font-bold text-slate-900">{{ $rata_rata_waktu }}</span>
                                 </div>
-                                <div class="flex items-center justify-between py-2 border-b border-slate-50 last:border-0">
-                                    <div class="flex items-center gap-3">
-                                        <i class="fa-regular fa-clock text-slate-400 text-sm w-4"></i>
-                                        <span class="text-sm font-medium text-slate-500">Rata-rata waktu</span>
-                                    </div>
-                                    <span class="text-sm font-extrabold text-slate-800">{{ $rata_rata_waktu }}</span>
+                                <div class="flex items-center justify-between text-slate-600">
+                                    <span class="flex items-center gap-2.5">
+                                        <i class="fa-solid fa-chart-line text-slate-400 w-4"></i> Persentase tiket selesai
+                                    </span>
+                                    <span class="font-bold text-slate-900">
+                                        {{ $tiket_ditangani > 0 ? round(($tiket_selesai / $tiket_ditangani) * 100, 1) : 0 }}%
+                                    </span>
                                 </div>
-                                <div class="flex items-center justify-between py-2 border-b border-slate-50 last:border-0">
-                                    <div class="flex items-center gap-3">
-                                        <i class="fa-solid fa-chart-line text-slate-400 text-sm w-4"></i>
-                                        <span class="text-sm font-medium text-slate-500">Persentase ticket selesai</span>
-                                    </div>
-                                    <span class="text-sm font-extrabold text-slate-800">{{ $tiket_ditangani > 0 ? round(($tiket_selesai / $tiket_ditangani) * 100, 1) : 0 }}%</span>
+                                <div class="flex items-center justify-between text-slate-600 pt-1 border-t border-slate-100">
+                                    <span class="flex items-center gap-2.5">
+                                        <i class="fa-solid fa-crown text-amber-500 w-4"></i> Bobot Tertinggi Modul
+                                    </span>
+                                    <span class="font-bold text-slate-900">
+                                        {{ is_object($highestBobotModule) ? $highestBobotModule->name : ($highestBobotModule ?? '-') }} <span class="text-xs text-slate-500 font-semibold">(Bobot: {{ $highestBobotVal ?? 0 }})</span>
+                                    </span>
                                 </div>
                             </div>
                         </div>
 
                         <!-- Bobot Nilai -->
-                        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
-                            <h3 class="text-sm font-extrabold text-slate-800 flex items-center gap-2 mb-5">
+                        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6">
+                            <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2 mb-5">
                                 <i class="fa-regular fa-lightbulb text-emerald-500"></i> Bobot Nilai
                             </h3>
-                            <div class="space-y-4">
-                                <p class="text-xs font-medium text-slate-400 mb-2">Nilai tiket (30%)</p>
-                                <p class="text-xs font-medium text-slate-400 mb-2">Nilai Soft Skill (40%)</p>
-                                <p class="text-xs font-medium text-slate-400 mb-2">Kepuasan klien (30%)</p>
-                                <p class="text-xs font-medium text-slate-400 pt-3 mt-2 border-t border-slate-100">Nilai akhir gabungan seluruh komponen</p>
+                            <div class="space-y-4 text-xs sm:text-sm">
+                                <div class="flex items-center justify-between text-slate-600">
+                                    <span>Nilai Tiket (30%)</span>
+                                    <span class="font-bold text-slate-900">{{ $nilai_tiket }}</span>
+                                </div>
+                                <div class="flex items-center justify-between text-slate-600">
+                                    <span>Nilai Soft Skill (40%)</span>
+                                    <span class="font-bold text-slate-900" x-text="softSkillAvg().toFixed(1)"></span>
+                                </div>
+                                <div class="flex items-center justify-between text-slate-600">
+                                    <span>Kepuasan Klien (30%)</span>
+                                    <span class="font-bold text-slate-900" x-text="clientScore.toFixed(1)"></span>
+                                </div>
+                                <div class="flex items-center justify-between text-slate-600 pt-1 border-t border-slate-100">
+                                    <span class="font-semibold text-slate-700">Nilai akhir gabungan seluruh komponen:</span>
+                                    <span class="font-black text-blue-600 text-base" x-text="nilaiAkhir()"></span>
+                                </div>
                             </div>
+                        </div>
+
+                    </div>
+
+                    <!-- Rincian Penilaian per Modul (6 Kolom: Modul, Beban, Total Ticket, Lama Waktu, Rata-rata Waktu, Rata-rata Skor) -->
+                    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-5">
+                            <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
+                                <i class="fa-regular fa-envelope text-blue-500"></i> Rincian Penilaian per Modul
+                            </h3>
+                            <span class="text-xs text-slate-500 font-medium">Rumus: Skor = Beban (Bobot) × Total Ticket</span>
+                        </div>
+
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="border-b border-slate-200 text-[11px] font-bold text-slate-400 uppercase tracking-wider bg-slate-50/50">
+                                        <th class="py-3 px-3">Modul</th>
+                                        <th class="py-3 px-3 text-center">Beban</th>
+                                        <th class="py-3 px-3 text-center">Total Ticket</th>
+                                        <th class="py-3 px-3 text-center">Lama Waktu</th>
+                                        <th class="py-3 px-3 text-center">Rata-rata Waktu</th>
+                                        <th class="py-3 px-3 text-right">Rata-rata Skor</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100 text-xs sm:text-sm">
+                                    @forelse($module_details ?? [] as $md)
+                                    <tr class="hover:bg-slate-50/50 transition-colors">
+                                        <td class="py-3 px-3 font-semibold text-slate-800">{{ $md['name'] }}</td>
+                                        <td class="py-3 px-3 text-center font-medium text-slate-600">{{ $md['bobot'] }}</td>
+                                        <td class="py-3 px-3 text-center font-bold text-slate-900">{{ $md['total_ticket'] }}</td>
+                                        <td class="py-3 px-3 text-center font-medium text-slate-600">{{ $md['lama_waktu'] ?? '-' }}</td>
+                                        <td class="py-3 px-3 text-center font-medium text-slate-600">{{ $md['rata_rata_waktu'] ?? '-' }}</td>
+                                        <td class="py-3 px-3 text-right font-bold text-blue-600 font-mono">{{ number_format($md['score'], 0, ',', '.') }}</td>
+                                    </tr>
+                                    @empty
+                                    <tr>
+                                        <td colspan="6" class="py-6 text-center text-slate-400 text-xs">Belum ada data modul tiket pada periode ini.</td>
+                                    </tr>
+                                    @endforelse
+                                </tbody>
+                                <tfoot>
+                                    <tr class="border-t-2 border-slate-700 font-bold text-xs sm:text-sm text-slate-900 bg-slate-50/60">
+                                        <td class="py-3 px-3">Total</td>
+                                        <td class="py-3 px-3 text-center text-slate-700 font-semibold">{{ $total_bobot ?? array_sum(array_column($module_details, 'bobot')) }}</td>
+                                        <td class="py-3 px-3 text-center text-blue-700 font-extrabold">{{ $total_qty ?? 0 }} tiket</td>
+                                        <td class="py-3 px-3 text-center text-slate-700 font-semibold">{{ $total_lama_waktu ?? '-' }}</td>
+                                        <td class="py-3 px-3 text-center text-slate-700 font-semibold">{{ $rata_rata_waktu }}</td>
+                                        <td class="py-3 px-3 text-right font-black text-blue-700 font-mono">{{ number_format($raw_ticket_score, 0, ',', '.') }}</td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+
+                        <!-- Nilai Akhir Ticket aligned right -->
+                        <div class="mt-4 pt-3 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between text-xs text-slate-600 gap-2">
+                            <span class="text-slate-500">Normalisasi Tim: ({{ number_format($raw_ticket_score, 0, ',', '.') }} ÷ {{ number_format($max_ticket_score, 0, ',', '.') }}) × 100</span>
+                            <span class="text-sm sm:text-base font-bold text-slate-900 text-right">
+                                Nilai Akhir Ticket: <span class="text-lg sm:text-xl font-extrabold text-blue-600">{{ $nilai_tiket }}</span> <span class="text-xs text-slate-400">/ 100</span>
+                            </span>
                         </div>
                     </div>
 
-                    <!-- Detail Ticket per Modul -->
-                    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
-                        <h3 class="text-sm font-extrabold text-slate-800 flex items-center gap-2 mb-6">
-                            <i class="fa-solid fa-layer-group text-blue-500"></i> Detail Ticket per Modul
-                        </h3>
-                        <div class="space-y-1">
-                            @forelse($module_details ?? [] as $md)
-                            <div class="flex flex-col sm:flex-row sm:items-center justify-between py-4 border-b border-slate-50 last:border-0 gap-2">
-                                <span class="text-sm font-semibold text-slate-700 w-36">{{ $md['name'] }}</span>
-                                <span class="text-sm font-medium text-slate-500 w-28">Beban: <strong class="text-slate-700">{{ $md['bobot'] }}</strong></span>
-                                <span class="text-sm font-medium text-slate-500 w-36">Jumlah: <strong class="text-slate-700">{{ $md['total_ticket'] }}</strong> Tiket</span>
-                                <span class="text-sm font-medium text-slate-500 w-44">Rata-rata Waktu: <strong class="text-slate-700">{{ $md['rata_rata_waktu'] }}</strong></span>
-                                <span class="text-sm font-bold text-blue-600 text-right flex-1">Nilai: {{ $md['score'] }}</span>
+                    <!-- Penilaian Soft Skill (10 Kriteria Sesuai Pengaturan/Soft Skill) -->
+                    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <div>
+                                <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
+                                    <i class="fa-regular fa-circle-check text-blue-500"></i> Penilaian Soft Skill
+                                </h3>
+                                <p class="text-xs text-slate-400 mt-0.5">Sesuai dengan kriteria di menu Pengaturan/Soft Skill</p>
                             </div>
-                            @empty
-                            <p class="text-xs font-medium text-slate-400 py-3">Tidak ada aktivitas tiket modul pada periode ini.</p>
-                            @endforelse
+                            <span class="text-[11px] font-semibold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-lg">Skala 1 - 5 • {{ $categories->count() }} Kriteria</span>
                         </div>
-                    </div>
 
-                    <!-- Penilaian Soft Skill -->
-                    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
-                        <h3 class="text-sm font-extrabold text-slate-800 flex items-center gap-2 mb-6">
-                            <i class="fa-regular fa-circle-check text-blue-500"></i> Penilaian Soft Skill
-                        </h3>
-                        <div class="space-y-2">
-                            @foreach([
-                                'produktivitas' => 'Produktivitas / Jumlah Tiket',
-                                'kualitas' => 'Kualitas Solving',
-                                'kecepatan' => 'Kecepatan Respon / Proses',
-                                'sikap' => 'Sikap CS',
-                                'kepuasan' => 'Kepuasan Pelanggan'
-                            ] as $key => $label)
-                            <div class="flex flex-col sm:flex-row sm:items-center justify-between py-4 border-b border-slate-50 last:border-0 gap-4">
-                                <span class="text-sm font-medium text-slate-600 flex-1">{{ $label }}</span>
-                                <div class="flex items-center gap-5">
+                        <div class="space-y-3">
+                            @foreach($categories as $cat)
+                            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 py-3 border-b border-slate-100 last:border-0 hover:bg-slate-50/50 px-2 rounded-xl transition-colors">
+                                <div class="flex items-center gap-2.5 min-w-0">
+                                    <span class="text-xs font-bold text-slate-400 w-6 shrink-0">{{ sprintf('%02d', $loop->iteration) }}</span>
+                                    <span class="text-xs sm:text-sm font-semibold text-slate-800 truncate">{{ $cat->name }}</span>
+                                    <span x-show="softSkills[{{ $cat->id }}] == 0" class="text-[10px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200 shrink-0">
+                                        Belum diisi (0)
+                                    </span>
+                                    <span x-show="softSkills[{{ $cat->id }}] > 0" class="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200 shrink-0" x-text="'Skor: ' + (softSkills[{{ $cat->id }}] * 20) + ' / 100'">
+                                    </span>
+                                </div>
+                                <div class="flex items-center gap-4 sm:gap-6 shrink-0">
                                     @for($i = 1; $i <= 5; $i++)
-                                    <label class="flex items-center gap-2 cursor-pointer group">
-                                        <input type="radio" name="{{ $key }}" value="{{ $i }}" class="w-4 h-4 text-slate-800 border-slate-300 focus:ring-slate-500 cursor-pointer" {{ $i == 1 ? 'checked' : '' }}>
-                                        <span class="text-sm font-medium text-slate-600 group-hover:text-slate-800 transition-colors">{{ $i }}</span>
+                                    <label class="inline-flex items-center gap-1.5 cursor-pointer text-xs font-semibold text-slate-700 select-none hover:text-blue-600 transition-colors">
+                                        <input type="radio" 
+                                            name="soft_skills[{{ $cat->id }}]" 
+                                            value="{{ $i }}" 
+                                            x-model="softSkills[{{ $cat->id }}]" 
+                                            class="w-4 h-4 text-blue-600 border-slate-300 focus:ring-0 focus:ring-offset-0 cursor-pointer">
+                                        <span>{{ $i }}</span>
                                     </label>
                                     @endfor
                                 </div>
@@ -158,24 +278,27 @@
                         </div>
                     </div>
 
-                    <!-- Catatan dari Penilai -->
-                    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
-                        <h3 class="text-sm font-extrabold text-slate-800 mb-4">Catatan dari Penilai</h3>
-                        <textarea name="catatan" class="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm font-medium text-slate-700 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all resize-none shadow-sm" rows="4" placeholder="Tuliskan catatan penilaian kinerja CS..."></textarea>
+                    <!-- Catatan dari Penilai & Saran untuk Perbaikan -->
+                    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6 space-y-5">
+                        <div>
+                            <label class="block text-xs sm:text-sm font-medium text-slate-800 mb-2">Catatan dari Penilai</label>
+                            <textarea name="catatan" rows="3" placeholder="Tuliskan catatan penilaian kinerja CS..." 
+                                class="w-full p-3.5 bg-slate-50/50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 resize-none transition-all">{{ old('catatan', optional($existingReview)->catatan) }}</textarea>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs sm:text-sm font-medium text-slate-800 mb-2">Saran untuk Perbaikan</label>
+                            <textarea name="saran" rows="3" placeholder="Tuliskan saran atau rekomendasi perbaikan..." 
+                                class="w-full p-3.5 bg-slate-50/50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 resize-none transition-all">{{ old('saran', optional($existingReview)->saran) }}</textarea>
+                        </div>
                     </div>
 
-                    <!-- Saran untuk Perbaikan -->
-                    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
-                        <h3 class="text-sm font-extrabold text-slate-800 mb-4">Saran untuk Perbaikan</h3>
-                        <textarea name="saran" class="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm font-medium text-slate-700 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all resize-none shadow-sm" rows="4" placeholder="Tuliskan saran atau rekomendasi perbaikan..."></textarea>
-                    </div>
-
-                    <!-- Action Buttons -->
-                    <div class="flex justify-end gap-3 pt-2 pb-6">
-                        <button type="button" class="px-6 py-2.5 bg-blue-50/50 text-blue-600 border border-blue-200 rounded-lg text-sm font-bold hover:bg-blue-50 transition-colors flex items-center gap-2">
-                            <i class="fa-regular fa-floppy-disk"></i> Simpan Draft
+                    <!-- Action Buttons aligned right -->
+                    <div class="flex items-center justify-end gap-3 pt-2">
+                        <button type="submit" name="action" value="draft" class="px-5 py-2.5 bg-blue-50 hover:bg-blue-100 text-blue-600 border border-blue-200 rounded-lg text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer">
+                            <i class="fa-regular fa-file-lines"></i> Simpan Draft
                         </button>
-                        <button type="submit" class="px-6 py-2.5 bg-blue-500 text-white rounded-lg text-sm font-bold hover:bg-blue-600 shadow-sm transition-colors flex items-center gap-2">
+                        <button type="submit" name="action" value="final" @click="if(!validateFinal($event)) return false;" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-semibold flex items-center gap-2 transition-all shadow-sm cursor-pointer">
                             <i class="fa-regular fa-floppy-disk"></i> Simpan Nilai
                         </button>
                     </div>

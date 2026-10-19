@@ -52,12 +52,6 @@
                                placeholder="Pilih Tanggal..."
                                value="{{ $selectedDateRaw ?? '' }}" readonly>
                     </div>
-
-                    {{-- Export / Print Button --}}
-                    <button onclick="window.print()" type="button" class="bg-white text-blue-600 px-3 sm:px-5 py-2 sm:py-2.5 rounded-xl text-[10px] sm:text-xs font-bold flex items-center justify-center gap-1.5 sm:gap-2 hover:bg-blue-50 transition-colors shadow-lg shadow-blue-900/20 shrink-0 active:scale-95">
-                        <i class="fa-solid fa-download"></i>
-                        Export
-                    </button>
                 </div>
             </div>
         </div>
@@ -493,6 +487,35 @@
 
             // ── 7. Initialize Flatpickr ──
             const dateInput = document.getElementById('dateRangePicker');
+            let isProgrammaticDateChange = false;
+
+            function syncDateWithCurrentMonthYear(instance) {
+                if (isProgrammaticDateChange) return;
+                isProgrammaticDateChange = true;
+                try {
+                    const targetYear = instance.currentYear;
+                    const targetMonth = instance.currentMonth; // 0-indexed (0 = Jan, 9 = Oct)
+                    const now = new Date();
+
+                    let targetDay;
+                    if (targetYear === now.getFullYear() && targetMonth === now.getMonth()) {
+                        // Bulan berjalan: gunakan tanggal hari ini
+                        targetDay = now.getDate();
+                    } else if (new Date(targetYear, targetMonth, 1) < new Date(now.getFullYear(), now.getMonth(), 1)) {
+                        // Bulan lampau: pilih tanggal terakhir di bulan itu agar menampilkan data 1 bulan penuh
+                        targetDay = new Date(targetYear, targetMonth + 1, 0).getDate();
+                    } else {
+                        // Bulan mendatang: tanggal 1
+                        targetDay = 1;
+                    }
+
+                    const newDate = new Date(targetYear, targetMonth, targetDay);
+                    instance.setDate(newDate, true);
+                } finally {
+                    isProgrammaticDateChange = false;
+                }
+            }
+
             const fp = flatpickr(dateInput, {
                 mode: "single",
                 dateFormat: "Y-m-d",
@@ -500,6 +523,21 @@
                 altFormat: "M d, Y",
                 altInputClass: "bg-white/15 backdrop-blur-sm text-white border border-white/20 pl-8 sm:pl-10 pr-3 sm:pr-4 py-2 sm:py-2.5 rounded-xl text-[10px] sm:text-xs font-bold hover:bg-white/25 transition-all cursor-pointer focus:outline-none focus:border-white/40 focus:ring-2 focus:ring-white/20 w-full sm:w-48 lg:w-48 placeholder-white/80",
                 defaultDate: {!! $selectedDateRaw ? json_encode($selectedDateRaw) : "null" !!},
+                onReady: function(selectedDates, dateStr, instance) {
+                    if (instance.monthsDropdownContainer) {
+                        instance.monthsDropdownContainer.addEventListener('change', function() {
+                            setTimeout(function() {
+                                syncDateWithCurrentMonthYear(instance);
+                            }, 10);
+                        });
+                    }
+                },
+                onMonthChange: function(selectedDates, dateStr, instance) {
+                    syncDateWithCurrentMonthYear(instance);
+                },
+                onYearChange: function(selectedDates, dateStr, instance) {
+                    syncDateWithCurrentMonthYear(instance);
+                },
                 onChange: function(selectedDates, dateStr, instance) {
                     if (selectedDates.length > 0) {
                         const d = selectedDates[0];
@@ -509,6 +547,18 @@
                         const isoDate = `${year}-${month}-${day}`;
                         fetchDashboardData(isoDate);
                     }
+                }
+            });
+
+            // Handle browser back/forward buttons
+            window.addEventListener('popstate', function(event) {
+                const urlParams = new URLSearchParams(window.location.search);
+                const date = urlParams.get('date') || 'all';
+                fetchDashboardData(date);
+                if (fp && date !== 'all') {
+                    isProgrammaticDateChange = true;
+                    fp.setDate(date, false);
+                    isProgrammaticDateChange = false;
                 }
             });
         });

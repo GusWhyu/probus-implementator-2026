@@ -206,17 +206,17 @@
                                 <div class="flex gap-4 {{ $komen->user_id == $aid ? 'flex-row-reverse' : '' }}">
                                     <!-- Avatar -->
                                     <div class="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center text-slate-500 font-bold shrink-0 overflow-hidden shadow-sm border border-white">
-                                        <img src="https://ui-avatars.com/api/?name={{ urlencode($komen->user->name) }}&background={{ $komen->user_id == $aid ? '2563eb' : 'e2e8f0' }}&color={{ $komen->user_id == $aid ? 'fff' : '475569' }}&bold=true" alt="" class="w-full h-full object-cover">
+                                        <img src="{{ $komen->user ? $komen->user->avatar_url : 'https://ui-avatars.com/api/?name=' . urlencode($komen->user->name ?? 'User') }}" alt="{{ $komen->user->name ?? '' }}" class="w-full h-full object-cover">
                                     </div>
                                     
                                     <!-- Bubble -->
                                     <div class="max-w-[85%] sm:max-w-[75%] flex flex-col {{ $komen->user_id == $aid ? 'items-end' : 'items-start' }}">
                                         <div class="flex items-center gap-2 mb-1.5 px-1">
-                                            <span class="font-bold text-[11px] text-slate-700">{{ $komen->user->name }}</span>
+                                            <span class="font-bold text-[11px] text-slate-700">{{ $komen->user->name ?? 'User' }}</span>
                                             <span class="text-[10px] font-medium text-slate-400">{{ $komen->created_at->diffForHumans() }}</span>
                                         </div>
                                         <div class="px-5 py-3.5 rounded-2xl text-sm font-medium prose prose-sm max-w-none shadow-sm {{ $komen->user_id == $aid ? 'bg-blue-600 text-white rounded-tr-sm prose-p:text-blue-50 prose-a:text-white' : 'bg-white border border-slate-100 text-slate-800 rounded-tl-sm' }}">
-                                            {!! $komen->message !!}
+                                            {!! $komen->body ?? $komen->message !!}
                                         </div>
                                         @if ($komen->user_id == $aid && $stid != 'CLOSED')
                                         <a data-confirm-delete="true" href="/deletekomen/{{ $komen->id }}" class="text-[10px] font-bold text-slate-400 mt-1.5 hover:text-rose-500 transition-colors px-1"><i class="fa-solid fa-trash-can mr-1"></i>Hapus</a>
@@ -391,14 +391,41 @@
                                 <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wide mb-1.5">{{ $datarq->closed_at ? 'Closed At' : 'Updated At' }}</p>
                                 <p class="font-bold text-slate-800 text-sm">{{ Carbon::parse($datarq->closed_at ?? $datarq->updated_at)->format('d/m/Y') }}</p>
                             </div>
+
+                            <!-- Row 6: Durasi Pengerjaan -->
+                            <div class="col-span-2 bg-slate-50/80 p-3 rounded-xl border border-slate-200/60 flex items-center justify-between">
+                                <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
+                                    <i class="fa-solid fa-stopwatch text-blue-500"></i> Durasi Pengerjaan:
+                                </span>
+                                <span class="font-bold text-sm {{ $datarq->status == 'CLOSED' ? 'text-emerald-700' : ($datarq->status == 'PROGRESS' ? 'text-amber-700' : 'text-slate-600') }}">
+                                    {{ $datarq->duration_text ?? '-' }}
+                                </span>
+                            </div>
                         </div>
                     </div>
 
                     @php
-                        $isOwner = ($datarq->user_id == $aid || $datarq->advisor_id == $aid);
+                        // Hanya pembuat tiket (owner) atau Admin/SPV yang memiliki hak tindakan tiket (advisor tidak bisa memproses/mengubah tiket di-advice)
+                        $isOwner = ($datarq->user_id == $aid);
                         $isAdminOrSpv = ($ust == 'admin' || $ust == 'supervisor');
                         $canSeeActions = ($isAdminOrSpv || $isOwner) && $datarq->pending_advisor_id == null;
+                        $isAdvisorOnly = ($datarq->advisor_id == $aid && $datarq->user_id != $aid && !$isAdminOrSpv);
                     @endphp
+                    @if($isAdvisorOnly)
+                    <div class="bg-blue-50/70 rounded-3xl border border-blue-200/80 p-5 shadow-sm mb-6">
+                        <div class="flex items-start gap-3.5">
+                            <div class="w-10 h-10 rounded-2xl bg-blue-100 text-blue-600 flex items-center justify-center shrink-0 shadow-sm border border-blue-200/50">
+                                <i class="fa-solid fa-headset text-base"></i>
+                            </div>
+                            <div>
+                                <h4 class="text-xs font-bold text-blue-900 uppercase tracking-wide">Status: Advisor (Konsultasi)</h4>
+                                <p class="text-xs text-blue-800/80 mt-1 leading-relaxed">
+                                    Anda ditugaskan sebagai <strong>Advisor</strong> pada tiket ini. Sesuai hak akses sistem, Advisor bertindak memberikan saran/arahan melalui diskusi. Tindakan pemrosesan dan penyelesaian tiket dilakukan oleh pemilik tiket (<strong>{{ $datarq->user->name ?? 'User' }}</strong>) atau Supervisor.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    @endif
                     @if($canSeeActions)
                     <!-- Action Buttons -->
                     <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6">
@@ -440,13 +467,16 @@
                                     </button>
                                 @endif
 
-                                <!-- Button 3 (Green) - Buat Request (WIP) -->
-                                @if ($stid == 'PROGRESS' && $datarq->user_id != $aid)
-                                    <button type="button" class="w-full flex flex-col items-center justify-center bg-emerald-50 text-emerald-600 hover:bg-emerald-500 hover:text-white border border-emerald-200 py-3 rounded-xl font-bold text-xs shadow-sm transition-all active:scale-95 gap-1 text-center">
+                                <!-- Button 3 (Green) - Buat Request -->
+                                @php
+                                    $canConvertToRequest = ($stid != 'CLOSED') && ($isOwner || $isAdminOrSpv);
+                                @endphp
+                                @if ($canConvertToRequest)
+                                    <button type="button" onclick="document.getElementById('convertToRequestModal').showModal()" class="w-full flex flex-col items-center justify-center bg-emerald-50 text-emerald-600 hover:bg-emerald-500 hover:text-white border border-emerald-200 py-3 rounded-xl font-bold text-xs shadow-sm transition-all active:scale-95 gap-1 text-center cursor-pointer">
                                         <i class="fa-solid fa-laptop-medical text-sm"></i> Buat Request
                                     </button>
                                 @else
-                                    <button disabled type="button" class="w-full flex flex-col items-center justify-center bg-slate-50 text-slate-400 border border-slate-200 py-3 rounded-xl font-bold text-xs transition-all cursor-not-allowed gap-1 text-center">
+                                    <button disabled type="button" class="w-full flex flex-col items-center justify-center bg-slate-50 text-slate-400 border border-slate-200 py-3 rounded-xl font-bold text-xs transition-all cursor-not-allowed gap-1 text-center" title="{{ $stid == 'CLOSED' ? 'Tiket sudah selesai' : 'Hanya pembuat tiket atau admin/supervisor yang dapat mengalihkan tiket menjadi request' }}">
                                         <i class="fa-solid fa-laptop-medical text-sm"></i> Buat Request
                                     </button>
                                 @endif
@@ -454,6 +484,84 @@
                         </div>
                     </div>
                     @endif
+
+                    <!-- Riwayat & Log Aktivitas Card -->
+                    <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 overflow-hidden">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-xs font-extrabold text-slate-800 uppercase tracking-wider flex items-center gap-2">
+                                <i class="fa-solid fa-clock-rotate-left text-blue-500 text-sm"></i> Riwayat & Aktivitas
+                            </h3>
+                            <span class="text-[10px] font-bold bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full">
+                                {{ isset($ticketLogs) ? $ticketLogs->count() : 0 }} catatan
+                            </span>
+                        </div>
+
+                        @if (isset($ticketLogs) && $ticketLogs->isNotEmpty())
+                        <div class="relative pl-6 space-y-4 before:content-[''] before:absolute before:left-2.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-100 max-h-96 overflow-y-auto custom-scrollbar pr-1">
+                            @foreach ($ticketLogs as $log)
+                                @php
+                                    $logIcon = 'fa-circle-dot text-slate-400';
+                                    $logBg = 'bg-slate-100 text-slate-600 border-slate-200';
+                                    if ($log->action == 'CREATED') {
+                                        $logIcon = 'fa-plus text-blue-600';
+                                        $logBg = 'bg-blue-50 text-blue-600 border-blue-200';
+                                    } elseif ($log->action == 'ASSIGNED') {
+                                        $logIcon = 'fa-user-check text-sky-600';
+                                        $logBg = 'bg-sky-50 text-sky-600 border-sky-200';
+                                    } elseif ($log->action == 'STATUS_CHANGED') {
+                                        $logIcon = 'fa-arrows-rotate text-amber-600';
+                                        $logBg = 'bg-amber-50 text-amber-600 border-amber-200';
+                                    } elseif (str_contains($log->action, 'TAKEOVER')) {
+                                        if ($log->action == 'TAKEOVER_APPROVED') {
+                                            $logIcon = 'fa-handshake text-emerald-600';
+                                            $logBg = 'bg-emerald-50 text-emerald-600 border-emerald-200';
+                                        } elseif ($log->action == 'TAKEOVER_REJECTED') {
+                                            $logIcon = 'fa-xmark text-rose-600';
+                                            $logBg = 'bg-rose-50 text-rose-600 border-rose-200';
+                                        } elseif ($log->action == 'TAKEOVER_EXPIRED') {
+                                            $logIcon = 'fa-hourglass-end text-slate-600';
+                                            $logBg = 'bg-slate-100 text-slate-600 border-slate-200';
+                                        } else {
+                                            $logIcon = 'fa-right-left text-amber-600';
+                                            $logBg = 'bg-amber-50 text-amber-600 border-amber-200';
+                                        }
+                                    } elseif ($log->action == 'CLOSED') {
+                                        $logIcon = 'fa-circle-check text-emerald-600';
+                                        $logBg = 'bg-emerald-50 text-emerald-600 border-emerald-200';
+                                    } elseif ($log->action == 'SURVEY_SUBMITTED') {
+                                        $logIcon = 'fa-star text-amber-500';
+                                        $logBg = 'bg-amber-50 text-amber-600 border-amber-200';
+                                    } elseif ($log->action == 'UPDATED') {
+                                        $logIcon = 'fa-pen text-blue-600';
+                                        $logBg = 'bg-blue-50 text-blue-600 border-blue-200';
+                                    }
+                                @endphp
+                                <div class="relative group">
+                                    <!-- Bullet indicator -->
+                                    <div class="absolute -left-6 top-1 w-5 h-5 rounded-full {{ $logBg }} border flex items-center justify-center text-[9px] shadow-xs">
+                                        <i class="fa-solid {{ $logIcon }}"></i>
+                                    </div>
+                                    <div class="text-[11px] leading-snug">
+                                        <p class="font-bold text-slate-700">{{ $log->description }}</p>
+                                        <div class="flex items-center gap-2 mt-1 text-[10px] text-slate-400 font-medium">
+                                            @if ($log->user)
+                                            <span class="text-slate-500 font-bold"><i class="fa-regular fa-user mr-1 text-[9px]"></i>{{ $log->user->name }}</span>
+                                            <span>•</span>
+                                            @endif
+                                            <span><i class="fa-regular fa-clock mr-1 text-[9px]"></i>{{ $log->created_at->diffForHumans() }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                        @else
+                        <div class="text-center py-6 bg-slate-50/50 rounded-2xl border border-dashed border-slate-200">
+                            <i class="fa-solid fa-list-check text-slate-300 text-xl mb-2"></i>
+                            <p class="text-[11px] font-bold text-slate-500">Belum ada riwayat aktivitas</p>
+                            <p class="text-[10px] text-slate-400 mt-0.5">Setiap perubahan tiket dan alih tiket akan dicatat di sini.</p>
+                        </div>
+                        @endif
+                    </div>
                     
                 </div>
             </div>
@@ -597,6 +705,12 @@
                     </div>
                 </div>
 
+                <!-- Reason Input (Optional) -->
+                <div class="mb-5">
+                    <label class="text-[11px] font-bold text-slate-700 block mb-2">Alasan Pengalihan (Opsional)</label>
+                    <textarea name="reason" rows="2" placeholder="Tuliskan alasan pengalihan tiket ini jika ada..." class="w-full bg-white border border-slate-200 text-slate-800 text-xs rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 p-3 outline-none font-medium resize-none shadow-sm"></textarea>
+                </div>
+
                 <p class="text-[10px] text-slate-500 mb-6 leading-relaxed font-medium">
                     Pastikan data sudah benar sebelum melakukan konfirmasi. Tindakan ini akan mengubah kepemilikan/User dari tiket ini dan mencatat riwayat perubahan.
                 </p>
@@ -691,6 +805,104 @@
                     Ya, Selesaikan
                 </a>
             </div>
+        </div>
+        <form method="dialog" class="modal-backdrop bg-slate-900/60 backdrop-blur-sm"><button>close</button></form>
+    </dialog>
+
+    {{-- Modal Alihkan Tiket Menjadi Request --}}
+    <dialog id="convertToRequestModal" class="modal">
+        <div class="modal-box w-11/12 max-w-lg rounded-3xl p-6 md:p-8 bg-white border border-slate-100 shadow-2xl relative">
+            <form action="{{ route('ticket.convert_to_request', $datarq->id) }}" method="POST" onsubmit="const btn = this.querySelector('button[type=submit]'); btn.disabled = true; btn.innerHTML = '<i class=\'fa-solid fa-spinner fa-spin mr-1\'></i> Mengalihkan...';">
+                @csrf
+                
+                <!-- Header Modal -->
+                <div class="flex items-start justify-between mb-5">
+                    <div class="flex items-center gap-3">
+                        <div class="w-12 h-12 rounded-2xl bg-amber-50 text-amber-500 flex items-center justify-center border border-amber-100 shrink-0 text-xl shadow-xs">
+                            <i class="fa-solid fa-triangle-exclamation"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-extrabold text-lg text-slate-800">Alihkan Tiket Menjadi Request</h3>
+                            <p class="text-xs text-slate-500 font-medium">Konfirmasi pengalihan tiket pengerjaan</p>
+                        </div>
+                    </div>
+                    <button type="button" class="w-8 h-8 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 hover:bg-slate-200 border border-slate-100 transition-colors cursor-pointer" onclick="document.getElementById('convertToRequestModal').close()">
+                        <i class="fa-solid fa-xmark text-sm"></i>
+                    </button>
+                </div>
+
+                <!-- Disclaimer Card -->
+                <div class="bg-amber-50 border border-amber-200 rounded-2xl p-4 mb-5 flex items-start gap-3">
+                    <i class="fa-solid fa-circle-exclamation text-amber-600 text-base mt-0.5 shrink-0"></i>
+                    <div class="text-xs text-amber-900 leading-relaxed font-medium">
+                        <span class="font-black text-amber-700 uppercase tracking-wide block mb-1">PERHATIAN</span>
+                        Pastikan anda yakin bahwa ticket ini untuk request karena jika dialihkan ke request maka tiket ini akan hilang dan menjadi request.
+                    </div>
+                </div>
+
+                <!-- Ringkasan Tiket yang Dialihkan -->
+                <div class="bg-slate-50 rounded-2xl p-4 border border-slate-200/70 mb-5 space-y-2.5">
+                    <div class="flex items-center justify-between text-xs">
+                        <span class="text-slate-500 font-medium">Nomor Tiket:</span>
+                        <span class="font-bold text-blue-600 font-mono">{{ $datarq->ticket_number }}</span>
+                    </div>
+                    <div class="flex items-start justify-between text-xs gap-3">
+                        <span class="text-slate-500 font-medium shrink-0">Judul Tiket:</span>
+                        <span class="font-bold text-slate-800 text-right line-clamp-2">{{ $datarq->title }}</span>
+                    </div>
+                    <div class="flex items-center justify-between text-xs">
+                        <span class="text-slate-500 font-medium">Client / Outlet:</span>
+                        <span class="font-bold text-slate-800">{{ $datarq->client ? $datarq->client->nm_out : '-' }}</span>
+                    </div>
+                    <div class="flex items-center justify-between text-xs">
+                        <span class="text-slate-500 font-medium">System & Modul:</span>
+                        <span class="font-bold text-slate-800">
+                            {{ $datarq->kategoriSystem ? $datarq->kategoriSystem->name : ($datarq->system ?? '-') }}
+                            @if($datarq->moduleSystem)
+                                <span class="text-slate-400 font-normal">/</span> {{ $datarq->moduleSystem->name }}
+                            @endif
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Form Pilihan Tag / Divisi Pelaksana (Wajib untuk Request) -->
+                <div class="space-y-4 mb-6">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1.5 flex items-center gap-1.5">
+                            <i class="fa-solid fa-users-gear text-blue-500 text-xs"></i>
+                            <span>Divisi / Tim Pelaksana Request <span class="text-rose-500">*</span></span>
+                        </label>
+                        <div class="relative">
+                            <select name="tag_id" required class="w-full bg-white border border-slate-200 text-slate-800 text-xs rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 p-3 pl-4 pr-10 outline-none font-bold appearance-none shadow-sm cursor-pointer hover:bg-slate-50 transition-colors">
+                                <option value="" disabled selected>Pilih Divisi / Tim Pelaksana...</option>
+                                @foreach(\App\Models\Tag::orderBy('name')->get() as $t)
+                                    <option value="{{ $t->id }}">{{ $t->name }}</option>
+                                @endforeach
+                            </select>
+                            <i class="fa-solid fa-chevron-down absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-[10px] pointer-events-none"></i>
+                        </div>
+                        <p class="text-[10px] text-slate-400 mt-1">Pilih tim yang akan menangani request ini (contoh: PROGRAMMER, Trainer, dll).</p>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1.5 flex items-center gap-1.5">
+                            <i class="fa-regular fa-calendar-check text-blue-500 text-xs"></i>
+                            <span>Target Selesai (End Date) <span class="text-rose-500">*</span></span>
+                        </label>
+                        <input type="date" name="end_date" value="{{ $datarq->due_date ? \Carbon\Carbon::parse($datarq->due_date)->format('Y-m-d') : \Carbon\Carbon::now()->addDays(7)->format('Y-m-d') }}" min="{{ date('Y-m-d') }}" required class="w-full bg-white border border-slate-200 text-slate-800 text-xs rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 p-3 outline-none font-semibold shadow-sm cursor-pointer">
+                    </div>
+                </div>
+
+                <!-- Modal Action Buttons -->
+                <div class="grid grid-cols-2 gap-3">
+                    <button type="button" class="py-3 bg-white text-slate-600 font-bold text-xs rounded-xl border border-slate-200 hover:bg-slate-50 hover:text-slate-800 transition-all shadow-sm cursor-pointer" onclick="document.getElementById('convertToRequestModal').close()">
+                        Batal
+                    </button>
+                    <button type="submit" class="py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl transition-all shadow-sm shadow-emerald-500/30 flex items-center justify-center gap-2 cursor-pointer active:scale-95">
+                        <i class="fa-solid fa-laptop-medical"></i> Ya, Alihkan ke Request
+                    </button>
+                </div>
+            </form>
         </div>
         <form method="dialog" class="modal-backdrop bg-slate-900/60 backdrop-blur-sm"><button>close</button></form>
     </dialog>

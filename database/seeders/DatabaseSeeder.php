@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Models\Tag;
 use App\Models\Kategori;
 use App\Models\Status;
+use App\Models\Departemen;
 
 class DatabaseSeeder extends Seeder
 {
@@ -39,6 +40,12 @@ class DatabaseSeeder extends Seeder
         Tag::create([
             'name' => 'Supervisor'
         ]);
+
+        //Departemen
+        $depts = ['operasional', 'produksi', 'IT', 'Finance', 'OB', 'Marketing'];
+        foreach ($depts as $deptName) {
+            Departemen::firstOrCreate(['name' => $deptName]);
+        }
 
 
         //User

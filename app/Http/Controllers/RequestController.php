@@ -11,6 +11,7 @@ use App\Models\Komentar;
 use App\Models\DataImage;
 use App\Models\UpdateSystem;
 use App\Models\User;
+use App\Models\ModuleSystem;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use RealRashid\SweetAlert\Facades\Alert;
@@ -84,10 +85,6 @@ class RequestController extends Controller
                 ->latest()
                 ->take(5)
                 ->get();
-
-            if ($all_requests->isEmpty()) {
-                $all_requests = \App\Models\Request::with(['outlet', 'tag', 'kategori', 'status', 'user', 'approver'])->latest()->take(5)->get();
-            }
         } else {
             $all_requests = \App\Models\Request::with(['outlet', 'tag', 'kategori', 'status', 'user', 'approver'])
                 ->where('status_id', '!=', 4)
@@ -95,9 +92,6 @@ class RequestController extends Controller
                 ->latest()
                 ->take(5)
                 ->get();
-            if ($all_requests->isEmpty()) {
-                $all_requests = \App\Models\Request::with(['outlet', 'tag', 'kategori', 'status', 'user', 'approver'])->latest()->take(5)->get();
-            }
         }
 
         // Chart Data Calculation (7-day trend ending on selectedDate or today)
@@ -241,29 +235,38 @@ class RequestController extends Controller
         $closedQuery = \App\Models\Request::with(['outlet', 'tag', 'kategori', 'approver', 'status'])->where('status_id', 4);
 
         if ($request->filled('system')) {
-            $openQuery->where('tag_id', $request->system);
-            $progressQuery->where('tag_id', $request->system);
-            $closedQuery->where('tag_id', $request->system);
+            $openQuery->where('kategori_id', $request->system);
+            $progressQuery->where('kategori_id', $request->system);
+            $closedQuery->where('kategori_id', $request->system);
         }
 
         if ($request->filled('module')) {
-            $openQuery->where('kategori_id', $request->module);
-            $progressQuery->where('kategori_id', $request->module);
-            $closedQuery->where('kategori_id', $request->module);
+            $modId = $request->module;
+            $moduleObj = ModuleSystem::find($modId);
+            $modName = $moduleObj ? $moduleObj->name : $modId;
+
+            $filterModule = function($q) use ($modId, $modName) {
+                $q->where('module', $modId)
+                  ->orWhere('module', $modName);
+            };
+
+            $openQuery->where($filterModule);
+            $progressQuery->where($filterModule);
+            $closedQuery->where($filterModule);
         }
 
         $open = $openQuery->latest()->get();
         $progress = $progressQuery->latest()->get();
         $closed = $closedQuery->latest()->get();
 
-        $systems = Tag::all();
-        $modules = Kategori::all();
+        $systems = Kategori::all();
+        $modules = ModuleSystem::all();
         
         $isMyReq = false;
         return view('tablemyreq.myreq', compact('open', 'progress', 'closed', 'systems', 'modules', 'isMyReq'));
     }
 
-    public function detailrequest($id){
+    public function detailrequest(Request $request, $id){
         $title = 'Delete Comment!';
         $text = 'Are you sure you want to delete this comment?';
         confirmDelete($title, $text);
@@ -277,7 +280,75 @@ class RequestController extends Controller
         $dataus = UpdateSystem::where('request_id', $id)->get();
         $reqlog = RequestLog::where('request_id', $id)->latest()->first();
         $closedLog = RequestLog::where('request_id', $id)->where('status_id', 4)->latest()->first();
-        return view('tablerq.detailrequest', compact('datarq', 'dataimg','komentar','dataus','reqlog', 'closedLog'));
+
+        $prevUrl = url()->previous();
+        $currentUrl = url()->current();
+
+        $subpagePatterns = [
+            '/detailrequest',
+            '/createus',
+            '/editus',
+            '/detailus',
+            '/editrq',
+            '/updatestatus',
+            '/komentar',
+            '/deletekomen',
+            '/deletereq',
+            '/deleteimg',
+            '/detailtiket',
+            '/detailticket',
+            '/login',
+        ];
+
+        $isSubpageOrAction = false;
+        if (!$prevUrl || $prevUrl === $currentUrl) {
+            $isSubpageOrAction = true;
+        } else {
+            foreach ($subpagePatterns as $pattern) {
+                if (str_contains($prevUrl, $pattern)) {
+                    $isSubpageOrAction = true;
+                    break;
+                }
+            }
+        }
+
+        if ($request->filled('return_url')) {
+            $returnUrl = $request->input('return_url');
+            session([
+                'detailrequest_return_url_' . $id => $returnUrl,
+                'detailrequest_return_url' => $returnUrl,
+            ]);
+        } elseif ($request->filled('from')) {
+            $from = $request->input('from');
+            if ($from === 'myreq') {
+                $returnUrl = route('myreq');
+            } elseif ($from === 'board' || $from === 'request' || $from === 'daftar_request') {
+                $returnUrl = route('request.board');
+            } elseif ($from === 'history' || $from === 'myrequs') {
+                $returnUrl = route('history');
+            } elseif ($from === 'myrequest') {
+                $returnUrl = route('myrequest');
+            } elseif ($from === 'myupdatesystem') {
+                $returnUrl = route('myupdatesystem');
+            } elseif ($from === 'dashboard' || $from === 'request_dashboard') {
+                $returnUrl = route('request.dashboard');
+            }
+            if (!empty($returnUrl)) {
+                session([
+                    'detailrequest_return_url_' . $id => $returnUrl,
+                    'detailrequest_return_url' => $returnUrl,
+                ]);
+            }
+        } elseif (!$isSubpageOrAction) {
+            session([
+                'detailrequest_return_url_' . $id => $prevUrl,
+                'detailrequest_return_url' => $prevUrl,
+            ]);
+        }
+
+        $returnUrl = session('detailrequest_return_url_' . $id, session('detailrequest_return_url', route('myreq')));
+
+        return view('tablerq.detailrequest', compact('datarq', 'dataimg','komentar','dataus','reqlog', 'closedLog', 'returnUrl'));
     }
 
     public function mrq(){
@@ -515,7 +586,7 @@ class RequestController extends Controller
             'user_id' => Auth::user()->id
         ]);
         $creator = $data->user;
-        if ($creator) {
+        if ($creator && $creator->id !== Auth::id()) {
             $creator->notify(new RequestStatusChanged($data));
         }
         Alert::success('Status Changed!');
@@ -525,17 +596,56 @@ class RequestController extends Controller
     public function komentar(Request $request,$id){
         $rq = \App\Models\Request::find($id);
         if (!$rq || $rq->status_id == 4) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Request telah ditutup, diskusi tidak dapat dilanjutkan.'
+                ], 403);
+            }
             Alert::error('Akses Ditolak', 'Request telah ditutup, diskusi tidak dapat dilanjutkan.');
             return redirect()->back();
         }
+
         $request->validate([
             'comment' => 'required'
         ]);
-        Komentar::create([
+
+        $plainText = trim(strip_tags($request->comment));
+        $hasMedia = str_contains($request->comment, '<img') || str_contains($request->comment, '<figure');
+        if (empty($plainText) && !$hasMedia) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Pesan tidak boleh kosong.'
+                ], 422);
+            }
+            return redirect()->back();
+        }
+
+        $komen = Komentar::create([
             'request_id' => $id,
+            'ticket_id' => null,
             'body' => $request->comment,
             'user_id' => Auth::user()->id,
         ]);
+
+        if ($request->ajax() || $request->wantsJson()) {
+            $totalCount = Komentar::where('request_id', $id)->count();
+            return response()->json([
+                'success' => true,
+                'message' => 'Diskusi berhasil dikirim',
+                'total_count' => $totalCount,
+                'data' => [
+                    'id' => $komen->id,
+                    'body' => $komen->body,
+                    'message' => $komen->body,
+                    'user_name' => Auth::user()->name,
+                    'time_ago' => $komen->created_at->diffForHumans(),
+                ]
+            ]);
+        }
+
+        Alert::success('Berhasil', 'Komentar berhasil dikirim!');
         return redirect()->back();
     }
 
@@ -578,6 +688,11 @@ class RequestController extends Controller
             'approval_note' => null
         ]);
 
+        $creator = $data->user;
+        if ($creator && $creator->id !== Auth::id()) {
+            $creator->notify(new RequestStatusChanged($data, "Pengajuan request '" . $data->judul . "' telah disetujui.", "Request Disetujui"));
+        }
+
         Alert::success('Request Approved!');
         return redirect()->back();
     }
@@ -612,8 +727,8 @@ class RequestController extends Controller
             'user_id' => Auth::user()->id
         ]);
 
-        if ($data->user) {
-            $data->user->notify(new RequestStatusChanged($data));
+        if ($data->user && $data->user->id !== Auth::id()) {
+            $data->user->notify(new RequestStatusChanged($data, "Pengajuan request '" . $data->judul . "' ditolak. Alasan: " . $request->reason, "Request Ditolak"));
         }
 
         Alert::success('Request Rejected!');

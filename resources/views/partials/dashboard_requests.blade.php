@@ -1,7 +1,7 @@
 @forelse(($all_requests ?? collect())->take(5) as $req)
 <tr class="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
     <td class="py-3.5 text-sm font-semibold text-slate-700">
-        <a href="{{ route('detailrequest', $req->id) }}" class="hover:text-blue-600 transition-colors inline-flex items-center gap-1.5 font-bold">
+        <a href="{{ route('detailrequest', ['id' => $req->id, 'from' => 'dashboard']) }}" class="hover:text-blue-600 transition-colors inline-flex items-center gap-1.5 font-bold">
             <span class="text-xs font-mono font-normal text-slate-400">#{{ $req->id }}</span>
             <span class="truncate max-w-[240px] md:max-w-[320px]">{{ $req->judul ?? 'Tanpa Judul' }}</span>
         </a>

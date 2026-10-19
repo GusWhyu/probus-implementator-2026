@@ -13,10 +13,33 @@ use App\Models\PerformanceReviewDetail;
 use App\Models\PerformanceReviewModuleDetail;
 use App\Models\ModuleSystem;
 use App\Models\User;
+use App\Models\Departemen;
+use App\Models\Outlet;
 
 class HomeController extends Controller
 {
     public function index(Request $request){
+        $currentUser = auth()->user();
+        $userDeptId = $currentUser ? $currentUser->departemen_id : null;
+
+        // Default to user's department.
+        // For admin/supervisor, allow selecting another department or 'all'.
+        // For standard user, strictly lock to their department.
+        $selectedDeptId = $request->input('department_id', $userDeptId);
+        if ($currentUser && $currentUser->usertype === 'user') {
+            $selectedDeptId = $userDeptId;
+        }
+
+        $isDeptFiltered = (!empty($selectedDeptId) && $selectedDeptId !== 'all');
+
+        $applyDeptFilter = function($query) use ($isDeptFiltered, $selectedDeptId) {
+            if ($isDeptFiltered) {
+                $query->whereHas('user', function($q) use ($selectedDeptId) {
+                    $q->where('departemen_id', $selectedDeptId);
+                });
+            }
+        };
+
         $dateParam = $request->input('date');
         // Default ke hari ini jika tidak ada parameter tanggal
         if (empty($dateParam) || $dateParam === 'all') {
@@ -41,65 +64,85 @@ class HomeController extends Controller
             $selectedDate = null;
         }
 
-
         // Base Ticket counts
         if ($hasDate) {
             // Tiket yang dibuat di bulan ini (tgl 1 s/d tanggal yang dipilih)
-            $currentMonthTotal = Ticket::whereBetween('created_at', [$startOfMonth, $selectedDate->copy()->endOfDay()])->count();
-            $closed_count = Ticket::whereBetween('created_at', [$startOfMonth, $selectedDate->copy()->endOfDay()])->where('status', 'CLOSED')->count();
-            $progress_count = Ticket::whereBetween('created_at', [$startOfMonth, $selectedDate->copy()->endOfDay()])->where('status', 'PROGRESS')->count();
-            $currentMonthOpen = Ticket::whereBetween('created_at', [$startOfMonth, $selectedDate->copy()->endOfDay()])->where('status', 'OPEN')->count();
+            $currentMonthTotalQ = Ticket::whereBetween('created_at', [$startOfMonth, $selectedDate->copy()->endOfDay()]);
+            $applyDeptFilter($currentMonthTotalQ);
+            $currentMonthTotal = $currentMonthTotalQ->count();
+
+            $closedCountQ = Ticket::whereBetween('created_at', [$startOfMonth, $selectedDate->copy()->endOfDay()])->where('status', 'CLOSED');
+            $applyDeptFilter($closedCountQ);
+            $closed_count = $closedCountQ->count();
+
+            $progressCountQ = Ticket::whereBetween('created_at', [$startOfMonth, $selectedDate->copy()->endOfDay()])->where('status', 'PROGRESS');
+            $applyDeptFilter($progressCountQ);
+            $progress_count = $progressCountQ->count();
+
+            $currentMonthOpenQ = Ticket::whereBetween('created_at', [$startOfMonth, $selectedDate->copy()->endOfDay()])->where('status', 'OPEN');
+            $applyDeptFilter($currentMonthOpenQ);
+            $currentMonthOpen = $currentMonthOpenQ->count();
 
             // Tiket OPEN dari bulan-bulan sebelumnya yang masih menggantung (carry over)
-            $carryOverOpen = Ticket::where('created_at', '<', $startOfMonth)
-                ->where('status', 'OPEN')
-                ->count();
+            $carryOverOpenQ = Ticket::where('created_at', '<', $startOfMonth)->where('status', 'OPEN');
+            $applyDeptFilter($carryOverOpenQ);
+            $carryOverOpen = $carryOverOpenQ->count();
 
             // Total open = open bulan ini + carry over dari bulan sebelumnya
             $open_count = $currentMonthOpen + $carryOverOpen;
             // Total keseluruhan = tiket bulan ini + carry over open dari bulan sebelumnya
             $total_count = $currentMonthTotal + $carryOverOpen;
         } else {
-            $total_count = Ticket::count();
-            $closed_count = Ticket::where('status', 'CLOSED')->count();
-            $progress_count = Ticket::where('status', 'PROGRESS')->count();
-            $open_count = Ticket::where('status', 'OPEN')->count();
+            $totalQ = Ticket::query();
+            $applyDeptFilter($totalQ);
+            $total_count = $totalQ->count();
+
+            $closedQ = Ticket::where('status', 'CLOSED');
+            $applyDeptFilter($closedQ);
+            $closed_count = $closedQ->count();
+
+            $progressQ = Ticket::where('status', 'PROGRESS');
+            $applyDeptFilter($progressQ);
+            $progress_count = $progressQ->count();
+
+            $openQ = Ticket::where('status', 'OPEN');
+            $applyDeptFilter($openQ);
+            $open_count = $openQ->count();
         }
 
-        $open = Ticket::where('status', 'OPEN')->latest()->take(5)->get();
-        $progress = Ticket::where('status', 'PROGRESS')->latest()->take(5)->get();
-        $closed = Ticket::where('status', 'CLOSED')->latest()->take(5)->get();
+        $openQ = Ticket::where('status', 'OPEN')->latest()->take(5);
+        $applyDeptFilter($openQ);
+        $open = $openQ->get();
+
+        $progressQ = Ticket::where('status', 'PROGRESS')->latest()->take(5);
+        $applyDeptFilter($progressQ);
+        $progress = $progressQ->get();
+
+        $closedQ = Ticket::where('status', 'CLOSED')->latest()->take(5);
+        $applyDeptFilter($closedQ);
+        $closed = $closedQ->get();
+
         $us = UpdateSystem::latest()->take(4)->get();
 
         // Recent / All Tickets for the period
+        $ticketsQuery = Ticket::with(['client', 'kategoriSystem', 'moduleSystem', 'user.departemen']);
+        $applyDeptFilter($ticketsQuery);
         if ($hasDate) {
             // Ambil tiket bulan ini (tgl 1 - tanggal dipilih) + carry over OPEN dari bulan sebelumnya
-            $all_tickets = Ticket::where(function($q) use ($startOfMonth, $selectedDate) {
-                    // Tiket dibuat di bulan ini (tgl 1 s/d tanggal dipilih)
-                    $q->whereBetween('created_at', [$startOfMonth, $selectedDate->copy()->endOfDay()]);
+            $ticketsQuery->where(function($q) use ($startOfMonth, $selectedDate) {
+                $q->where(function($sub) use ($startOfMonth, $selectedDate) {
+                    $sub->whereBetween('created_at', [$startOfMonth, $selectedDate->copy()->endOfDay()]);
                 })
-                ->orWhere(function($q) use ($startOfMonth) {
-                    // Carry over: tiket OPEN dari bulan sebelumnya
-                    $q->where('created_at', '<', $startOfMonth)
-                      ->where('status', 'OPEN');
-                })
-                ->latest()
-                ->take(5)
-                ->get();
-
-            if ($all_tickets->isEmpty()) {
-                $all_tickets = Ticket::latest()->take(5)->get();
-            }
+                ->orWhere(function($sub) use ($startOfMonth) {
+                    $sub->where('created_at', '<', $startOfMonth)
+                        ->where('status', 'OPEN');
+                });
+            });
         } else {
-            $all_tickets = Ticket::where('status', '!=', 'CLOSED')
-                ->where('created_at', '>=', \Carbon\Carbon::now()->subDays(2))
-                ->latest()
-                ->take(5)
-                ->get();
-            if ($all_tickets->isEmpty()) {
-                $all_tickets = Ticket::latest()->take(5)->get();
-            }
+            $ticketsQuery->where('status', '!=', 'CLOSED')
+                ->where('created_at', '>=', \Carbon\Carbon::now()->subDays(2));
         }
+        $all_tickets = $ticketsQuery->latest()->take(5)->get();
 
         // Chart Data Calculation (7-day trend ending on selectedDate or today)
         $chartLabels = [];
@@ -111,33 +154,72 @@ class HomeController extends Controller
             $d = $endDate->copy()->subDays($i);
             $chartLabels[] = $d->locale('id')->isoFormat('ddd, D MMM');
             
-            $dailyMasuk = Ticket::whereDate('created_at', $d->toDateString())->count();
-            $dailySelesai = Ticket::whereDate('updated_at', $d->toDateString())->where('status', 'CLOSED')->count();
+            $masukQ = Ticket::whereDate('created_at', $d->toDateString());
+            $applyDeptFilter($masukQ);
+            $dailyMasuk = $masukQ->count();
+
+            $selesaiQ = Ticket::whereDate('updated_at', $d->toDateString())->where('status', 'CLOSED');
+            $applyDeptFilter($selesaiQ);
+            $dailySelesai = $selesaiQ->count();
             
             $masukData[] = $dailyMasuk;
             $selesaiData[] = $dailySelesai;
         }
 
-        // Top Agents — range tgl 1 s/d tanggal dipilih + carry over open
-        $topAgents = User::whereHas('advisedTickets', function($q) use ($hasDate, $startOfMonth, $selectedDate) {
-                $q->where('status', 'CLOSED');
-                if ($hasDate) {
-                    $q->whereBetween('created_at', [$startOfMonth, $selectedDate->copy()->endOfDay()]);
-                }
-            })
-            ->withCount(['advisedTickets as closed_count' => function($q) use ($hasDate, $startOfMonth, $selectedDate) {
-                $q->where('status', 'CLOSED');
-                if ($hasDate) {
-                    $q->whereBetween('created_at', [$startOfMonth, $selectedDate->copy()->endOfDay()]);
-                }
-            }])
-            ->orderByDesc('closed_count')
-            ->take(5)->get();
-        $agentLabels = $topAgents->pluck('name')->toArray();
-        $agentData = $topAgents->pluck('closed_count')->toArray();
+        // Top Agents — range tgl 1 s/d tanggal dipilih + carry over open (Khusus admin & supervisor)
+        $isPrivilegedUser = in_array(optional($currentUser)->usertype, ['admin', 'supervisor']);
+        $agentLabels = [];
+        $agentData = [];
 
-        // Top Clients — range tgl 1 s/d tanggal dipilih + carry over open
-        $topClients = User::whereHas('clientTickets', function($q) use ($hasDate, $startOfMonth, $selectedDate) {
+        if ($isPrivilegedUser) {
+            $agentsQuery = User::query();
+            if ($isDeptFiltered) {
+                $agentsQuery->where('departemen_id', $selectedDeptId);
+            }
+            $topAgents = $agentsQuery->whereHas('clientTickets', function($q) use ($hasDate, $startOfMonth, $selectedDate) {
+                    $q->where('status', 'CLOSED');
+                    if ($hasDate) {
+                        $q->whereBetween('created_at', [$startOfMonth, $selectedDate->copy()->endOfDay()]);
+                    }
+                })
+                ->withCount(['clientTickets as closed_count' => function($q) use ($hasDate, $startOfMonth, $selectedDate) {
+                    $q->where('status', 'CLOSED');
+                    if ($hasDate) {
+                        $q->whereBetween('created_at', [$startOfMonth, $selectedDate->copy()->endOfDay()]);
+                    }
+                }])
+                ->orderByDesc('closed_count')
+                ->take(5)
+                ->get();
+
+            if ($topAgents->isEmpty()) {
+                $agentsQuery2 = User::query();
+                if ($isDeptFiltered) {
+                    $agentsQuery2->where('departemen_id', $selectedDeptId);
+                }
+                $topAgents = $agentsQuery2->whereHas('advisedTickets', function($q) use ($hasDate, $startOfMonth, $selectedDate) {
+                        $q->where('status', 'CLOSED');
+                        if ($hasDate) {
+                            $q->whereBetween('created_at', [$startOfMonth, $selectedDate->copy()->endOfDay()]);
+                        }
+                    })
+                    ->withCount(['advisedTickets as closed_count' => function($q) use ($hasDate, $startOfMonth, $selectedDate) {
+                        $q->where('status', 'CLOSED');
+                        if ($hasDate) {
+                            $q->whereBetween('created_at', [$startOfMonth, $selectedDate->copy()->endOfDay()]);
+                        }
+                    }])
+                    ->orderByDesc('closed_count')
+                    ->take(5)
+                    ->get();
+            }
+            $agentLabels = $topAgents->pluck('name')->toArray();
+            $agentData = $topAgents->pluck('closed_count')->toArray();
+        }
+
+        // Top Clients (Outlets) — range tgl 1 s/d tanggal dipilih + carry over open
+        $topClients = Outlet::whereHas('tickets', function($q) use ($hasDate, $startOfMonth, $selectedDate, $applyDeptFilter) {
+                $applyDeptFilter($q);
                 if ($hasDate) {
                     $q->where(function($sub) use ($startOfMonth, $selectedDate) {
                         $sub->whereBetween('created_at', [$startOfMonth, $selectedDate->copy()->endOfDay()])
@@ -148,7 +230,8 @@ class HomeController extends Controller
                     });
                 }
             })
-            ->withCount(['clientTickets as ticket_count' => function($q) use ($hasDate, $startOfMonth, $selectedDate) {
+            ->withCount(['tickets as ticket_count' => function($q) use ($hasDate, $startOfMonth, $selectedDate, $applyDeptFilter) {
+                $applyDeptFilter($q);
                 if ($hasDate) {
                     $q->where(function($sub) use ($startOfMonth, $selectedDate) {
                         $sub->whereBetween('created_at', [$startOfMonth, $selectedDate->copy()->endOfDay()])
@@ -160,17 +243,20 @@ class HomeController extends Controller
                 }
             }])
             ->orderByDesc('ticket_count')
-            ->take(10)->get();
+            ->take(10)
+            ->get();
+
         $clientDonutLabels = $topClients->take(4)->pluck('name')->toArray();
         $clientDonutData = $topClients->take(4)->pluck('ticket_count')->toArray();
         
         $clientBarLabels = $topClients->pluck('name')->map(function($name) {
-            return wordwrap($name, 10, "\n", true);
+            return wordwrap($name, 12, "\n", true);
         })->toArray();
         $clientBarData = $topClients->pluck('ticket_count')->toArray();
 
         // Top Modules — range tgl 1 s/d tanggal dipilih + carry over open
-        $topModules = ModuleSystem::whereHas('tickets', function($q) use ($hasDate, $startOfMonth, $selectedDate) {
+        $topModules = ModuleSystem::whereHas('tickets', function($q) use ($hasDate, $startOfMonth, $selectedDate, $applyDeptFilter) {
+                $applyDeptFilter($q);
                 if ($hasDate) {
                     $q->where(function($sub) use ($startOfMonth, $selectedDate) {
                         $sub->whereBetween('created_at', [$startOfMonth, $selectedDate->copy()->endOfDay()])
@@ -181,7 +267,8 @@ class HomeController extends Controller
                     });
                 }
             })
-            ->withCount(['tickets' => function($q) use ($hasDate, $startOfMonth, $selectedDate) {
+            ->withCount(['tickets' => function($q) use ($hasDate, $startOfMonth, $selectedDate, $applyDeptFilter) {
+                $applyDeptFilter($q);
                 if ($hasDate) {
                     $q->where(function($sub) use ($startOfMonth, $selectedDate) {
                         $sub->whereBetween('created_at', [$startOfMonth, $selectedDate->copy()->endOfDay()])
@@ -197,6 +284,9 @@ class HomeController extends Controller
         $kendalaLabels = $topModules->pluck('name')->toArray();
         $kendalaData = $topModules->pluck('tickets_count')->toArray();
 
+        $currentDepartemen = $isDeptFiltered ? Departemen::find($selectedDeptId) : null;
+        $allDepartemens = Departemen::orderBy('name')->get();
+
         // If AJAX request, return JSON response
         if ($request->ajax() || $request->wantsJson() || $request->has('ajax')) {
             $ticketsHtml = view('partials.dashboard_tickets', compact('all_tickets'))->render();
@@ -205,6 +295,8 @@ class HomeController extends Controller
                 'hasDate' => $hasDate,
                 'date' => $selectedDateRaw,
                 'periodTitle' => $periodTitle,
+                'selectedDeptId' => $selectedDeptId,
+                'departmentName' => $currentDepartemen ? ucfirst($currentDepartemen->name) : 'Semua Departemen',
                 'total_count' => $total_count,
                 'closed_count' => $closed_count,
                 'progress_count' => $progress_count,
@@ -225,35 +317,74 @@ class HomeController extends Controller
         return view('dashboard', compact(
             'open', 'progress', 'closed', 'us', 'open_count', 'progress_count', 'closed_count', 'total_count', 'all_tickets',
             'chartLabels', 'masukData', 'selesaiData', 'agentLabels', 'agentData', 'clientDonutLabels', 'clientDonutData', 'clientBarLabels', 'clientBarData', 'kendalaLabels', 'kendalaData',
-            'hasDate', 'selectedDateRaw', 'selectedDateDisplay', 'periodTitle'
+            'hasDate', 'selectedDateRaw', 'selectedDateDisplay', 'periodTitle', 'selectedDeptId', 'currentDepartemen', 'allDepartemens'
         ));
     }
 
     public function daftartiket(Request $request){
-        $open_count = Ticket::withoutGlobalScope('leader')->where('status', 'OPEN')->count();
-        $progress_count = Ticket::withoutGlobalScope('leader')->where('status', 'PROGRESS')->count();
-        $closed_count = Ticket::withoutGlobalScope('leader')->where('status', 'CLOSED')->count();
-        $total_count = Ticket::withoutGlobalScope('leader')->count();
+        $open_count = Ticket::where('status', 'OPEN')->count();
+        $progress_count = Ticket::where('status', 'PROGRESS')->count();
+        $closed_count = Ticket::where('status', 'CLOSED')->count();
+        $total_count = Ticket::count();
         
-        $open = Ticket::withoutGlobalScope('leader')->where('status', 'OPEN')->latest()->take(5)->get();
-        $progress = Ticket::withoutGlobalScope('leader')->where('status', 'PROGRESS')->latest()->take(5)->get();
-        $closed = Ticket::withoutGlobalScope('leader')->where('status', 'CLOSED')->latest()->take(5)->get();
+        $open = Ticket::where('status', 'OPEN')->latest()->take(5)->get();
+        $progress = Ticket::where('status', 'PROGRESS')->latest()->take(5)->get();
+        $closed = Ticket::where('status', 'CLOSED')->latest()->take(5)->get();
         $us = UpdateSystem::latest()->take(4)->get(); 
         
-        $query = Ticket::withoutGlobalScope('leader')->with(['user.departemen', 'client', 'advisor', 'kategoriSystem', 'moduleSystem']);
+        $query = Ticket::with(['user.departemen', 'client', 'advisor', 'kategoriSystem', 'moduleSystem']);
 
         // Apply Search Filter
         if ($request->filled('search')) {
-            $search = $request->search;
-            $query->where(function($q) use ($search) {
+            $search = trim($request->search);
+            $noSpaceSearch = str_replace(' ', '', $search);
+
+            $extractedNumber = null;
+            if (preg_match('/^(?:tck[-\s]*|no\.?\s*|#\s*)?(\d+)$/i', $search, $matches)) {
+                $extractedNumber = (int)$matches[1];
+            }
+
+            $query->where(function($q) use ($search, $noSpaceSearch, $extractedNumber) {
+                // 1. Judul & Deskripsi
                 $q->where('title', 'like', "%{$search}%")
-                  ->orWhere('ticket_number', 'like', "%{$search}%")
-                  ->orWhereHas('client', function($cq) use ($search) {
-                      $cq->where('nm_out', 'like', "%{$search}%");
-                  })
-                  ->orWhereHas('user', function($uq) use ($search) {
-                      $uq->where('name', 'like', "%{$search}%");
-                  });
+                  ->orWhere('description', 'like', "%{$search}%");
+
+                // 2. ID & Nomor Tiket
+                if ($extractedNumber !== null) {
+                    $q->orWhere('id', $extractedNumber)
+                      ->orWhere('ticket_number', 'like', '%-' . str_pad($extractedNumber, 4, '0', STR_PAD_LEFT));
+                }
+                if (strlen($search) >= 3) {
+                    $q->orWhere('ticket_number', 'like', "%{$search}%");
+                }
+
+                // 3. User (pembuat tiket)
+                $q->orWhereHas('user', function($uq) use ($search, $noSpaceSearch) {
+                    $uq->where('name', 'like', "%{$search}%")
+                       ->orWhere('email', 'like', "%{$search}%");
+                    if (!empty($noSpaceSearch) && $noSpaceSearch !== $search) {
+                        $uq->orWhereRaw("REPLACE(name, ' ', '') LIKE ?", ["%{$noSpaceSearch}%"]);
+                    }
+                });
+
+                // 4. Advisor (advisor penangan tiket)
+                $q->orWhereHas('advisor', function($aq) use ($search, $noSpaceSearch) {
+                    $aq->where('name', 'like', "%{$search}%")
+                       ->orWhere('email', 'like', "%{$search}%");
+                    if (!empty($noSpaceSearch) && $noSpaceSearch !== $search) {
+                        $aq->orWhereRaw("REPLACE(name, ' ', '') LIKE ?", ["%{$noSpaceSearch}%"]);
+                    }
+                });
+
+                // 5. Client (Pelanggan / Outlet & Lokasi)
+                $q->orWhereHas('client', function($cq) use ($search, $noSpaceSearch) {
+                    $cq->where('nm_out', 'like', "%{$search}%")
+                       ->orWhere('lokasi', 'like', "%{$search}%");
+                    if (!empty($noSpaceSearch) && $noSpaceSearch !== $search) {
+                        $cq->orWhereRaw("REPLACE(nm_out, ' ', '') LIKE ?", ["%{$noSpaceSearch}%"])
+                           ->orWhereRaw("REPLACE(lokasi, ' ', '') LIKE ?", ["%{$noSpaceSearch}%"]);
+                    }
+                });
             });
         }
 
@@ -283,56 +414,432 @@ class HomeController extends Controller
             return redirect()->route('dashboard')->with('error', 'Akses ditolak. Anda tidak memiliki izin untuk melihat modul Laporan.');
         }
 
-        $month = date('m');
-        $year = date('Y');
-        $users = User::with(['performanceReviews' => function($q) use ($month, $year) {
+        if ($request->filled('period')) {
+            $parts = explode('-', $request->input('period'));
+            $year = (int)$parts[0];
+            $month = (int)$parts[1];
+        } else {
+            $month = (int)$request->input('month', date('m'));
+            $year = (int)$request->input('year', date('Y'));
+        }
+        
+        $usersQuery = User::with(['performanceReviews' => function($q) use ($month, $year) {
+            $q->whereMonth('periode', $month)->whereYear('periode', $year);
+        }]);
+
+        if ($request->filled('search')) {
+            $s = trim($request->search);
+            $usersQuery->where('name', 'like', "%{$s}%")->orWhere('email', 'like', "%{$s}%");
+        }
+
+        $allUsers = $usersQuery->get();
+
+        if ($request->status == 'dinilai') {
+            $users = $allUsers->filter(function($u) {
+                $rev = $u->performanceReviews->first();
+                return $rev && strtoupper($rev->status) === 'FINAL';
+            });
+        } elseif ($request->status == 'belum') {
+            $users = $allUsers->filter(function($u) {
+                $rev = $u->performanceReviews->first();
+                return !$rev || strtoupper($rev->status) !== 'FINAL';
+            });
+        } else {
+            $users = $allUsers;
+        }
+
+        $allCsUsers = User::with(['performanceReviews' => function($q) use ($month, $year) {
             $q->whereMonth('periode', $month)->whereYear('periode', $year);
         }])->get();
 
-        return view('laporan', compact('users', 'month', 'year'));
+        $totalCS = $allCsUsers->count();
+        $sudahDinilai = $allCsUsers->filter(function($u) {
+            $rev = $u->performanceReviews->first();
+            return $rev && strtoupper($rev->status) === 'FINAL';
+        })->count();
+        $belumDinilai = $totalCS - $sudahDinilai;
+        $sangatBaik = $allCsUsers->filter(function($u) {
+            $rev = $u->performanceReviews->first();
+            return $rev && strtoupper($rev->status) === 'FINAL' && $rev->total_score >= 80;
+        })->count();
+
+        // --- Kalkulasi Top 3 Profile CS: Kosongkan sebelum seluruh CS selesai dinilai (FINAL) ---
+        $allCsEvaluated = ($totalCS > 0 && $belumDinilai === 0);
+        $topCS = [
+            'best_performance' => null,
+            'clients_favorite' => null,
+            'best_team_player' => null,
+        ];
+
+        if ($allCsEvaluated) {
+            $modulesBobot = ModuleSystem::pluck('bobot', 'id');
+            $monthTickets = Ticket::whereMonth('created_at', $month)
+                ->whereYear('created_at', $year)
+                ->get();
+
+            $reviews = PerformanceReview::with(['user', 'details.category'])
+                ->whereMonth('periode', $month)
+                ->whereYear('periode', $year)
+                ->where('status', 'FINAL')
+                ->get();
+
+            $csMetrics = [];
+            foreach ($allCsUsers as $u) {
+                $rev = $reviews->firstWhere('user_id', $u->id);
+
+                $uHandled = $monthTickets->filter(fn($t) => $t->user_id == $u->id || $t->advisor_id == $u->id);
+                $uClosed = $uHandled->filter(fn($t) => strtoupper($t->status) === 'CLOSED');
+                $uAsAdvisor = $monthTickets->filter(fn($t) => $t->advisor_id == $u->id && $t->user_id != $u->id);
+
+                $rawTicketPoints = 0;
+                foreach ($uHandled as $ht) {
+                    $rawTicketPoints += (int)($modulesBobot[$ht->module_system_id] ?? 50);
+                }
+
+                $surveyRatings = \Illuminate\Support\Facades\DB::table('ticket_surveys')
+                    ->join('tickets', 'ticket_surveys.ticket_id', '=', 'tickets.id')
+                    ->where(function($q) use ($u) {
+                        $q->where('tickets.user_id', $u->id)->orWhere('tickets.advisor_id', $u->id);
+                    })
+                    ->whereMonth('tickets.created_at', $month)
+                    ->whereYear('tickets.created_at', $year)
+                    ->pluck('rating');
+                $avgSurvey = $surveyRatings->count() > 0 ? round($surveyRatings->avg(), 1) : null;
+
+                $teamworkScore = null;
+                if ($rev && $rev->details) {
+                    $twDetail = $rev->details->first(function($d) {
+                        return $d->category && stripos($d->category->name, 'kerjasama') !== false;
+                    });
+                    if ($twDetail) {
+                        $teamworkScore = $twDetail->score;
+                    }
+                }
+
+                $csMetrics[$u->id] = [
+                    'user' => $u,
+                    'has_review' => !is_null($rev),
+                    'review' => $rev,
+                    'total_score' => $rev ? (float)$rev->total_score : 0,
+                    'raw_ticket_points' => $rawTicketPoints,
+                    'handled_count' => $uHandled->count(),
+                    'closed_count' => $uClosed->count(),
+                    'client_score' => $rev ? (float)$rev->review_score : 0,
+                    'client_rating' => $rev ? round(($rev->review_score / 20), 1) : 0,
+                    'advice_count' => $rev && $rev->total_ticket_yang_di_advice ? $rev->total_ticket_yang_di_advice : $uAsAdvisor->count(),
+                    'teamwork_soft_score' => $teamworkScore ?: 0,
+                    'team_player_score' => ($rev && $rev->total_ticket_yang_di_advice ? $rev->total_ticket_yang_di_advice * 10 : $uAsAdvisor->count() * 10) + ($teamworkScore ?: 0),
+                ];
+            }
+
+            $selectedUserIds = [];
+
+            // 1. Best Performance (Tertinggi total_score)
+            $sortedBestPerf = collect($csMetrics)->sortByDesc(fn($item) => $item['total_score']);
+            $bestPerfItem = $sortedBestPerf->first();
+            if ($bestPerfItem && $bestPerfItem['total_score'] > 0) {
+                $selectedUserIds[] = $bestPerfItem['user']->id;
+            } else {
+                $bestPerfItem = null;
+            }
+
+            // 2. Client's Favorite (Tertinggi kepuasan klien)
+            $sortedClientsFav = collect($csMetrics)->reject(fn($item) => in_array($item['user']->id, $selectedUserIds))
+                ->sortByDesc(fn($item) => $item['client_score']);
+            $clientsFavItem = $sortedClientsFav->first();
+            if ($clientsFavItem && $clientsFavItem['client_score'] > 0) {
+                $selectedUserIds[] = $clientsFavItem['user']->id;
+            } else {
+                $clientsFavItem = null;
+            }
+
+            // 3. Best Team Player (Tertinggi kolaborasi / bantuan alih tiket)
+            $sortedTeamPlayer = collect($csMetrics)->reject(fn($item) => in_array($item['user']->id, $selectedUserIds))
+                ->sortByDesc(fn($item) => $item['team_player_score']);
+            $teamPlayerItem = $sortedTeamPlayer->first();
+            if ($teamPlayerItem && ($teamPlayerItem['advice_count'] > 0 || $teamPlayerItem['team_player_score'] > 0)) {
+                $selectedUserIds[] = $teamPlayerItem['user']->id;
+            } else {
+                $teamPlayerItem = null;
+            }
+
+            $topCS = [
+                'best_performance' => $bestPerfItem,
+                'clients_favorite' => $clientsFavItem,
+                'best_team_player' => $teamPlayerItem,
+            ];
+        }
+
+        return view('laporan', compact('users', 'month', 'year', 'totalCS', 'sudahDinilai', 'belumDinilai', 'sangatBaik', 'topCS'));
+    }
+
+    public function prosesNilai(Request $request, $id){
+        $user = User::findOrFail($id);
+        
+        $month = (int)$request->input('month', date('m'));
+        $year = (int)$request->input('year', date('Y'));
+        if ($request->filled('period')) {
+            $parts = explode('-', $request->input('period'));
+            $year = isset($parts[0]) && is_numeric($parts[0]) ? (int)$parts[0] : $year;
+            $month = isset($parts[1]) && is_numeric($parts[1]) ? (int)$parts[1] : $month;
+        }
+        $periode = sprintf('%04d-%02d-01', $year, $month);
+
+        // Modul sistem & bobot
+        $modules = ModuleSystem::orderBy('id', 'asc')->get();
+        $moduleBobotMap = $modules->pluck('bobot', 'id');
+
+        // Tiket CS pada periode ini
+        $tiketQuery = Ticket::where(function($q) use ($id) {
+            $q->where('user_id', $id)->orWhere('advisor_id', $id);
+        })->whereMonth('created_at', $month)->whereYear('created_at', $year);
+
+        $total_ticket = (clone $tiketQuery)->count();
+        $tiket_selesai = (clone $tiketQuery)->whereRaw('UPPER(status) = ?', ['CLOSED'])->count();
+        $tiket_di_advice = Ticket::where('advisor_id', $id)
+            ->whereMonth('created_at', $month)
+            ->whereYear('created_at', $year)
+            ->count();
+
+        // Rata-rata waktu: totalin seluruh durasi menit tiket selesai dulu, baru dibagi jumlah tiket selesai
+        $closedTickets = (clone $tiketQuery)->whereRaw('UPPER(status) = ?', ['CLOSED'])
+            ->whereNotNull('closed_at')
+            ->get();
+
+        $totalMins = 0;
+        $validClosedCount = 0;
+        foreach ($closedTickets as $ct) {
+            $start = $ct->handle_at ?? $ct->created_at;
+            if ($start && $ct->closed_at) {
+                if ($ct->duration_minutes !== null) {
+                    $totalMins += (int)$ct->duration_minutes;
+                } else {
+                    $totalMins += \Carbon\Carbon::parse($ct->closed_at)->diffInMinutes(\Carbon\Carbon::parse($start));
+                }
+                $validClosedCount++;
+            }
+        }
+
+        $rata_rata_waktu = ($validClosedCount > 0) ? round($totalMins / $validClosedCount) . ' menit' : '-';
+        $total_lama_waktu = ($totalMins > 0) ? "{$totalMins} menit" : ($validClosedCount > 0 ? "< 1 menit" : '-');
+
+        // Hitung skor per modul (bobot x qty)
+        $raw_ticket_score = 0;
+        $module_details_to_save = [];
+
+        foreach ($modules as $mod) {
+            $modTickets = Ticket::where('module_system_id', $mod->id)
+                ->where(function($q) use ($id) {
+                    $q->where('user_id', $id)->orWhere('advisor_id', $id);
+                })
+                ->whereMonth('created_at', $month)
+                ->whereYear('created_at', $year)
+                ->get();
+
+            $modCount = $modTickets->count();
+            if ($modCount > 0) {
+                $closedMod = $modTickets->filter(fn($t) => strtoupper($t->status) === 'CLOSED' && $t->closed_at);
+                $modMins = 0;
+                $modValid = 0;
+                foreach ($closedMod as $cmt) {
+                    $start = $cmt->handle_at ?? $cmt->created_at;
+                    if ($start && $cmt->closed_at) {
+                        $modMins += $cmt->duration_minutes !== null ? (int)$cmt->duration_minutes : \Carbon\Carbon::parse($cmt->closed_at)->diffInMinutes(\Carbon\Carbon::parse($start));
+                        $modValid++;
+                    }
+                }
+                $modAvgW = ($modValid > 0) ? round($modMins / $modValid) . ' menit' : '-';
+                $modLamaW = ($modMins > 0) ? "{$modMins} menit" : ($modValid > 0 ? "< 1 menit" : '-');
+                $bobot = (int)($mod->bobot ?? 0);
+                $modScore = $bobot * $modCount;
+                $raw_ticket_score += $modScore;
+
+                $module_details_to_save[] = [
+                    'module_id' => $mod->id,
+                    'score' => $modScore,
+                    'bobot' => $bobot,
+                    'total_ticket' => $modCount,
+                    'lama_waktu' => $modLamaW,
+                    'rata_rata_waktu' => $modAvgW
+                ];
+            }
+        }
+
+        // Benchmark terhadap seluruh tim CS
+        $allUsers = User::all();
+        $max_ticket_score = 0;
+        $total_team_score = 0;
+
+        $allMonthTickets = Ticket::whereMonth('created_at', $month)
+            ->whereYear('created_at', $year)
+            ->get(['id', 'user_id', 'advisor_id', 'module_system_id']);
+
+        foreach ($allUsers as $u) {
+            $uTickets = $allMonthTickets->filter(fn($t) => $t->user_id == $u->id || $t->advisor_id == $u->id);
+            if ($uTickets->count() > 0) {
+                $uScore = 0;
+                foreach ($uTickets as $ut) {
+                    $uScore += (int)($moduleBobotMap[$ut->module_system_id] ?? 0);
+                }
+                $total_team_score += $uScore;
+                if ($uScore > $max_ticket_score) {
+                    $max_ticket_score = $uScore;
+                }
+            }
+        }
+
+        if ($raw_ticket_score > $max_ticket_score) {
+            $max_ticket_score = $raw_ticket_score;
+        }
+
+        $nilai_tiket = ($max_ticket_score > 0) ? round(($raw_ticket_score / $max_ticket_score) * 100, 2) : 0;
+        $team_portion = ($total_team_score > 0) ? round(($raw_ticket_score / $total_team_score) * 100, 2) : ($raw_ticket_score > 0 ? 100.00 : 0.00);
+
+        // Ambil review by client (kepuasan survey)
+        $surveyRatings = \Illuminate\Support\Facades\DB::table('ticket_surveys')
+            ->join('tickets', 'ticket_surveys.ticket_id', '=', 'tickets.id')
+            ->where(function($q) use ($id) {
+                $q->where('tickets.user_id', $id)->orWhere('tickets.advisor_id', $id);
+            })
+            ->whereMonth('tickets.created_at', $month)
+            ->whereYear('tickets.created_at', $year)
+            ->pluck('rating');
+        $avgSurvey = $surveyRatings->count() > 0 ? round($surveyRatings->avg(), 1) : null;
+        $client_score = $avgSurvey ? ($avgSurvey * 20) : ($tiket_selesai > 0 ? 90 : 0);
+
+        // Simpan / update ke PerformanceReview sebagai PROCESSED (sudah di-sum, siap dinilai soft skill)
+        $review = PerformanceReview::updateOrCreate(
+            [
+                'user_id' => $id,
+                'periode' => $periode,
+            ],
+            [
+                'reviewer_id' => auth()->id() ?? 1,
+                'total_score' => $nilai_tiket * 0.3, // Skor awal sebelum soft skill
+                'module_score' => $nilai_tiket,
+                'raw_ticket_score' => $raw_ticket_score,
+                'max_ticket_score' => $max_ticket_score,
+                'team_portion' => $team_portion,
+                'performance_score' => 0, // Soft skill masih 0 (belum diisi)
+                'review_score' => $client_score,
+                'total_ticket' => $total_ticket,
+                'lama_waktu' => $total_lama_waktu,
+                'rata_rata_waktu' => $rata_rata_waktu,
+                'total_ticket_yang_di_advice' => $tiket_di_advice,
+                'status' => 'DRAFT', // Disimpan sebagai draft terproses
+            ]
+        );
+
+        // Simpan detail modul & pastikan soft skill tidak otomatis terisi (default 0)
+        $review->moduleDetails()->delete();
+        $review->details()->delete();
+        foreach ($module_details_to_save as $mdData) {
+            PerformanceReviewModuleDetail::create([
+                'p_rev_id' => $review->id,
+                'module_id' => $mdData['module_id'],
+                'score' => $mdData['score'],
+                'bobot' => $mdData['bobot'],
+                'total_ticket' => $mdData['total_ticket'],
+                'lama_waktu' => $mdData['lama_waktu'] ?? '-',
+                'rata_rata_waktu' => $mdData['rata_rata_waktu'] ?? '-',
+            ]);
+        }
+
+        return redirect()->route('laporan', ['month' => $month, 'year' => $year, 'period' => sprintf('%04d-%02d', $year, $month)])
+            ->with('success', "Data tiket {$user->name} berhasil di-proses (di-sum)! Silakan klik 'Nilai' untuk mengisi evaluasi soft skill.");
+    }
+
+    public function prosesSemuaNilai(Request $request){
+        $month = (int)$request->input('month', date('m'));
+        $year = (int)$request->input('year', date('Y'));
+        if ($request->filled('period')) {
+            $parts = explode('-', $request->input('period'));
+            $year = isset($parts[0]) && is_numeric($parts[0]) ? (int)$parts[0] : $year;
+            $month = isset($parts[1]) && is_numeric($parts[1]) ? (int)$parts[1] : $month;
+        }
+
+        $allUsers = User::all();
+        $processedCount = 0;
+
+        foreach ($allUsers as $u) {
+            $subReq = new Request([
+                'month' => $month,
+                'year' => $year,
+            ]);
+            $this->prosesNilai($subReq, $u->id);
+            $processedCount++;
+        }
+
+        return redirect()->route('laporan', ['month' => $month, 'year' => $year, 'period' => sprintf('%04d-%02d', $year, $month)])
+            ->with('success', "Berhasil memproses (sum) data tiket untuk {$processedCount} CS! Sekarang Anda dapat mengisi nilai soft skill per masing-masing CS.");
     }
 
     public function penilaian($id){
         $user = User::findOrFail($id);
-        $currentMonth = date('m');
-        $currentYear = date('Y');
+        
+        if (request()->filled('period')) {
+            $parts = explode('-', request('period'));
+            $currentYear = isset($parts[0]) && is_numeric($parts[0]) ? (int)$parts[0] : (int)date('Y');
+            $currentMonth = isset($parts[1]) && is_numeric($parts[1]) ? (int)$parts[1] : (int)date('m');
+        } else {
+            $currentMonth = (int)request('month', date('m'));
+            $currentYear = (int)request('year', date('Y'));
+        }
 
-        // Count user tickets for current month (tiket yang dibuat oleh user atau dihandle sebagai advisor)
+        // Modul-modul sistem
+        $modules = ModuleSystem::orderBy('id', 'asc')->get();
+        $moduleBobotMap = $modules->pluck('bobot', 'id');
+
+        // Cari modul dengan bobot tertinggi
+        $highestBobotModuleObj = $modules->sortByDesc('bobot')->first();
+        $highestBobotModule = $highestBobotModuleObj ? $highestBobotModuleObj->name : '-';
+        $highestBobotVal = $highestBobotModuleObj ? (int)$highestBobotModuleObj->bobot : 0;
+
+        // 1. Tiket user ini di bulan berjalan (sebagai pembuat atau advisor)
         $tiketQuery = Ticket::where(function($q) use ($id) {
             $q->where('user_id', $id)->orWhere('advisor_id', $id);
         })->whereMonth('created_at', $currentMonth)->whereYear('created_at', $currentYear);
 
         $tiket_ditangani = (clone $tiketQuery)->count();
         $tiket_selesai = (clone $tiketQuery)->whereRaw('UPPER(status) = ?', ['CLOSED'])->count();
-
-        // Tiket yang di-advice oleh user ini
         $tiket_di_advice = Ticket::where('advisor_id', $id)
             ->whereMonth('created_at', $currentMonth)
             ->whereYear('created_at', $currentYear)
             ->count();
 
-        // Hitung rata-rata waktu respon / penyelesaian tiket
+        // Rata-rata waktu penyelesaian: Totalin durasi seluruh tiket selesai dulu, baru dibagi jumlah tiket selesai
         $closedTickets = (clone $tiketQuery)->whereRaw('UPPER(status) = ?', ['CLOSED'])
             ->whereNotNull('closed_at')
-            ->whereNotNull('created_at')
             ->get();
 
-        if ($closedTickets->count() > 0) {
-            $totalMins = 0;
-            foreach ($closedTickets as $ct) {
-                $totalMins += \Carbon\Carbon::parse($ct->closed_at)->diffInMinutes(\Carbon\Carbon::parse($ct->created_at));
+        $totalMins = 0;
+        $validClosedCount = 0;
+        foreach ($closedTickets as $ct) {
+            $start = $ct->handle_at ?? $ct->created_at;
+            if ($start && $ct->closed_at) {
+                if ($ct->duration_minutes !== null) {
+                    $totalMins += (int)$ct->duration_minutes;
+                } else {
+                    $totalMins += \Carbon\Carbon::parse($ct->closed_at)->diffInMinutes(\Carbon\Carbon::parse($start));
+                }
+                $validClosedCount++;
             }
-            $avgMins = round($totalMins / $closedTickets->count());
-            $rata_rata_waktu = $avgMins . ' menit';
-        } else {
-            $rata_rata_waktu = '12 menit';
         }
 
-        $nilai_tiket = $tiket_ditangani > 0 ? round(($tiket_selesai / $tiket_ditangani) * 100) : 80;
+        if ($validClosedCount > 0) {
+            $avgMins = round($totalMins / $validClosedCount);
+            $rata_rata_waktu = $avgMins > 0 ? "{$avgMins} menit" : "< 1 menit";
+            $total_lama_waktu = $totalMins > 0 ? "{$totalMins} menit" : "< 1 menit";
+        } else {
+            $rata_rata_waktu = '-';
+            $total_lama_waktu = '-';
+        }
 
-        // Detail ticket per module system
-        $modules = ModuleSystem::all();
+        // 2. Hitung Detail per Modul & Skor CS ini: Σ(bobot x qty)
         $module_details = [];
+        $raw_ticket_score = 0;
+        $total_qty = 0;
+
         foreach ($modules as $mod) {
             $modTickets = Ticket::where('module_system_id', $mod->id)
                 ->where(function($q) use ($id) {
@@ -344,52 +851,213 @@ class HomeController extends Controller
 
             $modCount = $modTickets->count();
             $closedModTickets = $modTickets->filter(function($t) {
-                return strtoupper($t->status) === 'CLOSED' && $t->closed_at && $t->created_at;
+                return strtoupper($t->status) === 'CLOSED' && $t->closed_at;
             });
 
-            if ($closedModTickets->count() > 0) {
-                $modMins = 0;
-                foreach ($closedModTickets as $cmt) {
-                    $modMins += \Carbon\Carbon::parse($cmt->closed_at)->diffInMinutes(\Carbon\Carbon::parse($cmt->created_at));
+            $modTotalMins = 0;
+            $modValidCount = 0;
+            foreach ($closedModTickets as $cmt) {
+                $start = $cmt->handle_at ?? $cmt->created_at;
+                if ($start && $cmt->closed_at) {
+                    $modTotalMins += $cmt->duration_minutes !== null ? (int)$cmt->duration_minutes : \Carbon\Carbon::parse($cmt->closed_at)->diffInMinutes(\Carbon\Carbon::parse($start));
+                    $modValidCount++;
                 }
-                $modAvgWaktu = round($modMins / $closedModTickets->count()) . ' menit';
-            } else {
-                $modAvgWaktu = '15 menit';
             }
+
+            if ($modValidCount > 0) {
+                $avgM = round($modTotalMins / $modValidCount);
+                $modAvgWaktu = $avgM > 0 ? "{$avgM} menit" : "< 1 menit";
+                $modLamaWaktu = $modTotalMins > 0 ? "{$modTotalMins} menit" : "< 1 menit";
+            } else {
+                $modAvgWaktu = '-';
+                $modLamaWaktu = '-';
+            }
+
+            $bobot = (int)($mod->bobot ?? 0);
+            $modScore = $bobot * $modCount; // Rumus: bobot x qty per baris
+
+            $raw_ticket_score += $modScore;
+            $total_qty += $modCount;
 
             $module_details[] = [
                 'id' => $mod->id,
                 'name' => $mod->name,
-                'bobot' => $mod->bobot ?? 80,
+                'bobot' => $bobot,
                 'total_ticket' => $modCount,
+                'lama_waktu' => $modLamaWaktu,
                 'rata_rata_waktu' => $modAvgWaktu,
-                'score' => round(($mod->bobot ?? 80) * ($modCount > 0 ? $modCount : 1))
+                'score' => $modScore
             ];
         }
 
-        return view('penilaian', compact('user', 'tiket_ditangani', 'tiket_selesai', 'tiket_di_advice', 'rata_rata_waktu', 'nilai_tiket', 'module_details'));
+        // 3. Benchmarking terhadap Seluruh Tim CS di Periode Ini
+        $allUsers = User::all();
+        $max_ticket_score = 0;
+        $total_team_score = 0;
+        $top_performer_name = null;
+
+        $allMonthTickets = Ticket::whereMonth('created_at', $currentMonth)
+            ->whereYear('created_at', $currentYear)
+            ->get(['id', 'user_id', 'advisor_id', 'module_system_id']);
+
+        foreach ($allUsers as $u) {
+            $uTickets = $allMonthTickets->filter(function($t) use ($u) {
+                return $t->user_id == $u->id || $t->advisor_id == $u->id;
+            });
+
+            if ($uTickets->count() > 0) {
+                $uScore = 0;
+                foreach ($uTickets as $ut) {
+                    $uScore += (int)($moduleBobotMap[$ut->module_system_id] ?? 0);
+                }
+
+                $total_team_score += $uScore;
+
+                if ($uScore > $max_ticket_score) {
+                    $max_ticket_score = $uScore;
+                    $top_performer_name = $u->name;
+                }
+            }
+        }
+
+        // Pastikan max_ticket_score tidak lebih kecil dari skor user ini
+        if ($raw_ticket_score > $max_ticket_score) {
+            $max_ticket_score = $raw_ticket_score;
+            $top_performer_name = $user->name;
+        }
+
+        // 4. Hitung Nilai 0-100 = (Skor CS / Skor Tertinggi) * 100
+        if ($max_ticket_score > 0) {
+            $nilai_tiket = round(($raw_ticket_score / $max_ticket_score) * 100, 2);
+        } else {
+            $nilai_tiket = 0;
+        }
+
+        // Porsi kontribusi (%)
+        if ($total_team_score > 0) {
+            $team_portion = round(($raw_ticket_score / $total_team_score) * 100, 2);
+        } else {
+            $team_portion = $raw_ticket_score > 0 ? 100.00 : 0.00;
+        }
+
+        // Total bobot seluruh modul
+        $total_bobot = array_sum(array_column($module_details, 'bobot'));
+
+        // Cek apakah sudah ada penilaian di periode ini (draft/final)
+        $existingReview = PerformanceReview::with(['details.category', 'moduleDetails'])
+            ->where('user_id', $id)
+            ->whereMonth('periode', $currentMonth)
+            ->whereYear('periode', $currentYear)
+            ->first();
+
+        // Review by client (Rating Bintang)
+        $surveyRatings = \Illuminate\Support\Facades\DB::table('ticket_surveys')
+            ->join('tickets', 'ticket_surveys.ticket_id', '=', 'tickets.id')
+            ->where(function($q) use ($id) {
+                $q->where('tickets.user_id', $id)->orWhere('tickets.advisor_id', $id);
+            })
+            ->whereMonth('tickets.created_at', $currentMonth)
+            ->whereYear('tickets.created_at', $currentYear)
+            ->pluck('rating');
+        $avgSurvey = $surveyRatings->count() > 0 ? round($surveyRatings->avg(), 1) : null;
+        $client_rating = $existingReview && $existingReview->review_score ? round($existingReview->review_score / 20, 1) : ($avgSurvey ?: ($tiket_selesai > 0 ? 5.0 : 0.0));
+        $client_score = $existingReview && $existingReview->review_score ? (float)$existingReview->review_score : ($client_rating * 20);
+
+        $categories = PerformanceCategory::orderBy('id')->get();
+        $catScores = [];
+        // Jangan otomatis isi nilai: hanya load nilai jika review memiliki performance_score > 0 atau status FINAL
+        if ($existingReview && $existingReview->details && ($existingReview->performance_score > 0 || $existingReview->status === 'FINAL')) {
+            foreach ($existingReview->details as $d) {
+                if ($d->score > 0) {
+                    $catScores[$d->performance_category_id] = $d->score;
+                }
+            }
+        }
+
+        return view('penilaian', compact(
+            'user', 
+            'currentMonth',
+            'currentYear',
+            'tiket_ditangani', 
+            'tiket_selesai', 
+            'tiket_di_advice', 
+            'total_lama_waktu',
+            'rata_rata_waktu', 
+            'nilai_tiket', 
+            'raw_ticket_score', 
+            'max_ticket_score', 
+            'top_performer_name', 
+            'team_portion', 
+            'total_qty',
+            'total_bobot',
+            'module_details',
+            'existingReview',
+            'highestBobotModule',
+            'highestBobotVal',
+            'client_rating',
+            'client_score',
+            'categories',
+            'catScores'
+        ));
     }
 
     public function storePenilaian(Request $request, $id) {
-        $request->validate([
-            'produktivitas' => 'required|numeric|min:1|max:5',
-            'kualitas_solving' => 'required|numeric|min:1|max:5',
-            'kecepatan_respon' => 'required|numeric|min:1|max:5',
-            'sikap_cs' => 'required|numeric|min:1|max:5',
-            'kepuasan_pelanggan' => 'required|numeric|min:1|max:5',
-            'nilai_tiket' => 'required|numeric',
-        ]);
+        $isDraft = ($request->input('action') === 'draft');
+        $categories = PerformanceCategory::orderBy('id')->get();
+        $softSkillInputs = $request->input('soft_skills', []);
 
-        $n_t = $request->nilai_tiket;
-        $avg_kualitas = (($request->produktivitas + $request->kualitas_solving + $request->kecepatan_respon + $request->sikap_cs) / 20) * 100;
-        $n_k = ($request->kepuasan_pelanggan / 5) * 100;
+        if (!$isDraft) {
+            // Simpan Nilai (FINAL) -> Wajib seluruh kriteria soft skill diisi (1 - 5)
+            $missingCats = [];
+            foreach ($categories as $cat) {
+                $val = (int)($softSkillInputs[$cat->id] ?? 0);
+                if ($val < 1 || $val > 5) {
+                    $missingCats[] = $cat->name;
+                }
+            }
 
-        $n_akhir = ($n_t * 0.3) + ($avg_kualitas * 0.4) + ($n_k * 0.3);
+            if (!empty($missingCats)) {
+                return back()->withInput()->withErrors([
+                    'soft_skill' => 'Untuk Simpan Nilai (Final), seluruh kriteria soft skill harus diisi (nilai 1 - 5). Kriteria yang belum diisi: ' . implode(', ', array_slice($missingCats, 0, 3)) . (count($missingCats) > 3 ? ' dll.' : '') . '. Jika belum lengkap, silakan gunakan Simpan Draft.'
+                ]);
+            }
+        }
 
-        $currentMonth = date('m');
-        $currentYear = date('Y');
+        $n_t = (float)$request->nilai_tiket;
+        $client_score = (float)$request->input('client_score', 0);
 
-        // Hitung total ticket, rata-rata waktu, dan total ticket di-advice
+        // Hitung rata-rata soft skill (skala 0 - 100)
+        $totalSkillScore = 0;
+        $filledCount = 0;
+        foreach ($categories as $cat) {
+            $val = (int)($softSkillInputs[$cat->id] ?? 0);
+            if ($val > 0) {
+                $totalSkillScore += ($val / 5) * 100;
+                $filledCount++;
+            }
+        }
+
+        $avg_kualitas = ($filledCount > 0) ? round($totalSkillScore / $filledCount, 2) : 0;
+
+        if (!$isDraft) {
+            $n_akhir = round(($n_t * 0.3) + ($avg_kualitas * 0.4) + ($client_score * 0.3), 2);
+            $status = 'FINAL';
+        } else {
+            // Draft: akumulasi yang sudah ada
+            $n_akhir = round(($n_t * 0.3) + ($avg_kualitas * 0.4) + ($client_score * 0.3), 2);
+            $status = 'DRAFT';
+        }
+
+        if ($request->filled('period')) {
+            $parts = explode('-', $request->input('period'));
+            $currentYear = isset($parts[0]) && is_numeric($parts[0]) ? (int)$parts[0] : (int)date('Y');
+            $currentMonth = isset($parts[1]) && is_numeric($parts[1]) ? (int)$parts[1] : (int)date('m');
+        } else {
+            $currentMonth = (int)$request->input('month', date('m'));
+            $currentYear = (int)$request->input('year', date('Y'));
+        }
+
+        // Hitung total ticket, rata-rata waktu (totalin dulu durasi baru dirata-ratakan)
         $tiketQuery = Ticket::where(function($q) use ($id) {
             $q->where('user_id', $id)->orWhere('advisor_id', $id);
         })->whereMonth('created_at', $currentMonth)->whereYear('created_at', $currentYear);
@@ -397,66 +1065,75 @@ class HomeController extends Controller
         $total_ticket = $request->input('total_ticket', (clone $tiketQuery)->count());
         $tiket_di_advice = $request->input('total_ticket_yang_di_advice', Ticket::where('advisor_id', $id)->whereMonth('created_at', $currentMonth)->whereYear('created_at', $currentYear)->count());
 
-        $rata_rata_waktu = $request->input('rata_rata_waktu');
-        if (!$rata_rata_waktu) {
-            $closedTickets = (clone $tiketQuery)->whereRaw('UPPER(status) = ?', ['CLOSED'])
-                ->whereNotNull('closed_at')
-                ->whereNotNull('created_at')
-                ->get();
+        $closedTickets = (clone $tiketQuery)->whereRaw('UPPER(status) = ?', ['CLOSED'])
+            ->whereNotNull('closed_at')
+            ->get();
 
-            if ($closedTickets->count() > 0) {
-                $totalMins = 0;
-                foreach ($closedTickets as $ct) {
-                    $totalMins += \Carbon\Carbon::parse($ct->closed_at)->diffInMinutes(\Carbon\Carbon::parse($ct->created_at));
-                }
-                $rata_rata_waktu = round($totalMins / $closedTickets->count()) . ' menit';
-            } else {
-                $rata_rata_waktu = '12 menit';
+        $totalMins = 0;
+        $validClosedCount = 0;
+        foreach ($closedTickets as $ct) {
+            $start = $ct->handle_at ?? $ct->created_at;
+            if ($start && $ct->closed_at) {
+                $totalMins += $ct->duration_minutes !== null ? (int)$ct->duration_minutes : \Carbon\Carbon::parse($ct->closed_at)->diffInMinutes(\Carbon\Carbon::parse($start));
+                $validClosedCount++;
             }
         }
 
-        $review = PerformanceReview::create([
-            'user_id' => $id,
-            'reviewer_id' => auth()->id() ?? 1,
-            'periode' => date('Y-m-01'),
-            'total_score' => $n_akhir,
-            'module_score' => $n_t,
-            'performance_score' => $avg_kualitas,
-            'review_score' => $n_k,
-            'total_ticket' => $total_ticket,
-            'rata_rata_waktu' => $rata_rata_waktu,
-            'total_ticket_yang_di_advice' => $tiket_di_advice,
-            'status' => 'FINAL',
-            'catatan' => $request->catatan,
-            'saran' => $request->saran,
-        ]);
+        $rata_rata_waktu = $request->input('rata_rata_waktu');
+        if (!$rata_rata_waktu || $rata_rata_waktu === '-') {
+            $rata_rata_waktu = ($validClosedCount > 0) ? round($totalMins / $validClosedCount) . ' menit' : '-';
+        }
+        $total_lama_waktu = $request->input('total_lama_waktu');
+        if (!$total_lama_waktu || $total_lama_waktu === '-') {
+            $total_lama_waktu = ($totalMins > 0) ? "{$totalMins} menit" : ($validClosedCount > 0 ? "< 1 menit" : '-');
+        }
 
-        // Insert Details matching the old static categories to the new dynamic ones
-        $categories = PerformanceCategory::all();
-        foreach($categories as $cat) {
-            $score = 0;
-            if (stripos($cat->name, 'Produktivitas') !== false) {
-                $score = $n_t; 
-            } elseif (stripos($cat->name, 'Kualitas') !== false) {
-                $score = $avg_kualitas;
-            } elseif (stripos($cat->name, 'Kecepatan') !== false) {
-                $score = ($request->kecepatan_respon / 5) * 100;
-            } elseif (stripos($cat->name, 'Sikap') !== false) {
-                $score = ($request->sikap_cs / 5) * 100;
-            } elseif (stripos($cat->name, 'Kepuasan') !== false) {
-                $score = $n_k;
-            } else {
-                $score = 80;
-            }
+        $raw_ticket_score = (float)$request->input('raw_ticket_score', 0);
+        $max_ticket_score = (float)$request->input('max_ticket_score', 0);
+        $team_portion = (float)$request->input('team_portion', 0);
 
+        $periode = sprintf('%04d-%02d-01', $currentYear, $currentMonth);
+
+        $review = PerformanceReview::updateOrCreate(
+            [
+                'user_id' => $id,
+                'periode' => $periode,
+            ],
+            [
+                'reviewer_id' => auth()->id() ?? 1,
+                'total_score' => $n_akhir,
+                'module_score' => $n_t,
+                'raw_ticket_score' => $raw_ticket_score,
+                'max_ticket_score' => $max_ticket_score,
+                'team_portion' => $team_portion,
+                'performance_score' => $avg_kualitas,
+                'review_score' => $client_score,
+                'total_ticket' => $total_ticket,
+                'lama_waktu' => $total_lama_waktu,
+                'rata_rata_waktu' => $rata_rata_waktu,
+                'total_ticket_yang_di_advice' => $tiket_di_advice,
+                'status' => $status,
+                'catatan' => $request->catatan,
+                'saran' => $request->saran,
+            ]
+        );
+
+        // Hapus detail lama jika update
+        $review->details()->delete();
+        $review->moduleDetails()->delete();
+
+        // Simpan setiap kriteria soft skill dari master kategori
+        foreach ($categories as $cat) {
+            $val = (int)($softSkillInputs[$cat->id] ?? 0);
+            $catScore = ($val > 0) ? (($val / 5) * 100) : 0;
             PerformanceReviewDetail::create([
                 'performance_review_id' => $review->id,
                 'performance_category_id' => $cat->id,
-                'score' => $score
+                'score' => $catScore
             ]);
         }
 
-        // Insert Module Details
+        // Insert Module Details dengan skor bobot x qty
         $modules = ModuleSystem::all();
         foreach($modules as $mod) {
             $modTickets = Ticket::where('module_system_id', $mod->id)
@@ -470,50 +1147,172 @@ class HomeController extends Controller
             $count = $modTickets->count();
             if ($count > 0) {
                 $closedModTickets = $modTickets->filter(function($t) {
-                    return strtoupper($t->status) === 'CLOSED' && $t->closed_at && $t->created_at;
+                    return strtoupper($t->status) === 'CLOSED' && $t->closed_at;
                 });
 
-                if ($closedModTickets->count() > 0) {
-                    $modMins = 0;
-                    foreach ($closedModTickets as $cmt) {
-                        $modMins += \Carbon\Carbon::parse($cmt->closed_at)->diffInMinutes(\Carbon\Carbon::parse($cmt->created_at));
+                $modTotalMins = 0;
+                $modValidCount = 0;
+                foreach ($closedModTickets as $cmt) {
+                    $start = $cmt->handle_at ?? $cmt->created_at;
+                    if ($start && $cmt->closed_at) {
+                        $modTotalMins += $cmt->duration_minutes !== null ? (int)$cmt->duration_minutes : \Carbon\Carbon::parse($cmt->closed_at)->diffInMinutes(\Carbon\Carbon::parse($start));
+                        $modValidCount++;
                     }
-                    $modAvgWaktu = round($modMins / $closedModTickets->count()) . ' menit';
-                } else {
-                    $modAvgWaktu = '15 menit';
                 }
+
+                $modAvgWaktu = ($modValidCount > 0) ? round($modTotalMins / $modValidCount) . ' menit' : '-';
+                $modLamaWaktu = ($modTotalMins > 0) ? "{$modTotalMins} menit" : ($modValidCount > 0 ? "< 1 menit" : '-');
+                $bobot = (int)($mod->bobot ?? 0);
+                $modScore = $bobot * $count; // Skor per baris: bobot x qty
 
                 PerformanceReviewModuleDetail::create([
                     'p_rev_id' => $review->id,
                     'module_id' => $mod->id,
-                    'score' => $n_t,
-                    'bobot' => $mod->bobot ?? 80,
+                    'score' => $modScore,
+                    'bobot' => $bobot,
                     'total_ticket' => $count,
+                    'lama_waktu' => $modLamaWaktu,
                     'rata_rata_waktu' => $modAvgWaktu
                 ]);
             }
         }
 
-        return redirect()->route('laporan')->with('success', 'Penilaian berhasil disimpan dengan struktur baru!');
+        if ($isDraft) {
+            return redirect()->route('laporan', ['month' => $currentMonth, 'year' => $currentYear, 'period' => sprintf('%04d-%02d', $currentYear, $currentMonth)])->with('success', 'Draft penilaian CS berhasil disimpan!');
+        }
+
+        return redirect()->route('rapor', ['id' => $id, 'month' => $currentMonth, 'year' => $currentYear, 'period' => sprintf('%04d-%02d', $currentYear, $currentMonth)])->with('success', 'Penilaian final berhasil disimpan lengkap dengan evaluasi soft skill!');
     }
 
     public function rapor($id){
         $user = User::findOrFail($id);
-        $rapor = PerformanceReview::with(['details.category', 'moduleDetails.moduleSystem'])->where('user_id', $id)->orderBy('periode', 'desc')->first();
-        $history = PerformanceReview::where('user_id', $id)->orderBy('periode', 'asc')->take(4)->get();
+        $query = PerformanceReview::with(['details.category', 'moduleDetails.moduleSystem'])->where('user_id', $id);
         
-        return view('rapor', compact('user', 'rapor', 'history'));
+        $m = request('month');
+        $y = request('year');
+        if (request()->filled('period')) {
+            $parts = explode('-', request('period'));
+            $y = isset($parts[0]) && is_numeric($parts[0]) ? (int)$parts[0] : (int)date('Y');
+            $m = isset($parts[1]) && is_numeric($parts[1]) ? (int)$parts[1] : (int)date('m');
+        }
+        
+        if ($m && $y) {
+            $rapor = (clone $query)->whereMonth('periode', $m)->whereYear('periode', $y)->first();
+            $month = (int)$m;
+            $year = (int)$y;
+        } else {
+            $rapor = (clone $query)->orderBy('periode', 'desc')->first();
+            if ($rapor) {
+                $month = (int)\Carbon\Carbon::parse($rapor->periode)->month;
+                $year = (int)\Carbon\Carbon::parse($rapor->periode)->year;
+            } else {
+                $month = (int)date('m');
+                $year = (int)date('Y');
+            }
+        }
+        
+        $chartHistory = [];
+        for ($k = 3; $k >= 0; $k--) {
+            $refDate = \Carbon\Carbon::createFromDate($year, $month, 1)->subMonths($k);
+            $revItem = PerformanceReview::with('details.category')->where('user_id', $id)
+                ->whereMonth('periode', $refDate->month)
+                ->whereYear('periode', $refDate->year)
+                ->first();
+            
+            $ticketSc = 0;
+            $qualSc = 0;
+            $survSc = 0;
+            $totSc = 0;
+            if ($revItem) {
+                $ticketSc = (float)($revItem->module_score ?: (optional($revItem->details->firstWhere("category.name", "Produktivitas & Resolusi Tiket"))->score ?: 0));
+                $qualSc = (float)($revItem->performance_score ?: (optional($revItem->details->firstWhere("category.name", "Kualitas Solusi"))->score ?: 0));
+                $survSc = (float)($revItem->review_score ?: (optional($revItem->details->firstWhere("category.name", "Kepuasan Klien (Survey)"))->score ?: 0));
+                $totSc = (float)($revItem->total_score ?: 0);
+            }
+
+            $chartHistory[] = [
+                'label' => $refDate->locale('id')->translatedFormat('M Y'),
+                'is_current' => ($k === 0),
+                'review' => $revItem,
+                'ticket_score' => $ticketSc,
+                'quality_score' => $qualSc,
+                'survey_score' => $survSc,
+                'total_score' => $totSc,
+            ];
+        }
+
+        $history = PerformanceReview::where('user_id', $id)->orderBy('periode', 'asc')->take(4)->get();
+        $categories = PerformanceCategory::orderBy('id')->get();
+        
+        return view('rapor', compact('user', 'rapor', 'history', 'month', 'year', 'chartHistory', 'categories'));
     }
 
     public function downloadRapor($id){
         $user = User::findOrFail($id);
-        $rapor = PerformanceReview::with(['details.category', 'moduleDetails.moduleSystem'])->where('user_id', $id)->orderBy('periode', 'desc')->first();
-        $history = PerformanceReview::where('user_id', $id)->orderBy('periode', 'asc')->take(4)->get();
+        $query = PerformanceReview::with(['details.category', 'moduleDetails.moduleSystem'])->where('user_id', $id);
         
-        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('rapor_pdf', compact('user', 'rapor', 'history'))
-                ->setPaper('a4', 'portrait');
+        $m = request('month');
+        $y = request('year');
+        if (request()->filled('period')) {
+            $parts = explode('-', request('period'));
+            $y = isset($parts[0]) && is_numeric($parts[0]) ? (int)$parts[0] : (int)date('Y');
+            $m = isset($parts[1]) && is_numeric($parts[1]) ? (int)$parts[1] : (int)date('m');
+        }
+        
+        if ($m && $y) {
+            $rapor = (clone $query)->whereMonth('periode', $m)->whereYear('periode', $y)->first();
+            $month = (int)$m;
+            $year = (int)$y;
+        } else {
+            $rapor = (clone $query)->orderBy('periode', 'desc')->first();
+            if ($rapor) {
+                $month = (int)\Carbon\Carbon::parse($rapor->periode)->month;
+                $year = (int)\Carbon\Carbon::parse($rapor->periode)->year;
+            } else {
+                $month = (int)date('m');
+                $year = (int)date('Y');
+            }
+        }
+        
+        $history = PerformanceReview::where('user_id', $id)->orderBy('periode', 'asc')->take(4)->get();
+        $categories = PerformanceCategory::orderBy('id')->get();
+        
+        $periode = $rapor ? \Carbon\Carbon::parse($rapor->periode) : \Carbon\Carbon::createFromDate($year, $month, 1);
+        $m = $periode->format('m');
+        $y = $periode->format('Y');
+
+        $tiketQuery = Ticket::where(function($q) use ($id) {
+            $q->where('user_id', $id)->orWhere('advisor_id', $id);
+        })->whereMonth('created_at', $m)->whereYear('created_at', $y);
+
+        $tiket_selesai = (clone $tiketQuery)->whereRaw('UPPER(status) = ?', ['CLOSED'])->count();
+        $tiket_ditangani = ($rapor && $rapor->total_ticket > 0) ? $rapor->total_ticket : (clone $tiketQuery)->count();
+
+        $total_bobot = 0;
+        $total_qty = 0;
+        if ($rapor && $rapor->moduleDetails) {
+            $total_bobot = $rapor->moduleDetails->sum('bobot');
+            $total_qty = $rapor->moduleDetails->sum('total_ticket');
+        }
+
+        $avg_rating = $rapor ? number_format(min(5.0, max(1.0, $rapor->total_score / 20)), 1) : '4.0';
+
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('rapor_pdf', compact(
+            'user', 
+            'rapor', 
+            'history', 
+            'tiket_ditangani', 
+            'tiket_selesai', 
+            'total_bobot', 
+            'total_qty', 
+            'avg_rating',
+            'month',
+            'year',
+            'periode',
+            'categories'
+        ))->setPaper('a4', 'portrait');
                 
-        return $pdf->stream('Rapor_Kinerja_CS_' . str_replace(' ', '_', $user->name) . '_' . date('M_Y') . '.pdf');
+        return $pdf->stream('Rapor_Kinerja_CS_' . str_replace(' ', '_', $user->name) . '_' . $periode->format('M_Y') . '.pdf');
     }
 
     public function riwayat($id){
@@ -559,31 +1358,54 @@ class HomeController extends Controller
             Alert::warning('Pengalihan Otomatis Dibatalkan', 'Tiket (' . implode(', ', $expiredSentNumbers) . ') telah dikembalikan kepada Anda karena telah melewati batas waktu tanpa persetujuan dari advisor tujuan.')->showConfirmButton('Tutup', '#f59e0b')->autoClose(3000);
         }
 
-        // 2. Query data
-        $query = Ticket::query()->where(function($q) {
-            $q->where('user_id', auth()->id())
-              ->orWhere(function($sub) {
-                  $sub->where('advisor_id', auth()->id())
-                      ->whereNull('pending_advisor_id');
-              });
-        })->with(['kategoriSystem', 'moduleSystem', 'client', 'user', 'advisor']);
+        // 2. Query data - hanya tiket milik user yang login
+        $query = Ticket::query()->where('user_id', auth()->id())
+            ->with(['kategoriSystem', 'moduleSystem', 'client', 'user', 'advisor']);
 
         // Search filter
         if ($request->filled('search')) {
-            $search = $request->search;
-            $query->where(function($q) use ($search) {
-                $q->where('ticket_number', 'like', "%{$search}%")
-                  ->orWhere('title', 'like', "%{$search}%")
+            $search = trim($request->search);
+            $noSpaceSearch = str_replace(' ', '', $search);
+
+            $extractedNumber = null;
+            if (preg_match('/^(?:tck[-\s]*|no\.?\s*|#\s*)?(\d+)$/i', $search, $matches)) {
+                $extractedNumber = (int)$matches[1];
+            }
+
+            $query->where(function($q) use ($search, $noSpaceSearch, $extractedNumber) {
+                $q->where('title', 'like', "%{$search}%")
                   ->orWhere('description', 'like', "%{$search}%")
-                  ->orWhere('tipe_penanganan', 'like', "%{$search}%")
-                  ->orWhereHas('client', function($cq) use ($search) {
-                      $cq->where('nm_out', 'like', "%{$search}%");
+                  ->orWhere('tipe_penanganan', 'like', "%{$search}%");
+
+                if ($extractedNumber !== null) {
+                    $q->orWhere('id', $extractedNumber)
+                      ->orWhere('ticket_number', 'like', '%-' . str_pad($extractedNumber, 4, '0', STR_PAD_LEFT));
+                }
+                if (strlen($search) >= 3) {
+                    $q->orWhere('ticket_number', 'like', "%{$search}%");
+                }
+
+                $q->orWhereHas('client', function($cq) use ($search, $noSpaceSearch) {
+                      $cq->where('nm_out', 'like', "%{$search}%")
+                         ->orWhere('lokasi', 'like', "%{$search}%");
+                      if (!empty($noSpaceSearch) && $noSpaceSearch !== $search) {
+                          $cq->orWhereRaw("REPLACE(nm_out, ' ', '') LIKE ?", ["%{$noSpaceSearch}%"])
+                             ->orWhereRaw("REPLACE(lokasi, ' ', '') LIKE ?", ["%{$noSpaceSearch}%"]);
+                      }
                   })
-                  ->orWhereHas('user', function($uq) use ($search) {
-                      $uq->where('name', 'like', "%{$search}%");
+                  ->orWhereHas('user', function($uq) use ($search, $noSpaceSearch) {
+                      $uq->where('name', 'like', "%{$search}%")
+                         ->orWhere('email', 'like', "%{$search}%");
+                      if (!empty($noSpaceSearch) && $noSpaceSearch !== $search) {
+                          $uq->orWhereRaw("REPLACE(name, ' ', '') LIKE ?", ["%{$noSpaceSearch}%"]);
+                      }
                   })
-                  ->orWhereHas('advisor', function($aq) use ($search) {
-                      $aq->where('name', 'like', "%{$search}%");
+                  ->orWhereHas('advisor', function($aq) use ($search, $noSpaceSearch) {
+                      $aq->where('name', 'like', "%{$search}%")
+                         ->orWhere('email', 'like', "%{$search}%");
+                      if (!empty($noSpaceSearch) && $noSpaceSearch !== $search) {
+                          $aq->orWhereRaw("REPLACE(name, ' ', '') LIKE ?", ["%{$noSpaceSearch}%"]);
+                      }
                   })
                   ->orWhereHas('kategoriSystem', function($kq) use ($search) {
                       $kq->where('name', 'like', "%{$search}%");

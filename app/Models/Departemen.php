@@ -12,4 +12,9 @@ class Departemen extends Model
     protected $table = 'departemen';
 
     protected $fillable = ['name'];
+
+    public function users()
+    {
+        return $this->hasMany(User::class, 'departemen_id');
+    }
 }

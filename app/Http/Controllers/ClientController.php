@@ -8,12 +8,22 @@ use RealRashid\SweetAlert\Facades\Alert;
 
 class ClientController extends Controller
 {
-    public function index(){
+    public function index(Request $request){
         $this->authorize('aspv');
         $title = 'Delete Outlet!';
         $text = 'Are you sure you want to delete this data?';
         confirmDelete($title, $text); 
-        $client = Outlet::all();
+        
+        $query = Outlet::query();
+        if ($request->filled('search')) {
+            $search = trim($request->input('search'));
+            $query->where(function($q) use ($search) {
+                $q->where('nm_out', 'LIKE', '%' . $search . '%')
+                  ->orWhere('lokasi', 'LIKE', '%' . $search . '%');
+            });
+        }
+        
+        $client = $query->paginate(15)->withQueryString();
         return view('tableclient.client', compact('client'));
     }
 
