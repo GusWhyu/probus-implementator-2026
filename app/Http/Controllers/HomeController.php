@@ -14,6 +14,7 @@ use App\Models\PerformanceReviewModuleDetail;
 use App\Models\ModuleSystem;
 use App\Models\User;
 use App\Models\Departemen;
+use App\Models\Outlet;
 
 class HomeController extends Controller
 {
@@ -165,39 +166,23 @@ class HomeController extends Controller
             $selesaiData[] = $dailySelesai;
         }
 
-        // Top Agents — range tgl 1 s/d tanggal dipilih + carry over open
-        $agentsQuery = User::query();
-        if ($isDeptFiltered) {
-            $agentsQuery->where('departemen_id', $selectedDeptId);
-        }
-        $topAgents = $agentsQuery->whereHas('clientTickets', function($q) use ($hasDate, $startOfMonth, $selectedDate) {
-                $q->where('status', 'CLOSED');
-                if ($hasDate) {
-                    $q->whereBetween('created_at', [$startOfMonth, $selectedDate->copy()->endOfDay()]);
-                }
-            })
-            ->withCount(['clientTickets as closed_count' => function($q) use ($hasDate, $startOfMonth, $selectedDate) {
-                $q->where('status', 'CLOSED');
-                if ($hasDate) {
-                    $q->whereBetween('created_at', [$startOfMonth, $selectedDate->copy()->endOfDay()]);
-                }
-            }])
-            ->orderByDesc('closed_count')
-            ->take(5)
-            ->get();
+        // Top Agents — range tgl 1 s/d tanggal dipilih + carry over open (Khusus admin & supervisor)
+        $isPrivilegedUser = in_array(optional($currentUser)->usertype, ['admin', 'supervisor']);
+        $agentLabels = [];
+        $agentData = [];
 
-        if ($topAgents->isEmpty()) {
-            $agentsQuery2 = User::query();
+        if ($isPrivilegedUser) {
+            $agentsQuery = User::query();
             if ($isDeptFiltered) {
-                $agentsQuery2->where('departemen_id', $selectedDeptId);
+                $agentsQuery->where('departemen_id', $selectedDeptId);
             }
-            $topAgents = $agentsQuery2->whereHas('advisedTickets', function($q) use ($hasDate, $startOfMonth, $selectedDate) {
+            $topAgents = $agentsQuery->whereHas('clientTickets', function($q) use ($hasDate, $startOfMonth, $selectedDate) {
                     $q->where('status', 'CLOSED');
                     if ($hasDate) {
                         $q->whereBetween('created_at', [$startOfMonth, $selectedDate->copy()->endOfDay()]);
                     }
                 })
-                ->withCount(['advisedTickets as closed_count' => function($q) use ($hasDate, $startOfMonth, $selectedDate) {
+                ->withCount(['clientTickets as closed_count' => function($q) use ($hasDate, $startOfMonth, $selectedDate) {
                     $q->where('status', 'CLOSED');
                     if ($hasDate) {
                         $q->whereBetween('created_at', [$startOfMonth, $selectedDate->copy()->endOfDay()]);
@@ -206,16 +191,35 @@ class HomeController extends Controller
                 ->orderByDesc('closed_count')
                 ->take(5)
                 ->get();
-        }
-        $agentLabels = $topAgents->pluck('name')->toArray();
-        $agentData = $topAgents->pluck('closed_count')->toArray();
 
-        // Top Clients — range tgl 1 s/d tanggal dipilih + carry over open
-        $clientsQuery = User::query();
-        if ($isDeptFiltered) {
-            $clientsQuery->where('departemen_id', $selectedDeptId);
+            if ($topAgents->isEmpty()) {
+                $agentsQuery2 = User::query();
+                if ($isDeptFiltered) {
+                    $agentsQuery2->where('departemen_id', $selectedDeptId);
+                }
+                $topAgents = $agentsQuery2->whereHas('advisedTickets', function($q) use ($hasDate, $startOfMonth, $selectedDate) {
+                        $q->where('status', 'CLOSED');
+                        if ($hasDate) {
+                            $q->whereBetween('created_at', [$startOfMonth, $selectedDate->copy()->endOfDay()]);
+                        }
+                    })
+                    ->withCount(['advisedTickets as closed_count' => function($q) use ($hasDate, $startOfMonth, $selectedDate) {
+                        $q->where('status', 'CLOSED');
+                        if ($hasDate) {
+                            $q->whereBetween('created_at', [$startOfMonth, $selectedDate->copy()->endOfDay()]);
+                        }
+                    }])
+                    ->orderByDesc('closed_count')
+                    ->take(5)
+                    ->get();
+            }
+            $agentLabels = $topAgents->pluck('name')->toArray();
+            $agentData = $topAgents->pluck('closed_count')->toArray();
         }
-        $topClients = $clientsQuery->whereHas('clientTickets', function($q) use ($hasDate, $startOfMonth, $selectedDate) {
+
+        // Top Clients (Outlets) — range tgl 1 s/d tanggal dipilih + carry over open
+        $topClients = Outlet::whereHas('tickets', function($q) use ($hasDate, $startOfMonth, $selectedDate, $applyDeptFilter) {
+                $applyDeptFilter($q);
                 if ($hasDate) {
                     $q->where(function($sub) use ($startOfMonth, $selectedDate) {
                         $sub->whereBetween('created_at', [$startOfMonth, $selectedDate->copy()->endOfDay()])
@@ -226,7 +230,8 @@ class HomeController extends Controller
                     });
                 }
             })
-            ->withCount(['clientTickets as ticket_count' => function($q) use ($hasDate, $startOfMonth, $selectedDate) {
+            ->withCount(['tickets as ticket_count' => function($q) use ($hasDate, $startOfMonth, $selectedDate, $applyDeptFilter) {
+                $applyDeptFilter($q);
                 if ($hasDate) {
                     $q->where(function($sub) use ($startOfMonth, $selectedDate) {
                         $sub->whereBetween('created_at', [$startOfMonth, $selectedDate->copy()->endOfDay()])
@@ -238,12 +243,14 @@ class HomeController extends Controller
                 }
             }])
             ->orderByDesc('ticket_count')
-            ->take(10)->get();
+            ->take(10)
+            ->get();
+
         $clientDonutLabels = $topClients->take(4)->pluck('name')->toArray();
         $clientDonutData = $topClients->take(4)->pluck('ticket_count')->toArray();
         
         $clientBarLabels = $topClients->pluck('name')->map(function($name) {
-            return wordwrap($name, 10, "\n", true);
+            return wordwrap($name, 12, "\n", true);
         })->toArray();
         $clientBarData = $topClients->pluck('ticket_count')->toArray();
 

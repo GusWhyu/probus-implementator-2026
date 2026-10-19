@@ -178,7 +178,8 @@
                 </div>
             </div>
 
-            {{-- Row 2: Performa Agen --}}
+            {{-- Row 2: Performa Agen (Hanya Admin & Supervisor) --}}
+            @if(in_array(Auth::user()->usertype, ['admin', 'supervisor']))
             <div class="mb-6">
                 <h2 class="text-sm font-bold text-slate-800 mb-4 px-2">Performa Agen</h2>
                 <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
@@ -187,6 +188,7 @@
                     </div>
                 </div>
             </div>
+            @endif
 
             {{-- Row 3: Top 10 Client --}}
             <div class="mb-6">
@@ -317,34 +319,37 @@
             });
 
             // ── 3. Performa Agen (Horizontal Bar) ──
-            const agentCtx = document.getElementById('agentChart').getContext('2d');
-            agentChartInstance = new Chart(agentCtx, {
-                type: 'bar',
-                data: {
-                    labels: {!! json_encode($agentLabels ?? []) !!},
-                    datasets: [{
-                        data: {!! json_encode($agentData ?? []) !!},
-                        backgroundColor: function(ctx) {
-                            return ctx.dataIndex === 0 ? '#2563eb' : '#eff6ff';
-                        },
-                        borderRadius: 6,
-                        barPercentage: 0.6
-                    }]
-                },
-                options: {
-                    indexAxis: 'y',
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: {
-                        x: { display: false, beginAtZero: true },
-                        y: {
-                            grid: { display: false, drawBorder: false },
-                            ticks: { font: { size: 10, weight: '600' }, color: '#334155' }
+            const agentCanvas = document.getElementById('agentChart');
+            if (agentCanvas) {
+                const agentCtx = agentCanvas.getContext('2d');
+                agentChartInstance = new Chart(agentCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: {!! json_encode($agentLabels ?? []) !!},
+                        datasets: [{
+                            data: {!! json_encode($agentData ?? []) !!},
+                            backgroundColor: function(ctx) {
+                                return ctx.dataIndex === 0 ? '#2563eb' : '#eff6ff';
+                            },
+                            borderRadius: 6,
+                            barPercentage: 0.6
+                        }]
+                    },
+                    options: {
+                        indexAxis: 'y',
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            x: { display: false, beginAtZero: true },
+                            y: {
+                                grid: { display: false, drawBorder: false },
+                                ticks: { font: { size: 10, weight: '600' }, color: '#334155' }
+                            }
                         }
                     }
-                }
-            });
+                });
+            }
 
             // ── 4. Top 10 Client (Vertical Bar) ──
             const topClientCtx = document.getElementById('topClientBarChart').getContext('2d');
