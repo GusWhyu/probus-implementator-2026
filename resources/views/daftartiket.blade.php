@@ -106,7 +106,7 @@
                 </div>
                 
                 <div class="flex flex-wrap items-center gap-2.5 sm:gap-3">
-                    <div class="relative w-36 sm:w-44">
+                    <div class="relative flex-1 min-w-[120px] sm:flex-none sm:w-40 md:w-44">
                         <select name="status" onchange="this.form.submit()" class="w-full appearance-none pl-3.5 sm:pl-4 pr-9 sm:pr-10 py-2 sm:py-2.5 bg-white border border-slate-200 rounded-xl text-xs sm:text-sm font-semibold text-slate-700 hover:border-slate-300 focus:outline-none focus:ring-4 focus:ring-blue-500/10 shadow-sm cursor-pointer transition-all truncate">
                             <option value="">Semua Status</option>
                             @foreach(['OPEN', 'PROGRESS', 'CLOSED'] as $st)
@@ -116,7 +116,7 @@
                         <i class="fa-solid fa-chevron-down absolute right-3.5 top-1/2 -translate-y-1/2 text-[10px] sm:text-xs text-slate-400 pointer-events-none"></i>
                     </div>
                     
-                    <div class="relative w-36 sm:w-44 hidden md:block">
+                    <div class="relative flex-1 min-w-[120px] sm:flex-none sm:w-40 md:w-44">
                         <select name="system" onchange="this.form.submit()" class="w-full appearance-none pl-3.5 sm:pl-4 pr-9 sm:pr-10 py-2 sm:py-2.5 bg-white border border-slate-200 rounded-xl text-xs sm:text-sm font-semibold text-slate-700 hover:border-slate-300 focus:outline-none focus:ring-4 focus:ring-blue-500/10 shadow-sm cursor-pointer transition-all truncate">
                             <option value="">Semua System</option>
                             @foreach($systems as $sys)
@@ -126,7 +126,7 @@
                         <i class="fa-solid fa-chevron-down absolute right-3.5 top-1/2 -translate-y-1/2 text-[10px] sm:text-xs text-slate-400 pointer-events-none"></i>
                     </div>
                     
-                    <div class="relative w-36 sm:w-44 hidden md:block">
+                    <div class="relative flex-1 min-w-[120px] sm:flex-none sm:w-40 md:w-44">
                         <select name="module" onchange="this.form.submit()" class="w-full appearance-none pl-3.5 sm:pl-4 pr-9 sm:pr-10 py-2 sm:py-2.5 bg-white border border-slate-200 rounded-xl text-xs sm:text-sm font-semibold text-slate-700 hover:border-slate-300 focus:outline-none focus:ring-4 focus:ring-blue-500/10 shadow-sm cursor-pointer transition-all truncate">
                             <option value="">Semua Module</option>
                             @foreach($modules as $mod)
@@ -144,7 +144,7 @@
                     </a>
                     @endif
                     
-                    <div class="flex items-center bg-white border border-slate-200 rounded-xl p-1 shadow-sm">
+                    <div class="flex items-center bg-white border border-slate-200 rounded-xl p-1 shadow-sm shrink-0">
                         <a href="{{ request()->fullUrlWithQuery(['view' => 'list']) }}" class="w-8 h-8 rounded-lg {{ request('view', 'list') == 'list' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50' }} flex items-center justify-center transition-colors">
                             <i class="fa-solid fa-list-ul"></i>
                         </a>
@@ -178,8 +178,10 @@
                             <th class="py-3 px-3 sm:px-4 text-[10px] font-extrabold text-slate-500 uppercase tracking-widest whitespace-nowrap">No. Tiket</th>
                             <th class="py-3 px-3 sm:px-4 text-[10px] font-extrabold text-slate-500 uppercase tracking-widest">User</th>
                             <th class="py-3 px-3 sm:px-4 text-[10px] font-extrabold text-slate-500 uppercase tracking-widest">Judul</th>
-                            <th class="py-3 px-3 sm:px-4 text-[10px] font-extrabold text-slate-500 uppercase tracking-widest whitespace-nowrap">Lama Pengerjaan</th>
-                            <th class="py-3 px-3 sm:px-4 text-[10px] font-extrabold text-slate-500 uppercase tracking-widest text-center leading-tight">
+                            <th class="py-3 px-3 sm:px-4 text-[10px] font-extrabold text-slate-500 uppercase tracking-widest text-left leading-tight">
+                                Lama<br>Pengerjaan
+                            </th>
+                            <th class="py-3 px-3 sm:px-4 text-[10px] font-extrabold text-slate-500 uppercase tracking-widest text-left leading-tight">
                                 Tipe<br>Penanganan
                             </th>
                             <th class="py-3 px-3 sm:px-4 text-[10px] font-extrabold text-slate-500 uppercase tracking-widest whitespace-nowrap">System</th>
@@ -207,7 +209,7 @@
                                 <td class="py-3 px-3 sm:px-4 align-top">
                                     <div class="text-sm font-bold text-slate-800 leading-snug">{{ $rq->title }}</div>
                                 </td>
-                                <td class="py-3 px-3 sm:px-4 align-top whitespace-nowrap">
+                                <td class="py-3 px-3 sm:px-4 align-top text-left whitespace-nowrap">
                                     @if($rq->status == 'CLOSED')
                                         <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/80 shadow-xs" title="Selesai dalam {{ $rq->duration_text }}">
                                             <i class="fa-solid fa-clock-check text-[11px] text-emerald-600"></i>
@@ -227,7 +229,7 @@
                                         </div>
                                     @endif
                                 </td>
-                                <td class="py-3 px-3 sm:px-4 align-top text-center whitespace-nowrap">
+                                <td class="py-3 px-3 sm:px-4 align-top text-left whitespace-nowrap">
                                     @if($rq->tipe_penanganan)
                                         <span class="inline-flex items-center text-[10px] font-bold px-2 py-0.5 rounded-md {{ $rq->tipe_penanganan == 'Remote' ? 'bg-purple-50 text-purple-700 border border-purple-200' : 'bg-sky-50 text-sky-700 border border-sky-200' }}">
                                             <i class="fa-solid {{ $rq->tipe_penanganan == 'Remote' ? 'fa-laptop-code' : 'fa-building-user' }} text-[9px] mr-1"></i>{{ $rq->tipe_penanganan }}
