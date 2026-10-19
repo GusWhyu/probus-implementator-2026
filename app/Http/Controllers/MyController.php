@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\UpdateSystem;
+use App\Models\Kategori;
+use App\Models\ModuleSystem;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -15,23 +17,32 @@ class MyController extends Controller
         $closedQuery = \App\Models\Request::with(['outlet', 'tag', 'kategori', 'approver', 'status'])->where('tag_id',$id)->where('status_id', 4);
 
         if ($request->filled('system')) {
-            $openQuery->where('tag_id', $request->system);
-            $progressQuery->where('tag_id', $request->system);
-            $closedQuery->where('tag_id', $request->system);
+            $openQuery->where('kategori_id', $request->system);
+            $progressQuery->where('kategori_id', $request->system);
+            $closedQuery->where('kategori_id', $request->system);
         }
 
         if ($request->filled('module')) {
-            $openQuery->where('kategori_id', $request->module);
-            $progressQuery->where('kategori_id', $request->module);
-            $closedQuery->where('kategori_id', $request->module);
+            $modId = $request->module;
+            $moduleObj = ModuleSystem::find($modId);
+            $modName = $moduleObj ? $moduleObj->name : $modId;
+
+            $filterModule = function($q) use ($modId, $modName) {
+                $q->where('module', $modId)
+                  ->orWhere('module', $modName);
+            };
+
+            $openQuery->where($filterModule);
+            $progressQuery->where($filterModule);
+            $closedQuery->where($filterModule);
         }
 
         $open = $openQuery->latest()->get();
         $progress = $progressQuery->latest()->get();
         $closed = $closedQuery->latest()->get();
 
-        $systems = \App\Models\Tag::all();
-        $modules = \App\Models\Kategori::all();
+        $systems = Kategori::all();
+        $modules = ModuleSystem::all();
 
         $isMyReq = true;
         return view('tablemyreq.myreq', compact('open','progress','closed', 'systems', 'modules', 'isMyReq'));

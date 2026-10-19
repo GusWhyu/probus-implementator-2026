@@ -129,6 +129,11 @@
                                     {{ $item->kategori->name }}
                                 </span>
                                 @endif
+                                @if(!empty($item->module))
+                                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase bg-emerald-700 text-white tracking-wider">
+                                    {{ $item->module }}
+                                </span>
+                                @endif
                             </div>
 
                             <div class="text-[11px] font-medium text-slate-400 flex items-center gap-1.5 pt-2 border-t border-slate-100">
@@ -198,6 +203,11 @@
                                     {{ $item->kategori->name }}
                                 </span>
                                 @endif
+                                @if(!empty($item->module))
+                                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase bg-emerald-700 text-white tracking-wider">
+                                    {{ $item->module }}
+                                </span>
+                                @endif
                             </div>
 
                             <div class="text-[11px] font-medium text-slate-400 flex items-center gap-1.5 pt-2 border-t border-slate-100">
@@ -265,6 +275,11 @@
                                 @if($item->kategori)
                                 <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase bg-slate-800 text-white tracking-wider">
                                     {{ $item->kategori->name }}
+                                </span>
+                                @endif
+                                @if(!empty($item->module))
+                                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase bg-emerald-700 text-white tracking-wider">
+                                    {{ $item->module }}
                                 </span>
                                 @endif
                             </div>
