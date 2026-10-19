@@ -15,6 +15,7 @@ use App\Http\Controllers\TicketController;
 use App\Http\Controllers\KategoriController;
 use App\Http\Controllers\UpdateSystemController;
 use App\Http\Controllers\ModulController;
+use App\Http\Controllers\DepartemenController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 
 /*
@@ -134,6 +135,14 @@ Route::get('/editmodul/{id}', [ModulController::class, 'edit'])->middleware(['au
 Route::post('/createmodul', [ModulController::class, 'store'])->middleware(['auth'])->name('storemodul');
 Route::post('/editmodul/{id}', [ModulController::class, 'update'])->middleware(['auth'])->name('updatemodul');
 Route::match(['delete', 'get'], '/deletemodul/{id}', [ModulController::class, 'delete'])->middleware(['auth'])->name('deletemodul');
+
+//Route Departemen
+Route::get('/departemen', [DepartemenController::class, 'index'])->middleware(['auth'])->name('departemen');
+Route::get('/createdepartemen', [DepartemenController::class, 'createdepartemen'])->middleware(['auth'])->name('createdepartemen');
+Route::get('/editdepartemen/{id}', [DepartemenController::class, 'editdepartemen'])->middleware(['auth'])->name('editdepartemen');
+Route::post('/createdepartemen', [DepartemenController::class, 'store'])->middleware(['auth'])->name('storedepartemen');
+Route::post('/editdepartemen/{id}', [DepartemenController::class, 'updatedepartemen'])->middleware(['auth'])->name('updatedepartemen');
+Route::match(['delete', 'get'], '/deletedepartemen/{id}', [DepartemenController::class, 'delete'])->middleware(['auth'])->name('deletedepartemen');
 
 //Route Status
 Route::get('/status', [StatusController::class, 'index'])->middleware(['auth'])->name('status');
