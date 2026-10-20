@@ -378,6 +378,8 @@ class RequestController extends Controller
         $tag = \App\Models\Tag::orderBy('name')->get(); 
         // System / Aplikasi (Kategori model)
         $kategori = \App\Models\Kategori::orderBy('name')->get();
+        // Module (ModuleSystem model)
+        $modules = \App\Models\ModuleSystem::orderBy('name')->get();
         // Client: Mengambil data dari tabel moutlet (Outlet model)
         $clients = \App\Models\Outlet::orderBy('nm_out')->get();
 
@@ -426,7 +428,7 @@ class RequestController extends Controller
             session(['createrq_return_url' => $returnUrl]);
         }
 
-        return view('tablerq.createrq', compact('tag', 'kategori', 'clients', 'returnUrl'));
+        return view('tablerq.createrq', compact('tag', 'kategori', 'modules', 'clients', 'returnUrl'));
     }
 
     public function editrq($id){
@@ -442,8 +444,10 @@ class RequestController extends Controller
         $img = DataImage::where('request_id', $id)->get();
         $tag = Tag::all();
         $kategori = Kategori::all();
+        $modules = ModuleSystem::orderBy('name')->get();
+        $clients = Outlet::orderBy('nm_out')->get();
         $status = Status::all();
-        return view('tablerq.editrq', compact('tag','kategori', 'status', 'req', 'img'));
+        return view('tablerq.editrq', compact('tag', 'kategori', 'modules', 'clients', 'status', 'req', 'img'));
     }
 
     public function store(Request $request){
@@ -452,8 +456,9 @@ class RequestController extends Controller
             'body' => 'required',
             'startdate' => 'required|date',
             'enddate' => 'required|date|after_or_equal:startdate',
-            'tag' => 'required',
-            'category' => 'required',
+            'category' => 'required', // System
+            'module' => 'nullable', // Module
+            'tag' => 'nullable',
             'client' => 'nullable',
             'outlet' => 'nullable',
             'images' => 'array|max:6',
@@ -465,13 +470,24 @@ class RequestController extends Controller
             return back()->withErrors(['client' => 'Client / Outlet wajib dipilih.'])->withInput();
         }
 
+        $moduleVal = $request->module;
+        if (is_numeric($moduleVal)) {
+            $mObj = \App\Models\ModuleSystem::find($moduleVal);
+            if ($mObj) {
+                $moduleVal = $mObj->name;
+            }
+        }
+
+        $tagId = $request->tag ?? 1;
+
         $data = \App\Models\Request::create([
             'judul' => $request->title,
             'deskripsi' => $request->body,
             'start_date' => $request->startdate,
             'end_date' => $request->enddate,
             'kategori_id' => $request->category,
-            'tag_id' => $request->tag,
+            'module' => $moduleVal,
+            'tag_id' => $tagId,
             'user_id' => Auth::id(),
             'status_id' => 2, // 2 = Open
             'outlet_id' => $outletId,
@@ -512,21 +528,34 @@ class RequestController extends Controller
         $request->validate([
             'title' => 'required|max:255',
             'body' => 'required',
-            'startdate' => 'required|date|before:enddate',
-            'enddate' => 'required|date|after:startdate',
-            'tag' => 'required',
+            'startdate' => 'required|date',
+            'enddate' => 'required|date|after_or_equal:startdate',
             'category' => 'required',
-            'outlet' => 'required',
+            'module' => 'nullable',
+            'outlet' => 'nullable',
+            'client' => 'nullable',
             'status' => 'required',
+            'tag' => 'nullable',
             'images' => 'array|max:6',
-            'images.*' => 'image|mimes:jpg,jpeg,png|max:200'
+            'images.*' => 'image|mimes:jpg,jpeg,png|max:1024'
         ]);
+
+        $outletId = $request->outlet ?? $request->client ?? $rq->outlet_id;
+
+        $moduleVal = $request->module;
+        if (is_numeric($moduleVal)) {
+            $mObj = \App\Models\ModuleSystem::find($moduleVal);
+            if ($mObj) {
+                $moduleVal = $mObj->name;
+            }
+        }
+
+        $tagId = $request->tag ?? ($rq->tag_id ?? 1);
 
         $existingFile = DataImage::where('request_id', $id)->count();
         $maxImages = 6;
         $images = $request->file('images');
         if ($images != null){
-
             if ($existingFile + count($images) > $maxImages) {
                 Alert::error('Image Limit Exceeded!', 'You can only upload a maximum of 6 images.');
                 return redirect()->back();
@@ -539,15 +568,16 @@ class RequestController extends Controller
             'start_date' => $request->startdate,
             'end_date' => $request->enddate,
             'kategori_id' => $request->category,
-            'tag_id' => $request->tag,
+            'module' => $moduleVal,
+            'tag_id' => $tagId,
             'status_id' => $request->status,
-            'outlet_id' => $request->outlet,
+            'outlet_id' => $outletId,
         ]);
         $imagedata = [];
         if($request->hasfile('images')){
             foreach ($request->file('images') as $image) {
                 $extension = $image->getClientOriginalName();
-                $filename = $extension;
+                $filename = time() . '_' . $extension;
                 $image->move('img/',$filename);
                 $imagedata[]=[
                     'request_id' => $id,

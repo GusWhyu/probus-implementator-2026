@@ -29,7 +29,7 @@
                class="p-5 rounded-2xl border transition-all duration-200 transform hover:-translate-y-0.5 shadow-sm hover:shadow-md flex items-center justify-between group relative {{ $isAllActive ? 'bg-white border-blue-600 ring-2 ring-blue-500/20 shadow-md' : 'bg-white border-slate-100 hover:border-slate-300' }}"
                title="Tampilkan semua tiket (tanpa filter status)">
                 <div>
-                    <div class="text-[11px] font-bold uppercase tracking-wider mb-1 {{ $isAllActive ? 'text-blue-600' : 'text-slate-400' }}">Semua Tiket</div>
+                    <div class="text-[11px] font-bold uppercase tracking-wider mb-1 {{ $isAllActive ? 'text-blue-600' : 'text-slate-400' }}">Total Tickets</div>
                     <div class="text-3xl font-extrabold text-slate-800">{{ $total_count }}</div>
                 </div>
                 <div class="w-12 h-12 rounded-full flex items-center justify-center transition-colors {{ $isAllActive ? 'bg-blue-600 text-white shadow-sm shadow-blue-500/30' : 'bg-slate-50 text-slate-400 group-hover:bg-slate-100 group-hover:text-slate-600' }}">
@@ -40,12 +40,12 @@
                 @endif
             </a>
             
-            {{-- Belum Ditangani --}}
+            {{-- Open --}}
             <a href="{{ route('daftartiket', $isOpenActive ? request()->except(['status', 'page']) : array_merge(request()->except('page'), ['status' => 'OPEN'])) }}" 
                class="p-5 rounded-2xl border transition-all duration-200 transform hover:-translate-y-0.5 shadow-sm hover:shadow-md flex items-center justify-between group relative {{ $isOpenActive ? 'bg-white border-blue-500 ring-2 ring-blue-500/20 shadow-md' : 'bg-white border-slate-100 hover:border-blue-200' }}"
-               title="{{ $isOpenActive ? 'Klik untuk membatalkan filter' : 'Filter tiket Belum Ditangani (Open)' }}">
+               title="{{ $isOpenActive ? 'Klik untuk membatalkan filter' : 'Filter tiket Open' }}">
                 <div>
-                    <div class="text-[11px] font-bold uppercase tracking-wider mb-1 {{ $isOpenActive ? 'text-blue-600' : 'text-slate-400' }}">Belum Ditangani</div>
+                    <div class="text-[11px] font-bold uppercase tracking-wider mb-1 {{ $isOpenActive ? 'text-blue-600' : 'text-slate-400' }}">Open</div>
                     <div class="text-3xl font-extrabold text-slate-800">{{ $open_count }}</div>
                 </div>
                 <div class="w-12 h-12 rounded-full flex items-center justify-center transition-colors {{ $isOpenActive ? 'bg-blue-500 text-white shadow-sm shadow-blue-500/30' : 'bg-blue-50 text-blue-500 group-hover:bg-blue-100' }}">
@@ -56,12 +56,12 @@
                 @endif
             </a>
             
-            {{-- Sedang Diproses --}}
+            {{-- Progress --}}
             <a href="{{ route('daftartiket', $isProgressActive ? request()->except(['status', 'page']) : array_merge(request()->except('page'), ['status' => 'PROGRESS'])) }}" 
                class="p-5 rounded-2xl border transition-all duration-200 transform hover:-translate-y-0.5 shadow-sm hover:shadow-md flex items-center justify-between group relative {{ $isProgressActive ? 'bg-white border-amber-500 ring-2 ring-amber-500/20 shadow-md' : 'bg-white border-slate-100 hover:border-amber-200' }}"
-               title="{{ $isProgressActive ? 'Klik untuk membatalkan filter' : 'Filter tiket Sedang Diproses (Progress)' }}">
+               title="{{ $isProgressActive ? 'Klik untuk membatalkan filter' : 'Filter tiket Progress' }}">
                 <div>
-                    <div class="text-[11px] font-bold uppercase tracking-wider mb-1 {{ $isProgressActive ? 'text-amber-600' : 'text-slate-400' }}">Sedang Diproses</div>
+                    <div class="text-[11px] font-bold uppercase tracking-wider mb-1 {{ $isProgressActive ? 'text-amber-600' : 'text-slate-400' }}">In Progress</div>
                     <div class="text-3xl font-extrabold text-slate-800">{{ $progress_count }}</div>
                 </div>
                 <div class="w-12 h-12 rounded-full flex items-center justify-center transition-colors {{ $isProgressActive ? 'bg-amber-500 text-white shadow-sm shadow-amber-500/30' : 'bg-amber-50 text-amber-500 group-hover:bg-amber-100' }}">
@@ -72,12 +72,12 @@
                 @endif
             </a>
             
-            {{-- Selesai --}}
+            {{-- Closed --}}
             <a href="{{ route('daftartiket', $isClosedActive ? request()->except(['status', 'page']) : array_merge(request()->except('page'), ['status' => 'CLOSED'])) }}" 
                class="p-5 rounded-2xl border transition-all duration-200 transform hover:-translate-y-0.5 shadow-sm hover:shadow-md flex items-center justify-between group relative {{ $isClosedActive ? 'bg-white border-emerald-500 ring-2 ring-emerald-500/20 shadow-md' : 'bg-white border-slate-100 hover:border-emerald-200' }}"
-               title="{{ $isClosedActive ? 'Klik untuk membatalkan filter' : 'Filter tiket Selesai (Closed)' }}">
+               title="{{ $isClosedActive ? 'Klik untuk membatalkan filter' : 'Filter tiket Closed' }}">
                 <div>
-                    <div class="text-[11px] font-bold uppercase tracking-wider mb-1 {{ $isClosedActive ? 'text-emerald-600' : 'text-slate-400' }}">Selesai</div>
+                    <div class="text-[11px] font-bold uppercase tracking-wider mb-1 {{ $isClosedActive ? 'text-emerald-600' : 'text-slate-400' }}">Closed</div>
                     <div class="text-3xl font-extrabold text-slate-800">{{ $closed_count }}</div>
                 </div>
                 <div class="w-12 h-12 rounded-full flex items-center justify-center transition-colors {{ $isClosedActive ? 'bg-emerald-500 text-white shadow-sm shadow-emerald-500/30' : 'bg-emerald-50 text-emerald-500 group-hover:bg-emerald-100' }}">

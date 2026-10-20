@@ -1,4 +1,8 @@
 <x-app-layout>
+    <!-- Tom Select CSS & JS -->
+    <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
+
     <div class="py-8 bg-slate-50/50 min-h-screen">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             
@@ -19,137 +23,65 @@
 
             <form action="/editrq/{{ $req->id }}" method="POST" enctype="multipart/form-data" class="flex flex-col lg:flex-row gap-6 lg:items-stretch">
                 @csrf
+                <input type="hidden" name="tag" value="{{ old('tag', $req->tag_id ?? 1) }}">
                 
                 <!-- Left Column (Form Fields) -->
                 <div class="w-full lg:w-5/12 flex flex-col gap-6">
                     
+                    <!-- Informasi Utama Card -->
                     <div class="bg-white rounded-3xl shadow-sm border border-slate-200 p-6 md:p-8">
                         <h2 class="text-sm font-extrabold text-slate-800 mb-6 flex items-center gap-2 tracking-wider uppercase"><i class="fa-solid fa-list-check text-blue-500"></i> Informasi Utama</h2>
                         
                         <div class="space-y-6">
-                            <!-- Title -->
+                            <!-- Judul Request -->
                             <div>
-                                <label class="block text-[11px] font-extrabold text-slate-500 uppercase tracking-wider mb-2">Judul Request</label>
-                                <input type="text" class="w-full bg-slate-50/50 border border-slate-200 text-slate-800 text-sm font-semibold rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 block p-3.5 transition-all outline-none" value="{{ $req->judul }}" name="title" placeholder="Masukkan judul request..." required>
+                                <label class="block text-[11px] font-extrabold text-slate-500 uppercase tracking-wider mb-2">Judul Request <span class="text-rose-500">*</span></label>
+                                <input type="text" class="w-full bg-slate-50/50 border border-slate-200 text-slate-800 text-sm font-semibold rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 block p-3.5 transition-all outline-none" value="{{ old('title', $req->judul) }}" name="title" placeholder="Masukkan judul request..." required>
                             </div>
 
-                            <!-- Outlet -->
-                            <div x-data="{
-                                selectedId: {{ json_encode(old('outlet', $req->outlet_id)) }},
-                                searchQuery: {{ json_encode(old('outl', $req->outlet ? $req->outlet->nm_out : '')) }},
-                                open: false,
-                                loading: false,
-                                results: [],
-                                searchOutlets() {
-                                    if (!this.searchQuery || this.searchQuery.trim().length === 0) {
-                                        this.results = [];
-                                        this.open = false;
-                                        this.selectedId = '';
-                                        return;
-                                    }
-                                    this.loading = true;
-                                    fetch('/getOutlet/' + encodeURIComponent(this.searchQuery.trim()))
-                                        .then(res => res.json())
-                                        .then(res => {
-                                            this.results = res.data || [];
-                                            this.open = true;
-                                        })
-                                        .catch(err => {
-                                            console.error('Error fetching outlets:', err);
-                                        })
-                                        .finally(() => {
-                                            this.loading = false;
-                                        });
-                                },
-                                selectOutlet(item) {
-                                    this.selectedId = item.id;
-                                    this.searchQuery = item.nm_out;
-                                    this.open = false;
-                                }
-                            }" class="relative">
-                                <label class="block text-[11px] font-extrabold text-slate-500 uppercase tracking-wider mb-2">Outlet Pelanggan</label>
-                                <input type="hidden" name="outlet" :value="selectedId" required>
-                                <div class="relative" @click.outside="open = false">
-                                    <div class="relative flex items-center">
-                                        <input 
-                                            type="text" 
-                                            class="w-full bg-slate-50/50 border border-slate-200 text-slate-800 text-sm font-semibold rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 block p-3.5 pr-10 transition-all outline-none" 
-                                            name="outl" 
-                                            placeholder="Cari outlet..."
-                                            x-model="searchQuery" 
-                                            @input.debounce.300ms="searchOutlets()"
-                                            @focus="if(searchQuery && searchQuery.trim().length > 0) open = true"
-                                            autocomplete="off"
-                                            required
-                                        >
-                                        <div class="absolute right-4 text-slate-400 pointer-events-none">
-                                            <i x-show="!loading" class="fa-solid fa-magnifying-glass"></i>
-                                            <i x-show="loading" class="fa-solid fa-spinner fa-spin text-blue-500" style="display: none;"></i>
-                                        </div>
-                                    </div>
-
-                                    <!-- Dropdown Results -->
-                                    <div 
-                                        x-show="open && results.length > 0" 
-                                        x-transition
-                                        class="absolute left-0 right-0 z-50 mt-2 max-h-60 overflow-y-auto bg-white border border-slate-200 rounded-2xl shadow-xl custom-scrollbar"
-                                        style="display: none;"
-                                    >
-                                        <ul class="p-2 space-y-1">
-                                            <template x-for="item in results" :key="item.id">
-                                                <li 
-                                                    @click="selectOutlet(item)"
-                                                    class="px-4 py-2.5 rounded-xl hover:bg-slate-50 cursor-pointer flex justify-between items-center transition-colors group"
-                                                >
-                                                    <div>
-                                                        <span class="font-bold text-slate-700 text-sm group-hover:text-blue-600 transition-colors" x-text="item.nm_out"></span>
-                                                        <template x-if="item.lokasi">
-                                                            <span class="text-xs font-medium text-slate-400 block mt-0.5" x-text="item.lokasi"></span>
-                                                        </template>
-                                                    </div>
-                                                    <i class="fa-solid fa-check text-blue-600" x-show="selectedId == item.id"></i>
-                                                </li>
-                                            </template>
-                                        </ul>
-                                    </div>
-
-                                    <!-- No results message -->
-                                    <div 
-                                        x-show="open && results.length === 0 && searchQuery && searchQuery.trim().length > 0 && !loading"
-                                        x-transition
-                                        class="absolute left-0 right-0 z-50 mt-2 bg-white border border-slate-200 rounded-2xl shadow-xl p-4 text-sm font-medium text-slate-500 text-center"
-                                        style="display: none;"
-                                    >
-                                        Tidak ada outlet yang cocok.
+                            <!-- Client / Outlet -->
+                            <div>
+                                <label class="block text-[11px] font-extrabold text-slate-500 uppercase tracking-wider mb-2">Client <span class="text-rose-500">*</span></label>
+                                <div class="relative group">
+                                    <select id="client-select" name="client" class="w-full bg-slate-50/50 border border-slate-200 text-slate-800 text-sm font-semibold rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 block p-3.5 transition-all outline-none" required>
+                                        <option value="" disabled>Pilih client...</option>
+                                        @foreach ($clients as $client)
+                                            <option value="{{ $client->id }}" {{ (old('client', $req->outlet_id) == $client->id || old('outlet', $req->outlet_id) == $client->id) ? 'selected' : '' }}>{{ $client->nm_out }}</option>
+                                        @endforeach
+                                    </select>
+                                    <div class="absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none flex items-center justify-center w-7 h-7 rounded-lg bg-white shadow-sm border border-slate-100 z-10 transition-colors text-slate-400">
+                                        <i class="fa-solid fa-magnifying-glass text-[11px]"></i>
                                     </div>
                                 </div>
                             </div>
 
                             <!-- Row: System & Module -->
                             <div class="grid grid-cols-2 gap-4">
-                                <!-- System (Tag) -->
+                                <!-- System (Kategori) -->
                                 <div>
-                                    <label class="block text-[11px] font-extrabold text-slate-500 uppercase tracking-wider mb-2">System</label>
-                                    <select name="tag" class="w-full bg-slate-50/50 border border-slate-200 text-slate-800 text-sm font-semibold rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 block p-3.5 transition-all outline-none appearance-none cursor-pointer" style="background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2394a3b8%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E'); background-repeat: no-repeat; background-position: right 1rem top 50%; background-size: 0.65rem auto;">
-                                        @foreach ($tag as $tagitem)
-                                            <option value="{{ $tagitem->id }}" {{ old('tag', $req->tag_id) == $tagitem->id ? 'selected' : '' }}>{{ $tagitem->name }}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                                <!-- Module (Category) -->
-                                <div>
-                                    <label class="block text-[11px] font-extrabold text-slate-500 uppercase tracking-wider mb-2">Module</label>
-                                    <select name="category" class="w-full bg-slate-50/50 border border-slate-200 text-slate-800 text-sm font-semibold rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 block p-3.5 transition-all outline-none appearance-none cursor-pointer" style="background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2394a3b8%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E'); background-repeat: no-repeat; background-position: right 1rem top 50%; background-size: 0.65rem auto;">
+                                    <label class="block text-[11px] font-extrabold text-slate-500 uppercase tracking-wider mb-2">System <span class="text-rose-500">*</span></label>
+                                    <select name="category" class="w-full bg-slate-50/50 border border-slate-200 text-slate-800 text-sm font-semibold rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 block p-3.5 transition-all outline-none appearance-none cursor-pointer" style="background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2394a3b8%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E'); background-repeat: no-repeat; background-position: right 1rem top 50%; background-size: 0.65rem auto;" required>
+                                        <option value="" disabled {{ !old('category', $req->kategori_id) ? 'selected' : '' }}>Pilih system...</option>
                                         @foreach ($kategori as $kategoriitem)
                                             <option value="{{ $kategoriitem->id }}" {{ old('category', $req->kategori_id) == $kategoriitem->id ? 'selected' : '' }}>{{ $kategoriitem->name }}</option>
                                         @endforeach
                                     </select>
                                 </div>
+                                <!-- Module (ModuleSystem) -->
+                                <div>
+                                    <label class="block text-[11px] font-extrabold text-slate-500 uppercase tracking-wider mb-2">Module <span class="text-rose-500">*</span></label>
+                                    <select name="module" class="w-full bg-slate-50/50 border border-slate-200 text-slate-800 text-sm font-semibold rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 block p-3.5 transition-all outline-none appearance-none cursor-pointer" style="background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2394a3b8%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E'); background-repeat: no-repeat; background-position: right 1rem top 50%; background-size: 0.65rem auto;" required>
+                                        <option value="" disabled {{ !old('module', $req->module) ? 'selected' : '' }}>Pilih module...</option>
+                                        @foreach ($modules as $moduleitem)
+                                            <option value="{{ $moduleitem->name }}" {{ old('module', $req->module) == $moduleitem->name ? 'selected' : '' }}>{{ $moduleitem->name }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
                             </div>
 
-                            <!-- Status -->
+                            <!-- Status Request -->
                             <div>
-                                <label class="block text-[11px] font-extrabold text-slate-500 uppercase tracking-wider mb-2">Status Request</label>
+                                <label class="block text-[11px] font-extrabold text-slate-500 uppercase tracking-wider mb-2">Status Request <span class="text-rose-500">*</span></label>
                                 <select name="status" class="w-full bg-slate-50/50 border border-slate-200 text-slate-800 text-sm font-semibold rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 block p-3.5 transition-all outline-none appearance-none cursor-pointer" style="background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2394a3b8%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E'); background-repeat: no-repeat; background-position: right 1rem top 50%; background-size: 0.65rem auto;">
                                     @foreach ($status as $st)
                                         <option value="{{ $st->id }}" {{ old('status', $req->status_id) == $st->id ? 'selected' : '' }}>{{ $st->name }}</option>
@@ -157,13 +89,18 @@
                                 </select>
                             </div>
 
-                            <!-- Period -->
+                            <!-- Periode Penanganan -->
                             <div>
-                                <label class="block text-[11px] font-extrabold text-slate-500 uppercase tracking-wider mb-2">Periode Penanganan</label>
-                                <div class="flex items-center gap-3">
-                                    <input type="date" class="w-full bg-slate-50/50 border border-slate-200 text-slate-800 text-sm font-semibold rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 block p-3.5 outline-none transition-all" value="{{ $req->start_date }}" name="startdate" required>
-                                    <span class="text-[10px] font-extrabold text-slate-400">S/D</span>
-                                    <input type="date" class="w-full bg-slate-50/50 border border-slate-200 text-slate-800 text-sm font-semibold rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 block p-3.5 outline-none transition-all" value="{{ $req->end_date }}" name="enddate" required>
+                                <label class="block text-[11px] font-extrabold text-slate-500 uppercase tracking-wider mb-2">Periode Penanganan <span class="text-rose-500">*</span></label>
+                                <div class="grid grid-cols-2 gap-3 items-center">
+                                    <div>
+                                        <span class="block text-[10px] font-bold text-slate-400 mb-1">Tanggal Mulai</span>
+                                        <input type="date" class="w-full bg-slate-50/50 border border-slate-200 text-slate-800 text-sm font-semibold rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 block p-3.5 outline-none transition-all cursor-pointer" value="{{ old('startdate', $req->start_date) }}" name="startdate" required>
+                                    </div>
+                                    <div>
+                                        <span class="block text-[10px] font-bold text-slate-400 mb-1">Tanggal Selesai</span>
+                                        <input type="date" class="w-full bg-slate-50/50 border border-slate-200 text-slate-800 text-sm font-semibold rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 block p-3.5 outline-none transition-all cursor-pointer" value="{{ old('enddate', $req->end_date) }}" name="enddate" required>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -176,7 +113,7 @@
                         <div>
                             <input name="images[]" type="file" multiple class="file-input file-input-bordered bg-slate-50/50 w-full rounded-xl text-sm file:border-0 file:bg-blue-50 file:text-blue-700 file:font-bold file:mr-4 hover:file:bg-blue-100 transition-colors">
                             <div class="flex items-center justify-between mt-2 px-1">
-                                <span class="text-[10px] font-bold text-slate-400">MAX: 6 IMAGES (200KB/IMG)</span>
+                                <span class="text-[10px] font-bold text-slate-400">MAX: 6 IMAGES (1MB/IMG)</span>
                                 <div class="text-[10px] font-bold text-slate-400 flex items-center gap-1">
                                     <span>Pilih lebih dari satu:</span>
                                     <kbd class="px-1.5 py-0.5 bg-slate-100 border border-slate-200 rounded font-mono text-[9px] text-slate-500">ctrl</kbd>
@@ -204,7 +141,7 @@
                 <div class="w-full lg:w-7/12 flex flex-col gap-6">
                     <div class="bg-white rounded-3xl shadow-sm border border-slate-200 flex flex-col h-full overflow-hidden">
                         <div class="bg-slate-50/50 border-b border-slate-100 px-6 py-5 md:px-8">
-                            <h2 class="text-sm font-extrabold text-slate-800 flex items-center gap-2 tracking-wider uppercase"><i class="fa-solid fa-align-left text-blue-500"></i> Deskripsi Masalah</h2>
+                            <h2 class="text-sm font-extrabold text-slate-800 flex items-center gap-2 tracking-wider uppercase"><i class="fa-solid fa-align-left text-blue-500"></i> Deskripsi Masalah <span class="text-rose-500">*</span></h2>
                         </div>
                         <div class="p-6 md:p-8 flex-1 flex flex-col">
                             <div class="sticky top-0 z-20 bg-white pb-3 mb-2">
@@ -254,9 +191,71 @@
         trix-toolbar .trix-button.trix-active::before {
             opacity: 1;
         }
+
+        /* Tom Select custom styling */
+        .ts-wrapper {
+            padding: 0 !important;
+            border: none !important;
+            background: transparent !important;
+            box-shadow: none !important;
+        }
+        .ts-control {
+            border-radius: 0.75rem !important; /* Tailwind rounded-xl */
+            padding: 0.875rem 3rem 0.875rem 0.875rem !important; /* space for icon on right */
+            background-color: #f8fafc !important; /* bg-slate-50 */
+            border-color: #e2e8f0 !important; /* border-slate-200 */
+            font-size: 0.875rem !important; /* text-sm */
+            color: #1e293b !important; /* text-slate-800 */
+            font-weight: 600;
+            box-shadow: none !important;
+            min-height: 48px;
+            display: flex;
+            align-items: center;
+        }
+        .ts-control::after {
+            display: none !important; /* Hide TomSelect default chevron arrow */
+        }
+        .ts-control.focus {
+            background-color: #ffffff !important;
+            border-color: #3b82f6 !important; /* focus:border-blue-500 */
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2) !important; /* focus:ring-blue-500/20 */
+        }
+        .ts-dropdown {
+            border-radius: 0.75rem !important;
+            border-color: #e2e8f0 !important;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
+            margin-top: 4px !important;
+            z-index: 50 !important;
+        }
+        .ts-dropdown .option {
+            padding: 0.75rem !important;
+            font-size: 0.875rem !important;
+            transition: all 0.2s;
+        }
+        .ts-dropdown .active {
+            background-color: #eff6ff !important; /* hover:bg-blue-50 */
+            color: #2563eb !important; /* text-blue-600 */
+            font-weight: 600;
+        }
     </style>
     
     <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize Tom Select for Client searchable dropdown
+            try {
+                if (typeof TomSelect !== 'undefined') {
+                    new TomSelect("#client-select", {
+                        create: false,
+                        sortField: {
+                            field: "text",
+                            direction: "asc"
+                        },
+                        placeholder: "Cari dan pilih client..."
+                    });
+                }
+            } catch (e) { console.error("TomSelect error:", e); }
+        });
+
         document.addEventListener('trix-file-accept', function(e) {
             const maxFileSize = 1024 * 1024; // 1MB
             if (e.file.size > maxFileSize) {
