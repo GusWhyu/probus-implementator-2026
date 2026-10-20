@@ -5,7 +5,7 @@
             <!-- Breadcrumb & Header -->
             <div class="mb-8">
                 <div class="flex items-center gap-2 text-sm font-medium text-slate-500 mb-4">
-                    <span class="text-slate-400">Pengaturan</span>
+                    <span class="text-slate-400">Advanced Settings</span>
                     <i class="fa-solid fa-chevron-right text-[10px]"></i>
                     <a href="{{ route('soft-skill.index') }}" class="text-slate-400 hover:text-blue-600 transition-colors">Penilaian Soft Skill</a>
                     <i class="fa-solid fa-chevron-right text-[10px]"></i>

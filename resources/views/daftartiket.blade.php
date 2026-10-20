@@ -296,8 +296,19 @@
                                         </button>
                                         <ul tabindex="0" class="dropdown-content z-[50] menu p-2 shadow-lg bg-white rounded-xl w-36 border border-slate-100">
                                             <li><a href="/detailticket/{{ $rq->id }}" class="text-xs font-medium text-slate-700 hover:bg-slate-50 hover:text-blue-600"><i class="fa-regular fa-eye mr-2"></i> Detail</a></li>
-                                            @if($rq->status != 'CLOSED' && ($rq->user_id == Auth::id() || in_array(Auth::user()->usertype, ['admin', 'supervisor'])))
+                                            @if(in_array(Auth::user()->usertype, ['admin', 'supervisor']) || ($rq->user_id == Auth::id() && $rq->status != 'CLOSED'))
                                                 <li><a href="/editticket/{{ $rq->id }}" class="text-xs font-medium text-slate-700 hover:bg-slate-50 hover:text-blue-600"><i class="fa-regular fa-pen-to-square mr-2"></i> Edit</a></li>
+                                            @endif
+                                            @if(in_array(Auth::user()->usertype, ['admin', 'supervisor']) || ($rq->user_id == Auth::id() && $rq->status != 'CLOSED'))
+                                                <li>
+                                                    <form action="{{ route('deleteticket', $rq->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus tiket #{{ $rq->ticket_number ?? $rq->id }}?');">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                        <button type="submit" class="text-xs font-medium text-rose-600 hover:bg-rose-50 w-full text-left flex items-center px-2 py-1.5 rounded-lg">
+                                                            <i class="fa-regular fa-trash-can mr-2"></i> Hapus
+                                                        </button>
+                                                    </form>
+                                                </li>
                                             @endif
                                         </ul>
                                     </div>
@@ -480,9 +491,25 @@
                         <span class="text-[11px] text-slate-400 flex items-center gap-1">
                             <i class="fa-regular fa-clock text-[10px]"></i> {{ $rq->created_at ? $rq->created_at->diffForHumans() : '' }}
                         </span>
-                        <a href="/detailticket/{{ $rq->id }}" class="text-blue-600 hover:text-blue-800 font-bold text-xs flex items-center gap-1 group-hover:translate-x-0.5 transition-transform">
-                            Lihat Detail <i class="fa-solid fa-arrow-right text-[10px]"></i>
-                        </a>
+                        <div class="flex items-center gap-1">
+                            @if(in_array(Auth::user()->usertype, ['admin', 'supervisor']) || ($rq->user_id == Auth::id() && $rq->status != 'CLOSED'))
+                                <a href="/editticket/{{ $rq->id }}" class="text-slate-400 hover:text-blue-600 p-1.5 rounded-lg hover:bg-blue-50 transition-colors" title="Edit Tiket">
+                                    <i class="fa-regular fa-pen-to-square text-xs"></i>
+                                </a>
+                            @endif
+                            @if(in_array(Auth::user()->usertype, ['admin', 'supervisor']) || ($rq->user_id == Auth::id() && $rq->status != 'CLOSED'))
+                                <form action="{{ route('deleteticket', $rq->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus tiket #{{ $rq->ticket_number ?? $rq->id }}?');" class="inline">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="text-slate-400 hover:text-rose-600 p-1.5 rounded-lg hover:bg-rose-50 transition-colors cursor-pointer" title="Hapus Tiket">
+                                        <i class="fa-regular fa-trash-can text-xs"></i>
+                                    </button>
+                                </form>
+                            @endif
+                            <a href="/detailticket/{{ $rq->id }}" class="text-blue-600 hover:text-blue-800 font-bold text-xs flex items-center gap-1 group-hover:translate-x-0.5 transition-transform ml-1">
+                                Detail <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                            </a>
+                        </div>
                     </div>
                 </div>
             @empty

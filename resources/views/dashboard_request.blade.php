@@ -23,7 +23,7 @@
         {{-- ============================================================ --}}
         {{-- BLUE HERO ZONE — gradient header + stat cards                 --}}
         {{-- ============================================================ --}}
-        <div class="bg-gradient-to-br from-[#2563eb] via-[#3b82f6] to-[#1d4ed8] px-6 md:px-10 pt-8 pb-20 rounded-b-[2rem] relative overflow-hidden">
+        <div class="dashboard-hero-zone bg-gradient-to-br from-[#2563eb] via-[#3b82f6] to-[#1d4ed8] px-6 md:px-10 pt-8 pb-20 rounded-b-[2rem] relative overflow-hidden transition-all duration-300">
             {{-- Decorative circles --}}
             <div class="absolute -top-20 -right-20 w-72 h-72 bg-white/5 rounded-full blur-3xl"></div>
             <div class="absolute -bottom-16 -left-16 w-56 h-56 bg-white/5 rounded-full blur-3xl"></div>
@@ -64,47 +64,59 @@
             {{-- Stat cards --}}
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
                 {{-- Card 1: Total Request --}}
-                <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 hover:shadow-md transition-shadow group">
-                    <div class="flex items-center justify-between mb-3">
-                        <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Total Request</span>
-                        <div class="w-9 h-9 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600 group-hover:bg-blue-100 transition-colors">
+                <div class="bg-white dashboard-stat-card rounded-2xl p-5 shadow-sm border border-blue-100/80 hover:border-blue-300 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-300 group relative overflow-hidden" style="background-color: #ffffff;">
+                    <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 to-indigo-600 z-10"></div>
+                    <div class="absolute inset-0 bg-gradient-to-br from-white via-white to-blue-100 pointer-events-none stat-card-gradient"></div>
+                    <div class="absolute -right-6 -bottom-6 w-32 h-32 bg-blue-500/10 rounded-full blur-2xl pointer-events-none group-hover:scale-125 transition-transform duration-500"></div>
+                    <div class="flex items-center justify-between mb-3 relative z-10">
+                        <span class="text-[11px] font-bold text-slate-500 group-hover:text-blue-700 uppercase tracking-wider transition-colors">Total Requests</span>
+                        <div class="stat-card-icon-box w-10 h-10 bg-white shadow-sm border border-blue-100 rounded-xl flex items-center justify-center text-blue-600 group-hover:scale-110 group-hover:bg-blue-600 group-hover:text-white transition-all duration-300">
                             <i class="fa-solid fa-layer-group text-sm"></i>
                         </div>
                     </div>
-                    <div id="total-count" class="text-3xl font-extrabold text-slate-800 mb-1 dashboard-stat-number transition-all">{{ $total_count ?? 0 }}</div>
+                    <div id="total-count" class="text-3xl font-extrabold text-slate-800 tracking-tight mb-1 dashboard-stat-number relative z-10 transition-all">{{ $total_count ?? 0 }}</div>
                 </div>
 
-                {{-- Card 2: Request Selesai --}}
-                <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 hover:shadow-md transition-shadow group">
-                    <div class="flex items-center justify-between mb-3">
-                        <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Request Selesai</span>
-                        <div class="w-9 h-9 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600 group-hover:bg-emerald-100 transition-colors">
-                            <i class="fa-solid fa-circle-check text-sm"></i>
-                        </div>
-                    </div>
-                    <div id="closed-count" class="text-3xl font-extrabold text-slate-800 mb-1 dashboard-stat-number transition-all">{{ $closed_count ?? 0 }}</div>
-                </div>
-
-                {{-- Card 3: Dalam Pengerjaan --}}
-                <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 hover:shadow-md transition-shadow group">
-                    <div class="flex items-center justify-between mb-3">
-                        <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Dalam Pengerjaan</span>
-                        <div class="w-9 h-9 bg-sky-50 rounded-xl flex items-center justify-center text-sky-600 group-hover:bg-sky-100 transition-colors">
-                            <i class="fa-solid fa-arrows-rotate text-sm"></i>
-                        </div>
-                    </div>
-                    <div id="progress-count" class="text-3xl font-extrabold text-slate-800 mb-1 dashboard-stat-number transition-all">{{ $progress_count ?? 0 }}</div>
-                </div>
-
-                {{-- Card 4: Request Terbuka --}}
-                <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 hover:shadow-md transition-shadow group">
-                    <div class="flex items-center justify-between mb-3">
-                        <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Request Terbuka</span>
-                        <div class="w-9 h-9 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600 group-hover:bg-indigo-100 transition-colors">
+                {{-- Card 2: Open Requests --}}
+                <div class="bg-white dashboard-stat-card rounded-2xl p-5 shadow-sm border border-indigo-100/80 hover:border-indigo-300 hover:shadow-lg hover:shadow-indigo-500/10 transition-all duration-300 group relative overflow-hidden" style="background-color: #ffffff;">
+                    <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-indigo-500 to-purple-600 z-10"></div>
+                    <div class="absolute inset-0 bg-gradient-to-br from-white via-white to-indigo-100 pointer-events-none stat-card-gradient"></div>
+                    <div class="absolute -right-6 -bottom-6 w-32 h-32 bg-indigo-500/10 rounded-full blur-2xl pointer-events-none group-hover:scale-125 transition-transform duration-500"></div>
+                    <div class="flex items-center justify-between mb-3 relative z-10">
+                        <span class="text-[11px] font-bold text-indigo-600 uppercase tracking-wider">Open</span>
+                        <div class="stat-card-icon-box w-10 h-10 bg-white shadow-sm border border-indigo-100 rounded-xl flex items-center justify-center text-indigo-600 group-hover:scale-110 group-hover:bg-indigo-600 group-hover:text-white transition-all duration-300">
                             <i class="fa-solid fa-envelope-open-text text-sm"></i>
                         </div>
                     </div>
-                    <div id="open-count" class="text-3xl font-extrabold text-slate-800 mb-1 dashboard-stat-number transition-all">{{ $open_count ?? 0 }}</div>
+                    <div id="open-count" class="text-3xl font-extrabold text-slate-800 tracking-tight mb-1 dashboard-stat-number relative z-10 transition-all">{{ $open_count ?? 0 }}</div>
+                </div>
+
+                {{-- Card 3: In Progress --}}
+                <div class="bg-white dashboard-stat-card rounded-2xl p-5 shadow-sm border border-sky-100/80 hover:border-sky-300 hover:shadow-lg hover:shadow-sky-500/10 transition-all duration-300 group relative overflow-hidden" style="background-color: #ffffff;">
+                    <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-sky-400 to-blue-500 z-10"></div>
+                    <div class="absolute inset-0 bg-gradient-to-br from-white via-white to-sky-100 pointer-events-none stat-card-gradient"></div>
+                    <div class="absolute -right-6 -bottom-6 w-32 h-32 bg-sky-500/10 rounded-full blur-2xl pointer-events-none group-hover:scale-125 transition-transform duration-500"></div>
+                    <div class="flex items-center justify-between mb-3 relative z-10">
+                        <span class="text-[11px] font-bold text-sky-600 uppercase tracking-wider">In Progress</span>
+                        <div class="stat-card-icon-box w-10 h-10 bg-white shadow-sm border border-sky-100 rounded-xl flex items-center justify-center text-sky-600 group-hover:scale-110 group-hover:bg-sky-500 group-hover:text-white transition-all duration-300">
+                            <i class="fa-solid fa-arrows-rotate text-sm"></i>
+                        </div>
+                    </div>
+                    <div id="progress-count" class="text-3xl font-extrabold text-slate-800 tracking-tight mb-1 dashboard-stat-number relative z-10 transition-all">{{ $progress_count ?? 0 }}</div>
+                </div>
+
+                {{-- Card 4: Closed Requests --}}
+                <div class="bg-white dashboard-stat-card rounded-2xl p-5 shadow-sm border border-emerald-100/80 hover:border-emerald-300 hover:shadow-lg hover:shadow-emerald-500/10 transition-all duration-300 group relative overflow-hidden" style="background-color: #ffffff;">
+                    <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-400 to-teal-500 z-10"></div>
+                    <div class="absolute inset-0 bg-gradient-to-br from-white via-white to-emerald-100 pointer-events-none stat-card-gradient"></div>
+                    <div class="absolute -right-6 -bottom-6 w-32 h-32 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none group-hover:scale-125 transition-transform duration-500"></div>
+                    <div class="flex items-center justify-between mb-3 relative z-10">
+                        <span class="text-[11px] font-bold text-emerald-600 uppercase tracking-wider">Closed</span>
+                        <div class="stat-card-icon-box w-10 h-10 bg-white shadow-sm border border-emerald-100 rounded-xl flex items-center justify-center text-emerald-600 group-hover:scale-110 group-hover:bg-emerald-500 group-hover:text-white transition-all duration-300">
+                            <i class="fa-solid fa-circle-check text-sm"></i>
+                        </div>
+                    </div>
+                    <div id="closed-count" class="text-3xl font-extrabold text-slate-800 tracking-tight mb-1 dashboard-stat-number relative z-10 transition-all">{{ $closed_count ?? 0 }}</div>
                 </div>
             </div>
 
@@ -128,7 +140,7 @@
 
                 {{-- Status Donut (1/3 width) --}}
                 <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 flex flex-col">
-                    <h3 class="text-sm font-bold text-slate-800 mb-4">Status Request</h3>
+                    <h3 class="text-sm font-bold text-slate-800 mb-4">Request Status</h3>
                     <div class="flex-1 w-full relative flex justify-center items-center">
                         <canvas id="statusChart" class="max-h-[180px]"></canvas>
                         <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
@@ -138,16 +150,16 @@
                     </div>
                     <div class="mt-5 flex flex-col gap-2.5">
                         <div class="flex items-center justify-between text-xs">
-                            <div class="flex items-center gap-2"><div class="w-2.5 h-2.5 rounded-full bg-emerald-500"></div> <span class="font-semibold text-slate-700">Selesai</span></div>
-                            <span id="legend-closed-count" class="font-bold text-slate-800">{{ $closed_count ?? 0 }}</span>
+                            <div class="flex items-center gap-2"><div class="w-2.5 h-2.5 rounded-full bg-indigo-500"></div> <span class="font-semibold text-slate-700">Open</span></div>
+                            <span id="legend-open-count" class="font-bold text-slate-800">{{ $open_count ?? 0 }}</span>
                         </div>
                         <div class="flex items-center justify-between text-xs">
-                            <div class="flex items-center gap-2"><div class="w-2.5 h-2.5 rounded-full bg-sky-500"></div> <span class="font-semibold text-slate-700">Dalam Pengerjaan</span></div>
+                            <div class="flex items-center gap-2"><div class="w-2.5 h-2.5 rounded-full bg-sky-500"></div> <span class="font-semibold text-slate-700">In Progress</span></div>
                             <span id="legend-progress-count" class="font-bold text-slate-800">{{ $progress_count ?? 0 }}</span>
                         </div>
                         <div class="flex items-center justify-between text-xs">
-                            <div class="flex items-center gap-2"><div class="w-2.5 h-2.5 rounded-full bg-indigo-500"></div> <span class="font-semibold text-slate-700">Terbuka</span></div>
-                            <span id="legend-open-count" class="font-bold text-slate-800">{{ $open_count ?? 0 }}</span>
+                            <div class="flex items-center gap-2"><div class="w-2.5 h-2.5 rounded-full bg-emerald-500"></div> <span class="font-semibold text-slate-700">Closed</span></div>
+                            <span id="legend-closed-count" class="font-bold text-slate-800">{{ $closed_count ?? 0 }}</span>
                         </div>
                     </div>
                 </div>
@@ -244,8 +256,9 @@
                         label: 'Volume Request',
                         data: {!! json_encode($masukData ?? []) !!},
                         backgroundColor: function(ctx) {
-                            return ctx.dataIndex === 6 ? '#2563eb' : '#eff6ff';
+                            return ctx.dataIndex === 6 ? '#1d4ed8' : '#60a5fa';
                         },
+                        hoverBackgroundColor: '#1e40af',
                         borderRadius: 4,
                         barPercentage: 0.5
                     }]
@@ -274,10 +287,10 @@
             statusChartInstance = new Chart(statusCtx, {
                 type: 'doughnut',
                 data: {
-                    labels: ['Selesai', 'Proses', 'Terbuka'],
+                    labels: ['Open', 'In Progress', 'Closed'],
                     datasets: [{
-                        data: [{{ $closed_count ?? 0 }}, {{ $progress_count ?? 0 }}, {{ $open_count ?? 0 }}],
-                        backgroundColor: ['#10b981', '#0ea5e9', '#6366f1'],
+                        data: [{{ $open_count ?? 0 }}, {{ $progress_count ?? 0 }}, {{ $closed_count ?? 0 }}],
+                        backgroundColor: ['#6366f1', '#0ea5e9', '#10b981'],
                         borderWidth: 0,
                         cutout: '72%',
                         borderRadius: 3
@@ -301,8 +314,9 @@
                     datasets: [{
                         data: {!! json_encode($tagData ?? []) !!},
                         backgroundColor: function(ctx) {
-                            return ctx.dataIndex === 0 ? '#2563eb' : '#eff6ff';
+                            return ctx.dataIndex === 0 ? '#1d4ed8' : '#60a5fa';
                         },
+                        hoverBackgroundColor: '#1e40af',
                         borderRadius: 6,
                         barPercentage: 0.6
                     }]
@@ -330,7 +344,10 @@
                     labels: {!! json_encode($clientBarLabels ?? []) !!},
                     datasets: [{
                         data: {!! json_encode($clientBarData ?? []) !!},
-                        backgroundColor: function(ctx) { return ctx.dataIndex === 0 ? '#2563eb' : '#eff6ff'; },
+                        backgroundColor: function(ctx) { 
+                            return ctx.dataIndex === 0 ? '#1d4ed8' : '#60a5fa'; 
+                        },
+                        hoverBackgroundColor: '#1e40af',
                         borderRadius: 4,
                         barPercentage: 0.5
                     }]
@@ -365,7 +382,10 @@
                     labels: {!! json_encode($kategoriLabels ?? []) !!},
                     datasets: [{
                         data: {!! json_encode($kategoriData ?? []) !!},
-                        backgroundColor: function(ctx) { return ctx.dataIndex === 0 ? '#2563eb' : '#eff6ff'; },
+                        backgroundColor: function(ctx) { 
+                            return ctx.dataIndex === 0 ? '#1d4ed8' : '#60a5fa'; 
+                        },
+                        hoverBackgroundColor: '#1e40af',
                         borderRadius: 4,
                         barPercentage: 0.6
                     }]
@@ -384,6 +404,64 @@
                     }
                 }
             });
+
+            // ── 5.1 Theme Synchronization for Charts ──
+            function getChartThemeColors() {
+                const isDark = document.documentElement.classList.contains('dark');
+                return {
+                    grid: isDark ? 'rgba(255, 255, 255, 0.08)' : '#f1f5f9',
+                    text: isDark ? '#94a3b8' : '#64748b',
+                    yLabel: isDark ? '#cbd5e1' : '#334155'
+                };
+            }
+
+            function updateChartsTheme() {
+                const colors = getChartThemeColors();
+                Chart.defaults.color = colors.text;
+
+                if (overviewChartInstance && overviewChartInstance.options && overviewChartInstance.options.scales) {
+                    if (overviewChartInstance.options.scales.y && overviewChartInstance.options.scales.y.grid) {
+                        overviewChartInstance.options.scales.y.grid.color = colors.grid;
+                    }
+                    if (overviewChartInstance.options.scales.y && overviewChartInstance.options.scales.y.ticks) {
+                        overviewChartInstance.options.scales.y.ticks.color = colors.text;
+                    }
+                    if (overviewChartInstance.options.scales.x && overviewChartInstance.options.scales.x.ticks) {
+                        overviewChartInstance.options.scales.x.ticks.color = colors.text;
+                    }
+                    overviewChartInstance.update();
+                }
+
+                if (tagChartInstance && tagChartInstance.options && tagChartInstance.options.scales) {
+                    if (tagChartInstance.options.scales.y && tagChartInstance.options.scales.y.ticks) {
+                        tagChartInstance.options.scales.y.ticks.color = colors.yLabel;
+                    }
+                    tagChartInstance.update();
+                }
+
+                if (topClientBarChartInstance && topClientBarChartInstance.options && topClientBarChartInstance.options.scales) {
+                    if (topClientBarChartInstance.options.scales.x && topClientBarChartInstance.options.scales.x.ticks) {
+                        topClientBarChartInstance.options.scales.x.ticks.color = colors.text;
+                    }
+                    topClientBarChartInstance.update();
+                }
+
+                if (kategoriChartInstance && kategoriChartInstance.options && kategoriChartInstance.options.scales) {
+                    if (kategoriChartInstance.options.scales.y && kategoriChartInstance.options.scales.y.ticks) {
+                        kategoriChartInstance.options.scales.y.ticks.color = colors.yLabel;
+                    }
+                    kategoriChartInstance.update();
+                }
+
+                if (statusChartInstance) {
+                    statusChartInstance.update();
+                }
+            }
+
+            window.addEventListener('themeChanged', updateChartsTheme);
+            if (document.documentElement.classList.contains('dark')) {
+                updateChartsTheme();
+            }
 
             // ── 6. REALTIME FETCH DASHBOARD DATA ──
             function fetchDashboardData(dateStr) {
@@ -442,7 +520,7 @@
 
                     // Update Status Donut
                     if (statusChartInstance) {
-                        statusChartInstance.data.datasets[0].data = [data.closed_count, data.progress_count, data.open_count];
+                        statusChartInstance.data.datasets[0].data = [data.open_count, data.progress_count, data.closed_count];
                         statusChartInstance.update();
                     }
 

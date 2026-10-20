@@ -47,11 +47,23 @@
                     </div>
                 </div>
                 
-                @if (($rqid == $aid || $ust == 'admin' || $ust == 'supervisor') && $datarq->pending_advisor_id == null && $stid != 'CLOSED')
-                <a href="/editticket/{{ $datarq->id }}" class="px-6 py-2.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold rounded-xl text-sm shadow-sm flex items-center justify-center gap-2 transition-all active:scale-95">
-                    <i class="fa-solid fa-pen text-blue-500"></i> Edit Tiket
-                </a>
-                @endif
+                <div class="flex items-center gap-2">
+                    @if (in_array($ust, ['admin', 'supervisor']) || ($rqid == $aid && $datarq->pending_advisor_id == null && $stid != 'CLOSED'))
+                    <a href="/editticket/{{ $datarq->id }}" class="px-5 py-2.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold rounded-xl text-sm shadow-sm flex items-center justify-center gap-2 transition-all active:scale-95">
+                        <i class="fa-solid fa-pen text-blue-500"></i> Edit Tiket
+                    </a>
+                    @endif
+
+                    @if (in_array($ust, ['admin', 'supervisor']) || ($rqid == $aid && $stid != 'CLOSED'))
+                    <form action="{{ route('deleteticket', $datarq->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus tiket #{{ $datarq->ticket_number }}? Seluruh riwayat dan data lampiran akan dihapus.');" class="inline">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="px-4 py-2.5 bg-white border border-rose-200 hover:bg-rose-50 text-rose-600 font-bold rounded-xl text-sm shadow-sm flex items-center justify-center gap-2 transition-all active:scale-95 cursor-pointer" title="Hapus Tiket">
+                            <i class="fa-regular fa-trash-can"></i> Hapus
+                        </button>
+                    </form>
+                    @endif
+                </div>
             </div>
 
             <!-- Dynamic Alert Banner -->
@@ -450,9 +462,20 @@
                                     @endif
                                 @endif
                             @else
-                                <button disabled class="w-full flex items-center justify-center bg-slate-100 text-slate-400 py-3.5 rounded-xl font-bold text-sm transition-all cursor-not-allowed gap-2">
-                                    <i class="fa-solid fa-check-circle"></i> Tiket Selesai
-                                </button>
+                                @if ($isAdminOrSpv)
+                                    <div class="flex flex-col gap-2">
+                                        <div class="w-full flex items-center justify-center bg-emerald-50 text-emerald-700 border border-emerald-200 py-3 rounded-xl font-bold text-xs gap-1.5">
+                                            <i class="fa-solid fa-circle-check"></i> Status Tiket: CLOSED
+                                        </div>
+                                        <a href="/ticket-updatestatus/{{ $datarq->id }}/PROGRESS" onclick="return confirm('Apakah Anda yakin ingin membuka kembali tiket ini (Reopen) ke status PROGRESS?')" class="w-full flex items-center justify-center bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 py-2.5 rounded-xl font-bold text-xs transition-all active:scale-95 gap-1.5 shadow-sm">
+                                            <i class="fa-solid fa-rotate-left"></i> Buka Kembali Tiket (Reopen)
+                                        </a>
+                                    </div>
+                                @else
+                                    <button disabled class="w-full flex items-center justify-center bg-slate-100 text-slate-400 py-3.5 rounded-xl font-bold text-sm transition-all cursor-not-allowed gap-2">
+                                        <i class="fa-solid fa-check-circle"></i> Tiket Selesai
+                                    </button>
+                                @endif
                             @endif
 
                             <div class="grid grid-cols-2 gap-3 mt-1">
@@ -868,7 +891,7 @@
                 <!-- Form Pilihan Tag / Divisi Pelaksana (Wajib untuk Request) -->
                 <div class="space-y-4 mb-6">
                     <div>
-                        <label class="block text-xs font-bold text-slate-700 mb-1.5 flex items-center gap-1.5">
+                        <label class="flex items-center gap-1.5 text-xs font-bold text-slate-700 mb-1.5">
                             <i class="fa-solid fa-users-gear text-blue-500 text-xs"></i>
                             <span>Divisi / Tim Pelaksana Request <span class="text-rose-500">*</span></span>
                         </label>
@@ -885,7 +908,7 @@
                     </div>
 
                     <div>
-                        <label class="block text-xs font-bold text-slate-700 mb-1.5 flex items-center gap-1.5">
+                        <label class="flex items-center gap-1.5 text-xs font-bold text-slate-700 mb-1.5">
                             <i class="fa-regular fa-calendar-check text-blue-500 text-xs"></i>
                             <span>Target Selesai (End Date) <span class="text-rose-500">*</span></span>
                         </label>

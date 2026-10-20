@@ -8,14 +8,27 @@
         <button @click="sidebarOpen = true" class="md:hidden p-2 -ml-2 text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors">
             <i class="fa-solid fa-bars text-lg"></i>
         </button>
-        <h1 class="font-bold text-[14px] md:text-[15px] text-slate-800 capitalize truncate max-w-[180px] sm:max-w-xs md:max-w-none">{{ request()->routeIs('request.dashboard') ? 'Dashboard Request System' : (request()->routeIs('dashboard') ? 'Dashboard Laporan & Penilaian Kinerja CS' : (request()->routeIs('daftartiket') ? 'Daftar Tiket Helpdesk CS' : (request()->routeIs('inbox') ? 'Inbox & Manajemen Tiket' : (request()->is('request') ? 'Daftar Request (Semua Request)' : (request()->is('myreq') ? 'My Request (Antrean Masuk)' : (request()->is('history') || request()->is('myrequs') || request()->is('myrequest') || request()->is('myupdatesystem') ? 'History (Pengajuan Saya)' : (request()->is('createrq') ? 'Buat Request Baru' : (request()->is('createticket') ? 'Buat Tiket Baru' : (request()->is('detailrequest/*') ? 'Detail Workspace Request' : (request()->is('detailticket/*') || request()->is('detailtiket/*') ? 'Detail Workspace Pengerjaan Tiket' : (request()->is('editrq/*') ? 'Edit Request' : (request()->is('editticket/*') ? 'Edit Tiket Pelanggan' : (request()->is('notifications') ? 'Riwayat Notifikasi' : (str_replace('-', ' ', request()->path()) == '/' ? 'Dashboard' : str_replace('-', ' ', request()->path()))))))))))))))) }}</h1>
+        <h1 class="font-bold text-[14px] md:text-[15px] text-slate-800 capitalize truncate max-w-[180px] sm:max-w-xs md:max-w-none">{{ request()->routeIs('request.dashboard') ? 'Dashboard Request System' : (request()->routeIs('dashboard') ? 'Dashboard Laporan & Penilaian Kinerja CS' : (request()->routeIs('daftartiket') ? 'Daftar Tiket Helpdesk CS' : (request()->routeIs('inbox') ? 'Inbox & Manajemen Tiket' : (request()->routeIs('soft-skill.*') ? 'Penilaian Soft Skill' : (request()->routeIs('modul*') ? 'Master Data Modul' : (request()->is('request') ? 'Daftar Request (Semua Request)' : (request()->is('myreq') ? 'My Request (Antrean Masuk)' : (request()->is('history') || request()->is('myrequs') || request()->is('myrequest') || request()->is('myupdatesystem') ? 'History (Pengajuan Saya)' : (request()->is('createrq') ? 'Buat Request Baru' : (request()->is('createticket') ? 'Buat Tiket Baru' : (request()->is('detailrequest/*') ? 'Detail Workspace Request' : (request()->is('detailticket/*') || request()->is('detailtiket/*') ? 'Detail Workspace Pengerjaan Tiket' : (request()->is('editrq/*') ? 'Edit Request' : (request()->is('editticket/*') ? 'Edit Tiket Pelanggan' : (request()->is('notifications') ? 'Riwayat Notifikasi' : (str_replace('-', ' ', request()->path()) == '/' ? 'Dashboard' : str_replace('-', ' ', request()->path()))))))))))))))))) }}</h1>
     </div>
-    <div class="flex items-center gap-4">
+    <div class="flex items-center gap-2 sm:gap-3">
+        <!-- Dark Mode Toggle Button (sebelah lonceng notifikasi) -->
+        <button type="button" 
+                id="theme-toggle" 
+                onclick="toggleDarkMode()" 
+                class="w-10 h-10 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center text-slate-500 dark:text-amber-400 transition-all duration-200 cursor-pointer focus:outline-none"
+                title="Ganti Mode Gelap/Terang" 
+                aria-label="Toggle Dark Mode">
+            <!-- Sun icon (shown in dark mode) -->
+            <i id="theme-toggle-light-icon" class="fa-solid fa-sun text-lg hidden text-amber-400 transition-transform duration-300 hover:rotate-90"></i>
+            <!-- Moon icon (shown in light mode) -->
+            <i id="theme-toggle-dark-icon" class="fa-solid fa-moon text-lg text-slate-600 dark:text-slate-300 transition-transform duration-300 hover:-rotate-12"></i>
+        </button>
+
         <!-- Real-time Notification Dropdown -->
         <div class="relative" x-data="{ notifOpen: false }" @click.outside="notifOpen = false">
-            <button type="button" @click="notifOpen = !notifOpen" class="w-10 h-10 rounded-xl hover:bg-slate-100 flex items-center justify-center text-slate-500 transition-colors relative cursor-pointer focus:outline-none" title="Notifikasi">
+            <button type="button" @click="notifOpen = !notifOpen" class="w-10 h-10 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center text-slate-500 dark:text-slate-300 transition-colors relative cursor-pointer focus:outline-none" title="Notifikasi">
                 <i class="fa-regular fa-bell text-lg"></i>
-                <span id="notif-badge-indicator" class="absolute top-2 right-2 w-2.5 h-2.5 bg-rose-500 rounded-full border-2 border-white shadow-sm animate-pulse" style="{{ $unreadCount > 0 ? '' : 'display: none;' }}"></span>
+                <span id="notif-badge-indicator" class="absolute top-2 right-2 w-2.5 h-2.5 bg-rose-500 rounded-full border-2 border-white dark:border-slate-800 shadow-sm animate-pulse" style="{{ $unreadCount > 0 ? '' : 'display: none;' }}"></span>
             </button>
 
             <div x-show="notifOpen" 

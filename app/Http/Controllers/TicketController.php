@@ -14,6 +14,7 @@ use App\Models\Ticket;
 use App\Models\TicketLog;
 use App\Models\TicketTakeover;
 use App\Models\TicketSurvey;
+use App\Models\Review;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -121,14 +122,16 @@ class TicketController extends Controller
         
         // Authorization check
         $user = Auth::user();
-        if ($datarq->user_id != $user->id && !in_array($user->usertype, ['admin', 'supervisor'])) {
+        $isAdminOrSupervisor = in_array($user->usertype, ['admin', 'supervisor']);
+
+        if ($datarq->user_id != $user->id && !$isAdminOrSupervisor) {
             Alert::error('Akses Ditolak', 'Anda tidak memiliki hak untuk mengedit tiket ini.');
             return redirect()->route('daftartiket');
         }
 
-        // Prevent editing closed tickets
-        if ($datarq->status == 'CLOSED') {
-            Alert::error('Akses Ditolak', 'Tiket yang sudah selesai (CLOSED) tidak dapat diedit lagi.');
+        // Prevent regular user from editing closed tickets (supervisor & admin allowed)
+        if ($datarq->status == 'CLOSED' && !$isAdminOrSupervisor) {
+            Alert::error('Akses Ditolak', 'Tiket yang sudah selesai (CLOSED) tidak dapat diedit lagi oleh user.');
             return redirect()->route('detailticket', ['id' => $id]);
         }
 
@@ -224,14 +227,16 @@ class TicketController extends Controller
         
         // Authorization check
         $user = Auth::user();
-        if ($datarq->user_id != $user->id && !in_array($user->usertype, ['admin', 'supervisor'])) {
+        $isAdminOrSupervisor = in_array($user->usertype, ['admin', 'supervisor']);
+
+        if ($datarq->user_id != $user->id && !$isAdminOrSupervisor) {
             Alert::error('Akses Ditolak', 'Anda tidak memiliki hak untuk mengedit tiket ini.');
             return redirect()->route('daftartiket');
         }
 
-        // Prevent editing closed tickets
-        if ($datarq->status == 'CLOSED') {
-            Alert::error('Akses Ditolak', 'Tiket yang sudah selesai (CLOSED) tidak dapat diedit lagi.');
+        // Prevent regular user from editing closed tickets (supervisor & admin allowed)
+        if ($datarq->status == 'CLOSED' && !$isAdminOrSupervisor) {
+            Alert::error('Akses Ditolak', 'Tiket yang sudah selesai (CLOSED) tidak dapat diedit lagi oleh user.');
             return redirect()->route('detailticket', ['id' => $id]);
         }
 
@@ -244,11 +249,12 @@ class TicketController extends Controller
             'tipe_penanganan' => 'required',
             'advisor' => 'nullable',
             'due_date' => 'required|date',
+            'status' => 'nullable|in:OPEN,PROGRESS,CLOSED',
             'images' => 'array|max:6',
             'images.*' => 'image|mimes:jpg,jpeg,png|max:1024'
         ]);
 
-        $datarq->update([
+        $updateData = [
             'title' => $request->title,
             'description' => $request->body,
             'system' => $request->tag,
@@ -257,7 +263,30 @@ class TicketController extends Controller
             'advisor_id' => $request->advisor,
             'tipe_penanganan' => $request->tipe_penanganan,
             'due_date' => $request->due_date,
-        ]);
+        ];
+
+        // Status update by Supervisor or Admin
+        if ($isAdminOrSupervisor && $request->filled('status') && $request->status !== $datarq->status) {
+            $newStatus = $request->status;
+            $updateData['status'] = $newStatus;
+            if ($newStatus == 'CLOSED') {
+                $closedAt = now();
+                $updateData['closed_at'] = $closedAt;
+                $start = $datarq->handle_at ?? $datarq->created_at;
+                $updateData['duration_minutes'] = $start ? $closedAt->diffInMinutes(\Carbon\Carbon::parse($start)) : 0;
+            } else {
+                $updateData['closed_at'] = null;
+                $updateData['duration_minutes'] = null;
+            }
+            TicketLog::create([
+                'ticket_id' => $datarq->id,
+                'user_id' => Auth::id(),
+                'action' => 'STATUS_CHANGED',
+                'description' => 'Status tiket diubah menjadi ' . $newStatus . ' oleh ' . Auth::user()->name . '.',
+            ]);
+        }
+
+        $datarq->update($updateData);
 
         TicketLog::create([
             'ticket_id' => $datarq->id,
@@ -423,10 +452,48 @@ class TicketController extends Controller
     }
 
     public function delete($id){
-        $data = \App\Models\Request::find($id);
-        $data->delete();
-        Alert::success('Request Deleted!');
-        return redirect()->back();
+        $ticket = Ticket::findOrFail($id);
+        $user = Auth::user();
+        $isAdminOrSupervisor = in_array($user->usertype, ['admin', 'supervisor']);
+
+        // Authorization check:
+        // Supervisor & Admin: can delete any ticket (even if CLOSED)
+        // User: can only delete their own ticket, and ONLY IF status is NOT CLOSED
+        if (!$isAdminOrSupervisor) {
+            if ($ticket->user_id != $user->id) {
+                Alert::error('Akses Ditolak', 'Anda tidak memiliki hak untuk menghapus tiket ini.');
+                return redirect()->route('daftartiket');
+            }
+            if ($ticket->status == 'CLOSED') {
+                Alert::error('Akses Ditolak', 'Tiket yang sudah selesai (CLOSED) tidak dapat dihapus oleh user.');
+                return redirect()->route('daftartiket');
+            }
+        }
+
+        // Clean up attached images from disk and database
+        $images = DataImage::where('ticket_id', $ticket->id)->get();
+        foreach ($images as $img) {
+            if ($img->image) {
+                $filePath = public_path('img/' . $img->image);
+                if (file_exists($filePath)) {
+                    @unlink($filePath);
+                }
+            }
+            $img->delete();
+        }
+
+        // Clean up related records
+        Komentar::where('ticket_id', $ticket->id)->delete();
+        TicketLog::where('ticket_id', $ticket->id)->delete();
+        TicketTakeover::where('ticket_id', $ticket->id)->delete();
+        TicketSurvey::where('ticket_id', $ticket->id)->delete();
+        \App\Models\Review::where('ticket_id', $ticket->id)->delete();
+
+        $ticketNumber = $ticket->ticket_number ?? ('#' . $ticket->id);
+        $ticket->delete();
+
+        Alert::success('Berhasil Dihapus!', "Tiket {$ticketNumber} berhasil dihapus.");
+        return redirect()->route('daftartiket');
     }
 
     public function approveRequest($id){

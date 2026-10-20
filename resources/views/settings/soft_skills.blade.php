@@ -6,7 +6,7 @@
             <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
                 <div>
                     <div class="flex items-center gap-1.5 text-xs font-semibold text-slate-500 mb-1">
-                        <span class="text-slate-400 hover:text-slate-600 transition-colors cursor-pointer">Pengaturan</span>
+                        <span class="text-slate-400 hover:text-slate-600 transition-colors cursor-pointer">Advanced Settings</span>
                         <i class="fa-solid fa-chevron-right text-[8px] text-slate-400"></i>
                         <span class="text-blue-600">Penilaian Soft Skill</span>
                     </div>
