@@ -3,12 +3,6 @@
     <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
 
-    <!-- Flatpickr CSS & JS for datetime/date picker -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-    <link rel="stylesheet" type="text/css" href="https://npmcdn.com/flatpickr/dist/themes/airbnb.css">
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-    <script src="https://npmcdn.com/flatpickr/dist/l10n/id.js"></script>
-
     <div class="py-8 bg-slate-50/50 min-h-screen">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             
@@ -25,437 +19,164 @@
                 </div>
             </div>
 
-            <x-auth-validation-errors class="mb-6" :errors="$errors" />
+            <x-auth-validation-errors class="mb-6 bg-red-50 text-red-600 p-4 rounded-2xl border border-red-100" :errors="$errors" />
 
-            <!-- Form Container -->
-            <div class="max-w-5xl mx-auto">
-                <form method="POST" action="/createrq" enctype="multipart/form-data">
-                    @csrf
-                    <input type="hidden" name="return_url" value="{{ $returnUrl ?? '' }}">
+            <form action="/createrq" method="POST" enctype="multipart/form-data" class="flex flex-col lg:flex-row gap-6 lg:items-stretch">
+                @csrf
+                <input type="hidden" name="return_url" value="{{ $returnUrl ?? '' }}">
+                <input type="hidden" name="tag" value="{{ old('tag', 1) }}">
+                
+                <!-- Left Column (Form Fields) -->
+                <div class="w-full lg:w-5/12 flex flex-col gap-6">
                     
-                    <!-- Section 1: Informasi Request -->
-                    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden mb-5">
-                        <div class="px-6 md:px-8 py-4 border-b border-slate-100 bg-slate-50/60">
-                            <h2 class="text-[13px] font-extrabold text-slate-700 uppercase tracking-wider flex items-center gap-2.5">
-                                <div class="w-7 h-7 rounded-lg bg-blue-100 text-blue-500 flex items-center justify-center">
-                                    <i class="fa-solid fa-code-pull-request text-xs"></i>
-                                </div>
-                                Informasi Request
-                            </h2>
-                        </div>
-                        <div class="p-6 md:p-8 space-y-5">
-                            <!-- Row 1: Judul Request | Client -->
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                                <div>
-                                    <div class="flex items-center justify-between mb-2">
-                                        <label class="flex items-center gap-1.5 text-xs font-bold text-slate-600">
-                                            <i class="fa-solid fa-heading text-slate-400 text-[10px]"></i> Judul Request <span class="text-rose-500">*</span>
-                                        </label>
-                                        <span class="text-[10px] font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full" id="title-counter">0/100</span>
-                                    </div>
-                                    <input type="text" id="title-input" name="title" value="{{ old('title') }}" maxlength="100" class="w-full bg-slate-50 border border-slate-200 text-slate-800 text-sm rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white block p-3.5 transition-all outline-none placeholder:text-slate-400" placeholder="Masukkan judul request pengerjaan..." required>
-                                </div>
-                                
-                                <div>
-                                    <label class="flex items-center gap-1.5 text-xs font-bold text-slate-600 mb-2">
-                                        <i class="fa-solid fa-building text-slate-400 text-[10px]"></i> Client / Outlet <span class="text-rose-500">*</span>
-                                    </label>
-                                    <div class="relative group">
-                                        <select id="client-select" name="client" class="w-full bg-slate-50 border border-slate-200 text-slate-800 text-sm rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white block p-3.5 transition-all outline-none" required>
-                                            <option value="" disabled selected>Cari dan pilih client...</option>
-                                            @foreach ($clients as $client)
+                    <!-- Informasi Utama Card -->
+                    <div class="bg-white rounded-3xl shadow-sm border border-slate-200 p-6 md:p-8">
+                        <h2 class="text-sm font-extrabold text-slate-800 mb-6 flex items-center gap-2 tracking-wider uppercase"><i class="fa-solid fa-list-check text-blue-500"></i> Informasi Utama</h2>
+                        
+                        <div class="space-y-6">
+                            <!-- Judul Request -->
+                            <div>
+                                <label class="block text-[11px] font-extrabold text-slate-500 uppercase tracking-wider mb-2">Judul Request <span class="text-rose-500">*</span></label>
+                                <input type="text" class="w-full bg-slate-50/50 border border-slate-200 text-slate-800 text-sm font-semibold rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 block p-3.5 transition-all outline-none" value="{{ old('title') }}" name="title" placeholder="Masukkan judul request..." required>
+                            </div>
+
+                            <!-- Client / Outlet -->
+                            <div>
+                                <label class="block text-[11px] font-extrabold text-slate-500 uppercase tracking-wider mb-2">Client <span class="text-rose-500">*</span></label>
+                                <div class="relative group">
+                                    <select id="client-select" name="client" class="w-full bg-slate-50/50 border border-slate-200 text-slate-800 text-sm font-semibold rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 block p-3.5 transition-all outline-none" required>
+                                        <option value="" disabled selected>Pilih client...</option>
+                                        @foreach ($clients as $client)
                                             <option value="{{ $client->id }}" {{ (old('client') == $client->id || old('outlet') == $client->id) ? 'selected' : '' }}>{{ $client->nm_out }}</option>
-                                            @endforeach
-                                        </select>
-                                        <div class="absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none flex items-center justify-center w-7 h-7 rounded-lg bg-white shadow-sm border border-slate-100 z-10 transition-colors text-slate-400">
-                                            <i class="fa-solid fa-magnifying-glass text-[11px]"></i>
-                                        </div>
+                                        @endforeach
+                                    </select>
+                                    <div class="absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none flex items-center justify-center w-7 h-7 rounded-lg bg-white shadow-sm border border-slate-100 z-10 transition-colors text-slate-400">
+                                        <i class="fa-solid fa-magnifying-glass text-[11px]"></i>
                                     </div>
                                 </div>
                             </div>
 
-                            <!-- Row 2: System / Aplikasi | Divisi / Tim Pelaksana -->
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                            <!-- Row: System & Module -->
+                            <div class="grid grid-cols-2 gap-4">
+                                <!-- System (Kategori) -->
                                 <div>
-                                    <label class="flex items-center gap-1.5 text-xs font-bold text-slate-600 mb-2">
-                                        <i class="fa-solid fa-server text-slate-400 text-[10px]"></i> System / Aplikasi <span class="text-rose-500">*</span>
-                                    </label>
-                                    <div class="relative">
-                                        <select name="category" class="w-full bg-slate-50 border border-slate-200 text-slate-800 text-sm rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white block p-3.5 transition-all outline-none appearance-none cursor-pointer pr-10" required>
-                                            <option value="" disabled selected>Pilih System / Aplikasi...</option>
-                                            @foreach ($kategori as $kategoriitem)
+                                    <label class="block text-[11px] font-extrabold text-slate-500 uppercase tracking-wider mb-2">System <span class="text-rose-500">*</span></label>
+                                    <select name="category" class="w-full bg-slate-50/50 border border-slate-200 text-slate-800 text-sm font-semibold rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 block p-3.5 transition-all outline-none appearance-none cursor-pointer" style="background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2394a3b8%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E'); background-repeat: no-repeat; background-position: right 1rem top 50%; background-size: 0.65rem auto;" required>
+                                        <option value="" disabled {{ !old('category') ? 'selected' : '' }}>Pilih system...</option>
+                                        @foreach ($kategori as $kategoriitem)
                                             <option value="{{ $kategoriitem->id }}" {{ old('category') == $kategoriitem->id ? 'selected' : '' }}>{{ $kategoriitem->name }}</option>
-                                            @endforeach
-                                        </select>
-                                        <i class="fa-solid fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-[10px] text-slate-400 pointer-events-none"></i>
-                                    </div>
+                                        @endforeach
+                                    </select>
                                 </div>
-                                
+                                <!-- Module (ModuleSystem) -->
                                 <div>
-                                    <label class="flex items-center gap-1.5 text-xs font-bold text-slate-600 mb-2">
-                                        <i class="fa-solid fa-users-gear text-slate-400 text-[10px]"></i> Divisi / Tim Pelaksana <span class="text-rose-500">*</span>
-                                    </label>
-                                    <div class="relative">
-                                        <select name="tag" class="w-full bg-slate-50 border border-slate-200 text-slate-800 text-sm rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white block p-3.5 transition-all outline-none appearance-none cursor-pointer pr-10" required>
-                                            <option value="" disabled selected>Pilih Tim Pelaksana...</option>
-                                            @foreach ($tag as $tagitem)
-                                            <option value="{{ $tagitem->id }}" {{ old('tag') == $tagitem->id ? 'selected' : '' }}>{{ $tagitem->name }}</option>
-                                            @endforeach
-                                        </select>
-                                        <i class="fa-solid fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-[10px] text-slate-400 pointer-events-none"></i>
-                                    </div>
+                                    <label class="block text-[11px] font-extrabold text-slate-500 uppercase tracking-wider mb-2">Module <span class="text-rose-500">*</span></label>
+                                    <select name="module" class="w-full bg-slate-50/50 border border-slate-200 text-slate-800 text-sm font-semibold rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 block p-3.5 transition-all outline-none appearance-none cursor-pointer" style="background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2394a3b8%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E'); background-repeat: no-repeat; background-position: right 1rem top 50%; background-size: 0.65rem auto;" required>
+                                        <option value="" disabled {{ !old('module') ? 'selected' : '' }}>Pilih module...</option>
+                                        @foreach ($modules as $moduleitem)
+                                            <option value="{{ $moduleitem->name }}" {{ old('module') == $moduleitem->name ? 'selected' : '' }}>{{ $moduleitem->name }}</option>
+                                        @endforeach
+                                    </select>
                                 </div>
                             </div>
 
-                            <!-- Row 3: Target Waktu (Tanggal Mulai & Selesai) -->
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                                <div>
-                                    <label class="flex items-center gap-1.5 text-xs font-bold text-slate-600 mb-2">
-                                        <i class="fa-regular fa-calendar-plus text-slate-400 text-[10px]"></i> Tanggal Mulai <span class="text-rose-500">*</span>
-                                    </label>
-                                    <div class="relative">
-                                        <input type="text" id="start-date-picker" name="startdate" value="{{ old('startdate', date('Y-m-d')) }}" class="w-full bg-slate-50 border border-slate-200 text-slate-800 text-sm rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white block p-3.5 transition-all outline-none pl-10 cursor-pointer" placeholder="Pilih tanggal mulai" required>
-                                        <i class="fa-regular fa-calendar-days absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <label class="flex items-center gap-1.5 text-xs font-bold text-slate-600 mb-2">
-                                        <i class="fa-regular fa-calendar-check text-slate-400 text-[10px]"></i> Tanggal Selesai (Target Deadline) <span class="text-rose-500">*</span>
-                                    </label>
-                                    @php
-                                        $defaultEndDate = \Carbon\Carbon::now()->addDays(7)->format('Y-m-d');
-                                    @endphp
-                                    <div class="relative">
-                                        <input type="text" id="end-date-picker" name="enddate" value="{{ old('enddate', $defaultEndDate) }}" class="w-full bg-slate-50 border border-slate-200 text-slate-800 text-sm rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white block p-3.5 transition-all outline-none pl-10 cursor-pointer" placeholder="Pilih tanggal selesai" required>
-                                        <i class="fa-regular fa-calendar-days absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Section 2: Deskripsi Request -->
-                    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden mb-5">
-                        <div class="px-6 md:px-8 py-4 border-b border-slate-100 bg-slate-50/60">
-                            <h2 class="text-[13px] font-extrabold text-slate-700 uppercase tracking-wider flex items-center gap-2.5">
-                                <div class="w-7 h-7 rounded-lg bg-amber-100 text-amber-500 flex items-center justify-center">
-                                    <i class="fa-solid fa-align-left text-xs"></i>
-                                </div>
-                                Deskripsi Request <span class="text-rose-500">*</span>
-                            </h2>
-                        </div>
-                        <div class="p-6 md:p-8">
-                            <div class="bg-white rounded-xl border border-slate-200 overflow-hidden focus-within:ring-2 focus-within:ring-blue-500/20 focus-within:border-blue-500 transition-all">
-                                <div class="bg-slate-50 border-b border-slate-200 px-4 py-2">
-                                    <trix-toolbar id="trix-toolbar-create"></trix-toolbar>
-                                </div>
-                                <input type="hidden" id="body" name="body" value="{{ old('body') }}">
-                                <trix-editor toolbar="trix-toolbar-create" trix-attachment-remove input="body" class="p-4 min-h-[180px] text-sm text-slate-700 border-none focus:outline-none prose max-w-none" placeholder="Jelaskan kebutuhan pengerjaan sistem atau perbaikan secara rinci..."></trix-editor>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Section 3: Lampiran -->
-                    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden mb-5">
-                        <div class="px-6 md:px-8 py-4 border-b border-slate-100 bg-slate-50/60">
-                            <h2 class="text-[13px] font-extrabold text-slate-700 uppercase tracking-wider flex items-center gap-2.5">
-                                <div class="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-500 flex items-center justify-center">
-                                    <i class="fa-solid fa-paperclip text-xs"></i>
-                                </div>
-                                Lampiran
-                            </h2>
-                            <p class="text-[11px] text-slate-400 font-medium mt-1 ml-[38px]">Maks. 6 file, format JPG/PNG, ukuran per file maks. 1MB</p>
-                        </div>
-                        <div class="p-6 md:p-8">
-                            <div class="relative group" id="dropzone-wrapper">
-                                <input type="file" multiple accept="image/jpeg,image/png,image/jpg" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" name="images[]" id="file-upload">
-                                <div class="w-full py-10 px-6 bg-[#f8fbff] border-2 border-dashed border-[#c5d9f5] rounded-2xl text-center group-hover:bg-[#eef5ff] group-hover:border-blue-400 transition-all duration-200 flex flex-col items-center justify-center gap-3">
-                                    <div class="w-14 h-14 bg-blue-100 rounded-2xl flex items-center justify-center text-blue-500 group-hover:scale-110 transition-transform duration-200">
-                                        <i class="fa-solid fa-cloud-arrow-up text-2xl"></i>
+                            <!-- Periode Penanganan -->
+                            <div>
+                                <label class="block text-[11px] font-extrabold text-slate-500 uppercase tracking-wider mb-2">Periode Penanganan <span class="text-rose-500">*</span></label>
+                                <div class="grid grid-cols-2 gap-3 items-center">
+                                    <div>
+                                        <span class="block text-[10px] font-bold text-slate-400 mb-1">Tanggal Mulai</span>
+                                        <input type="date" class="w-full bg-slate-50/50 border border-slate-200 text-slate-800 text-sm font-semibold rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 block p-3.5 outline-none transition-all cursor-pointer" value="{{ old('startdate', date('Y-m-d')) }}" name="startdate" required>
                                     </div>
                                     <div>
-                                        <p class="text-sm font-bold text-slate-600" id="file-name">Tarik & lepas file di sini</p>
-                                        <p class="text-xs text-slate-400 font-medium mt-1">atau <span class="text-blue-500 font-bold cursor-pointer hover:underline">klik untuk memilih file</span></p>
+                                        <span class="block text-[10px] font-bold text-slate-400 mb-1">Tanggal Selesai</span>
+                                        @php
+                                            $defaultEndDate = \Carbon\Carbon::now()->addDays(7)->format('Y-m-d');
+                                        @endphp
+                                        <input type="date" class="w-full bg-slate-50/50 border border-slate-200 text-slate-800 text-sm font-semibold rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 block p-3.5 outline-none transition-all cursor-pointer" value="{{ old('enddate', $defaultEndDate) }}" name="enddate" required>
                                     </div>
                                 </div>
                             </div>
-                            
-                            <div id="file-preview-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 empty:hidden mt-4"></div>
+                        </div>
+                    </div>
+
+                    <!-- Attachments Card -->
+                    <div class="bg-white rounded-3xl shadow-sm border border-slate-200 p-6 md:p-8">
+                        <h2 class="text-sm font-extrabold text-slate-800 mb-6 flex items-center gap-2 tracking-wider uppercase"><i class="fa-solid fa-paperclip text-blue-500"></i> Lampiran Gambar</h2>
+                        
+                        <div>
+                            <input id="images-input" name="images[]" type="file" multiple accept="image/jpeg,image/png,image/jpg" class="file-input file-input-bordered bg-slate-50/50 w-full rounded-xl text-sm file:border-0 file:bg-blue-50 file:text-blue-700 file:font-bold file:mr-4 hover:file:bg-blue-100 transition-colors">
+                            <div class="flex items-center justify-between mt-2 px-1">
+                                <span class="text-[10px] font-bold text-slate-400">MAX: 6 IMAGES (1MB/IMG)</span>
+                                <div class="text-[10px] font-bold text-slate-400 flex items-center gap-1">
+                                    <span>Pilih lebih dari satu:</span>
+                                    <kbd class="px-1.5 py-0.5 bg-slate-100 border border-slate-200 rounded font-mono text-[9px] text-slate-500">ctrl</kbd>
+                                    <span>+ klik</span>
+                                </div>
+                            </div>
+
+                            <!-- Dynamic Image Previews -->
+                            <div id="image-preview-container" class="grid grid-cols-3 gap-3 mt-5 empty:hidden"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column (Description & Actions) -->
+                <div class="w-full lg:w-7/12 flex flex-col gap-6">
+                    <div class="bg-white rounded-3xl shadow-sm border border-slate-200 flex flex-col h-full overflow-hidden">
+                        <div class="bg-slate-50/50 border-b border-slate-100 px-6 py-5 md:px-8">
+                            <h2 class="text-sm font-extrabold text-slate-800 flex items-center gap-2 tracking-wider uppercase"><i class="fa-solid fa-align-left text-blue-500"></i> Deskripsi Masalah <span class="text-rose-500">*</span></h2>
+                        </div>
+                        <div class="p-6 md:p-8 flex-1 flex flex-col">
+                            <div class="sticky top-0 z-20 bg-white pb-3 mb-2">
+                                <trix-toolbar id="trix-toolbar-create"></trix-toolbar>
+                            </div>
+                            <input type="hidden" id="body" name="body" value="{{ old('body') }}">
+                            <div class="flex-1 flex flex-col min-h-[400px]">
+                                <trix-editor toolbar="trix-toolbar-create" trix-attachment-remove input="body" class="bg-slate-50/50 rounded-2xl border border-slate-200 p-5 flex-1 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all text-sm font-medium text-slate-700 prose max-w-none prose-p:my-1 prose-img:rounded-xl" placeholder="Tuliskan deskripsi lengkap masalah atau kebutuhan request di sini..."></trix-editor>
+                            </div>
                         </div>
                     </div>
 
                     <!-- Submit Actions -->
-                    <div class="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-3 pt-2 pb-4">
-                        <a href="{{ $returnUrl ?? route('myreq') }}" class="w-full sm:w-auto text-center px-7 py-3 bg-white border border-slate-200 text-slate-600 font-bold text-sm rounded-xl hover:bg-slate-50 transition-colors shadow-sm">
-                            <i class="fa-solid fa-xmark mr-1.5 text-slate-400"></i> Batal
-                        </a>
-                        <button type="submit" class="w-full sm:w-auto justify-center px-7 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm rounded-xl shadow-md shadow-blue-500/20 transition-all active:scale-95 flex items-center gap-2">
-                            <i class="fa-solid fa-paper-plane text-blue-200 text-xs"></i> Buat Request
+                    <div class="flex items-center justify-end gap-3 mt-auto bg-white p-4 rounded-3xl shadow-sm border border-slate-200">
+                        <a href="{{ $returnUrl ?? route('myreq') }}" class="px-6 py-3 bg-slate-50 border border-slate-200 text-slate-600 font-bold text-sm rounded-xl hover:bg-slate-100 transition-colors">Batalkan</a>
+                        <button type="submit" class="px-8 py-3 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white font-bold text-sm rounded-xl shadow-lg shadow-blue-500/30 transition-all active:scale-95 flex items-center gap-2">
+                            <i class="fa-solid fa-floppy-disk"></i> Simpan Request
                         </button>
                     </div>
-                </form>
-            </div>
+                </div>
+
+            </form>
         </div>
     </div>
-    
+
+    <!-- Trix Editor Custom Styles to blend with new design -->
     <style>
-        /* Customizing Trix Editor to match Tailwind premium look */
         trix-toolbar .trix-button-group {
             border: 1px solid #e2e8f0;
-            border-radius: 8px;
-            background: white;
-            margin-bottom: 0;
-            box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            border-radius: 0.75rem;
+            background: #f8fafc;
         }
         trix-toolbar .trix-button {
             border-bottom: none;
             background: transparent;
         }
-        trix-toolbar .trix-button:hover { background: #f8fafc; }
-        trix-toolbar .trix-button:not(:first-child) {
-            border-left: 1px solid #e2e8f0;
+        trix-toolbar .trix-button:hover {
+            background: #e2e8f0;
         }
         trix-toolbar .trix-button.trix-active {
             background: #eff6ff;
             color: #2563eb;
         }
-        trix-editor:empty:not(:focus)::before {
-            color: #94a3b8;
-            font-style: normal;
+        trix-toolbar .trix-button--icon::before {
+            opacity: 0.6;
         }
-    </style>
-
-    <script>
-        // Title character counter
-        const titleInput = document.getElementById('title-input');
-        const titleCounter = document.getElementById('title-counter');
-        
-        if(titleInput && titleCounter) {
-            const updateCounter = () => {
-                const len = titleInput.value.length;
-                titleCounter.textContent = `${len}/100`;
-                if(len >= 100) {
-                    titleCounter.classList.add('text-rose-500', 'bg-rose-50');
-                    titleCounter.classList.remove('text-slate-400', 'bg-slate-100');
-                } else {
-                    titleCounter.classList.remove('text-rose-500', 'bg-rose-50');
-                    titleCounter.classList.add('text-slate-400', 'bg-slate-100');
-                }
-            };
-            titleInput.addEventListener('input', updateCounter);
-            updateCounter();
+        trix-toolbar .trix-button.trix-active::before {
+            opacity: 1;
         }
 
-        document.addEventListener('trix-file-accept', function(e) {
-            const maxFileSize = 1024 * 1024; // 1MB
-            if (e.file.size > maxFileSize) {
-                e.preventDefault();
-                showToast(`Gambar "${e.file.name}" berukuran ${(e.file.size / (1024*1024)).toFixed(2)} MB. Maksimal ukuran gambar adalah 1 MB.`, 'warning');
-            }
-        });
-
-        // Prevent default drag behaviors globally
-        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-            document.body.addEventListener(eventName, preventDefaults, false);
-        });
-
-        function preventDefaults(e) {
-            e.preventDefault();
-            e.stopPropagation();
-        }
-
-        // Advanced File Upload Accumulator
-        const fileInput = document.getElementById('file-upload');
-        const filePreviewList = document.getElementById('file-preview-list');
-        const dropzoneContainer = fileInput ? fileInput.parentElement : null;
-        let selectedFiles = [];
-
-        if (dropzoneContainer) {
-            ['dragenter', 'dragover'].forEach(eventName => {
-                dropzoneContainer.addEventListener(eventName, () => {
-                    const innerBox = dropzoneContainer.querySelector('div');
-                    if (innerBox) innerBox.classList.add('bg-[#eef5ff]', 'border-blue-400', 'scale-[1.01]');
-                }, false);
-            });
-
-            ['dragleave', 'drop'].forEach(eventName => {
-                dropzoneContainer.addEventListener(eventName, () => {
-                    const innerBox = dropzoneContainer.querySelector('div');
-                    if (innerBox) innerBox.classList.remove('bg-[#eef5ff]', 'border-blue-400', 'scale-[1.01]');
-                }, false);
-            });
-
-            dropzoneContainer.addEventListener('drop', function(e) {
-                let dt = e.dataTransfer;
-                let files = Array.from(dt.files);
-                handleNewFiles(files);
-            }, false);
-        }
-
-        if (fileInput) {
-            fileInput.addEventListener('change', function(e) {
-                const newFiles = Array.from(this.files);
-                handleNewFiles(newFiles);
-            });
-        }
-
-        function handleNewFiles(newFiles) {
-            if (selectedFiles.length + newFiles.length > 6) {
-                showToast('Maksimal hanya 6 gambar yang diperbolehkan untuk satu request.', 'error');
-                updateFileInput();
-                return;
-            }
-            
-            let largeFileNames = [];
-            newFiles.forEach(file => {
-                if (file.size > 1024 * 1024) {
-                    largeFileNames.push(file.name);
-                } else {
-                    selectedFiles.push(file);
-                }
-            });
-            
-            if (largeFileNames.length > 0) {
-                const listStr = largeFileNames.join(', ');
-                showToast('Gambar berikut melebihi 1MB dan ditolak: ' + listStr, 'warning');
-            }
-
-            updateFileInput();
-            renderFileList();
-        }
-
-        function updateFileInput() {
-            if (!fileInput) return;
-            const dataTransfer = new DataTransfer();
-            selectedFiles.forEach(file => dataTransfer.items.add(file));
-            fileInput.files = dataTransfer.files;
-        }
-
-        function renderFileList() {
-            if (!filePreviewList) return;
-            filePreviewList.innerHTML = '';
-            
-            selectedFiles.forEach((file, index) => {
-                const fileSize = (file.size / 1024).toFixed(1) + ' KB';
-                const fileUrl = URL.createObjectURL(file);
-                
-                const item = document.createElement('div');
-                item.className = 'flex items-center justify-between p-2.5 bg-[#fafcfd] border border-slate-100 rounded-xl shadow-[0_2px_10px_-3px_rgba(0,0,0,0.05)]';
-                item.innerHTML = `
-                    <div class="flex items-center gap-4 overflow-hidden">
-                        <div class="w-12 h-12 bg-[#e8f1ff] text-[#3b82f6] rounded-xl flex items-center justify-center shrink-0 overflow-hidden border border-slate-200/50">
-                            ${file.type.startsWith('image/') 
-                                ? `<img src="${fileUrl}" class="w-full h-full object-cover" alt="Preview" />` 
-                                : `<i class="fa-solid fa-file text-lg"></i>`
-                            }
-                        </div>
-                        <div class="overflow-hidden">
-                            <p class="text-[13px] font-bold text-slate-700 truncate mb-0.5" title="${file.name}">${file.name}</p>
-                            <p class="text-[11px] font-semibold text-slate-400">${fileSize}</p>
-                        </div>
-                    </div>
-                    <button type="button" class="w-8 h-8 rounded-full bg-white border border-slate-200 shadow-sm text-slate-500 hover:text-rose-500 hover:border-rose-200 flex items-center justify-center shrink-0 transition-all z-20 relative mr-1 hover:bg-rose-50" onclick="removeFile(${index})">
-                        <i class="fa-solid fa-xmark text-sm"></i>
-                    </button>
-                `;
-                filePreviewList.appendChild(item);
-            });
-        }
-
-        function removeFile(index) {
-            selectedFiles.splice(index, 1);
-            updateFileInput();
-            renderFileList();
-        }
-
-        // Premium Modern Modal Notification
-        function showToast(message, type = 'error') {
-            const overlay = document.createElement('div');
-            overlay.className = 'fixed inset-0 bg-slate-900/30 backdrop-blur-[2px] z-50 flex items-center justify-center transition-all duration-300 opacity-0 p-4';
-            
-            const modal = document.createElement('div');
-            modal.className = 'bg-white rounded-3xl shadow-2xl max-w-sm w-full overflow-hidden transform scale-95 transition-all duration-300';
-            
-            let icon = type === 'error' ? 'fa-xmark' : 'fa-exclamation';
-            let iconColor = type === 'error' ? 'text-rose-500' : 'text-amber-500';
-            let bgIconClass = type === 'error' ? 'bg-rose-100' : 'bg-amber-100';
-
-            modal.innerHTML = `
-                <div class="p-8 text-center">
-                    <div class="w-20 h-20 ${bgIconClass} rounded-full flex items-center justify-center mx-auto mb-5 shadow-inner">
-                        <div class="w-14 h-14 bg-white rounded-full flex items-center justify-center shadow-sm">
-                            <i class="fa-solid ${icon} ${iconColor} text-3xl"></i>
-                        </div>
-                    </div>
-                    <h3 class="text-xl font-extrabold text-slate-800 mb-3">${type === 'error' ? 'Peringatan!' : 'Perhatian!'}</h3>
-                    <p class="text-[13px] text-slate-500 font-medium leading-relaxed mb-8">${message}</p>
-                    <button class="w-full py-3.5 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white rounded-xl font-bold text-sm transition-all shadow-md shadow-blue-500/25 close-modal">
-                        Oke
-                    </button>
-                </div>
-            `;
-            
-            overlay.appendChild(modal);
-            document.body.appendChild(overlay);
-            
-            requestAnimationFrame(() => {
-                overlay.classList.remove('opacity-0');
-                modal.classList.remove('scale-95');
-            });
-            
-            const closeModal = () => {
-                overlay.classList.add('opacity-0');
-                modal.classList.add('scale-95');
-                setTimeout(() => {
-                    overlay.remove();
-                }, 300);
-            };
-
-            modal.querySelector('.close-modal').addEventListener('click', closeModal);
-            overlay.addEventListener('click', (e) => {
-                if(e.target === overlay) closeModal();
-            });
-        }
-
-        // Initialize Flatpickr and TomSelect
-        document.addEventListener('DOMContentLoaded', function() {
-            try {
-                if (typeof flatpickr !== 'undefined') {
-                    const startPicker = flatpickr("#start-date-picker", {
-                        dateFormat: "Y-m-d",
-                        locale: "id",
-                        onChange: function(selectedDates, dateStr) {
-                            if (endPicker) {
-                                endPicker.set('minDate', dateStr);
-                            }
-                        }
-                    });
-
-                    const endPicker = flatpickr("#end-date-picker", {
-                        dateFormat: "Y-m-d",
-                        locale: "id",
-                        minDate: document.getElementById('start-date-picker')?.value || new Date()
-                    });
-                }
-            } catch (e) { console.error("Flatpickr error:", e); }
-
-            // Initialize Tom Select for Client searchable dropdown
-            try {
-                if (typeof TomSelect !== 'undefined') {
-                    new TomSelect("#client-select", {
-                        create: false,
-                        sortField: {
-                            field: "text",
-                            direction: "asc"
-                        },
-                        placeholder: "Cari dan pilih client..."
-                    });
-                }
-            } catch (e) { console.error("TomSelect error:", e); }
-        });
-    </script>
-    <style>
+        /* Tom Select custom styling */
         .ts-wrapper {
             padding: 0 !important;
             border: none !important;
@@ -469,6 +190,7 @@
             border-color: #e2e8f0 !important; /* border-slate-200 */
             font-size: 0.875rem !important; /* text-sm */
             color: #1e293b !important; /* text-slate-800 */
+            font-weight: 600;
             box-shadow: none !important;
             min-height: 48px;
             display: flex;
@@ -487,7 +209,7 @@
             border-color: #e2e8f0 !important;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
             margin-top: 4px !important;
-            z-index: 9999 !important;
+            z-index: 50 !important;
         }
         .ts-dropdown .option {
             padding: 0.75rem !important;
@@ -500,4 +222,82 @@
             font-weight: 600;
         }
     </style>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize Tom Select for Client searchable dropdown
+            try {
+                if (typeof TomSelect !== 'undefined') {
+                    new TomSelect("#client-select", {
+                        create: false,
+                        sortField: {
+                            field: "text",
+                            direction: "asc"
+                        },
+                        placeholder: "Cari dan pilih client..."
+                    });
+                }
+            } catch (e) { console.error("TomSelect error:", e); }
+
+            // Dynamic Image Previews for Create
+            const imageInput = document.getElementById('images-input');
+            const previewContainer = document.getElementById('image-preview-container');
+
+            if (imageInput && previewContainer) {
+                imageInput.addEventListener('change', function(e) {
+                    previewContainer.innerHTML = '';
+                    const files = Array.from(e.target.files).slice(0, 6);
+                    
+                    files.forEach(file => {
+                        if (!file.type.startsWith('image/')) return;
+                        const reader = new FileReader();
+                        reader.onload = function(evt) {
+                            const item = document.createElement('div');
+                            item.className = 'h-24 relative rounded-xl border border-slate-200 shadow-sm overflow-hidden group';
+                            item.innerHTML = `
+                                <img src="${evt.target.result}" alt="" class="h-full w-full object-cover group-hover:scale-110 transition-transform duration-300">
+                            `;
+                            previewContainer.appendChild(item);
+                        };
+                        reader.readAsDataURL(file);
+                    });
+                });
+            }
+        });
+
+        document.addEventListener('trix-file-accept', function(e) {
+            const maxFileSize = 1024 * 1024; // 1MB
+            if (e.file.size > maxFileSize) {
+                e.preventDefault();
+                
+                // Create custom toast
+                const toast = document.createElement('div');
+                toast.className = 'fixed bottom-4 right-4 bg-white border-l-4 border-rose-500 rounded-xl shadow-xl p-4 flex items-start gap-3 z-50 transition-all transform translate-y-10 opacity-0 duration-300';
+                toast.innerHTML = `
+                    <div class="text-rose-500 mt-0.5">
+                        <i class="fa-solid fa-circle-exclamation text-xl"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-slate-800 text-sm">Ukuran Gambar Terlalu Besar!</h4>
+                        <p class="text-xs text-slate-500 mt-1">Gambar <b class="text-slate-700">${e.file.name}</b> berukuran ${(e.file.size / (1024*1024)).toFixed(2)} MB.<br>Maksimal ukuran yang diizinkan adalah <b>1 MB</b>.</p>
+                    </div>
+                    <button class="text-slate-400 hover:text-slate-600 transition-colors ml-4" onclick="this.parentElement.remove()">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                `;
+                document.body.appendChild(toast);
+                
+                // Animate in
+                setTimeout(() => {
+                    toast.classList.remove('translate-y-10', 'opacity-0');
+                }, 10);
+                
+                // Animate out after 6 seconds
+                setTimeout(() => {
+                    toast.classList.add('translate-y-10', 'opacity-0');
+                    setTimeout(() => toast.remove(), 300);
+                }, 6000);
+            }
+        });
+    </script>
 </x-app-layout>

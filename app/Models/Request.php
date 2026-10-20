@@ -11,7 +11,11 @@ class Request extends Model
 
     protected $table = 'request';
 
-    protected $fillable = ['judul', 'deskripsi', 'start_date', 'end_date', 'kategori_id', 'tag_id', 'user_id', 'status_id', 'outlet_id', 'approval_status', 'approved_by', 'approval_date', 'approval_note'];
+    protected $fillable = [
+        'judul', 'deskripsi', 'start_date', 'end_date', 'kategori_id', 'tag_id',
+        'user_id', 'status_id', 'outlet_id', 'approval_status', 'approved_by',
+        'approval_date', 'approval_note', 'module', 'tipe_penanganan'
+    ];
 
     public function user(){
         return $this->belongsTo(User::class);

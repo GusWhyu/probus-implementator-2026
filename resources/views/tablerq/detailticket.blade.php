@@ -113,9 +113,11 @@
                             </h3>
                             <div class="flex flex-wrap gap-4 image-container">
                                 @foreach ($dataimg as $img)
-                                <div class="h-28 w-36 sm:h-32 sm:w-40 border border-slate-200 shadow-sm rounded-2xl overflow-hidden cursor-pointer group relative" onclick="my_modal_3.showModal()">
-                                    <div class="absolute inset-0 bg-blue-900/0 group-hover:bg-blue-900/10 transition-colors z-10 flex items-center justify-center">
-                                        <i class="fa-solid fa-expand text-white opacity-0 group-hover:opacity-100 transition-opacity text-xl drop-shadow-md"></i>
+                                <div class="h-28 w-36 sm:h-32 sm:w-40 border border-slate-200 shadow-sm rounded-2xl overflow-hidden cursor-pointer group relative hover:border-blue-400 hover:shadow-md transition-all" onclick="openImageReviewer({{ $loop->index }})">
+                                    <div class="absolute inset-0 bg-slate-950/0 group-hover:bg-slate-950/20 transition-colors z-10 flex items-center justify-center">
+                                        <span class="w-9 h-9 rounded-full bg-white/90 text-slate-700 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all shadow-md group-hover:scale-105">
+                                            <i class="fa-solid fa-magnifying-glass-plus text-sm"></i>
+                                        </span>
                                     </div>
                                     <img src="/img/{{ $img->image }}" alt="Lampiran" class="h-full w-full object-cover group-hover:scale-110 transition-transform duration-500">
                                 </div>
@@ -907,24 +909,263 @@
         <form method="dialog" class="modal-backdrop bg-slate-900/60 backdrop-blur-sm"><button>close</button></form>
     </dialog>
 
-    <dialog id="my_modal_3" class="modal">
-        <div class="modal-box w-11/12 max-w-5xl rounded-3xl p-0 overflow-hidden bg-transparent shadow-none">
-            <form method="dialog">
-                <button class="btn btn-sm btn-circle btn-neutral absolute right-4 top-4 text-white z-50 shadow-md">✕</button>
-            </form>
-            <div class="bg-black/95 p-4 rounded-3xl flex justify-center items-center h-full min-h-[70vh] border border-white/10 shadow-2xl">
-                <img src="" alt="" class="max-w-full max-h-[85vh] object-contain rounded-xl shadow-2xl">
+    <!-- Image Reviewer Modal (Lightbox) -->
+    <div id="imageReviewerModal" class="fixed inset-0 z-50 hidden flex-col bg-slate-950/95 backdrop-blur-md select-none transition-opacity duration-300 opacity-0" tabindex="-1" role="dialog" aria-modal="true">
+        
+        <!-- Top Bar -->
+        <div class="flex items-center justify-between px-4 sm:px-6 py-4 text-white border-b border-white/10 z-20 bg-slate-900/60 backdrop-blur-sm">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-lg bg-blue-500/20 text-blue-400 border border-blue-500/30 flex items-center justify-center">
+                    <i class="fa-regular fa-image text-sm"></i>
+                </div>
+                <div>
+                    <p id="reviewerFileName" class="text-xs sm:text-sm font-bold text-white tracking-wide truncate max-w-[180px] sm:max-w-md">Nama File</p>
+                    <p id="reviewerCounter" class="text-[10px] text-slate-400 font-medium">Gambar 1 dari 1</p>
+                </div>
+            </div>
+
+            <!-- Controls / Actions -->
+            <div class="flex items-center gap-1.5 sm:gap-2">
+                <!-- Zoom Out -->
+                <button type="button" onclick="reviewerZoomOut()" class="w-9 h-9 rounded-xl bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-all text-xs" title="Zoom Out (-)">
+                    <i class="fa-solid fa-minus"></i>
+                </button>
+                <!-- Zoom Level / Reset -->
+                <button type="button" onclick="reviewerResetZoom()" id="reviewerZoomLevel" class="px-2.5 h-9 rounded-xl bg-white/10 hover:bg-white/20 text-white font-mono text-xs font-bold transition-all flex items-center justify-center" title="Reset Zoom (100%)">
+                    100%
+                </button>
+                <!-- Zoom In -->
+                <button type="button" onclick="reviewerZoomIn()" class="w-9 h-9 rounded-xl bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-all text-xs" title="Zoom In (+)">
+                    <i class="fa-solid fa-plus"></i>
+                </button>
+                <!-- Rotate -->
+                <button type="button" onclick="reviewerRotate()" class="w-9 h-9 rounded-xl bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-all text-xs" title="Putar Gambar (90°)">
+                    <i class="fa-solid fa-rotate-right"></i>
+                </button>
+                <!-- Download / Open in new tab -->
+                <a id="reviewerDownloadBtn" href="#" download target="_blank" class="w-9 h-9 rounded-xl bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-all text-xs" title="Unduh / Buka Gambar Asli">
+                    <i class="fa-solid fa-download"></i>
+                </a>
+                <!-- Close Button -->
+                <button type="button" onclick="closeImageReviewer()" class="w-9 h-9 ml-2 rounded-xl bg-rose-500/80 hover:bg-rose-600 text-white flex items-center justify-center transition-all shadow-lg shadow-rose-500/20 text-sm" title="Tutup (Esc)">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
             </div>
         </div>
-        <form method="dialog" class="modal-backdrop bg-slate-900/80 backdrop-blur-sm"><button>close</button></form>
-    </dialog>
 
+        <!-- Main Image Viewport Area -->
+        <div id="reviewerViewport" class="flex-1 relative flex items-center justify-center p-4 overflow-hidden">
+            
+            <!-- Prev Button -->
+            <button type="button" id="reviewerPrevBtn" onclick="reviewerPrev()" class="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-slate-900/70 hover:bg-blue-600 border border-white/20 text-white flex items-center justify-center transition-all z-20 shadow-xl group">
+                <i class="fa-solid fa-chevron-left text-base group-hover:-translate-x-0.5 transition-transform"></i>
+            </button>
 
+            <!-- Image Container -->
+            <div id="reviewerImageWrapper" class="relative max-w-full max-h-full flex items-center justify-center transition-transform duration-200 ease-out">
+                <img id="reviewerMainImage" src="" alt="Review Gambar" class="max-w-[90vw] max-h-[72vh] object-contain rounded-xl shadow-2xl transition-all duration-200">
+            </div>
+
+            <!-- Next Button -->
+            <button type="button" id="reviewerNextBtn" onclick="reviewerNext()" class="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-slate-900/70 hover:bg-blue-600 border border-white/20 text-white flex items-center justify-center transition-all z-20 shadow-xl group">
+                <i class="fa-solid fa-chevron-right text-base group-hover:translate-x-0.5 transition-transform"></i>
+            </button>
+        </div>
+
+        <!-- Bottom Thumbnails Strip -->
+        <div id="reviewerThumbnailsStrip" class="p-4 border-t border-white/10 z-20 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center gap-3 overflow-x-auto max-w-full custom-scrollbar">
+            <!-- Rendered via JS -->
+        </div>
+    </div>
 
     <script>
-        document.querySelectorAll('.image-container img').forEach(image =>{
-            image.onclick = () =>{
-                document.querySelector('.modal-box img').src = image.getAttribute('src');
+        const reviewImages = @json($dataimg->map(function($i) {
+            return [
+                'id' => $i->id,
+                'src' => '/img/' . $i->image,
+                'name' => $i->image
+            ];
+        }));
+
+        let currentImageIndex = 0;
+        let currentZoom = 1;
+        let currentRotation = 0;
+
+        function openImageReviewer(index = 0) {
+            if (!reviewImages || reviewImages.length === 0) return;
+            currentImageIndex = Math.max(0, Math.min(index, reviewImages.length - 1));
+            currentZoom = 1;
+            currentRotation = 0;
+            
+            updateReviewerDisplay();
+            
+            const modal = document.getElementById('imageReviewerModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            void modal.offsetWidth;
+            modal.classList.add('opacity-100');
+            document.body.style.overflow = 'hidden';
+            
+            renderReviewerThumbnails();
+        }
+
+        function closeImageReviewer() {
+            const modal = document.getElementById('imageReviewerModal');
+            if (!modal) return;
+            modal.classList.remove('opacity-100');
+            setTimeout(() => {
+                modal.classList.remove('flex');
+                modal.classList.add('hidden');
+                document.body.style.overflow = '';
+            }, 250);
+        }
+
+        function updateReviewerDisplay() {
+            const item = reviewImages[currentImageIndex];
+            if (!item) return;
+
+            const mainImg = document.getElementById('reviewerMainImage');
+            const fileName = document.getElementById('reviewerFileName');
+            const counter = document.getElementById('reviewerCounter');
+            const dlBtn = document.getElementById('reviewerDownloadBtn');
+            const prevBtn = document.getElementById('reviewerPrevBtn');
+            const nextBtn = document.getElementById('reviewerNextBtn');
+
+            mainImg.src = item.src;
+            mainImg.alt = item.name;
+            fileName.textContent = item.name;
+            counter.textContent = `Gambar ${currentImageIndex + 1} dari ${reviewImages.length}`;
+            dlBtn.href = item.src;
+            dlBtn.setAttribute('download', item.name);
+
+            if (reviewImages.length <= 1) {
+                prevBtn.classList.add('hidden');
+                nextBtn.classList.add('hidden');
+            } else {
+                prevBtn.classList.remove('hidden');
+                nextBtn.classList.remove('hidden');
+            }
+
+            applyTransform();
+            highlightActiveThumbnail();
+        }
+
+        function applyTransform() {
+            const wrapper = document.getElementById('reviewerImageWrapper');
+            if (!wrapper) return;
+            wrapper.style.transform = `scale(${currentZoom}) rotate(${currentRotation}deg)`;
+            const zoomText = document.getElementById('reviewerZoomLevel');
+            if (zoomText) zoomText.textContent = `${Math.round(currentZoom * 100)}%`;
+        }
+
+        function reviewerZoomIn() {
+            if (currentZoom < 3) {
+                currentZoom = Math.min(3, +(currentZoom + 0.25).toFixed(2));
+                applyTransform();
+            }
+        }
+
+        function reviewerZoomOut() {
+            if (currentZoom > 0.5) {
+                currentZoom = Math.max(0.5, +(currentZoom - 0.25).toFixed(2));
+                applyTransform();
+            }
+        }
+
+        function reviewerResetZoom() {
+            currentZoom = 1;
+            currentRotation = 0;
+            applyTransform();
+        }
+
+        function reviewerRotate() {
+            currentRotation = (currentRotation + 90) % 360;
+            applyTransform();
+        }
+
+        function reviewerNext() {
+            if (reviewImages.length > 1) {
+                currentImageIndex = (currentImageIndex + 1) % reviewImages.length;
+                currentZoom = 1;
+                currentRotation = 0;
+                updateReviewerDisplay();
+            }
+        }
+
+        function reviewerPrev() {
+            if (reviewImages.length > 1) {
+                currentImageIndex = (currentImageIndex - 1 + reviewImages.length) % reviewImages.length;
+                currentZoom = 1;
+                currentRotation = 0;
+                updateReviewerDisplay();
+            }
+        }
+
+        function renderReviewerThumbnails() {
+            const strip = document.getElementById('reviewerThumbnailsStrip');
+            if (!strip) return;
+            if (reviewImages.length <= 1) {
+                strip.classList.add('hidden');
+                return;
+            }
+            strip.classList.remove('hidden');
+            strip.innerHTML = '';
+
+            reviewImages.forEach((img, idx) => {
+                const thumb = document.createElement('button');
+                thumb.type = 'button';
+                thumb.className = `w-14 h-14 rounded-xl overflow-hidden border-2 transition-all flex-shrink-0 ${idx === currentImageIndex ? 'border-blue-500 scale-105 shadow-md shadow-blue-500/30' : 'border-white/20 opacity-60 hover:opacity-100 hover:border-white/50'}`;
+                thumb.onclick = () => {
+                    currentImageIndex = idx;
+                    currentZoom = 1;
+                    currentRotation = 0;
+                    updateReviewerDisplay();
+                };
+                thumb.innerHTML = `<img src="${img.src}" alt="" class="w-full h-full object-cover pointer-events-none">`;
+                strip.appendChild(thumb);
+            });
+        }
+
+        function highlightActiveThumbnail() {
+            const strip = document.getElementById('reviewerThumbnailsStrip');
+            if (!strip) return;
+            const thumbs = strip.querySelectorAll('button');
+            thumbs.forEach((th, idx) => {
+                if (idx === currentImageIndex) {
+                    th.className = 'w-14 h-14 rounded-xl overflow-hidden border-2 border-blue-500 scale-105 shadow-md shadow-blue-500/30 transition-all flex-shrink-0';
+                    th.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+                } else {
+                    th.className = 'w-14 h-14 rounded-xl overflow-hidden border-2 border-white/20 opacity-60 hover:opacity-100 hover:border-white/50 transition-all flex-shrink-0';
+                }
+            });
+        }
+
+        // Keyboard navigation
+        document.addEventListener('keydown', function(e) {
+            const modal = document.getElementById('imageReviewerModal');
+            if (!modal || modal.classList.contains('hidden')) return;
+
+            if (e.key === 'Escape') {
+                closeImageReviewer();
+            } else if (e.key === 'ArrowRight') {
+                reviewerNext();
+            } else if (e.key === 'ArrowLeft') {
+                reviewerPrev();
+            } else if (e.key === '+' || e.key === '=') {
+                reviewerZoomIn();
+            } else if (e.key === '-' || e.key === '_') {
+                reviewerZoomOut();
+            } else if (e.key === '0') {
+                reviewerResetZoom();
+            }
+        });
+
+        // Click outside image to close
+        document.addEventListener('click', function(e) {
+            const viewport = document.getElementById('reviewerViewport');
+            const wrapper = document.getElementById('reviewerImageWrapper');
+            if (viewport && (e.target === viewport || e.target === wrapper)) {
+                closeImageReviewer();
             }
         });
         

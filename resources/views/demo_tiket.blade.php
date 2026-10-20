@@ -103,15 +103,15 @@
                         <div class="text-4xl font-bold text-slate-800">248</div>
                     </div>
                     <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between h-28">
-                        <div class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Belum Ditangani</div>
+                        <div class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Open</div>
                         <div class="text-4xl font-bold text-slate-800">36</div>
                     </div>
                     <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between h-28">
-                        <div class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Sedang Diproses</div>
+                        <div class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Progress</div>
                         <div class="text-4xl font-bold text-slate-800">58</div>
                     </div>
                     <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between h-28">
-                        <div class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Selesai</div>
+                        <div class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Closed</div>
                         <div class="text-4xl font-bold text-slate-800">154</div>
                     </div>
                 </div>
