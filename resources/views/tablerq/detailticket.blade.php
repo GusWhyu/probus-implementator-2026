@@ -231,9 +231,7 @@
                                             <span class="font-bold text-[11px] text-slate-700">{{ $komen->user->name ?? 'User' }}</span>
                                             <span class="text-[10px] font-medium text-slate-400">{{ $komen->created_at->diffForHumans() }}</span>
                                         </div>
-                                        <div class="px-5 py-3.5 rounded-2xl text-sm font-medium prose prose-sm max-w-none shadow-sm {{ $komen->user_id == $aid ? 'bg-blue-600 text-white rounded-tr-sm prose-p:text-blue-50 prose-a:text-white' : 'bg-white border border-slate-100 text-slate-800 rounded-tl-sm' }}">
-                                            {!! $komen->body ?? $komen->message !!}
-                                        </div>
+                                        <div class="w-fit max-w-full px-4 py-2.5 rounded-2xl text-sm font-medium shadow-sm break-words whitespace-pre-line leading-relaxed [&_p]:my-0 [&_p+p]:mt-1.5 {{ $komen->user_id == $aid ? 'bg-blue-600 text-white rounded-tr-sm' : 'bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-tl-sm' }}">{!! trim($komen->body ?? $komen->message) !!}</div>
                                         @if ($komen->user_id == $aid && $stid != 'CLOSED')
                                         <a data-confirm-delete="true" href="/deletekomen/{{ $komen->id }}" class="text-[10px] font-bold text-slate-400 mt-1.5 hover:text-rose-500 transition-colors px-1"><i class="fa-solid fa-trash-can mr-1"></i>Hapus</a>
                                         @endif
@@ -260,24 +258,23 @@
                             <p class="text-xs font-bold text-slate-500"><i class="fa-solid fa-lock mr-2 text-slate-400"></i>Diskusi dikunci sementara menunggu proses alih tiket disetujui.</p>
                         </div>
                         @else
-                        <div class="p-6 md:p-8 border-t border-slate-100 bg-white">
+                        <div class="p-6 md:p-8 border-t border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-800">
                             <form id="diskusi-form" action="/ticket-komentar/{{ $datarq->id }}" method="POST">
                                 @csrf
-                                <input type="hidden" id="comment" name="comment" value="{{ old('comment') }}">
-                                <div class="bg-slate-50/50 rounded-2xl border border-slate-200 overflow-hidden focus-within:ring-4 focus-within:ring-blue-500/10 focus-within:border-blue-500 transition-all flex flex-col">
-                                    <div class="order-2 bg-white px-4 py-3 border-t border-slate-100 flex flex-wrap sm:flex-nowrap justify-between items-center gap-3">
-                                        <div class="overflow-x-auto max-w-full flex-1">
-                                            <trix-toolbar id="trix-toolbar-komen"></trix-toolbar>
-                                        </div>
-                                        <button type="button" id="btn-kirim-diskusi" onclick="kirimPesanDiskusi()" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-xl text-xs font-bold transition-all active:scale-95 shadow-sm shadow-blue-500/20 flex items-center gap-2 shrink-0">
+                                <div class="bg-slate-50/70 dark:bg-slate-900/60 rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden focus-within:ring-4 focus-within:ring-blue-500/10 focus-within:border-blue-500 transition-all flex flex-col">
+                                    <div class="p-3 sm:p-4">
+                                        <textarea id="comment" name="comment" rows="3" class="w-full bg-transparent border-none text-sm font-medium text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none resize-none leading-relaxed block" placeholder="Ketik pesan Anda di sini...">{{ old('comment') }}</textarea>
+                                        @error('comment')
+                                        <p class="text-rose-500 text-xs font-bold mt-1">{{ $message }}</p>
+                                        @enderror
+                                    </div>
+                                    <div class="bg-white dark:bg-slate-800/90 px-4 py-2.5 border-t border-slate-100 dark:border-slate-700 flex justify-between items-center gap-3">
+                                        <span class="text-[11px] text-slate-400 font-medium hidden sm:inline-flex items-center gap-1">
+                                            <kbd class="px-1.5 py-0.5 text-[10px] bg-slate-100 dark:bg-slate-700 rounded border border-slate-200 dark:border-slate-600 font-mono text-slate-600 dark:text-slate-300">Enter</kbd> untuk kirim, <kbd class="px-1.5 py-0.5 text-[10px] bg-slate-100 dark:bg-slate-700 rounded border border-slate-200 dark:border-slate-600 font-mono text-slate-600 dark:text-slate-300">Shift+Enter</kbd> baris baru
+                                        </span>
+                                        <button type="button" id="btn-kirim-diskusi" onclick="kirimPesanDiskusi()" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-xl text-xs font-bold transition-all active:scale-95 shadow-sm shadow-blue-500/20 flex items-center gap-2 shrink-0 ml-auto">
                                             <span>Kirim</span> <i class="fa-solid fa-paper-plane text-[10px]"></i>
                                         </button>
-                                    </div>
-                                    <div class="order-1">
-                                        <trix-editor toolbar="trix-toolbar-komen" trix-attachment-remove input="comment" class="border-none min-h-[100px] text-sm font-medium p-4 focus:outline-none max-w-none prose prose-slate w-full" placeholder="Ketik pesan Anda di sini..."></trix-editor>
-                                        @error('comment')
-                                        <p class="text-rose-500 text-xs font-bold px-4 pb-2">{{ $message }}</p>
-                                        @enderror
                                     </div>
                                 </div>
                             </form>
@@ -1196,18 +1193,6 @@
             }
         });
         
-        // Hide default trix toolbar for comments
-        document.addEventListener("trix-initialize", function(event) {
-            const editor = event.target;
-            if (editor.getAttribute("input") === "comment") {
-                const toolbar = editor.toolbarElement;
-                if(toolbar) {
-                    // Custom styling to make toolbar compact
-                    toolbar.classList.add("scale-90", "origin-left", "m-0", "opacity-70", "hover:opacity-100", "transition-opacity");
-                }
-            }
-        });
-
         // AJAX Chat Diskusi & Auto Scroll
         function escapeHtml(str) {
             if (!str) return '';
@@ -1220,26 +1205,13 @@
             const diskusiForm = document.getElementById('diskusi-form');
             if (!diskusiForm) return;
 
-            const trixEditor = document.querySelector('trix-editor[input="comment"]');
             const commentInput = document.getElementById('comment');
             const submitBtn = document.getElementById('btn-kirim-diskusi');
             const messagesContainer = document.getElementById('diskusi-messages-container');
 
-            // Ambil isi HTML dari Trix editor atau hidden input
-            let messageHtml = '';
-            if (commentInput && commentInput.value) {
-                messageHtml = commentInput.value;
-            } else if (trixEditor && trixEditor.value) {
-                messageHtml = trixEditor.value;
-            } else if (trixEditor) {
-                messageHtml = trixEditor.innerHTML;
-            }
-
-            // Validasi apakah benar-benar ada teks pesan (bukan hanya tag html kosong)
-            const plainText = messageHtml.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim();
-            const hasMedia = messageHtml.includes('<img') || messageHtml.includes('<figure');
-            if (!plainText && !hasMedia) {
-                if (trixEditor) trixEditor.focus();
+            const messageText = commentInput ? commentInput.value.trim() : '';
+            if (!messageText) {
+                if (commentInput) commentInput.focus();
                 return;
             }
 
@@ -1252,7 +1224,7 @@
 
             try {
                 const formData = new FormData(diskusiForm);
-                formData.set('comment', messageHtml);
+                formData.set('comment', messageText);
 
                 const csrfMeta = document.querySelector('meta[name="csrf-token"]');
                 const csrfToken = csrfMeta ? csrfMeta.getAttribute('content') : (diskusiForm.querySelector('input[name="_token"]')?.value || '');
@@ -1275,15 +1247,8 @@
                 const result = await response.json();
 
                 if (result.success && result.data) {
-                    // Kosongkan editor Trix & hidden input
-                    if (trixEditor && trixEditor.editor) {
-                        trixEditor.editor.loadHTML('');
-                    }
                     if (commentInput) {
                         commentInput.value = '';
-                    }
-                    if (trixEditor) {
-                        trixEditor.value = '';
                     }
 
                     // Hapus pesan kosong bila ada
@@ -1301,6 +1266,8 @@
                     // Buat elemen bubble pesan baru
                     const msg = result.data;
                     const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(msg.user_name)}&background=2563eb&color=fff&bold=true`;
+                    const rawMsg = (msg.message || msg.body || '').trim();
+                    const escapedContent = escapeHtml(rawMsg);
 
                     const bubbleDiv = document.createElement('div');
                     bubbleDiv.className = 'flex gap-4 flex-row-reverse transition-all duration-300 opacity-0 translate-y-2';
@@ -1313,9 +1280,7 @@
                                 <span class="font-bold text-[11px] text-slate-700">${escapeHtml(msg.user_name)}</span>
                                 <span class="text-[10px] font-medium text-slate-400">${escapeHtml(msg.time_ago)}</span>
                             </div>
-                            <div class="px-5 py-3.5 rounded-2xl text-sm font-medium prose prose-sm max-w-none shadow-sm bg-blue-600 text-white rounded-tr-sm prose-p:text-blue-50 prose-a:text-white">
-                                ${msg.message}
-                            </div>
+                            <div class="w-fit max-w-full px-4 py-2.5 rounded-2xl text-sm font-medium shadow-sm bg-blue-600 text-white rounded-tr-sm break-words whitespace-pre-line leading-relaxed">${escapedContent}</div>
                             <a data-confirm-delete="true" href="/deletekomen/${msg.id}" class="text-[10px] font-bold text-slate-400 mt-1.5 hover:text-rose-500 transition-colors px-1">
                                 <i class="fa-solid fa-trash-can mr-1"></i>Hapus
                             </a>
@@ -1397,16 +1362,15 @@
                 });
             }
 
-            // Kirim dengan Ctrl+Enter atau Cmd+Enter saat fokus di Trix
-            document.addEventListener('keydown', function(e) {
-                if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
-                    const trix = document.querySelector('trix-editor[input="comment"]');
-                    if (trix && (document.activeElement === trix || trix.contains(document.activeElement))) {
+            const commentTextarea = document.getElementById('comment');
+            if (commentTextarea) {
+                commentTextarea.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter' && !e.shiftKey) {
                         e.preventDefault();
                         window.kirimPesanDiskusi();
                     }
-                }
-            });
+                });
+            }
         }
 
         if (document.readyState === 'loading') {

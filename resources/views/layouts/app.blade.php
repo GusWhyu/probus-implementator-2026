@@ -23,6 +23,9 @@
         <link rel="stylesheet" href="{{ asset('css/style.css') }}">
         <link rel="stylesheet" type="text/css" href="https://unpkg.com/trix@2.0.8/dist/trix.css">
         <script type="text/javascript" src="https://unpkg.com/trix@2.0.8/dist/trix.umd.min.js"></script>
+        <!-- Quill 2.0 Modern Rich Text Editor -->
+        <link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css" rel="stylesheet">
+        <script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js"></script>
         <script src="{{ asset('js/app.js') }}"></script>
         
         <!-- Anti-FOUC: Check theme before page renders to prevent flash -->
@@ -693,6 +696,106 @@
             html[data-theme="dark"] trix-editor:empty:not(:focus)::before {
                 color: #64748b !important;
             }
+            /* Quill 2.0 Editor Styling (Clean & Modern SaaS Style) */
+            .ql-toolbar.ql-snow {
+                border-top-left-radius: 1rem;
+                border-top-right-radius: 1rem;
+                border-color: #e2e8f0;
+                background-color: #f8fafc;
+                padding: 0.75rem 1rem;
+                font-family: inherit;
+            }
+            .ql-container.ql-snow {
+                border-bottom-left-radius: 1rem;
+                border-bottom-right-radius: 1rem;
+                border-color: #e2e8f0;
+                background-color: #ffffff;
+                font-family: inherit;
+                font-size: 0.875rem;
+                color: #1e293b;
+            }
+            .ql-editor {
+                min-height: 220px;
+                line-height: 1.6;
+            }
+            .ql-editor.ql-blank::before {
+                color: #94a3b8;
+                font-style: normal;
+            }
+            .ql-editor img {
+                border-radius: 0.75rem;
+                box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+                margin: 0.75rem 0;
+                max-width: 100%;
+            }
+
+            /* Quill in Dark Mode */
+            html.dark .ql-toolbar.ql-snow,
+            html[data-theme="dark"] .ql-toolbar.ql-snow {
+                background-color: #0f172a !important;
+                border-color: #334155 !important;
+            }
+            html.dark .ql-container.ql-snow,
+            html[data-theme="dark"] .ql-container.ql-snow {
+                background-color: #0b1120 !important;
+                border-color: #334155 !important;
+                color: #f1f5f9 !important;
+            }
+            html.dark .ql-editor.ql-blank::before,
+            html[data-theme="dark"] .ql-editor.ql-blank::before {
+                color: #64748b !important;
+            }
+            html.dark .ql-snow .ql-stroke,
+            html[data-theme="dark"] .ql-snow .ql-stroke {
+                stroke: #94a3b8 !important;
+            }
+            html.dark .ql-snow .ql-fill,
+            html[data-theme="dark"] .ql-snow .ql-fill {
+                fill: #94a3b8 !important;
+            }
+            html.dark .ql-snow .ql-picker,
+            html[data-theme="dark"] .ql-snow .ql-picker {
+                color: #cbd5e1 !important;
+            }
+            html.dark .ql-snow .ql-picker-options,
+            html[data-theme="dark"] .ql-snow .ql-picker-options {
+                background-color: #1e293b !important;
+                border-color: #334155 !important;
+                box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5) !important;
+            }
+            html.dark .ql-snow .ql-picker-item,
+            html[data-theme="dark"] .ql-snow .ql-picker-item {
+                color: #cbd5e1 !important;
+            }
+            html.dark .ql-snow .ql-picker-item:hover,
+            html[data-theme="dark"] .ql-snow .ql-picker-item:hover,
+            html.dark .ql-snow .ql-picker-item.ql-selected,
+            html[data-theme="dark"] .ql-snow .ql-picker-item.ql-selected {
+                color: #60a5fa !important;
+            }
+            html.dark .ql-snow .ql-toolbar button:hover,
+            html[data-theme="dark"] .ql-snow .ql-toolbar button:hover,
+            html.dark .ql-snow.ql-toolbar button:hover,
+            html[data-theme="dark"] .ql-snow.ql-toolbar button:hover {
+                color: #3b82f6 !important;
+            }
+            html.dark .ql-snow .ql-toolbar button:hover .ql-stroke,
+            html[data-theme="dark"] .ql-snow .ql-toolbar button:hover .ql-stroke {
+                stroke: #3b82f6 !important;
+            }
+            html.dark .ql-snow .ql-toolbar button:hover .ql-fill,
+            html[data-theme="dark"] .ql-snow .ql-toolbar button:hover .ql-fill {
+                fill: #3b82f6 !important;
+            }
+            html.dark .ql-snow .ql-toolbar button.ql-active .ql-stroke,
+            html[data-theme="dark"] .ql-snow .ql-toolbar button.ql-active .ql-stroke {
+                stroke: #3b82f6 !important;
+            }
+            html.dark .ql-snow .ql-toolbar button.ql-active .ql-fill,
+            html[data-theme="dark"] .ql-snow .ql-toolbar button.ql-active .ql-fill {
+                fill: #3b82f6 !important;
+            }
+
             /* Scrollbars in Dark Mode - Seamlessly blend with dark background */
             html.dark * {
                 scrollbar-color: #334155 transparent !important;
@@ -853,6 +956,61 @@
                 const isDark = document.documentElement.classList.contains('dark');
                 syncThemeIcons(isDark);
             });
+
+            // Enhanced Rich Text Editor (Quill 2.0) Helper
+            window.setupEnhancedEditor = function(containerId, inputId, placeholder) {
+                const container = document.getElementById(containerId);
+                const hiddenInput = document.getElementById(inputId);
+                if (!container || !hiddenInput) return null;
+
+                if (typeof Quill === 'undefined') {
+                    console.error('Quill is not loaded');
+                    return null;
+                }
+
+                const quill = new Quill(container, {
+                    theme: 'snow',
+                    placeholder: placeholder || 'Tuliskan deskripsi lengkap di sini...',
+                    modules: {
+                        toolbar: [
+                            [{ 'header': [1, 2, 3, false] }],
+                            ['bold', 'italic', 'underline', 'strike'],
+                            [{ 'color': [] }, { 'background': [] }],
+                            [{ 'align': [] }],
+                            [{ 'list': 'ordered' }, { 'list': 'bullet' }, { 'list': 'check' }],
+                            [{ 'indent': '-1' }, { 'indent': '+1' }],
+                            ['blockquote', 'code-block'],
+                            ['link'],
+                            ['clean']
+                        ]
+                    }
+                });
+
+                // Populate initial content if present
+                if (hiddenInput.value && hiddenInput.value.trim() !== '') {
+                    quill.root.innerHTML = hiddenInput.value;
+                }
+
+                // Sync function
+                function syncContent() {
+                    const text = quill.getText().trim();
+                    const hasImage = quill.root.querySelector('img') !== null;
+                    if (!text && !hasImage) {
+                        hiddenInput.value = '';
+                    } else {
+                        hiddenInput.value = quill.root.innerHTML;
+                    }
+                }
+
+                quill.on('text-change', syncContent);
+
+                const form = hiddenInput.closest('form');
+                if (form) {
+                    form.addEventListener('submit', syncContent);
+                }
+
+                return quill;
+            };
         </script>
     </body>
 </html>

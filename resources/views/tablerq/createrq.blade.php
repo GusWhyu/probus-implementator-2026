@@ -138,13 +138,15 @@
                             <h2 class="text-sm font-extrabold text-slate-800 dark:text-slate-200 flex items-center gap-2 tracking-wider uppercase"><i class="fa-solid fa-align-left text-blue-500"></i> Deskripsi Masalah <span class="text-rose-500">*</span></h2>
                         </div>
                         <div class="p-6 md:p-8 flex-1 flex flex-col">
-                            <div class="sticky top-0 z-20 bg-white dark:bg-slate-800 pb-3 mb-2">
-                                <trix-toolbar id="trix-toolbar-create"></trix-toolbar>
-                            </div>
                             <input type="hidden" id="body" name="body" value="{{ old('body') }}">
-                            <div class="flex-1 flex flex-col min-h-[400px]">
-                                <trix-editor toolbar="trix-toolbar-create" trix-attachment-remove input="body" class="bg-slate-50/50 dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 flex-1 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all text-sm font-medium text-slate-700 dark:text-slate-200 prose max-w-none prose-p:my-1 prose-img:rounded-xl" placeholder="Tuliskan deskripsi lengkap masalah atau kebutuhan request di sini..."></trix-editor>
-                            </div>
+                            <div id="editor-container" class="rounded-xl overflow-hidden shadow-sm flex-1 flex flex-col"></div>
+                            <p class="text-[11px] text-slate-400 dark:text-slate-500 mt-2 flex items-center gap-1.5">
+                                <i class="fa-solid fa-circle-info text-blue-500"></i>
+                                <span>Fitur lengkap: Bold, Italic, Underline, Warna, Heading, Checklists, Blockquote, dan Link.</span>
+                            </p>
+                            @error('body')
+                            <p class="text-rose-500 text-xs font-bold mt-1.5">{{ $message }}</p>
+                            @enderror
                         </div>
                     </div>
 
@@ -361,39 +363,15 @@
             }
         });
 
-        document.addEventListener('trix-file-accept', function(e) {
-            const maxFileSize = 1024 * 1024; // 1MB
-            if (e.file.size > maxFileSize) {
-                e.preventDefault();
-                
-                // Create custom toast
-                const toast = document.createElement('div');
-                toast.className = 'fixed bottom-4 right-4 bg-white border-l-4 border-rose-500 rounded-xl shadow-xl p-4 flex items-start gap-3 z-50 transition-all transform translate-y-10 opacity-0 duration-300';
-                toast.innerHTML = `
-                    <div class="text-rose-500 mt-0.5">
-                        <i class="fa-solid fa-circle-exclamation text-xl"></i>
-                    </div>
-                    <div>
-                        <h4 class="font-bold text-slate-800 text-sm">Ukuran Gambar Terlalu Besar!</h4>
-                        <p class="text-xs text-slate-500 mt-1">Gambar <b class="text-slate-700">${e.file.name}</b> berukuran ${(e.file.size / (1024*1024)).toFixed(2)} MB.<br>Maksimal ukuran yang diizinkan adalah <b>1 MB</b>.</p>
-                    </div>
-                    <button class="text-slate-400 hover:text-slate-600 transition-colors ml-4" onclick="this.parentElement.remove()">
-                        <i class="fa-solid fa-xmark"></i>
-                    </button>
-                `;
-                document.body.appendChild(toast);
-                
-                // Animate in
-                setTimeout(() => {
-                    toast.classList.remove('translate-y-10', 'opacity-0');
-                }, 10);
-                
-                // Animate out after 6 seconds
-                setTimeout(() => {
-                    toast.classList.add('translate-y-10', 'opacity-0');
-                    setTimeout(() => toast.remove(), 300);
-                }, 6000);
-            }
-        });
+        if (typeof window.setupEnhancedEditor === 'function') {
+            window.setupEnhancedEditor('editor-container', 'body', 'Tuliskan deskripsi lengkap masalah atau kebutuhan request di sini...');
+        } else {
+            document.addEventListener('DOMContentLoaded', function() {
+                if (typeof window.setupEnhancedEditor === 'function') {
+                    window.setupEnhancedEditor('editor-container', 'body', 'Tuliskan deskripsi lengkap masalah atau kebutuhan request di sini...');
+                }
+            });
+        }
+
     </script>
 </x-app-layout>

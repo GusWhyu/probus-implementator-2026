@@ -891,4 +891,38 @@ class TicketController extends Controller
             return redirect()->back();
         }
     }
+
+    public function uploadEditorImage(Request $request)
+    {
+        $request->validate([
+            'image' => 'nullable|file|mimes:jpeg,png,jpg,gif,webp|max:5120',
+            'file' => 'nullable|file|mimes:jpeg,png,jpg,gif,webp|max:5120',
+        ]);
+
+        $file = $request->file('image') ?? $request->file('file');
+
+        if ($file) {
+            $extension = $file->getClientOriginalExtension() ?: 'png';
+            $filename = 'editor_' . time() . '_' . \Illuminate\Support\Str::random(10) . '.' . $extension;
+            
+            $targetDir = public_path('img/editor');
+            if (!file_exists($targetDir)) {
+                mkdir($targetDir, 0777, true);
+            }
+            
+            $file->move($targetDir, $filename);
+            $url = asset('img/editor/' . $filename);
+
+            return response()->json([
+                'success' => true,
+                'url' => $url
+            ]);
+        }
+
+        return response()->json([
+            'success' => false,
+            'message' => 'Tidak ada file gambar yang diunggah.'
+        ], 400);
+    }
 }
+

@@ -35,9 +35,9 @@
                 </div>
 
                 <!-- Dropdowns & Actions Toolbar -->
-                <div class="flex items-center gap-2 sm:gap-3 shrink-0">
+                <div class="flex items-center gap-2 sm:gap-3 w-full sm:w-auto shrink-0">
                     <!-- System Dropdown -->
-                    <div class="relative w-40 sm:w-48">
+                    <div class="relative flex-1 min-w-0 sm:w-48 sm:flex-none">
                         <select name="system" onchange="this.form.submit()" class="w-full appearance-none pl-3.5 sm:pl-4 pr-9 sm:pr-10 py-2 sm:py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200 hover:border-slate-300 dark:hover:border-slate-600 focus:outline-none focus:ring-4 focus:ring-blue-500/10 shadow-sm cursor-pointer transition-all truncate">
                             <option value="">Semua System</option>
                             @foreach($systems as $sys)
@@ -48,7 +48,7 @@
                     </div>
                     
                     <!-- Module Dropdown -->
-                    <div class="relative w-40 sm:w-48">
+                    <div class="relative flex-1 min-w-0 sm:w-48 sm:flex-none">
                         <select name="module" onchange="this.form.submit()" class="w-full appearance-none pl-3.5 sm:pl-4 pr-9 sm:pr-10 py-2 sm:py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200 hover:border-slate-300 dark:hover:border-slate-600 focus:outline-none focus:ring-4 focus:ring-blue-500/10 shadow-sm cursor-pointer transition-all truncate">
                             <option value="">Semua Module</option>
                             @foreach($modules as $mod)
@@ -60,7 +60,7 @@
 
                     @if(request()->filled('search') || request()->filled('system') || request()->filled('module'))
                     <!-- Reset Filter Button -->
-                    <a href="{{ route('inbox') }}" class="px-3.5 py-2 sm:py-2.5 bg-rose-50 dark:bg-rose-950/30 hover:bg-rose-100 dark:hover:bg-rose-950/50 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-800/40 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-1.5 transition-colors shadow-sm shrink-0" title="Reset filter & pencarian">
+                    <a href="{{ route('inbox') }}" class="px-3 sm:px-3.5 py-2 sm:py-2.5 bg-rose-50 dark:bg-rose-950/30 hover:bg-rose-100 dark:hover:bg-rose-950/50 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-800/40 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-1.5 transition-colors shadow-sm shrink-0" title="Reset filter & pencarian">
                         <i class="fa-solid fa-rotate-left text-xs"></i>
                         <span class="hidden md:inline">Reset</span>
                     </a>

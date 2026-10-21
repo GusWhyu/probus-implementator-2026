@@ -13,36 +13,36 @@
                     </p>
                 </div>
                 
-                <div class="flex flex-wrap items-center gap-3">
-                    <form method="GET" action="{{ url()->current() }}" class="flex flex-wrap items-center gap-2.5 sm:gap-3">
-                        <div class="relative w-40 sm:w-48">
-                            <select name="system" onchange="this.form.submit()" class="w-full appearance-none pl-3.5 sm:pl-4 pr-9 sm:pr-10 py-2 sm:py-2.5 bg-white border border-slate-200 rounded-xl text-xs sm:text-sm font-semibold text-slate-700 hover:border-slate-300 focus:outline-none focus:ring-4 focus:ring-blue-500/10 shadow-sm cursor-pointer transition-all truncate">
+                <div class="flex flex-col sm:flex-row sm:items-center gap-2.5 sm:gap-3 w-full sm:w-auto">
+                    <form method="GET" action="{{ url()->current() }}" class="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
+                        <div class="relative flex-1 min-w-0 sm:w-48 sm:flex-none">
+                            <select name="system" onchange="this.form.submit()" class="w-full appearance-none pl-3.5 sm:pl-4 pr-8 sm:pr-10 py-2 sm:py-2.5 bg-white border border-slate-200 rounded-xl text-xs sm:text-sm font-semibold text-slate-700 hover:border-slate-300 focus:outline-none focus:ring-4 focus:ring-blue-500/10 shadow-sm cursor-pointer transition-all truncate">
                                 <option value="">Semua System</option>
                                 @foreach(($systems ?? []) as $sys)
                                     <option value="{{ data_get($sys, 'id') }}" {{ request('system') == data_get($sys, 'id') ? 'selected' : '' }}>{{ data_get($sys, 'name') }}</option>
                                 @endforeach
                             </select>
-                            <i class="fa-solid fa-chevron-down absolute right-3.5 top-1/2 -translate-y-1/2 text-[10px] sm:text-xs text-slate-400 pointer-events-none"></i>
+                            <i class="fa-solid fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-[10px] sm:text-xs text-slate-400 pointer-events-none"></i>
                         </div>
 
-                        <div class="relative w-40 sm:w-48">
-                            <select name="module" onchange="this.form.submit()" class="w-full appearance-none pl-3.5 sm:pl-4 pr-9 sm:pr-10 py-2 sm:py-2.5 bg-white border border-slate-200 rounded-xl text-xs sm:text-sm font-semibold text-slate-700 hover:border-slate-300 focus:outline-none focus:ring-4 focus:ring-blue-500/10 shadow-sm cursor-pointer transition-all truncate">
+                        <div class="relative flex-1 min-w-0 sm:w-48 sm:flex-none">
+                            <select name="module" onchange="this.form.submit()" class="w-full appearance-none pl-3.5 sm:pl-4 pr-8 sm:pr-10 py-2 sm:py-2.5 bg-white border border-slate-200 rounded-xl text-xs sm:text-sm font-semibold text-slate-700 hover:border-slate-300 focus:outline-none focus:ring-4 focus:ring-blue-500/10 shadow-sm cursor-pointer transition-all truncate">
                                 <option value="">Semua Module</option>
                                 @foreach(($modules ?? []) as $mod)
                                     <option value="{{ data_get($mod, 'id') }}" {{ request('module') == data_get($mod, 'id') ? 'selected' : '' }}>{{ data_get($mod, 'name') }}</option>
                                 @endforeach
                             </select>
-                            <i class="fa-solid fa-chevron-down absolute right-3.5 top-1/2 -translate-y-1/2 text-[10px] sm:text-xs text-slate-400 pointer-events-none"></i>
+                            <i class="fa-solid fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-[10px] sm:text-xs text-slate-400 pointer-events-none"></i>
                         </div>
 
                         @if(request('system') || request('module'))
-                        <a href="{{ url()->current() }}" class="px-3.5 py-2 sm:py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-1.5" title="Reset Filter">
-                            <i class="fa-solid fa-xmark"></i> Reset
+                        <a href="{{ url()->current() }}" class="px-3 sm:px-3.5 py-2 sm:py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-1.5 shrink-0" title="Reset Filter">
+                            <i class="fa-solid fa-xmark"></i> <span class="hidden sm:inline">Reset</span>
                         </a>
                         @endif
                     </form>
 
-                    <a href="{{ route('createrq', ['from' => ($isMyReq ?? true) ? 'myreq' : 'request']) }}" class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 sm:px-5 py-2.5 rounded-xl text-xs sm:text-sm shadow-md shadow-blue-500/20 active:scale-95 transition-all shrink-0">
+                    <a href="{{ route('createrq', ['from' => ($isMyReq ?? true) ? 'myreq' : 'request']) }}" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 sm:px-5 py-2.5 rounded-xl text-xs sm:text-sm shadow-md shadow-blue-500/20 active:scale-95 transition-all shrink-0">
                         <i class="fa-solid fa-plus text-xs"></i>
                         <span>Buat Request Baru</span>
                     </a>
