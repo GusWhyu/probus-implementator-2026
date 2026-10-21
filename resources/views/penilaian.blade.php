@@ -216,13 +216,13 @@
                                     @endforelse
                                 </tbody>
                                 <tfoot>
-                                    <tr class="border-t-2 border-slate-700 font-bold text-xs sm:text-sm text-slate-900 bg-slate-50/60">
+                                    <tr class="border-t-2 border-slate-200 dark:border-slate-700 font-bold text-xs sm:text-sm text-slate-900 dark:text-slate-100 bg-slate-50/60 dark:bg-slate-800/80">
                                         <td class="py-3 px-3">Total</td>
-                                        <td class="py-3 px-3 text-center text-slate-700 font-semibold">{{ $total_bobot ?? array_sum(array_column($module_details, 'bobot')) }}</td>
-                                        <td class="py-3 px-3 text-center text-blue-700 font-extrabold">{{ $total_qty ?? 0 }} tiket</td>
-                                        <td class="py-3 px-3 text-center text-slate-700 font-semibold">{{ $total_lama_waktu ?? '-' }}</td>
-                                        <td class="py-3 px-3 text-center text-slate-700 font-semibold">{{ $rata_rata_waktu }}</td>
-                                        <td class="py-3 px-3 text-right font-black text-blue-700 font-mono">{{ number_format($raw_ticket_score, 0, ',', '.') }}</td>
+                                        <td class="py-3 px-3 text-center text-slate-700 dark:text-slate-300 font-semibold">{{ $total_bobot ?? array_sum(array_column($module_details, 'bobot')) }}</td>
+                                        <td class="py-3 px-3 text-center text-blue-700 dark:text-blue-400 font-extrabold">{{ $total_qty ?? 0 }} tiket</td>
+                                        <td class="py-3 px-3 text-center text-slate-700 dark:text-slate-300 font-semibold">{{ $total_lama_waktu ?? '-' }}</td>
+                                        <td class="py-3 px-3 text-center text-slate-700 dark:text-slate-300 font-semibold">{{ $rata_rata_waktu }}</td>
+                                        <td class="py-3 px-3 text-right font-black text-blue-700 dark:text-blue-400 font-mono">{{ number_format($raw_ticket_score, 0, ',', '.') }}</td>
                                     </tr>
                                 </tfoot>
                             </table>

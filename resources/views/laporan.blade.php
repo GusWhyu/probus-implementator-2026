@@ -56,26 +56,26 @@
             <!-- Stats Cards -->
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
                 <!-- Total CS -->
-                <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm flex items-center gap-4">
-                    <div class="w-14 h-14 rounded-full bg-blue-50 text-blue-500 flex items-center justify-center shrink-0">
+                <div class="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700 shadow-sm flex items-center gap-4">
+                    <div class="w-14 h-14 rounded-full bg-blue-50 dark:bg-blue-950/60 text-blue-500 dark:text-blue-400 flex items-center justify-center shrink-0">
                         <i class="fa-solid fa-user-group text-lg"></i>
                     </div>
                     <div>
-                        <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Total CS</p>
-                        <h3 class="text-3xl font-extrabold text-slate-800 leading-none">{{ $totalCS ?? $users->count() }}</h3>
+                        <p class="text-[11px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-wider mb-1">Total CS</p>
+                        <h3 class="text-3xl font-extrabold text-slate-800 dark:text-slate-100 leading-none">{{ $totalCS ?? $users->count() }}</h3>
                     </div>
                 </div>
 
                 <!-- Sudah Dinilai -->
-                <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm flex items-center gap-4">
-                    <div class="w-14 h-14 rounded-full bg-emerald-50 text-emerald-500 flex items-center justify-center shrink-0">
+                <div class="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700 shadow-sm flex items-center gap-4">
+                    <div class="w-14 h-14 rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-emerald-500 dark:text-emerald-400 flex items-center justify-center shrink-0">
                         <i class="fa-solid fa-circle-check text-lg"></i>
                     </div>
                     <div class="flex-1">
-                        <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Sudah Dinilai (Final)</p>
+                        <p class="text-[11px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-wider mb-1">Sudah Dinilai (Final)</p>
                         <div class="flex items-end justify-between">
-                            <h3 class="text-3xl font-extrabold text-slate-800 leading-none">{{ $sudahDinilai ?? 0 }}</h3>
-                            <span class="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
+                            <h3 class="text-3xl font-extrabold text-slate-800 dark:text-slate-100 leading-none">{{ $sudahDinilai ?? 0 }}</h3>
+                            <span class="text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded-full border border-emerald-200/60 dark:border-emerald-800/60">
                                 {{ ($totalCS ?? 0) > 0 ? round((($sudahDinilai ?? 0) / $totalCS) * 100, 1) : 0 }}%
                             </span>
                         </div>
@@ -83,15 +83,15 @@
                 </div>
 
                 <!-- Belum Dinilai -->
-                <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm flex items-center gap-4">
-                    <div class="w-14 h-14 rounded-full bg-amber-50 text-amber-500 flex items-center justify-center shrink-0">
+                <div class="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700 shadow-sm flex items-center gap-4">
+                    <div class="w-14 h-14 rounded-full bg-amber-50 dark:bg-amber-950/60 text-amber-500 dark:text-amber-400 flex items-center justify-center shrink-0">
                         <i class="fa-solid fa-user-clock text-lg"></i>
                     </div>
                     <div class="flex-1">
-                        <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Belum Dinilai</p>
+                        <p class="text-[11px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-wider mb-1">Belum Dinilai</p>
                         <div class="flex items-end justify-between">
-                            <h3 class="text-3xl font-extrabold text-slate-800 leading-none">{{ $belumDinilai ?? 0 }}</h3>
-                            <span class="text-xs font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">
+                            <h3 class="text-3xl font-extrabold text-slate-800 dark:text-slate-100 leading-none">{{ $belumDinilai ?? 0 }}</h3>
+                            <span class="text-xs font-bold text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/60 px-2 py-0.5 rounded-full border border-amber-200/60 dark:border-amber-800/60">
                                 {{ ($totalCS ?? 0) > 0 ? round((($belumDinilai ?? 0) / $totalCS) * 100, 1) : 0 }}%
                             </span>
                         </div>
@@ -99,15 +99,15 @@
                 </div>
 
                 <!-- Sangat Baik -->
-                <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm flex items-center gap-4">
-                    <div class="w-14 h-14 rounded-full bg-teal-50 text-teal-500 flex items-center justify-center shrink-0">
+                <div class="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700 shadow-sm flex items-center gap-4">
+                    <div class="w-14 h-14 rounded-full bg-teal-50 dark:bg-teal-950/60 text-teal-500 dark:text-teal-400 flex items-center justify-center shrink-0">
                         <i class="fa-solid fa-ranking-star text-lg"></i>
                     </div>
                     <div class="flex-1">
-                        <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Sangat Baik (≥80)</p>
+                        <p class="text-[11px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-wider mb-1">Sangat Baik (≥80)</p>
                         <div class="flex items-end justify-between">
-                            <h3 class="text-3xl font-extrabold text-slate-800 leading-none">{{ $sangatBaik ?? 0 }}</h3>
-                            <span class="text-xs font-bold text-teal-600 bg-teal-50 px-2 py-0.5 rounded-full">
+                            <h3 class="text-3xl font-extrabold text-slate-800 dark:text-slate-100 leading-none">{{ $sangatBaik ?? 0 }}</h3>
+                            <span class="text-xs font-bold text-teal-600 dark:text-teal-400 bg-teal-50 dark:bg-teal-950/60 px-2 py-0.5 rounded-full border border-teal-200/60 dark:border-teal-800/60">
                                 {{ ($sudahDinilai ?? 0) > 0 ? round((($sangatBaik ?? 0) / $sudahDinilai) * 100, 1) : 0 }}%
                             </span>
                         </div>
@@ -410,12 +410,12 @@
                         <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                             <i class="fa-solid fa-magnifying-glass text-slate-400"></i>
                         </div>
-                        <input type="text" name="search" value="{{ request('search') }}" class="w-full pl-11 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium text-slate-700 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all shadow-sm" placeholder="Cari nama CS atau email...">
+                        <input type="text" name="search" value="{{ request('search') }}" class="w-full pl-11 pr-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-200 placeholder:text-slate-400 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all shadow-sm" placeholder="Cari nama CS atau email...">
                     </div>
 
                     <!-- Status Filter -->
                     <div class="relative sm:w-56">
-                        <select name="status" onchange="this.form.submit()" class="w-full appearance-none pl-4 pr-10 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-semibold text-slate-700 hover:border-slate-300 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all shadow-sm cursor-pointer">
+                        <select name="status" onchange="this.form.submit()" class="w-full appearance-none pl-4 pr-10 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-semibold text-slate-700 dark:text-slate-200 hover:border-slate-300 dark:hover:border-slate-600 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all shadow-sm cursor-pointer">
                             <option value="">Semua Status</option>
                             <option value="dinilai" {{ request('status') == 'dinilai' ? 'selected' : '' }}>Sudah Dinilai (Final)</option>
                             <option value="belum" {{ request('status') == 'belum' ? 'selected' : '' }}>Belum Dinilai</option>
@@ -424,7 +424,7 @@
                     </div>
 
                     @if(request('search') || request('status'))
-                    <a href="{{ route('laporan', ['period' => sprintf('%04d-%02d', $year, $month)]) }}" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-sm font-bold flex items-center justify-center gap-1.5 transition-colors shadow-sm">
+                    <a href="{{ route('laporan', ['period' => sprintf('%04d-%02d', $year, $month)]) }}" class="px-4 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 border border-transparent dark:border-slate-700 rounded-xl text-sm font-bold flex items-center justify-center gap-1.5 transition-colors shadow-sm">
                         <i class="fa-solid fa-rotate-left text-xs"></i> Reset
                     </a>
                     @endif
@@ -444,20 +444,20 @@
             </div>
 
             <!-- Main Table Card -->
-            <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden mb-6">
+            <div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-sm overflow-hidden mb-6">
                 <div class="overflow-x-auto custom-scrollbar">
                     <table class="w-full text-left border-collapse min-w-[760px]">
                         <thead>
-                            <tr class="bg-slate-50/80 border-b border-slate-200">
-                                <th class="py-4 px-6 text-[11px] font-bold text-slate-400 uppercase tracking-wider w-16">No</th>
-                                <th class="py-4 px-6 text-[11px] font-bold text-slate-400 uppercase tracking-wider">CS</th>
-                                <th class="py-4 px-6 text-[11px] font-bold text-slate-400 uppercase tracking-wider">Periode</th>
-                                <th class="py-4 px-6 text-[11px] font-bold text-slate-400 uppercase tracking-wider">Nilai Akhir</th>
-                                <th class="py-4 px-6 text-[11px] font-bold text-slate-400 uppercase tracking-wider">Status Penilaian</th>
-                                <th class="py-4 px-6 text-[11px] font-bold text-slate-400 uppercase tracking-wider">Aksi</th>
+                            <tr class="bg-slate-50/80 dark:bg-slate-900/60 border-b border-slate-200 dark:border-slate-700">
+                                <th class="py-4 px-6 text-[11px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-wider w-16">No</th>
+                                <th class="py-4 px-6 text-[11px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-wider">CS</th>
+                                <th class="py-4 px-6 text-[11px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-wider">Periode</th>
+                                <th class="py-4 px-6 text-[11px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-wider">Nilai Akhir</th>
+                                <th class="py-4 px-6 text-[11px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-wider">Status Penilaian</th>
+                                <th class="py-4 px-6 text-[11px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-wider">Aksi</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-slate-100">
+                        <tbody class="divide-y divide-slate-100 dark:divide-slate-700/60">
                             
                             @forelse($users as $index => $u)
                             @php 
@@ -466,52 +466,71 @@
                                 $isFinal = $penilaian && strtoupper($penilaian->status) === 'FINAL';
                                 $isDraft = $penilaian && strtoupper($penilaian->status) === 'DRAFT';
                             @endphp
-                            <tr class="hover:bg-blue-50/30 transition-colors">
-                                <td class="py-4 px-6 text-sm font-medium text-slate-400">{{ $index + 1 }}</td>
+                            <tr class="hover:bg-blue-50/30 dark:hover:bg-slate-700/30 transition-colors">
+                                <td class="py-4 px-6 text-sm font-medium text-slate-400 dark:text-slate-500">{{ $index + 1 }}</td>
                                 <td class="py-4 px-6">
                                     <div class="flex items-center gap-3">
                                         @if($u->profile_image)
-                                            <img src="{{ asset('storage/' . $u->profile_image) }}" alt="Avatar" class="w-9 h-9 rounded-full object-cover shrink-0 shadow-sm border border-slate-200 bg-white">
+                                            <img src="{{ asset('storage/' . $u->profile_image) }}" alt="Avatar" class="w-9 h-9 rounded-full object-cover shrink-0 shadow-sm border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800">
                                         @else
-                                            <img src="{{ asset($isFemale ? 'img/avatar-female.png' : 'img/avatar-default.png') }}" alt="Avatar" class="w-9 h-9 rounded-full object-cover shrink-0 shadow-sm border border-slate-200 bg-white" style="{{ $isFemale ? 'object-position: top;' : '' }}">
+                                            <img src="{{ asset($isFemale ? 'img/avatar-female.png' : 'img/avatar-default.png') }}" alt="Avatar" class="w-9 h-9 rounded-full object-cover shrink-0 shadow-sm border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800" style="{{ $isFemale ? 'object-position: top;' : '' }}">
                                         @endif
                                         <div>
-                                            <span class="text-sm font-semibold text-slate-800 block">{{ $u->name }}</span>
-                                            <span class="text-[11px] text-slate-400 font-medium block">{{ $u->email }}</span>
+                                            <span class="text-sm font-semibold text-slate-800 dark:text-slate-100 block">{{ $u->name }}</span>
+                                            <span class="text-[11px] text-slate-400 dark:text-slate-400 font-medium block">{{ $u->email }}</span>
                                         </div>
                                     </div>
                                 </td>
-                                <td class="py-4 px-6 text-sm font-medium {{ $penilaian ? 'text-slate-600' : 'text-slate-400' }}">{{ \Carbon\Carbon::createFromDate($year, $month, 1)->translatedFormat('M Y') }}</td>
-                                <td class="py-4 px-6 text-sm font-bold {{ $penilaian ? 'text-slate-800' : 'text-slate-400' }}">
+                                <td class="py-4 px-6 text-sm font-medium {{ $penilaian ? 'text-slate-600 dark:text-slate-300' : 'text-slate-400 dark:text-slate-500' }}">{{ \Carbon\Carbon::createFromDate($year, $month, 1)->translatedFormat('M Y') }}</td>
+                                <td class="py-4 px-6 text-sm font-bold">
                                     @if($isFinal)
                                         <div class="flex items-center gap-2">
-                                            <span class="text-blue-600 font-extrabold text-base">{{ $penilaian->total_score }}</span>
-                                            <span class="text-xs text-slate-400 font-semibold">/ 100</span>
-                                            <span class="text-[10px] font-extrabold px-2 py-0.5 rounded-md {{ $penilaian->total_score >= 80 ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : ($penilaian->total_score >= 70 ? 'bg-amber-50 text-amber-700 border border-amber-200' : 'bg-rose-50 text-rose-700 border border-rose-200') }}">
-                                                {{ $penilaian->total_score >= 80 ? 'Sangat Baik' : ($penilaian->total_score >= 70 ? 'Baik' : 'Cukup') }}
+                                            <div class="flex items-baseline gap-1 font-mono">
+                                                <span class="text-blue-600 dark:text-blue-400 font-black text-base">{{ $penilaian->total_score }}</span>
+                                                <span class="text-xs text-slate-400 dark:text-slate-500 font-bold">/100</span>
+                                            </div>
+                                            @php
+                                                $score = $penilaian->total_score;
+                                                if ($score >= 80) {
+                                                    $badgeClass = 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800/80';
+                                                    $scoreLabel = 'Sangat Baik';
+                                                } elseif ($score >= 70) {
+                                                    $badgeClass = 'bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800/80';
+                                                    $scoreLabel = 'Baik';
+                                                } else {
+                                                    $badgeClass = 'bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border-rose-200 dark:border-rose-800/80';
+                                                    $scoreLabel = 'Cukup';
+                                                }
+                                            @endphp
+                                            <span class="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border shadow-2xs {{ $badgeClass }}">
+                                                {{ $scoreLabel }}
                                             </span>
                                         </div>
                                     @elseif($isDraft)
-                                        <div class="flex items-center gap-1.5 text-xs font-semibold">
-                                            <span class="text-indigo-600 font-bold font-mono">Tiket: {{ $penilaian->module_score ?? 0 }}</span>
-                                            <span class="text-slate-300">|</span>
-                                            <span class="text-[10px] font-bold bg-amber-100 text-amber-800 px-2 py-0.5 rounded-md">Draft Soft Skill</span>
+                                        <div class="flex items-center gap-2 text-xs font-semibold flex-wrap">
+                                            <span class="inline-flex items-center gap-1 font-mono font-bold text-indigo-600 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-950/60 px-2.5 py-1 rounded-lg border border-indigo-200/80 dark:border-indigo-800/80 shadow-2xs">
+                                                <i class="fa-solid fa-ticket text-[10px] text-indigo-500 dark:text-indigo-400"></i>
+                                                <span>Tiket: {{ $penilaian->module_score ?? 0 }}</span>
+                                            </span>
+                                            <span class="inline-flex items-center gap-1 text-[10px] font-extrabold bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800/80 px-2 py-1 rounded-lg shadow-2xs">
+                                                <i class="fa-solid fa-file-pen text-[9px] text-amber-500 dark:text-amber-400"></i> Draft Soft Skill
+                                            </span>
                                         </div>
                                     @else
-                                        <span class="text-slate-300 font-medium">&ndash;</span>
+                                        <span class="text-slate-300 dark:text-slate-600 font-medium">&ndash;</span>
                                     @endif
                                 </td>
                                 <td class="py-4 px-6">
                                     @if($isFinal)
-                                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                                            <i class="fa-solid fa-circle-check text-[10px] text-emerald-500"></i> Sudah Dinilai (Final)
+                                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/80">
+                                            <i class="fa-solid fa-circle-check text-[10px] text-emerald-500 dark:text-emerald-400"></i> Sudah Dinilai (Final)
                                         </span>
                                     @elseif($isDraft)
-                                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
-                                            <i class="fa-solid fa-file-pen text-[10px] text-amber-500"></i> Terproses (Draft)
+                                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800/80">
+                                            <i class="fa-solid fa-file-pen text-[10px] text-amber-500 dark:text-amber-400"></i> Terproses (Draft)
                                         </span>
                                     @else
-                                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-slate-100 text-slate-500 border border-slate-200">
+                                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
                                             <i class="fa-solid fa-clock text-[10px] text-slate-400"></i> Belum Diproses
                                         </span>
                                     @endif
@@ -519,8 +538,8 @@
                                 <td class="py-4 px-6">
                                     <div class="flex items-center gap-2">
                                         @if($isFinal)
-                                            <a href="{{ route('rapor', ['id' => $u->id, 'month' => $month, 'year' => $year, 'period' => sprintf('%04d-%02d', $year, $month)]) }}" class="px-3.5 py-1.5 text-xs font-bold text-blue-600 border border-blue-200 rounded-lg hover:bg-blue-50 transition-colors bg-white">Lihat Rapor</a>
-                                            <a href="{{ route('penilaian', ['id' => $u->id, 'month' => $month, 'year' => $year]) }}" class="px-2.5 py-1.5 text-xs font-semibold text-slate-500 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors bg-white" title="Edit Nilai">
+                                            <a href="{{ route('rapor', ['id' => $u->id, 'month' => $month, 'year' => $year, 'period' => sprintf('%04d-%02d', $year, $month)]) }}" class="px-3.5 py-1.5 text-xs font-bold text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800/80 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-950/40 transition-colors bg-white dark:bg-slate-800 shadow-2xs">Lihat Rapor</a>
+                                            <a href="{{ route('penilaian', ['id' => $u->id, 'month' => $month, 'year' => $year]) }}" class="px-2.5 py-1.5 text-xs font-semibold text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors bg-white dark:bg-slate-800 shadow-2xs" title="Edit Nilai">
                                                 <i class="fa-solid fa-pencil"></i>
                                             </a>
                                         @elseif($isDraft)
@@ -532,7 +551,7 @@
                                                 @csrf
                                                 <input type="hidden" name="month" value="{{ $month }}">
                                                 <input type="hidden" name="year" value="{{ $year }}">
-                                                <button type="submit" class="px-2.5 py-1.5 text-xs font-semibold text-slate-500 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors bg-white cursor-pointer" title="Hitung Ulang Tiket CS">
+                                                <button type="submit" class="px-2.5 py-1.5 text-xs font-semibold text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors bg-white dark:bg-slate-800 shadow-2xs cursor-pointer" title="Hitung Ulang Tiket CS">
                                                     <i class="fa-solid fa-arrows-rotate text-[11px]"></i>
                                                 </button>
                                             </form>
@@ -552,7 +571,7 @@
                             </tr>
                             @empty
                             <tr>
-                                <td colspan="6" class="py-12 text-center text-sm font-semibold text-slate-400">
+                                <td colspan="6" class="py-12 text-center text-sm font-semibold text-slate-400 dark:text-slate-500">
                                     Tidak ada data Customer Support yang ditemukan.
                                 </td>
                             </tr>

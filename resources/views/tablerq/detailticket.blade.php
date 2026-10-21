@@ -15,8 +15,8 @@
         $bg = "bg-amber-50 text-amber-600 border-amber-200";
         $icon = "fa-bars-progress";
     } else {
-        $bg = "bg-blue-50 text-blue-600 border-blue-200";
-        $icon = "fa-door-open";
+        $bg = "bg-indigo-50 text-indigo-600 border-indigo-200 dark:bg-indigo-950/50 dark:text-indigo-400 dark:border-indigo-800";
+        $icon = "fa-regular fa-clock";
     }
 
     // Dynamic Alert Conditions
@@ -140,30 +140,32 @@
                         
                         <!-- Review Pelanggan -->
                         @if ($datarq->status == 'CLOSED')
-                        <div class="bg-blue-50/40 rounded-3xl border border-blue-100 shadow-sm p-6 md:p-8 mt-6">
-                            <div class="flex items-center gap-2 mb-3">
-                                <i class="fa-regular fa-star text-amber-500 text-lg"></i>
-                                <h3 class="text-base font-extrabold text-slate-800">Review Pelanggan</h3>
+                        <div class="bg-blue-50/50 dark:bg-slate-900/60 rounded-3xl border border-blue-100 dark:border-slate-800 shadow-sm p-6 md:p-8 mt-6">
+                            <div class="flex items-center gap-2.5 mb-3">
+                                <div class="w-8 h-8 rounded-xl bg-amber-500/10 dark:bg-amber-500/20 text-amber-500 flex items-center justify-center">
+                                    <i class="fa-solid fa-star text-sm"></i>
+                                </div>
+                                <h3 class="text-base font-extrabold text-slate-800 dark:text-slate-100">Review Pelanggan</h3>
                             </div>
-                            <p class="text-[13px] font-medium text-slate-500 mb-6 leading-relaxed">
+                            <p class="text-[13px] font-medium text-slate-500 dark:text-slate-400 mb-6 leading-relaxed">
                                 Tiket telah selesai. Bagikan link berikut kepada client untuk memberikan penilaian terhadap pelayanan CS.
                             </p>
                             
-                            <div class="bg-white rounded-2xl border border-slate-200 p-2 flex flex-col sm:flex-row items-center gap-3 shadow-sm">
+                            <div class="bg-white dark:bg-slate-950/70 rounded-2xl border border-slate-200 dark:border-slate-800 p-2 flex flex-col sm:flex-row items-center gap-3 shadow-sm">
                                 <div class="flex items-center gap-3 px-3 w-full sm:w-auto flex-1 overflow-hidden">
-                                    <i class="fa-solid fa-link text-blue-500"></i>
-                                    <span class="text-[13px] font-medium text-blue-600 truncate" id="review-link">{{ url('/review/' . $datarq->ticket_number) }}</span>
+                                    <i class="fa-solid fa-link text-blue-500 dark:text-blue-400"></i>
+                                    <span class="text-[13px] font-medium text-blue-600 dark:text-blue-400 truncate font-mono" id="review-link">{{ url('/review/' . $datarq->ticket_number) }}</span>
                                 </div>
                                 <div class="flex gap-2 w-full sm:w-auto shrink-0 mt-2 sm:mt-0">
-                                    <button type="button" onclick="navigator.clipboard.writeText('{{ url('/review/' . $datarq->ticket_number) }}'); alert('Link berhasil disalin!')" class="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 text-white font-bold text-xs rounded-xl hover:bg-blue-700 transition-all shadow-sm shadow-blue-500/20 active:scale-95">
+                                    <button type="button" onclick="navigator.clipboard.writeText('{{ url('/review/' . $datarq->ticket_number) }}'); alert('Link berhasil disalin!')" class="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 text-white font-bold text-xs rounded-xl hover:bg-blue-700 transition-all shadow-sm shadow-blue-500/20 active:scale-95 cursor-pointer">
                                         <i class="fa-regular fa-copy"></i> Salin Link
                                     </button>
-                                    <a href="{{ url('/review/' . $datarq->ticket_number) }}" target="_blank" class="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 bg-white text-blue-600 font-bold text-xs rounded-xl hover:bg-blue-50 border border-blue-200 transition-all active:scale-95">
+                                    <a href="{{ url('/review/' . $datarq->ticket_number) }}" target="_blank" class="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 font-bold text-xs rounded-xl hover:bg-blue-50 dark:hover:bg-slate-700 border border-blue-200 dark:border-slate-700 transition-all active:scale-95">
                                         Buka Review
                                     </a>
                                 </div>
                             </div>
-                            <p class="text-[10px] font-bold text-blue-500 flex items-center gap-1.5 mt-4">
+                            <p class="text-[10px] font-bold text-blue-500 dark:text-blue-400 flex items-center gap-1.5 mt-4">
                                 <i class="fa-solid fa-circle-info"></i> Link ini akan kedaluwarsa dalam 1 hari. Review hanya bisa dilakukan 1 kali.
                             </p>
                         </div>
@@ -522,7 +524,7 @@
                         </div>
 
                         @if (isset($ticketLogs) && $ticketLogs->isNotEmpty())
-                        <div class="relative pl-6 space-y-4 before:content-[''] before:absolute before:left-2.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-100 max-h-96 overflow-y-auto custom-scrollbar pr-1">
+                        <div class="relative pl-6 space-y-4 before:content-[''] before:absolute before:left-2.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-200 dark:before:bg-slate-700 max-h-96 overflow-y-auto custom-scrollbar pr-1">
                             @foreach ($ticketLogs as $log)
                                 @php
                                     $logIcon = 'fa-circle-dot text-slate-400';
@@ -562,18 +564,20 @@
                                     }
                                 @endphp
                                 <div class="relative group">
-                                    <!-- Bullet indicator -->
-                                    <div class="absolute -left-6 top-1 w-5 h-5 rounded-full {{ $logBg }} border flex items-center justify-center text-[9px] shadow-xs">
-                                        <i class="fa-solid {{ $logIcon }}"></i>
+                                    <!-- Bullet indicator with opaque backing so line does not cut through icon -->
+                                    <div class="absolute -left-6 top-1 w-5 h-5 rounded-full bg-white dark:bg-[#1e293b] ring-2 ring-white dark:ring-[#1e293b] z-10 flex items-center justify-center">
+                                        <div class="w-full h-full rounded-full {{ $logBg }} border flex items-center justify-center text-[9px] shadow-xs">
+                                            <i class="fa-solid {{ $logIcon }}"></i>
+                                        </div>
                                     </div>
                                     <div class="text-[11px] leading-snug">
-                                        <p class="font-bold text-slate-700">{{ $log->description }}</p>
+                                        <p class="font-bold text-slate-700 dark:text-slate-200">{{ $log->description }}</p>
                                         <div class="flex items-center gap-2 mt-1 text-[10px] text-slate-400 font-medium">
                                             @if ($log->user)
-                                            <span class="text-slate-500 font-bold"><i class="fa-regular fa-user mr-1 text-[9px]"></i>{{ $log->user->name }}</span>
+                                            <span class="text-slate-500 dark:text-slate-400 font-bold"><i class="fa-regular fa-user mr-1 text-[9px]"></i>{{ $log->user->name }}</span>
                                             <span>•</span>
                                             @endif
-                                            <span><i class="fa-regular fa-clock mr-1 text-[9px]"></i>{{ $log->created_at->diffForHumans() }}</span>
+                                            <span class="dark:text-slate-400"><i class="fa-regular fa-clock mr-1 text-[9px]"></i>{{ $log->created_at->diffForHumans() }}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -594,29 +598,29 @@
     </div>
 
     <dialog id="takeOverModal" class="modal">
-        <div class="modal-box w-11/12 max-w-md rounded-3xl p-6 md:p-8 bg-white">
+        <div class="modal-box w-11/12 max-w-md rounded-3xl p-6 md:p-8 bg-white dark:bg-[#1e293b] border border-slate-100 dark:border-slate-700 shadow-2xl">
             <form action="{{ route('ticket.takeover', $datarq->id) }}" method="POST">
                 @csrf
                 <!-- Header -->
                 <div class="flex justify-between items-start mb-4">
                     <div>
-                        <h3 class="font-extrabold text-[17px] text-slate-800 mb-1">Alihkan / Ambil Alih Tiket</h3>
-                        <p class="text-[11px] text-slate-500 font-medium">Pilih tindakan untuk mengalihkan kepemilikan tiket ini ke user lain.</p>
+                        <h3 class="font-extrabold text-[17px] text-slate-800 dark:text-slate-100 mb-1">Alihkan / Ambil Alih Tiket</h3>
+                        <p class="text-[11px] text-slate-500 dark:text-slate-400 font-medium">Pilih tindakan untuk mengalihkan kepemilikan tiket ini ke user lain.</p>
                     </div>
-                    <button type="button" class="w-8 h-8 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 hover:bg-slate-200 border border-slate-100 transition-colors" onclick="takeOverModal.close()">
+                    <button type="button" class="w-8 h-8 rounded-xl bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-100 dark:border-slate-700 transition-colors" onclick="takeOverModal.close()">
                         <i class="fa-solid fa-xmark"></i>
                     </button>
                 </div>
 
                 <!-- Tabs -->
                 @if ($ust == 'admin' || $ust == 'supervisor')
-                <div class="flex p-1 bg-slate-50 rounded-xl mb-6 border border-slate-100">
-                    <button type="button" id="tab-alihkan" onclick="switchTakeoverTab('alihkan')" class="flex-1 py-2 text-xs font-bold rounded-lg bg-blue-50 text-blue-600 shadow-sm border border-blue-100 transition-all text-center">Alihkan</button>
-                    <button type="button" id="tab-ambil" onclick="switchTakeoverTab('ambil')" class="flex-1 py-2 text-xs font-bold rounded-lg text-slate-500 hover:text-slate-700 transition-all text-center">Ambil Alih</button>
+                <div class="flex p-1 bg-slate-50 dark:bg-slate-900 rounded-xl mb-6 border border-slate-100 dark:border-slate-800">
+                    <button type="button" id="tab-alihkan" onclick="switchTakeoverTab('alihkan')" class="flex-1 py-2 text-xs font-bold rounded-lg bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 shadow-sm border border-blue-100 dark:border-blue-800/80 transition-all text-center">Alihkan</button>
+                    <button type="button" id="tab-ambil" onclick="switchTakeoverTab('ambil')" class="flex-1 py-2 text-xs font-bold rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-all text-center">Ambil Alih</button>
                 </div>
                 @else
-                <div class="flex p-1 bg-slate-50 rounded-xl mb-6 border border-slate-100">
-                    <div class="flex-1 py-2 text-xs font-bold rounded-lg bg-blue-50 text-blue-600 shadow-sm border border-blue-100 transition-all text-center">Alihkan</div>
+                <div class="flex p-1 bg-slate-50 dark:bg-slate-900 rounded-xl mb-6 border border-slate-100 dark:border-slate-800">
+                    <div class="flex-1 py-2 text-xs font-bold rounded-lg bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 shadow-sm border border-blue-100 dark:border-blue-800/80 transition-all text-center">Alihkan</div>
                 </div>
                 @endif
 
@@ -624,13 +628,13 @@
                 <div class="mb-5">
                     <p class="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest mb-2.5">Informasi Tiket</p>
                     <div class="grid grid-cols-2 gap-3">
-                        <div class="bg-slate-50/50 rounded-2xl p-3.5 border border-slate-100/80">
-                            <p class="text-[9px] font-bold text-slate-500 uppercase tracking-widest mb-1">Tiket</p>
-                            <p class="font-extrabold text-slate-800 text-sm">{{ $datarq->ticket_number }}</p>
+                        <div class="bg-slate-50/50 dark:bg-slate-900/60 rounded-2xl p-3.5 border border-slate-100/80 dark:border-slate-700/80">
+                            <p class="text-[9px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1">Tiket</p>
+                            <p class="font-extrabold text-slate-800 dark:text-slate-200 text-sm">{{ $datarq->ticket_number }}</p>
                         </div>
-                        <div class="bg-slate-50/50 rounded-2xl p-3.5 border border-slate-100/80">
-                            <p class="text-[9px] font-bold text-slate-500 uppercase tracking-widest mb-1">Client</p>
-                            <p class="font-extrabold text-slate-800 text-sm truncate" title="{{ $datarq->client->nm_out ?? '-' }}">{{ $datarq->client->nm_out ?? '-' }}</p>
+                        <div class="bg-slate-50/50 dark:bg-slate-900/60 rounded-2xl p-3.5 border border-slate-100/80 dark:border-slate-700/80">
+                            <p class="text-[9px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1">Client</p>
+                            <p class="font-extrabold text-slate-800 dark:text-slate-200 text-sm truncate" title="{{ $datarq->client->nm_out ?? '-' }}">{{ $datarq->client->nm_out ?? '-' }}</p>
                         </div>
                     </div>
                 </div>
@@ -776,25 +780,25 @@
     </script>
 
     <dialog id="forceAdvisorModal" class="modal">
-        <div class="modal-box w-11/12 max-w-md rounded-3xl p-6 md:p-8 bg-white">
+        <div class="modal-box w-11/12 max-w-md rounded-3xl p-6 md:p-8 bg-white dark:bg-[#1e293b] border border-slate-100 dark:border-slate-700 shadow-2xl">
             <form action="{{ url('/ticket-updatestatus-with-advisor/'.$datarq->id.'/CLOSED') }}" method="POST">
                 @csrf
                 <!-- Header -->
                 <div class="flex justify-between items-start mb-4">
                     <div>
-                        <h3 class="font-extrabold text-[17px] text-slate-800 mb-1">Selesaikan Tiket</h3>
-                        <p class="text-[11px] text-slate-500 font-medium">Tiket ini belum memiliki Advisor. Anda wajib memilih Advisor untuk melanjutkan.</p>
+                        <h3 class="font-extrabold text-[17px] text-slate-800 dark:text-slate-100 mb-1">Selesaikan Tiket</h3>
+                        <p class="text-[11px] text-slate-500 dark:text-slate-400 font-medium">Tiket ini belum memiliki Advisor. Anda wajib memilih Advisor untuk melanjutkan.</p>
                     </div>
-                    <button type="button" class="w-8 h-8 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 hover:bg-slate-200 border border-slate-100 transition-colors" onclick="document.getElementById('forceAdvisorModal').close()">
+                    <button type="button" class="w-8 h-8 rounded-xl bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-100 dark:border-slate-700 transition-colors" onclick="document.getElementById('forceAdvisorModal').close()">
                         <i class="fa-solid fa-xmark"></i>
                     </button>
                 </div>
 
                 <div class="mb-6">
-                    <p class="text-[11px] font-bold text-slate-700 mb-2">Pilih Advisor</p>
+                    <p class="text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-2">Pilih Advisor</p>
                     <div class="relative group">
-                        <i class="fa-regular fa-user absolute left-4 top-1/2 -translate-y-1/2 text-blue-500 text-sm"></i>
-                        <select name="advisor_id" class="w-full bg-white border border-slate-200 text-slate-800 text-xs rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 p-3.5 pl-10 outline-none font-bold appearance-none shadow-sm cursor-pointer hover:bg-slate-50 transition-colors" required>
+                        <i class="fa-regular fa-user absolute left-4 top-1/2 -translate-y-1/2 text-blue-500 dark:text-blue-400 text-sm"></i>
+                        <select name="advisor_id" class="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 p-3.5 pl-10 outline-none font-bold appearance-none shadow-sm cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors" required>
                             <option value="" disabled selected>Pilih advisor...</option>
                             @foreach(\App\Models\User::whereIn('usertype', ['admin', 'supervisor', 'user'])->get() as $adv)
                                 <option value="{{ $adv->id }}">{{ $adv->name }} @if($adv->id == Auth::id()) (Anda) @endif</option>
@@ -805,8 +809,8 @@
                 </div>
 
                 <div class="grid grid-cols-2 gap-3">
-                    <button type="button" class="py-3 bg-white text-slate-600 font-bold text-xs rounded-xl border border-slate-200 hover:bg-slate-50 hover:text-slate-800 transition-all shadow-sm" onclick="document.getElementById('forceAdvisorModal').close()">Batal</button>
-                    <button type="submit" class="py-3 bg-emerald-500 text-white font-bold text-xs rounded-xl hover:bg-emerald-600 transition-all shadow-sm shadow-emerald-500/30">Lanjutkan & Selesai</button>
+                    <button type="button" class="py-3 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold text-xs rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-800 dark:hover:text-slate-100 transition-all shadow-sm" onclick="document.getElementById('forceAdvisorModal').close()">Batal</button>
+                    <button type="submit" class="py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs rounded-xl transition-all shadow-sm shadow-emerald-500/30">Lanjutkan & Selesai</button>
                 </div>
             </form>
         </div>
@@ -814,18 +818,18 @@
     </dialog>
 
     <dialog id="confirmCloseModal" class="modal">
-        <div class="modal-box w-11/12 max-w-sm rounded-3xl p-6 md:p-8 bg-white text-center border border-slate-100">
-            <div class="w-20 h-20 bg-emerald-50 text-emerald-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm border-4 border-emerald-100/50">
+        <div class="modal-box w-11/12 max-w-sm rounded-3xl p-6 md:p-8 bg-white dark:bg-[#1e293b] text-center border border-slate-100 dark:border-slate-700 shadow-2xl">
+            <div class="w-20 h-20 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-500 dark:text-emerald-400 rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm border-4 border-emerald-100/50 dark:border-emerald-800/50">
                 <i class="fa-solid fa-circle-check text-4xl"></i>
             </div>
             
-            <h3 class="font-extrabold text-xl text-slate-800 mb-2">Selesaikan Tiket?</h3>
-            <p class="text-[13px] text-slate-500 font-medium mb-8 leading-relaxed px-2">
+            <h3 class="font-extrabold text-xl text-slate-800 dark:text-slate-100 mb-2">Selesaikan Tiket?</h3>
+            <p class="text-[13px] text-slate-500 dark:text-slate-400 font-medium mb-8 leading-relaxed px-2">
                 Apakah Anda yakin ingin menyelesaikan tiket ini? Status tiket akan berubah menjadi Selesai.
             </p>
             
             <div class="flex gap-3">
-                <button type="button" class="flex-1 py-3 bg-white text-slate-600 font-bold text-sm rounded-xl border border-slate-200 hover:bg-slate-50 hover:text-slate-800 transition-all shadow-sm" onclick="document.getElementById('confirmCloseModal').close()">Batal</button>
+                <button type="button" class="flex-1 py-3 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold text-sm rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-800 dark:hover:text-slate-100 transition-all shadow-sm" onclick="document.getElementById('confirmCloseModal').close()">Batal</button>
                 <a href="/ticket-updatestatus/{{ $datarq->id }}/CLOSED" class="flex-1 py-3 bg-emerald-500 text-white font-bold text-sm rounded-xl hover:bg-emerald-600 transition-all shadow-sm shadow-emerald-500/30 flex items-center justify-center">
                     Ya, Selesaikan
                 </a>
@@ -836,52 +840,52 @@
 
     {{-- Modal Alihkan Tiket Menjadi Request --}}
     <dialog id="convertToRequestModal" class="modal">
-        <div class="modal-box w-11/12 max-w-lg rounded-3xl p-6 md:p-8 bg-white border border-slate-100 shadow-2xl relative">
+        <div class="modal-box w-11/12 max-w-lg rounded-3xl p-6 md:p-8 bg-white dark:bg-[#1e293b] border border-slate-100 dark:border-slate-700 shadow-2xl relative">
             <form action="{{ route('ticket.convert_to_request', $datarq->id) }}" method="POST" onsubmit="const btn = this.querySelector('button[type=submit]'); btn.disabled = true; btn.innerHTML = '<i class=\'fa-solid fa-spinner fa-spin mr-1\'></i> Mengalihkan...';">
                 @csrf
                 
                 <!-- Header Modal -->
                 <div class="flex items-start justify-between mb-5">
                     <div class="flex items-center gap-3">
-                        <div class="w-12 h-12 rounded-2xl bg-amber-50 text-amber-500 flex items-center justify-center border border-amber-100 shrink-0 text-xl shadow-xs">
+                        <div class="w-12 h-12 rounded-2xl bg-amber-50 dark:bg-amber-950/50 text-amber-500 dark:text-amber-400 flex items-center justify-center border border-amber-100 dark:border-amber-800/60 shrink-0 text-xl shadow-xs">
                             <i class="fa-solid fa-triangle-exclamation"></i>
                         </div>
                         <div>
-                            <h3 class="font-extrabold text-lg text-slate-800">Alihkan Tiket Menjadi Request</h3>
-                            <p class="text-xs text-slate-500 font-medium">Konfirmasi pengalihan tiket pengerjaan</p>
+                            <h3 class="font-extrabold text-lg text-slate-800 dark:text-slate-100">Alihkan Tiket Menjadi Request</h3>
+                            <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Konfirmasi pengalihan tiket pengerjaan</p>
                         </div>
                     </div>
-                    <button type="button" class="w-8 h-8 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 hover:bg-slate-200 border border-slate-100 transition-colors cursor-pointer" onclick="document.getElementById('convertToRequestModal').close()">
+                    <button type="button" class="w-8 h-8 rounded-xl bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-slate-400 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-100 dark:border-slate-700 transition-colors cursor-pointer" onclick="document.getElementById('convertToRequestModal').close()">
                         <i class="fa-solid fa-xmark text-sm"></i>
                     </button>
                 </div>
 
                 <!-- Disclaimer Card -->
-                <div class="bg-amber-50 border border-amber-200 rounded-2xl p-4 mb-5 flex items-start gap-3">
-                    <i class="fa-solid fa-circle-exclamation text-amber-600 text-base mt-0.5 shrink-0"></i>
-                    <div class="text-xs text-amber-900 leading-relaxed font-medium">
-                        <span class="font-black text-amber-700 uppercase tracking-wide block mb-1">PERHATIAN</span>
+                <div class="bg-amber-50/80 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-700/60 rounded-2xl p-4 mb-5 flex items-start gap-3">
+                    <i class="fa-solid fa-circle-exclamation text-amber-600 dark:text-amber-400 text-base mt-0.5 shrink-0"></i>
+                    <div class="text-xs text-amber-900 dark:text-amber-200 leading-relaxed font-medium">
+                        <span class="font-black text-amber-700 dark:text-amber-400 uppercase tracking-wide block mb-1">PERHATIAN</span>
                         Pastikan anda yakin bahwa ticket ini untuk request karena jika dialihkan ke request maka tiket ini akan hilang dan menjadi request.
                     </div>
                 </div>
 
                 <!-- Ringkasan Tiket yang Dialihkan -->
-                <div class="bg-slate-50 rounded-2xl p-4 border border-slate-200/70 mb-5 space-y-2.5">
+                <div class="bg-slate-50 dark:bg-slate-900/60 rounded-2xl p-4 border border-slate-200/70 dark:border-slate-700/80 mb-5 space-y-2.5">
                     <div class="flex items-center justify-between text-xs">
-                        <span class="text-slate-500 font-medium">Nomor Tiket:</span>
-                        <span class="font-bold text-blue-600 font-mono">{{ $datarq->ticket_number }}</span>
+                        <span class="text-slate-500 dark:text-slate-400 font-medium">Nomor Tiket:</span>
+                        <span class="font-bold text-blue-600 dark:text-blue-400 font-mono">{{ $datarq->ticket_number }}</span>
                     </div>
                     <div class="flex items-start justify-between text-xs gap-3">
-                        <span class="text-slate-500 font-medium shrink-0">Judul Tiket:</span>
-                        <span class="font-bold text-slate-800 text-right line-clamp-2">{{ $datarq->title }}</span>
+                        <span class="text-slate-500 dark:text-slate-400 font-medium shrink-0">Judul Tiket:</span>
+                        <span class="font-bold text-slate-800 dark:text-slate-200 text-right line-clamp-2">{{ $datarq->title }}</span>
                     </div>
                     <div class="flex items-center justify-between text-xs">
-                        <span class="text-slate-500 font-medium">Client / Outlet:</span>
-                        <span class="font-bold text-slate-800">{{ $datarq->client ? $datarq->client->nm_out : '-' }}</span>
+                        <span class="text-slate-500 dark:text-slate-400 font-medium">Client / Outlet:</span>
+                        <span class="font-bold text-slate-800 dark:text-slate-200">{{ $datarq->client ? $datarq->client->nm_out : '-' }}</span>
                     </div>
                     <div class="flex items-center justify-between text-xs">
-                        <span class="text-slate-500 font-medium">System & Modul:</span>
-                        <span class="font-bold text-slate-800">
+                        <span class="text-slate-500 dark:text-slate-400 font-medium">System & Modul:</span>
+                        <span class="font-bold text-slate-800 dark:text-slate-200">
                             {{ $datarq->kategoriSystem ? $datarq->kategoriSystem->name : ($datarq->system ?? '-') }}
                             @if($datarq->moduleSystem)
                                 <span class="text-slate-400 font-normal">/</span> {{ $datarq->moduleSystem->name }}
@@ -893,12 +897,12 @@
                 <!-- Form Pilihan Tag / Divisi Pelaksana (Wajib untuk Request) -->
                 <div class="space-y-4 mb-6">
                     <div>
-                        <label class="flex items-center gap-1.5 text-xs font-bold text-slate-700 mb-1.5">
-                            <i class="fa-solid fa-users-gear text-blue-500 text-xs"></i>
+                        <label class="flex items-center gap-1.5 text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                            <i class="fa-solid fa-users-gear text-blue-500 dark:text-blue-400 text-xs"></i>
                             <span>Divisi / Tim Pelaksana Request <span class="text-rose-500">*</span></span>
                         </label>
                         <div class="relative">
-                            <select name="tag_id" required class="w-full bg-white border border-slate-200 text-slate-800 text-xs rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 p-3 pl-4 pr-10 outline-none font-bold appearance-none shadow-sm cursor-pointer hover:bg-slate-50 transition-colors">
+                            <select name="tag_id" required class="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 p-3 pl-4 pr-10 outline-none font-bold appearance-none shadow-sm cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
                                 <option value="" disabled selected>Pilih Divisi / Tim Pelaksana...</option>
                                 @foreach(\App\Models\Tag::orderBy('name')->get() as $t)
                                     <option value="{{ $t->id }}">{{ $t->name }}</option>
@@ -906,21 +910,21 @@
                             </select>
                             <i class="fa-solid fa-chevron-down absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-[10px] pointer-events-none"></i>
                         </div>
-                        <p class="text-[10px] text-slate-400 mt-1">Pilih tim yang akan menangani request ini (contoh: PROGRAMMER, Trainer, dll).</p>
+                        <p class="text-[10px] text-slate-400 dark:text-slate-500 mt-1">Pilih tim yang akan menangani request ini (contoh: PROGRAMMER, Trainer, dll).</p>
                     </div>
 
                     <div>
-                        <label class="flex items-center gap-1.5 text-xs font-bold text-slate-700 mb-1.5">
-                            <i class="fa-regular fa-calendar-check text-blue-500 text-xs"></i>
+                        <label class="flex items-center gap-1.5 text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                            <i class="fa-regular fa-calendar-check text-blue-500 dark:text-blue-400 text-xs"></i>
                             <span>Target Selesai (End Date) <span class="text-rose-500">*</span></span>
                         </label>
-                        <input type="date" name="end_date" value="{{ $datarq->due_date ? \Carbon\Carbon::parse($datarq->due_date)->format('Y-m-d') : \Carbon\Carbon::now()->addDays(7)->format('Y-m-d') }}" min="{{ date('Y-m-d') }}" required class="w-full bg-white border border-slate-200 text-slate-800 text-xs rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 p-3 outline-none font-semibold shadow-sm cursor-pointer">
+                        <input type="date" name="end_date" value="{{ $datarq->due_date ? \Carbon\Carbon::parse($datarq->due_date)->format('Y-m-d') : \Carbon\Carbon::now()->addDays(7)->format('Y-m-d') }}" min="{{ date('Y-m-d') }}" required class="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 p-3 outline-none font-semibold shadow-sm cursor-pointer">
                     </div>
                 </div>
 
                 <!-- Modal Action Buttons -->
                 <div class="grid grid-cols-2 gap-3">
-                    <button type="button" class="py-3 bg-white text-slate-600 font-bold text-xs rounded-xl border border-slate-200 hover:bg-slate-50 hover:text-slate-800 transition-all shadow-sm cursor-pointer" onclick="document.getElementById('convertToRequestModal').close()">
+                    <button type="button" class="py-3 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold text-xs rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-800 dark:hover:text-slate-100 transition-all shadow-sm cursor-pointer" onclick="document.getElementById('convertToRequestModal').close()">
                         Batal
                     </button>
                     <button type="submit" class="py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl transition-all shadow-sm shadow-emerald-500/30 flex items-center justify-center gap-2 cursor-pointer active:scale-95">
@@ -1420,6 +1424,35 @@
         trix-toolbar .trix-button.trix-active { background: #eff6ff; color: #2563eb; }
         trix-editor:empty:not(:focus)::before { color: #94a3b8; font-style: normal; }
         
+        html.dark trix-toolbar .trix-button-group,
+        html[data-theme="dark"] trix-toolbar .trix-button-group {
+            border-color: #334155 !important;
+            background: #0f172a !important;
+        }
+        html.dark trix-toolbar .trix-button,
+        html[data-theme="dark"] trix-toolbar .trix-button {
+            border: none !important;
+            background: transparent !important;
+        }
+        html.dark trix-toolbar .trix-button:not(:first-child),
+        html[data-theme="dark"] trix-toolbar .trix-button:not(:first-child) {
+            border-left: 1px solid #334155 !important;
+        }
+        html.dark trix-toolbar .trix-button:hover,
+        html[data-theme="dark"] trix-toolbar .trix-button:hover {
+            background: #1e293b !important;
+        }
+        html.dark trix-toolbar .trix-button.trix-active,
+        html[data-theme="dark"] trix-toolbar .trix-button.trix-active {
+            background: #2563eb !important;
+            color: #ffffff !important;
+        }
+        html.dark trix-toolbar .trix-button--icon::before,
+        html[data-theme="dark"] trix-toolbar .trix-button--icon::before {
+            filter: invert(0.9) brightness(1.2) !important;
+            opacity: 0.85 !important;
+        }
+
         /* Custom scrollbar for comments */
         .custom-scrollbar::-webkit-scrollbar { width: 6px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }

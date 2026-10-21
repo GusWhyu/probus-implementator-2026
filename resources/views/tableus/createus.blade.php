@@ -230,6 +230,35 @@
         trix-toolbar .trix-button:hover { background: #f8fafc; }
         trix-toolbar .trix-button.trix-active { background: #eff6ff; color: #2563eb; }
         trix-editor:empty:not(:focus)::before { color: #94a3b8; font-style: normal; }
+
+        html.dark trix-toolbar .trix-button-group,
+        html[data-theme="dark"] trix-toolbar .trix-button-group {
+            border-color: #334155 !important;
+            background: #0f172a !important;
+        }
+        html.dark trix-toolbar .trix-button,
+        html[data-theme="dark"] trix-toolbar .trix-button {
+            border: none !important;
+            background: transparent !important;
+        }
+        html.dark trix-toolbar .trix-button:not(:first-child),
+        html[data-theme="dark"] trix-toolbar .trix-button:not(:first-child) {
+            border-left: 1px solid #334155 !important;
+        }
+        html.dark trix-toolbar .trix-button:hover,
+        html[data-theme="dark"] trix-toolbar .trix-button:hover {
+            background: #1e293b !important;
+        }
+        html.dark trix-toolbar .trix-button.trix-active,
+        html[data-theme="dark"] trix-toolbar .trix-button.trix-active {
+            background: #2563eb !important;
+            color: #ffffff !important;
+        }
+        html.dark trix-toolbar .trix-button--icon::before,
+        html[data-theme="dark"] trix-toolbar .trix-button--icon::before {
+            filter: invert(0.9) brightness(1.2) !important;
+            opacity: 0.85 !important;
+        }
     </style>
     
     <script>
