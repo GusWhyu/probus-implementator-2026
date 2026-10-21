@@ -33,9 +33,11 @@
                 if (isDark) {
                     document.documentElement.classList.add('dark');
                     document.documentElement.setAttribute('data-theme', 'dark');
+                    document.documentElement.style.colorScheme = 'dark';
                 } else {
                     document.documentElement.classList.remove('dark');
                     document.documentElement.setAttribute('data-theme', 'light');
+                    document.documentElement.style.colorScheme = 'light';
                 }
             })();
         </script>
@@ -59,12 +61,21 @@
             [x-cloak] { display: none !important; }
             body { font-family: 'Inter', sans-serif; background-color: #F8FAFC; }
             
+            /* Color scheme for native browser scrollbars & elements */
+            html.dark {
+                color-scheme: dark !important;
+            }
+            html:not(.dark) {
+                color-scheme: light;
+            }
+
             /* Custom scrollbar */
             ::-webkit-scrollbar { width: 6px; height: 6px; }
-            ::-webkit-scrollbar-track { background: transparent; }
+            ::-webkit-scrollbar-track { background: transparent !important; }
             ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
             ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-            .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+            .custom-scrollbar { scrollbar-width: thin; scrollbar-color: #cbd5e1 transparent; }
+            .custom-scrollbar::-webkit-scrollbar { width: 5px; height: 5px; }
 
             /* Smooth theme transition */
             html.theme-transitioning,
@@ -260,12 +271,99 @@
                 color: #475569 !important;
             }
 
-            /* Scrollbars in Dark Mode */
-            html.dark ::-webkit-scrollbar-thumb {
-                background: #334155;
+            /* Scrollbars in Dark Mode - Seamlessly blend with dark background */
+            html.dark * {
+                scrollbar-color: #334155 transparent !important;
             }
-            html.dark ::-webkit-scrollbar-thumb:hover {
-                background: #475569;
+            html.dark ::-webkit-scrollbar {
+                width: 6px;
+                height: 6px;
+                background-color: transparent !important;
+            }
+            html.dark ::-webkit-scrollbar-track,
+            html.dark *::-webkit-scrollbar-track,
+            html.dark .custom-scrollbar::-webkit-scrollbar-track {
+                background: transparent !important;
+                border-color: transparent !important;
+            }
+            html.dark ::-webkit-scrollbar-thumb,
+            html.dark *::-webkit-scrollbar-thumb,
+            html.dark .custom-scrollbar::-webkit-scrollbar-thumb {
+                background-color: #334155 !important;
+                border-radius: 10px !important;
+                border: none !important;
+            }
+            html.dark ::-webkit-scrollbar-thumb:hover,
+            html.dark *::-webkit-scrollbar-thumb:hover,
+            html.dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+                background-color: #475569 !important;
+            }
+            html.dark ::-webkit-scrollbar-corner {
+                background: transparent !important;
+            }
+
+            /* Notification Dropdown in Dark Mode */
+            html.dark #notif-dropdown-panel {
+                background-color: #0f172a !important;
+                border-color: #1e293b !important;
+                box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7) !important;
+            }
+            html.dark #notif-dropdown-header,
+            html.dark #notif-dropdown-footer {
+                background-color: #0f172a !important;
+                border-color: #1e293b !important;
+            }
+            html.dark #notif-dropdown-header h2 {
+                color: #f8fafc !important;
+            }
+            html.dark #notif-count-badge {
+                background-color: rgba(225, 29, 72, 0.2) !important;
+                color: #fda4af !important;
+                border: 1px solid rgba(225, 29, 72, 0.35) !important;
+            }
+            html.dark #notif-mark-all-btn {
+                background-color: rgba(37, 99, 235, 0.2) !important;
+                color: #93c5fd !important;
+                border: 1px solid rgba(37, 99, 235, 0.3) !important;
+            }
+            html.dark #notif-mark-all-btn:hover {
+                background-color: rgba(37, 99, 235, 0.35) !important;
+            }
+            html.dark .notif-icon-box {
+                background-color: rgba(37, 99, 235, 0.18) !important;
+                color: #60a5fa !important;
+                border: 1px solid rgba(59, 130, 246, 0.3) !important;
+            }
+            html.dark .notif-icon-box i {
+                color: #60a5fa !important;
+            }
+            html.dark a.group:hover .notif-icon-box {
+                background-color: #2563eb !important;
+                color: #ffffff !important;
+            }
+            html.dark a.group:hover .notif-icon-box i {
+                color: #ffffff !important;
+            }
+            html.dark #notif-dropdown-list a:hover {
+                background-color: rgba(30, 41, 59, 0.5) !important;
+            }
+            html.dark #notif-dropdown-list {
+                border-color: #1e293b !important;
+            }
+            html.dark #notif-dropdown-list > * {
+                border-color: #1e293b !important;
+            }
+            html.dark #notif-dropdown-list h5 {
+                color: #f8fafc !important;
+            }
+            html.dark #notif-dropdown-list p {
+                color: #94a3b8 !important;
+            }
+            html.dark #notif-dropdown-footer a {
+                color: #94a3b8 !important;
+            }
+            html.dark #notif-dropdown-footer a:hover {
+                color: #60a5fa !important;
             }
         </style>
     </head>
@@ -298,10 +396,12 @@
                 if (nextIsDark) {
                     document.documentElement.classList.add('dark');
                     document.documentElement.setAttribute('data-theme', 'dark');
+                    document.documentElement.style.colorScheme = 'dark';
                     localStorage.setItem('color-theme', 'dark');
                 } else {
                     document.documentElement.classList.remove('dark');
                     document.documentElement.setAttribute('data-theme', 'light');
+                    document.documentElement.style.colorScheme = 'light';
                     localStorage.setItem('color-theme', 'light');
                 }
 

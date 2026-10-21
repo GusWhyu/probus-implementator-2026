@@ -1,62 +1,181 @@
 <x-guest-layout>
-    <x-auth-card>
-        <x-slot name="logo">
-            <a href="/">
-                <x-application-logo class="w-20 h-20 fill-current text-black" />
-            </a>
-            
-        </x-slot>
-        <div class="text-center text-black font-bold text-xl">
-            <p>PROBUS IMPLEMENTATOR</p>
-        </div><br>
-        <!-- Session Status -->
-        <x-auth-session-status class="mb-4" :status="session('status')" />
-
-        <!-- Validation Errors -->
-        <x-auth-validation-errors class="mb-4" :errors="$errors" />
+    <div class="min-h-screen w-full flex flex-col md:flex-row bg-[#F8FAFC] overflow-x-hidden">
         
-        <form method="POST" action="{{ route('login') }}">
-            @csrf
+        <!-- LEFT PANEL: Full-Screen Vibrant Hero Banner with Streak Lines -->
+        <div class="relative w-full md:w-1/2 lg:w-[48%] xl:w-[45%] bg-gradient-to-br from-[#0052D4] via-[#4364F7] to-[#002B7A] p-8 sm:p-12 lg:p-16 xl:p-20 flex flex-col justify-between overflow-hidden text-white min-h-[420px] md:min-h-screen shrink-0">
+            
+            <!-- Glowing ambient background orbs -->
+            <div class="absolute -top-32 -left-32 w-96 h-96 bg-sky-400/25 rounded-full blur-3xl pointer-events-none"></div>
+            <div class="absolute -bottom-24 -right-24 w-96 h-96 bg-blue-900/60 rounded-full blur-3xl pointer-events-none"></div>
 
-            <!-- Email Address -->
-            <div>
-                {{-- <x-label for="email" :value="__('Email')" /> --}}
-
-                <x-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')" required autofocus placeholder="Email"/>
+            <!-- Abstract Glowing Diagonal Streaks & Particles SVG (Full cover) -->
+            <div class="absolute inset-0 pointer-events-none overflow-hidden opacity-35">
+                <svg class="w-full h-full" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" viewBox="0 0 500 800">
+                    <defs>
+                        <linearGradient id="streakGlow1" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="#ffffff" stop-opacity="0.9"/>
+                            <stop offset="40%" stop-color="#38bdf8" stop-opacity="0.5"/>
+                            <stop offset="100%" stop-color="#0284c7" stop-opacity="0"/>
+                        </linearGradient>
+                        <linearGradient id="streakGlow2" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="#93c5fa" stop-opacity="0.7"/>
+                            <stop offset="100%" stop-color="#3b82f6" stop-opacity="0"/>
+                        </linearGradient>
+                    </defs>
+                    <!-- Diagonal Speed Lines -->
+                    <line x1="80" y1="-50" x2="580" y2="450" stroke="url(#streakGlow1)" stroke-width="2.5" />
+                    <line x1="-20" y1="60" x2="480" y2="560" stroke="url(#streakGlow2)" stroke-width="1.5" />
+                    <line x1="160" y1="-20" x2="660" y2="480" stroke="url(#streakGlow1)" stroke-width="3" />
+                    <line x1="260" y1="40" x2="760" y2="540" stroke="url(#streakGlow2)" stroke-width="1.2" />
+                    <line x1="-50" y1="220" x2="450" y2="720" stroke="url(#streakGlow1)" stroke-width="2" />
+                    <line x1="50" y1="320" x2="550" y2="820" stroke="url(#streakGlow2)" stroke-width="1.5" />
+                    <line x1="240" y1="270" x2="740" y2="770" stroke="url(#streakGlow1)" stroke-width="2" />
+                    <line x1="-90" y1="440" x2="410" y2="940" stroke="url(#streakGlow2)" stroke-width="1.2" />
+                    <line x1="320" y1="180" x2="820" y2="680" stroke="url(#streakGlow1)" stroke-width="1.5" />
+                    <!-- Sparkle Dots -->
+                    <circle cx="110" cy="170" r="1.5" fill="#ffffff" opacity="0.8"/>
+                    <circle cx="210" cy="95" r="2" fill="#ffffff" opacity="0.9"/>
+                    <circle cx="350" cy="275" r="1.5" fill="#7dd3fc" opacity="0.7"/>
+                    <circle cx="440" cy="135" r="2.5" fill="#ffffff" opacity="0.6"/>
+                    <circle cx="120" cy="480" r="2" fill="#ffffff" opacity="0.7"/>
+                    <circle cx="270" cy="580" r="1.5" fill="#bae6fd" opacity="0.8"/>
+                    <circle cx="390" cy="690" r="2" fill="#ffffff" opacity="0.6"/>
+                </svg>
             </div>
 
-            <!-- Password -->
-            <div class="mt-4">
-                {{-- <x-label for="password" :value="__('Password')" /> --}}
-
-                <x-input id="password" class="block mt-1 w-full"
-                                type="password"
-                                name="password"
-                                required autocomplete="current-password" 
-                                placeholder="Password"/>
-                <a class="ml-1 justify-end text-abu rounded-[2px] text-xs hover:font-bold cursor-pointer" id="seepass"><i class="fa-solid fa-eye"></i> Show Password</a>
+            <!-- Brand Header -->
+            <div class="relative z-10 flex items-center gap-3.5">
+                <div class="w-12 h-12 rounded-2xl bg-white/15 backdrop-blur-md border border-white/25 flex items-center justify-center p-2.5 shadow-lg shadow-black/10">
+                    <img src="{{ asset('img/logo.png') }}" alt="Probus Logo" class="w-full h-full object-contain filter drop-shadow">
+                </div>
+                <div>
+                    <div class="text-xs font-extrabold tracking-widest uppercase text-sky-200 leading-tight">PROBUS SYSTEM</div>
+                    <div class="text-sm font-bold text-white tracking-wider uppercase leading-tight">IMPLEMENTATOR</div>
+                </div>
             </div>
 
-            <!-- Remember Me -->
-            {{-- <div class="block mt-4">
-                <label for="seepass" class="inline-flex items-center">
-                    <input id="seepass" type="checkbox" class="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" name="seepass" onclick="myFunction">
-                    <span class="ml-2 text-sm text-gray-600">{{ __('See Password') }}</span>
-                </label>
-            </div> --}}
+            <!-- Welcome Headline & Description -->
+            <div class="relative z-10 my-auto py-10 md:py-16">
+                <h1 class="text-4xl sm:text-5xl lg:text-6xl font-black text-white tracking-tight leading-[1.1]">
+                    Hello,<br>
+                    <span class="text-transparent bg-clip-text bg-gradient-to-r from-sky-200 via-white to-blue-100">welcome!</span>
+                </h1>
+                <p class="mt-5 text-blue-100/90 text-sm sm:text-base lg:text-lg leading-relaxed max-w-md font-normal">
+                    Sistem manajemen request dan ticketing Probus Implementator. Masuk ke akun Anda untuk mengelola request dan memantau tiket.
+                </p>
 
-            <div class="flex items-center justify-center mt-4">
-                {{-- @if (Route::has('password.request'))
-                    <a class="underline text-sm text-black hover:text-gray-900" href="{{ route('password.request') }}">
-                        {{ __('Forgot your password?') }}
+                <div class="mt-8">
+                    <a href="https://probussystem.com" target="_blank" class="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-white text-blue-900 text-xs sm:text-sm font-bold shadow-lg shadow-blue-950/20 hover:bg-sky-50 hover:shadow-xl hover:-translate-y-0.5 transition-all duration-200 group">
+                        <span>View more</span>
+                        <i class="fa-solid fa-arrow-right text-xs transform group-hover:translate-x-1 transition-transform"></i>
                     </a>
-                @endif --}}
-
-                <x-button class="text-center w-full justify-center shadow-md">
-                    {{ __('Log in') }}
-                </x-button>
+                </div>
             </div>
-        </form>
-    </x-auth-card>
-    
+
+            <!-- Footer Copyright -->
+            <div class="relative z-10 text-xs font-medium text-blue-200/60">
+                &copy; {{ date('Y') }} Probus System. All rights reserved.
+            </div>
+        </div>
+
+        <!-- RIGHT PANEL: Full-Height Clean Form -->
+        <div class="w-full md:w-1/2 lg:w-[52%] xl:w-[55%] bg-[#F8FAFC] min-h-screen flex flex-col justify-center items-center p-6 sm:p-12 lg:p-16 xl:p-24 relative">
+            
+            <div class="w-full max-w-md space-y-6">
+                
+                <!-- Feedback Notifications -->
+                @if (session('status'))
+                    <div class="p-4 rounded-2xl bg-emerald-50 border border-emerald-200/80 flex items-start gap-3 text-emerald-800 text-xs sm:text-sm font-medium shadow-sm">
+                        <i class="fa-solid fa-circle-check text-emerald-600 mt-0.5 text-base shrink-0"></i>
+                        <p>{{ session('status') }}</p>
+                    </div>
+                @endif
+
+                @if ($errors->any())
+                    <div class="p-4 rounded-2xl bg-rose-50 border border-rose-200/80 flex items-start gap-3 text-rose-800 text-xs sm:text-sm font-medium shadow-sm">
+                        <i class="fa-solid fa-circle-exclamation text-rose-600 mt-0.5 text-base shrink-0"></i>
+                        <div class="space-y-1">
+                            @foreach ($errors->all() as $error)
+                                <p>{{ $error }}</p>
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
+
+                <!-- Login Form -->
+                <form method="POST" action="{{ route('login') }}" class="space-y-4">
+                    @csrf
+
+                    <!-- Email Field Container -->
+                    <div class="group bg-white rounded-2xl p-3 sm:p-3.5 border border-slate-200/80 shadow-sm hover:border-blue-300 focus-within:border-blue-500 focus-within:ring-4 focus-within:ring-blue-500/10 focus-within:shadow-md transition-all duration-200 flex items-center gap-3.5">
+                        <div class="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-blue-100/80 text-blue-600 flex items-center justify-center shrink-0">
+                            <i class="fa-solid fa-envelope text-base sm:text-lg"></i>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <label for="email" class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider leading-none mb-1">Email address</label>
+                            <input id="email" type="email" name="email" value="{{ old('email') }}" required autofocus placeholder="name@mail.com" class="w-full bg-transparent border-0 p-0 text-slate-800 text-sm sm:text-base font-semibold placeholder:text-slate-400 placeholder:font-normal focus:ring-0 focus:outline-none">
+                        </div>
+                    </div>
+
+                    <!-- Password Field Container -->
+                    <div class="group bg-white rounded-2xl p-3 sm:p-3.5 border border-slate-200/80 shadow-sm hover:border-blue-300 focus-within:border-blue-500 focus-within:ring-4 focus-within:ring-blue-500/10 focus-within:shadow-md transition-all duration-200 flex items-center gap-3.5">
+                        <div class="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-blue-100/80 text-blue-600 flex items-center justify-center shrink-0">
+                            <i class="fa-solid fa-lock text-base sm:text-lg"></i>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <label for="password" class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider leading-none mb-1">Password</label>
+                            <input id="password" type="password" name="password" required autocomplete="current-password" placeholder="••••••••••••" class="w-full bg-transparent border-0 p-0 text-slate-800 text-sm sm:text-base font-semibold placeholder:text-slate-400 placeholder:font-normal focus:ring-0 focus:outline-none">
+                        </div>
+                        <button type="button" id="togglePasswordBtn" class="p-2 text-slate-400 hover:text-blue-600 focus:outline-none transition-colors" title="Lihat Password">
+                            <i id="togglePasswordIcon" class="fa-solid fa-eye text-sm sm:text-base"></i>
+                        </button>
+                    </div>
+
+                    <!-- Options Row: Remember Me & Forgot Password -->
+                    <div class="flex items-center justify-between pt-1 px-1">
+                        <label for="remember_me" class="flex items-center gap-2 cursor-pointer select-none group">
+                            <input type="checkbox" name="remember" id="remember_me" class="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500/30 transition cursor-pointer">
+                            <span class="text-xs sm:text-sm font-semibold text-slate-600 group-hover:text-slate-900 transition-colors">Remember me</span>
+                        </label>
+
+                        @if (Route::has('password.request'))
+                            <a href="{{ route('password.request') }}" class="text-xs sm:text-sm font-semibold text-blue-600 hover:text-blue-700 hover:underline">
+                                Forgot password?
+                            </a>
+                        @endif
+                    </div>
+
+                    <!-- Action: Login Button -->
+                    <div class="pt-3">
+                        <button type="submit" class="w-full py-3.5 sm:py-4 px-6 rounded-2xl font-bold text-blue-600 bg-white border border-slate-200/90 shadow-sm hover:shadow-md hover:border-blue-400 hover:bg-blue-50/50 hover:text-blue-700 active:scale-[0.99] transition-all duration-200 text-center text-sm sm:text-base flex items-center justify-center gap-2">
+                            <span>Login</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toggle Password Visibility Script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const toggleBtn = document.getElementById('togglePasswordBtn');
+            const passwordInput = document.getElementById('password');
+            const toggleIcon = document.getElementById('togglePasswordIcon');
+
+            if (toggleBtn && passwordInput && toggleIcon) {
+                toggleBtn.addEventListener('click', function() {
+                    if (passwordInput.type === 'password') {
+                        passwordInput.type = 'text';
+                        toggleIcon.classList.remove('fa-eye');
+                        toggleIcon.classList.add('fa-eye-slash');
+                    } else {
+                        passwordInput.type = 'password';
+                        toggleIcon.classList.remove('fa-eye-slash');
+                        toggleIcon.classList.add('fa-eye');
+                    }
+                });
+            }
+        });
+    </script>
 </x-guest-layout>

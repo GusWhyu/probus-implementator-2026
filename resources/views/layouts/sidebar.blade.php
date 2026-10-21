@@ -12,10 +12,12 @@
 
 <aside class="w-64 bg-white border-r border-slate-200 flex flex-col h-full shrink-0 z-50 fixed md:static inset-y-0 left-0 transform transition-transform duration-300 md:translate-x-0" :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'">
     <!-- Logo -->
-    <div class="h-16 flex items-center px-6 border-b border-transparent">
-        <a href="{{ route('dashboard') }}" class="flex items-center">
-            <div class="w-7 h-7 bg-blue-600 rounded flex items-center justify-center text-white font-bold text-sm">P</div>
-            <span class="ml-3 font-bold text-slate-800 text-lg tracking-tight">Implementator</span>
+    <div class="h-16 flex items-center px-5 border-b border-transparent">
+        <a href="{{ route('dashboard') }}" class="flex items-center group">
+            <div class="w-8 h-8 rounded-xl bg-white border border-slate-200 dark:border-slate-700/60 flex items-center justify-center p-1.5 shadow-sm group-hover:scale-105 transition-all shrink-0">
+                <img src="{{ asset('img/logo.png') }}" alt="Probus Logo" class="w-full h-full object-contain">
+            </div>
+            <span class="ml-2.5 font-bold text-slate-800 dark:text-white text-[15px] sm:text-base tracking-tight whitespace-nowrap">Probus Implementator</span>
         </a>
     </div>
     

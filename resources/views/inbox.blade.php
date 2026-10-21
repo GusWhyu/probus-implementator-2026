@@ -274,8 +274,8 @@
                                     <div class="text-[11px] font-medium text-slate-500">{{ $rq->created_at ? $rq->created_at->format('d/m/Y') : '-' }}</div>
                                 </div>
                                 <div>
-                                    <div class="text-[9px] font-bold text-slate-400 uppercase mb-0.5 tracking-wider">Updated At</div>
-                                    <div class="text-[11px] font-medium text-slate-500">{{ $rq->updated_at ? $rq->updated_at->format('d/m/Y') : '-' }}</div>
+                                    <div class="text-[9px] font-bold text-slate-400 uppercase mb-0.5 tracking-wider">Handle At</div>
+                                    <div class="text-[11px] font-medium text-slate-500">{{ $rq->handle_at ? \Carbon\Carbon::parse($rq->handle_at)->format('d/m/Y H:i') : ($rq->updated_at ? $rq->updated_at->format('d/m/Y') : '-') }}</div>
                                 </div>
                                 <div class="col-span-2 pt-2 mt-0.5 border-t border-dashed border-slate-200/80 flex items-center justify-between">
                                     <div class="text-[9px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">

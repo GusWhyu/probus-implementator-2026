@@ -11,7 +11,9 @@
         <title>{{ config('app.name', 'Laravel') }}</title>
 
         <!-- Fonts -->
-        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap">
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
 
         <link rel="stylesheet" href="{{ asset('css/app.css') }}">
         <link rel="icon" type="image/x-icon" href="{{ asset('img/logo.png') }}">
@@ -19,26 +21,40 @@
         <link href="{{ asset('fontawesome/css/brands.css') }}" rel="stylesheet" />
         <link href="{{ asset('fontawesome/css/solid.css') }}" rel="stylesheet" />
 
-        <script src="{{ asset('js/app.js') }}"></script>
-        <!-- Scripts -->
-        {{-- @vite(['resources/css/app.css', 'resources/js/app.js']) --}}
-    </head>
-    <body>
-        <div class="font-sans text-black antialiased">
-            {{ $slot }}
-        </div>
+        <script src="https://cdn.tailwindcss.com"></script>
         <script>
-            let sp = document.getElementById("seepass");
-            let ps = document.getElementById("password");
-    
-            sp.onclick = function(){
-                if(ps.type == "password"){
-                    ps.type = "text";
-                }else{
-                    ps.type = "password";
+            tailwind.config = {
+                theme: {
+                    extend: {
+                        fontFamily: {
+                            sans: ['Inter', 'Nunito', 'sans-serif'],
+                        }
+                    }
                 }
             }
-    
+        </script>
+        <script src="{{ asset('js/app.js') }}"></script>
+        <style>
+            body { font-family: 'Inter', sans-serif; }
+        </style>
+    </head>
+    <body class="bg-slate-100 text-slate-800 antialiased selection:bg-blue-600 selection:text-white">
+        {{ $slot }}
+
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const sp = document.getElementById("seepass");
+                const ps = document.getElementById("password");
+                if (sp && ps) {
+                    sp.onclick = function(){
+                        if(ps.type === "password"){
+                            ps.type = "text";
+                        }else{
+                            ps.type = "password";
+                        }
+                    };
+                }
+            });
         </script>
     </body>
 </html>

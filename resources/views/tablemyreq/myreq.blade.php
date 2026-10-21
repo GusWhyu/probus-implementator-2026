@@ -316,22 +316,36 @@
     <style>
         .custom-scrollbar {
             scrollbar-width: thin;
-            scrollbar-color: #cbd5e1 #f1f5f9;
+            scrollbar-color: #cbd5e1 transparent;
         }
         .custom-scrollbar::-webkit-scrollbar {
-            width: 7px;
+            width: 5px;
         }
         .custom-scrollbar::-webkit-scrollbar-track {
-            background: #f1f5f9;
+            background: transparent !important;
             border-radius: 9999px;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb {
             background-color: #cbd5e1;
             border-radius: 9999px;
-            border: 1px solid #f1f5f9;
+            border: none !important;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {
             background-color: #94a3b8;
+        }
+
+        html.dark .custom-scrollbar {
+            scrollbar-color: #334155 transparent !important;
+        }
+        html.dark .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent !important;
+        }
+        html.dark .custom-scrollbar::-webkit-scrollbar-thumb {
+            background-color: #334155 !important;
+            border: none !important;
+        }
+        html.dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background-color: #475569 !important;
         }
     </style>
 </x-app-layout>

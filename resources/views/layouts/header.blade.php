@@ -33,7 +33,8 @@
 
             <div x-show="notifOpen" 
                  x-cloak
-                 class="absolute -right-12 sm:right-0 z-[100] flex flex-col p-0 shadow-2xl shadow-slate-200/80 bg-white rounded-2xl w-[calc(100vw-2rem)] max-w-[360px] sm:w-[360px] mt-3 border border-slate-200 overflow-hidden"
+                 id="notif-dropdown-panel"
+                 class="absolute -right-12 sm:right-0 z-[100] flex flex-col p-0 shadow-2xl shadow-slate-900/20 bg-white dark:bg-slate-900 rounded-2xl w-[calc(100vw-2rem)] max-w-[360px] sm:w-[360px] mt-3 border border-slate-200 dark:border-slate-800 overflow-hidden"
                  x-transition:enter="transition ease-out duration-150"
                  x-transition:enter-start="transform opacity-0 scale-95"
                  x-transition:enter-end="transform opacity-100 scale-100"
@@ -42,17 +43,17 @@
                  x-transition:leave-end="transform opacity-0 scale-95"
                  style="display: none;">
                 
-                <div class="px-5 py-4 bg-slate-50/90 backdrop-blur-sm border-b border-slate-100 flex justify-between items-center">
+                <div id="notif-dropdown-header" class="px-5 py-4 bg-slate-50/90 dark:bg-slate-900/90 backdrop-blur-sm border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
                     <div class="flex items-center gap-2">
-                        <h2 class="font-extrabold text-slate-800 text-sm">Notifikasi</h2>
-                        <span id="notif-count-badge" class="bg-rose-100 text-rose-600 text-[10px] font-extrabold px-2 py-0.5 rounded-full" style="{{ $unreadCount > 0 ? '' : 'display: none;' }}">{{ $unreadCount }} Baru</span>
+                        <h2 class="font-extrabold text-slate-800 dark:text-slate-100 text-sm">Notifikasi</h2>
+                        <span id="notif-count-badge" class="bg-rose-100 text-rose-600 dark:bg-rose-950/60 dark:text-rose-300 text-[10px] font-extrabold px-2 py-0.5 rounded-full" style="{{ $unreadCount > 0 ? '' : 'display: none;' }}">{{ $unreadCount }} Baru</span>
                     </div>
-                    <button type="button" id="notif-mark-all-btn" onclick="markAllNotificationsAsRead()" class="text-[10px] font-bold text-blue-600 hover:text-blue-700 transition-colors uppercase tracking-wider bg-blue-50 hover:bg-blue-100 px-2.5 py-1 rounded-lg cursor-pointer" style="{{ $unreadCount > 0 ? '' : 'display: none;' }}">
+                    <button type="button" id="notif-mark-all-btn" onclick="markAllNotificationsAsRead()" class="text-[10px] font-bold text-blue-600 dark:text-blue-400 hover:text-blue-700 transition-colors uppercase tracking-wider bg-blue-50 dark:bg-blue-900/30 hover:bg-blue-100 px-2.5 py-1 rounded-lg cursor-pointer" style="{{ $unreadCount > 0 ? '' : 'display: none;' }}">
                         Tandai Dibaca
                     </button>
                 </div>
 
-                <div id="notif-dropdown-list" class="max-h-[380px] overflow-y-auto custom-scrollbar divide-y divide-slate-50">
+                <div id="notif-dropdown-list" class="max-h-[380px] overflow-y-auto custom-scrollbar divide-y divide-slate-50 dark:divide-slate-800/60">
                     @forelse ($unreadNotifications as $notification)
                         @php
                             $data = $notification->data ?? [];
@@ -97,36 +98,36 @@
                             }
                         @endphp
 
-                        <a href="{{ $url ?: '#' }}" onclick="markNotificationRead('{{ $notification->id }}')" class="p-4 hover:bg-blue-50/50 transition-colors relative group cursor-pointer block">
+                        <a href="{{ $url ?: '#' }}" onclick="markNotificationRead('{{ $notification->id }}')" class="p-4 hover:bg-blue-50/50 dark:hover:bg-slate-800/50 transition-colors relative group cursor-pointer block">
                             <div class="flex gap-3.5 items-start">
-                                <div class="w-9 h-9 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center shrink-0 mt-0.5 group-hover:scale-110 group-hover:bg-blue-600 group-hover:text-white transition-all duration-300">
+                                <div class="notif-icon-box w-9 h-9 rounded-full bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400 dark:border dark:border-blue-700/30 flex items-center justify-center shrink-0 mt-0.5 group-hover:scale-110 group-hover:bg-blue-600 group-hover:text-white transition-all duration-300">
                                     <i class="fa-solid fa-bell text-xs"></i>
                                 </div>
                                 <div class="flex-1 min-w-0">
                                     <div class="flex items-center justify-between gap-1 mb-0.5">
-                                        <h5 class="text-xs font-bold text-slate-800 truncate">{{ $title }}</h5>
+                                        <h5 class="text-xs font-bold text-slate-800 dark:text-slate-100 truncate">{{ $title }}</h5>
                                         <span class="text-[9px] text-slate-400 font-semibold flex items-center gap-1 shrink-0">
                                             <i class="fa-regular fa-clock text-[8px]"></i>
                                             {{ $notification->created_at->diffForHumans() }}
                                         </span>
                                     </div>
-                                    <p class="text-xs text-slate-600 leading-snug mb-1 font-medium line-clamp-2">{{ $message }}</p>
+                                    <p class="text-xs text-slate-600 dark:text-slate-300 leading-snug mb-1 font-medium line-clamp-2">{{ $message }}</p>
                                 </div>
                             </div>
                         </a>
                     @empty
-                        <div class="py-12 px-6 text-center flex flex-col items-center bg-slate-50/30">
-                            <div class="w-16 h-16 bg-white border border-slate-100 rounded-full flex items-center justify-center text-slate-300 mb-4 shadow-sm">
+                        <div class="py-12 px-6 text-center flex flex-col items-center bg-slate-50/30 dark:bg-slate-900/40">
+                            <div class="w-16 h-16 bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700/60 rounded-full flex items-center justify-center text-slate-300 dark:text-slate-500 mb-4 shadow-sm">
                                 <i class="fa-regular fa-bell-slash text-2xl"></i>
                             </div>
-                            <p class="text-sm font-bold text-slate-600">Tidak ada notifikasi baru</p>
+                            <p class="text-sm font-bold text-slate-600 dark:text-slate-300">Tidak ada notifikasi baru</p>
                             <p class="text-[11px] text-slate-400 font-medium mt-1">Anda sudah melihat semua pembaruan.</p>
                         </div>
                     @endforelse
                 </div>
 
-                <div class="p-2 bg-slate-50 border-t border-slate-100 text-center">
-                    <a href="{{ route('notifications.index') }}" class="text-[11px] font-bold text-slate-500 hover:text-blue-600 transition-colors py-2 block w-full uppercase tracking-wider">
+                <div id="notif-dropdown-footer" class="p-2 bg-slate-50 dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800 text-center">
+                    <a href="{{ route('notifications.index') }}" class="text-[11px] font-bold text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors py-2 block w-full uppercase tracking-wider">
                         Lihat Semua Riwayat
                     </a>
                 </div>
@@ -226,12 +227,12 @@
 
         if (!notifications || notifications.length === 0) {
             container.innerHTML = `
-                <div class="py-12 px-6 text-center flex flex-col items-center bg-slate-50/30">
-                    <div class="w-16 h-16 bg-white border border-slate-100 rounded-full flex items-center justify-center text-slate-300 mb-4 shadow-sm">
+                <div class="py-12 px-6 text-center flex flex-col items-center bg-slate-50/30 dark:bg-slate-900/40">
+                    <div class="w-16 h-16 bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700/60 rounded-full flex items-center justify-center text-slate-300 dark:text-slate-500 mb-4 shadow-sm">
                         <i class="fa-regular fa-bell-slash text-2xl"></i>
                     </div>
-                    <p class="text-sm font-bold text-slate-600">Tidak ada notifikasi baru</p>
-                    <p class="text-[11px] text-slate-400 font-medium mt-1">Anda sudah melihat semua pembaruan.</p>
+                    <p class="text-sm font-bold text-slate-600 dark:text-slate-300">Tidak ada notifikasi baru</p>
+                    <p class="text-[11px] text-slate-400 dark:text-slate-500 font-medium mt-1">Anda sudah melihat semua pembaruan.</p>
                 </div>
             `;
             return;
@@ -241,20 +242,20 @@
         notifications.forEach(item => {
             const itemUrl = item.url || '#';
             html += `
-                <a href="${itemUrl}" onclick="markNotificationRead('${item.id}')" class="p-4 hover:bg-blue-50/50 transition-colors relative group cursor-pointer block">
+                <a href="${itemUrl}" onclick="markNotificationRead('${item.id}')" class="p-4 hover:bg-blue-50/50 dark:hover:bg-slate-800/50 transition-colors relative group cursor-pointer block">
                     <div class="flex gap-3.5 items-start">
-                        <div class="w-9 h-9 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center shrink-0 mt-0.5 group-hover:scale-110 group-hover:bg-blue-600 group-hover:text-white transition-all duration-300">
+                        <div class="notif-icon-box w-9 h-9 rounded-full bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400 dark:border dark:border-blue-700/30 flex items-center justify-center shrink-0 mt-0.5 group-hover:scale-110 group-hover:bg-blue-600 group-hover:text-white transition-all duration-300">
                             <i class="fa-solid fa-bell text-xs"></i>
                         </div>
                         <div class="flex-1 min-w-0">
                             <div class="flex items-center justify-between gap-1 mb-0.5">
-                                <h5 class="text-xs font-bold text-slate-800 truncate">${escapeHtml(item.title)}</h5>
+                                <h5 class="text-xs font-bold text-slate-800 dark:text-slate-100 truncate">${escapeHtml(item.title)}</h5>
                                 <span class="text-[9px] text-slate-400 font-semibold flex items-center gap-1 shrink-0">
                                     <i class="fa-regular fa-clock text-[8px]"></i>
                                     <span>${escapeHtml(item.created_at_human)}</span>
                                 </span>
                             </div>
-                            <p class="text-xs text-slate-600 leading-snug mb-1 font-medium line-clamp-2">${escapeHtml(item.message)}</p>
+                            <p class="text-xs text-slate-600 dark:text-slate-300 leading-snug mb-1 font-medium line-clamp-2">${escapeHtml(item.message)}</p>
                         </div>
                     </div>
                 </a>

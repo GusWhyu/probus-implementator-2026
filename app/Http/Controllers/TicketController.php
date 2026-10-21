@@ -178,7 +178,7 @@ class TicketController extends Controller
             'due_date' => $request->due_date,
             'status' => 'OPEN',
             'link_id' => \Illuminate\Support\Str::random(10),
-            'handle_at' => now(),
+            'handle_at' => null,
         ]);
 
         TicketLog::create([
@@ -272,11 +272,18 @@ class TicketController extends Controller
             if ($newStatus == 'CLOSED') {
                 $closedAt = now();
                 $updateData['closed_at'] = $closedAt;
-                $start = $datarq->handle_at ?? $datarq->created_at;
+                $start = $datarq->handle_at ?: $datarq->created_at;
                 $updateData['duration_minutes'] = $start ? $closedAt->diffInMinutes(\Carbon\Carbon::parse($start)) : 0;
             } else {
                 $updateData['closed_at'] = null;
                 $updateData['duration_minutes'] = null;
+                if ($newStatus == 'PROGRESS') {
+                    if ($datarq->status !== 'PROGRESS' || empty($datarq->handle_at)) {
+                        $updateData['handle_at'] = now();
+                    }
+                } elseif ($newStatus == 'OPEN') {
+                    $updateData['handle_at'] = null;
+                }
             }
             TicketLog::create([
                 'ticket_id' => $datarq->id,
@@ -341,14 +348,18 @@ class TicketController extends Controller
         if ($stid == 'CLOSED') {
             $closedAt = now();
             $updateData['closed_at'] = $closedAt;
-            $start = $data->handle_at ?? $data->created_at;
+            $start = $data->handle_at ?: $data->created_at;
             $updateData['duration_minutes'] = $start ? $closedAt->diffInMinutes(\Carbon\Carbon::parse($start)) : 0;
         } else {
             // If reopened (OPEN/PROGRESS), reset closed_at and duration_minutes
             $updateData['closed_at'] = null;
             $updateData['duration_minutes'] = null;
-            if ($stid == 'PROGRESS' && empty($data->handle_at)) {
-                $updateData['handle_at'] = now();
+            if ($stid == 'PROGRESS') {
+                if ($data->status !== 'PROGRESS' || empty($data->handle_at)) {
+                    $updateData['handle_at'] = now();
+                }
+            } elseif ($stid == 'OPEN') {
+                $updateData['handle_at'] = null;
             }
         }
 

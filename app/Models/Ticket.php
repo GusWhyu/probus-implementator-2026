@@ -28,7 +28,7 @@ class Ticket extends Model
 
     public function getDurationTextAttribute()
     {
-        $start = $this->handle_at ?? $this->created_at;
+        $start = $this->handle_at ?: $this->created_at;
 
         if (strtoupper($this->status) === 'CLOSED') {
             if ($this->closed_at && $start) {
@@ -48,12 +48,13 @@ class Ticket extends Model
         }
 
         if (strtoupper($this->status) === 'PROGRESS') {
-            if ($start) {
-                $secs = now()->diffInSeconds(\Carbon\Carbon::parse($start));
+            $handleStart = $this->handle_at ?: $this->created_at;
+            if ($handleStart) {
+                $secs = now()->diffInSeconds(\Carbon\Carbon::parse($handleStart));
                 if ($secs < 60) {
                     return '< 1 menit (Berjalan)';
                 }
-                $mins = floor($secs / 60);
+                $mins = (int) floor($secs / 60);
                 return self::formatMinutesToText($mins) . ' (Berjalan)';
             }
             return 'Sedang diproses';
