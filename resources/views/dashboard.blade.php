@@ -89,13 +89,13 @@
             {{-- Stat cards --}}
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
                 {{-- Card 1: Total Tickets --}}
-                <div class="bg-white dashboard-stat-card rounded-2xl p-5 shadow-sm border border-blue-100/80 hover:border-blue-300 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-300 group relative overflow-hidden" style="background-color: #ffffff;">
-                    <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 to-indigo-600 z-10"></div>
-                    <div class="absolute inset-0 bg-gradient-to-br from-white via-white to-blue-100 pointer-events-none stat-card-gradient"></div>
-                    <div class="absolute -right-6 -bottom-6 w-32 h-32 bg-blue-500/10 rounded-full blur-2xl pointer-events-none group-hover:scale-125 transition-transform duration-500"></div>
+                <div class="bg-white dashboard-stat-card rounded-2xl p-5 shadow-sm border border-indigo-100/80 hover:border-indigo-300 hover:shadow-lg hover:shadow-indigo-500/10 transition-all duration-300 group relative overflow-hidden" style="background-color: #ffffff;">
+                    <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-indigo-500 to-purple-600 z-10"></div>
+                    <div class="absolute inset-0 bg-gradient-to-br from-white via-white to-indigo-100 pointer-events-none stat-card-gradient"></div>
+                    <div class="absolute -right-6 -bottom-6 w-32 h-32 bg-indigo-500/10 rounded-full blur-2xl pointer-events-none group-hover:scale-125 transition-transform duration-500"></div>
                     <div class="flex items-center justify-between mb-3 relative z-10">
-                        <span class="text-xs sm:text-sm font-extrabold text-slate-500 dark:text-slate-300 group-hover:text-blue-700 dark:group-hover:text-blue-400 uppercase tracking-wider transition-colors">Total Tickets</span>
-                        <div class="stat-card-icon-box w-10 h-10 bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 shadow-sm border border-blue-100 dark:border-blue-900/40 rounded-xl flex items-center justify-center group-hover:scale-110 group-hover:bg-blue-600 group-hover:text-white transition-all duration-300">
+                        <span class="text-xs sm:text-sm font-extrabold text-slate-500 dark:text-slate-300 group-hover:text-indigo-700 dark:group-hover:text-indigo-400 uppercase tracking-wider transition-colors">Total Tickets</span>
+                        <div class="stat-card-icon-box w-10 h-10 bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 shadow-sm border border-indigo-100 dark:border-indigo-900/40 rounded-xl flex items-center justify-center group-hover:scale-110 group-hover:bg-indigo-600 group-hover:text-white transition-all duration-300">
                             <i class="fa-solid fa-ticket text-base"></i>
                         </div>
                     </div>
@@ -103,13 +103,13 @@
                 </div>
 
                 {{-- Card 2: Open Tickets --}}
-                <div class="bg-white dashboard-stat-card rounded-2xl p-5 shadow-sm border border-indigo-100/80 hover:border-indigo-300 hover:shadow-lg hover:shadow-indigo-500/10 transition-all duration-300 group relative overflow-hidden" style="background-color: #ffffff;">
-                    <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-indigo-500 to-purple-600 z-10"></div>
-                    <div class="absolute inset-0 bg-gradient-to-br from-white via-white to-indigo-100 pointer-events-none stat-card-gradient"></div>
-                    <div class="absolute -right-6 -bottom-6 w-32 h-32 bg-indigo-500/10 rounded-full blur-2xl pointer-events-none group-hover:scale-125 transition-transform duration-500"></div>
+                <div class="bg-white dashboard-stat-card rounded-2xl p-5 shadow-sm border border-blue-100/80 hover:border-blue-300 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-300 group relative overflow-hidden" style="background-color: #ffffff;">
+                    <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 to-cyan-500 z-10"></div>
+                    <div class="absolute inset-0 bg-gradient-to-br from-white via-white to-blue-100 pointer-events-none stat-card-gradient"></div>
+                    <div class="absolute -right-6 -bottom-6 w-32 h-32 bg-blue-500/10 rounded-full blur-2xl pointer-events-none group-hover:scale-125 transition-transform duration-500"></div>
                     <div class="flex items-center justify-between mb-3 relative z-10">
-                        <span class="text-xs sm:text-sm font-extrabold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider">Open</span>
-                        <div class="stat-card-icon-box w-10 h-10 bg-indigo-50 dark:bg-indigo-950/60 text-indigo-500 dark:text-indigo-400 shadow-sm border border-indigo-100 dark:border-indigo-900/40 rounded-xl flex items-center justify-center group-hover:scale-110 group-hover:bg-indigo-600 group-hover:text-white transition-all duration-300">
+                        <span class="text-xs sm:text-sm font-extrabold text-blue-600 dark:text-blue-400 uppercase tracking-wider">Open</span>
+                        <div class="stat-card-icon-box w-10 h-10 bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 shadow-sm border border-blue-100 dark:border-blue-900/40 rounded-xl flex items-center justify-center group-hover:scale-110 group-hover:bg-blue-600 group-hover:text-white transition-all duration-300">
                             <i class="fa-regular fa-clock text-base"></i>
                         </div>
                     </div>
@@ -175,11 +175,11 @@
                     </div>
                     <div class="mt-5 flex flex-col gap-2.5">
                         <div class="flex items-center justify-between text-xs">
-                            <div class="flex items-center gap-2"><div class="w-2.5 h-2.5 rounded-full bg-indigo-500"></div> <span class="font-semibold text-slate-700">Open</span></div>
+                            <div class="flex items-center gap-2"><div class="w-2.5 h-2.5 rounded-full bg-blue-500"></div> <span class="font-semibold text-slate-700">Open</span></div>
                             <span id="legend-open-count" class="font-bold text-slate-800">{{ $open_count ?? 0 }}</span>
                         </div>
                         <div class="flex items-center justify-between text-xs">
-                            <div class="flex items-center gap-2"><div class="w-2.5 h-2.5 rounded-full bg-sky-500"></div> <span class="font-semibold text-slate-700">In Progress</span></div>
+                            <div class="flex items-center gap-2"><div class="w-2.5 h-2.5 rounded-full bg-amber-500"></div> <span class="font-semibold text-slate-700">In Progress</span></div>
                             <span id="legend-progress-count" class="font-bold text-slate-800">{{ $progress_count ?? 0 }}</span>
                         </div>
                         <div class="flex items-center justify-between text-xs">
@@ -316,7 +316,7 @@
                     labels: ['Open', 'In Progress', 'Closed'],
                     datasets: [{
                         data: [{{ $open_count ?? 0 }}, {{ $progress_count ?? 0 }}, {{ $closed_count ?? 0 }}],
-                        backgroundColor: ['#6366f1', '#0ea5e9', '#10b981'],
+                        backgroundColor: ['#3b82f6', '#f59e0b', '#10b981'],
                         borderWidth: 0,
                         cutout: '72%',
                         borderRadius: 3

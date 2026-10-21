@@ -26,33 +26,33 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
             {{-- Semua Tiket --}}
             <a href="{{ route('daftartiket', request()->except(['status', 'page'])) }}" 
-               class="p-5 rounded-2xl border transition-all duration-200 transform hover:-translate-y-0.5 shadow-sm hover:shadow-md flex items-center justify-between group relative {{ $isAllActive ? 'bg-white dark:bg-slate-800 border-blue-600 dark:border-blue-500 ring-2 ring-blue-500/20 shadow-md' : 'bg-white dark:bg-slate-800 border-slate-100 dark:border-slate-700/80 hover:border-slate-300 dark:hover:border-slate-600' }}"
+               class="p-5 rounded-2xl border transition-all duration-200 transform hover:-translate-y-0.5 shadow-sm hover:shadow-md flex items-center justify-between group relative {{ $isAllActive ? 'bg-white dark:bg-slate-800 border-indigo-600 dark:border-indigo-500 ring-2 ring-indigo-500/20 shadow-md' : 'bg-white dark:bg-slate-800 border-slate-100 dark:border-slate-700/80 hover:border-slate-300 dark:hover:border-slate-600' }}"
                title="Tampilkan semua tiket (tanpa filter status)">
                 <div>
-                    <div class="text-[11px] font-bold uppercase tracking-wider mb-1 {{ $isAllActive ? 'text-blue-600 dark:text-blue-400' : 'text-slate-400 dark:text-slate-400' }}">Total Tickets</div>
+                    <div class="text-[11px] font-bold uppercase tracking-wider mb-1 {{ $isAllActive ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-400 dark:text-slate-400' }}">Total Tickets</div>
                     <div class="text-3xl font-extrabold text-slate-800 dark:text-slate-100">{{ $total_count }}</div>
                 </div>
-                <div class="w-12 h-12 rounded-full flex items-center justify-center transition-colors {{ $isAllActive ? 'bg-blue-600 text-white shadow-sm shadow-blue-500/30' : 'bg-slate-50 dark:bg-slate-700/50 text-slate-400 dark:text-slate-400 group-hover:bg-slate-100 dark:group-hover:bg-slate-700 group-hover:text-slate-600 dark:group-hover:text-slate-200' }}">
+                <div class="w-12 h-12 rounded-full flex items-center justify-center transition-colors {{ $isAllActive ? 'bg-indigo-600 text-white shadow-sm shadow-indigo-500/30' : 'bg-slate-50 dark:bg-slate-700/50 text-slate-400 dark:text-slate-400 group-hover:bg-slate-100 dark:group-hover:bg-slate-700 group-hover:text-slate-600 dark:group-hover:text-slate-200' }}">
                     <i class="fa-solid fa-ticket text-xl"></i>
                 </div>
                 @if($isAllActive)
-                <span class="absolute top-2.5 right-3 px-2 py-0.5 text-[9px] font-extrabold uppercase rounded-full bg-blue-50 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 tracking-wider">Aktif</span>
+                <span class="absolute top-2.5 right-3 px-2 py-0.5 text-[9px] font-extrabold uppercase rounded-full bg-indigo-50 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 tracking-wider">Aktif</span>
                 @endif
             </a>
             
             {{-- Open --}}
             <a href="{{ route('daftartiket', $isOpenActive ? request()->except(['status', 'page']) : array_merge(request()->except('page'), ['status' => 'OPEN'])) }}" 
-               class="p-5 rounded-2xl border transition-all duration-200 transform hover:-translate-y-0.5 shadow-sm hover:shadow-md flex items-center justify-between group relative {{ $isOpenActive ? 'bg-white dark:bg-slate-800 border-indigo-500 ring-2 ring-indigo-500/20 shadow-md' : 'bg-white dark:bg-slate-800 border-slate-100 dark:border-slate-700/80 hover:border-indigo-200 dark:hover:border-indigo-500/50' }}"
+               class="p-5 rounded-2xl border transition-all duration-200 transform hover:-translate-y-0.5 shadow-sm hover:shadow-md flex items-center justify-between group relative {{ $isOpenActive ? 'bg-white dark:bg-slate-800 border-blue-600 dark:border-blue-500 ring-2 ring-blue-500/20 shadow-md' : 'bg-white dark:bg-slate-800 border-slate-100 dark:border-slate-700/80 hover:border-blue-200 dark:hover:border-blue-500/50' }}"
                title="{{ $isOpenActive ? 'Klik untuk membatalkan filter' : 'Filter tiket Open' }}">
                 <div>
-                    <div class="text-[11px] font-bold uppercase tracking-wider mb-1 {{ $isOpenActive ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-400 dark:text-slate-400' }}">Open</div>
+                    <div class="text-[11px] font-bold uppercase tracking-wider mb-1 {{ $isOpenActive ? 'text-blue-600 dark:text-blue-400' : 'text-slate-400 dark:text-slate-400' }}">Open</div>
                     <div class="text-3xl font-extrabold text-slate-800 dark:text-slate-100">{{ $open_count }}</div>
                 </div>
-                <div class="w-12 h-12 rounded-full flex items-center justify-center transition-colors {{ $isOpenActive ? 'bg-indigo-600 text-white shadow-sm shadow-indigo-500/30' : 'bg-indigo-50 dark:bg-indigo-950/60 text-indigo-500 dark:text-indigo-400 group-hover:bg-indigo-100 dark:group-hover:bg-indigo-900/60' }}">
+                <div class="w-12 h-12 rounded-full flex items-center justify-center transition-colors {{ $isOpenActive ? 'bg-blue-600 text-white shadow-sm shadow-blue-500/30' : 'bg-blue-50 dark:bg-blue-950/60 text-blue-500 dark:text-blue-400 group-hover:bg-blue-100 dark:group-hover:bg-blue-900/60' }}">
                     <i class="fa-regular fa-clock text-xl"></i>
                 </div>
                 @if($isOpenActive)
-                <span class="absolute top-2.5 right-3 px-2 py-0.5 text-[9px] font-extrabold uppercase rounded-full bg-indigo-50 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 tracking-wider">Aktif</span>
+                <span class="absolute top-2.5 right-3 px-2 py-0.5 text-[9px] font-extrabold uppercase rounded-full bg-blue-50 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 tracking-wider">Aktif</span>
                 @endif
             </a>
             

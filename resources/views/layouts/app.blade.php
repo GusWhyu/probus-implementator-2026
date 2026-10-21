@@ -200,6 +200,24 @@
                 color: #64748b !important;
             }
 
+            /* Gray Typography Fallback */
+            html.dark .text-gray-900,
+            html.dark .text-gray-800 {
+                color: #f8fafc !important;
+            }
+            html.dark .text-gray-700 {
+                color: #e2e8f0 !important;
+            }
+            html.dark .text-gray-600 {
+                color: #cbd5e1 !important;
+            }
+            html.dark .text-gray-500 {
+                color: #94a3b8 !important;
+            }
+            html.dark .text-gray-400 {
+                color: #64748b !important;
+            }
+
             /* Stat Cards on Dashboard in Dark Mode (Vibrant Gradients like in light mode) */
             html.dark .dashboard-stat-card {
                 background-color: #151f30 !important;
@@ -210,29 +228,29 @@
             html.dark .dashboard-stat-card .stat-card-gradient {
                 opacity: 1 !important;
             }
-            /* Card 1: Total - Blue gradient glow & icon */
+            /* Card 1: Total - Indigo / Purple gradient glow & icon */
             html.dark .dashboard-stat-card:nth-child(1) {
-                border-color: rgba(59, 130, 246, 0.4) !important;
-            }
-            html.dark .dashboard-stat-card:nth-child(1) .stat-card-gradient {
-                background: radial-gradient(circle at bottom right, rgba(37, 99, 235, 0.4) 0%, rgba(30, 58, 138, 0.22) 50%, transparent 80%) !important;
-            }
-            html.dark .dashboard-stat-card:nth-child(1) .stat-card-icon-box {
-                color: #60a5fa !important;
-                background-color: rgba(37, 99, 235, 0.16) !important;
-                border-color: rgba(59, 130, 246, 0.3) !important;
-            }
-            /* Card 2: Open - Indigo / Purple gradient glow & icon */
-            html.dark .dashboard-stat-card:nth-child(2) {
                 border-color: rgba(99, 102, 241, 0.4) !important;
             }
-            html.dark .dashboard-stat-card:nth-child(2) .stat-card-gradient {
+            html.dark .dashboard-stat-card:nth-child(1) .stat-card-gradient {
                 background: radial-gradient(circle at bottom right, rgba(99, 102, 241, 0.4) 0%, rgba(79, 70, 229, 0.22) 50%, transparent 80%) !important;
             }
-            html.dark .dashboard-stat-card:nth-child(2) .stat-card-icon-box {
+            html.dark .dashboard-stat-card:nth-child(1) .stat-card-icon-box {
                 color: #a5b4fc !important;
                 background-color: rgba(99, 102, 241, 0.16) !important;
                 border-color: rgba(99, 102, 241, 0.3) !important;
+            }
+            /* Card 2: Open - Blue gradient glow & icon */
+            html.dark .dashboard-stat-card:nth-child(2) {
+                border-color: rgba(59, 130, 246, 0.4) !important;
+            }
+            html.dark .dashboard-stat-card:nth-child(2) .stat-card-gradient {
+                background: radial-gradient(circle at bottom right, rgba(37, 99, 235, 0.4) 0%, rgba(30, 58, 138, 0.22) 50%, transparent 80%) !important;
+            }
+            html.dark .dashboard-stat-card:nth-child(2) .stat-card-icon-box {
+                color: #60a5fa !important;
+                background-color: rgba(37, 99, 235, 0.16) !important;
+                border-color: rgba(59, 130, 246, 0.3) !important;
             }
             /* Card 3: In Progress - Amber gradient glow & icon (matches daftartiket) */
             html.dark .dashboard-stat-card:nth-child(3) {
@@ -362,11 +380,27 @@
             }
 
             /* Laravel Tailwind Pagination in Dark Mode */
+            html.dark nav[role="navigation"] p {
+                color: #94a3b8 !important;
+            }
+            html.dark nav[role="navigation"] p span,
+            html.dark nav[role="navigation"] p .font-medium,
+            html.dark nav[role="navigation"] p .font-semibold,
+            html.dark nav[role="navigation"] p .font-bold {
+                background-color: transparent !important;
+                border-color: transparent !important;
+                color: #f1f5f9 !important;
+                padding: 0 !important;
+            }
             html.dark nav[role="navigation"] svg {
                 color: #94a3b8 !important;
             }
-            html.dark nav[role="navigation"] span,
-            html.dark nav[role="navigation"] a {
+            html.dark nav[role="navigation"] div.sm\:hidden > span,
+            html.dark nav[role="navigation"] div.sm\:hidden > a,
+            html.dark nav[role="navigation"] span.relative.z-0 > a,
+            html.dark nav[role="navigation"] span.relative.z-0 > span > span,
+            html.dark nav[role="navigation"] span.shadow-sm > a,
+            html.dark nav[role="navigation"] span.shadow-sm > span > span {
                 background-color: #1e293b !important;
                 border-color: #334155 !important;
                 color: #cbd5e1 !important;
