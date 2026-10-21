@@ -24,7 +24,6 @@
             <form action="/createrq" method="POST" enctype="multipart/form-data" class="flex flex-col lg:flex-row gap-6 lg:items-stretch">
                 @csrf
                 <input type="hidden" name="return_url" value="{{ $returnUrl ?? '' }}">
-                <input type="hidden" name="tag" value="{{ old('tag', 1) }}">
                 
                 <!-- Left Column (Form Fields) -->
                 <div class="w-full lg:w-5/12 flex flex-col gap-6">
@@ -54,6 +53,17 @@
                                         <i class="fa-solid fa-magnifying-glass text-[11px]"></i>
                                     </div>
                                 </div>
+                            </div>
+
+                            <!-- Divisi / Tim Pelaksana (Tag) -->
+                            <div>
+                                <label class="block text-[11px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Divisi / Tim Pelaksana <span class="text-rose-500">*</span></label>
+                                <select name="tag" class="w-full bg-slate-50/50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-sm font-semibold rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 block p-3.5 transition-all outline-none appearance-none cursor-pointer" style="background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2394a3b8%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E'); background-repeat: no-repeat; background-position: right 1rem top 50%; background-size: 0.65rem auto;" required>
+                                    <option value="" disabled {{ !old('tag') && !Auth::user()->tag_id ? 'selected' : '' }}>Pilih divisi pelaksana...</option>
+                                    @foreach ($tag as $tagitem)
+                                        <option value="{{ $tagitem->id }}" {{ old('tag', Auth::user()->tag_id ?? 1) == $tagitem->id ? 'selected' : '' }}>{{ $tagitem->name }}</option>
+                                    @endforeach
+                                </select>
                             </div>
 
                             <!-- Row: System & Module -->

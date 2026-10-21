@@ -305,7 +305,17 @@
                                 </div>
                                 <div>
                                     <div class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-0.5">System & Module</div>
-                                    <div class="font-bold text-slate-800 text-sm">{{ $datarq->kategori ? $datarq->kategori->name : '-' }} <span class="text-slate-300 mx-1">•</span> <span class="text-blue-600">{{ $datarq->module ?: ($datarq->tag ? $datarq->tag->name : '-') }}</span></div>
+                                    <div class="font-bold text-slate-800 text-sm">{{ $datarq->kategori ? $datarq->kategori->name : '-' }} <span class="text-slate-300 mx-1">•</span> <span class="text-slate-700">{{ $datarq->module ?: '-' }}</span></div>
+                                </div>
+                            </div>
+
+                            <div class="flex items-start gap-4">
+                                <div class="w-8 h-8 rounded-lg bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 shrink-0">
+                                    <i class="fa-solid fa-users-gear text-xs"></i>
+                                </div>
+                                <div>
+                                    <div class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-0.5">Divisi Pelaksana</div>
+                                    <div class="font-bold text-blue-600 text-sm">{{ $datarq->tag ? $datarq->tag->name : '-' }}</div>
                                 </div>
                             </div>
                             

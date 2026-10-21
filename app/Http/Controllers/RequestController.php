@@ -458,7 +458,7 @@ class RequestController extends Controller
             'enddate' => 'required|date|after_or_equal:startdate',
             'category' => 'required', // System
             'module' => 'nullable', // Module
-            'tag' => 'nullable',
+            'tag' => 'required|exists:tag,id',
             'client' => 'nullable',
             'outlet' => 'nullable',
             'images' => 'array|max:6',
@@ -478,7 +478,7 @@ class RequestController extends Controller
             }
         }
 
-        $tagId = $request->tag ?? 1;
+        $tagId = $request->tag ?? (Auth::user()->tag_id ?? 1);
 
         $data = \App\Models\Request::create([
             'judul' => $request->title,
@@ -535,7 +535,7 @@ class RequestController extends Controller
             'outlet' => 'nullable',
             'client' => 'nullable',
             'status' => 'required',
-            'tag' => 'nullable',
+            'tag' => 'required|exists:tag,id',
             'images' => 'array|max:6',
             'images.*' => 'image|mimes:jpg,jpeg,png|max:1024'
         ]);
