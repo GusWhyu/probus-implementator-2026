@@ -94,13 +94,13 @@
 
         {{-- Mobile Segmented Tabs Selector (Only on mobile < lg) --}}
         <div class="sticky top-0 bg-[#F8FAFC]/95 dark:bg-[#0b1120]/95 backdrop-blur-sm -mx-3 px-3 sm:-mx-5 sm:px-5 py-2 z-20 flex lg:hidden">
-            <div class="w-full bg-slate-200/80 dark:bg-slate-800 p-1 rounded-xl flex gap-1 shadow-inner">
+            <div class="w-full bg-slate-200/80 dark:bg-slate-800/90 p-1 rounded-xl flex gap-1 shadow-inner border border-slate-300/40 dark:border-slate-700/60">
                 <button type="button" @click="activeTab = 'open'" 
                     :class="activeTab === 'open' ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 font-semibold'" 
                     class="flex-1 py-2 px-2 rounded-lg text-xs flex items-center justify-center gap-1.5 transition-all">
                     <span>Open</span>
-                    <span class="px-1.5 py-0.2 rounded-full text-[10px] font-bold" 
-                        :class="activeTab === 'open' ? 'bg-indigo-100 dark:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300' : 'bg-slate-300/80 dark:bg-slate-600 text-slate-600 dark:text-slate-300'">
+                    <span class="px-2 py-0.5 rounded-full text-xs font-black min-w-[22px] text-center inline-flex items-center justify-center transition-all" 
+                        :class="activeTab === 'open' ? 'bg-indigo-600 text-white shadow-sm shadow-indigo-600/30' : 'bg-indigo-100 dark:bg-indigo-950/80 text-indigo-800 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800/80'">
                         {{ count($open) }}
                     </span>
                 </button>
@@ -109,8 +109,8 @@
                     :class="activeTab === 'progress' ? 'bg-white dark:bg-slate-700 text-amber-600 dark:text-amber-400 shadow-sm font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 font-semibold'" 
                     class="flex-1 py-2 px-2 rounded-lg text-xs flex items-center justify-center gap-1.5 transition-all">
                     <span>Progress</span>
-                    <span class="px-1.5 py-0.2 rounded-full text-[10px] font-bold" 
-                        :class="activeTab === 'progress' ? 'bg-amber-100 dark:bg-amber-900/60 text-amber-700 dark:text-amber-300' : 'bg-slate-300/80 dark:bg-slate-600 text-slate-600 dark:text-slate-300'">
+                    <span class="px-2 py-0.5 rounded-full text-xs font-black min-w-[22px] text-center inline-flex items-center justify-center transition-all" 
+                        :class="activeTab === 'progress' ? 'bg-amber-500 text-white shadow-sm shadow-amber-500/30' : 'bg-amber-100 dark:bg-amber-950/80 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800/80'">
                         {{ count($progress) }}
                     </span>
                 </button>
@@ -119,8 +119,8 @@
                     :class="activeTab === 'closed' ? 'bg-white dark:bg-slate-700 text-emerald-600 dark:text-emerald-400 shadow-sm font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 font-semibold'" 
                     class="flex-1 py-2 px-2 rounded-lg text-xs flex items-center justify-center gap-1.5 transition-all">
                     <span>Closed</span>
-                    <span class="px-1.5 py-0.2 rounded-full text-[10px] font-bold" 
-                        :class="activeTab === 'closed' ? 'bg-emerald-100 dark:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300' : 'bg-slate-300/80 dark:bg-slate-600 text-slate-600 dark:text-slate-300'">
+                    <span class="px-2 py-0.5 rounded-full text-xs font-black min-w-[22px] text-center inline-flex items-center justify-center transition-all" 
+                        :class="activeTab === 'closed' ? 'bg-emerald-500 text-white shadow-sm shadow-emerald-500/30' : 'bg-emerald-100 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/80'">
                         {{ count($closed) }}
                     </span>
                 </button>
@@ -139,7 +139,7 @@
                             <span class="w-2.5 h-2.5 rounded-full bg-indigo-500"></span>
                             <h3 class="font-bold text-sm text-slate-800 dark:text-slate-200 tracking-wider uppercase">OPEN</h3>
                         </div>
-                        <span class="text-xs font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200/60 dark:border-indigo-800/40 px-2 py-0.5 rounded-full">{{ count($open) }}</span>
+                        <span class="text-xs font-black text-indigo-700 dark:text-indigo-300 bg-indigo-100 dark:bg-indigo-950/80 border border-indigo-300 dark:border-indigo-800/80 px-2.5 py-0.5 rounded-full shadow-sm">{{ count($open) }}</span>
                     </div>
                     <!-- Per-column vertical scroll on desktop, natural flow on mobile -->
                     <div class="flex flex-col gap-4 pr-1 sm:pr-2 pb-6 lg:flex-1 lg:min-h-0 lg:overflow-y-auto custom-scrollbar">
@@ -223,7 +223,7 @@
                             <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
                             <h3 class="font-bold text-sm text-slate-800 dark:text-slate-200 tracking-wider uppercase">PROGRESS</h3>
                         </div>
-                        <span class="text-xs font-bold text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 border border-amber-200/60 dark:border-amber-800/40 px-2 py-0.5 rounded-full">{{ count($progress) }}</span>
+                        <span class="text-xs font-black text-amber-700 dark:text-amber-300 bg-amber-100 dark:bg-amber-950/80 border border-amber-300 dark:border-amber-800/80 px-2.5 py-0.5 rounded-full shadow-sm">{{ count($progress) }}</span>
                     </div>
                     <!-- Per-column vertical scroll on desktop, natural flow on mobile -->
                     <div class="flex flex-col gap-4 pr-1 sm:pr-2 pb-6 lg:flex-1 lg:min-h-0 lg:overflow-y-auto custom-scrollbar">
@@ -312,7 +312,7 @@
                             <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
                             <h3 class="font-bold text-sm text-slate-800 dark:text-slate-200 tracking-wider uppercase">CLOSED</h3>
                         </div>
-                        <span class="text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200/60 dark:border-emerald-800/40 px-2 py-0.5 rounded-full">{{ count($closed) }}</span>
+                        <span class="text-xs font-black text-emerald-700 dark:text-emerald-300 bg-emerald-100 dark:bg-emerald-950/80 border border-emerald-300 dark:border-emerald-800/80 px-2.5 py-0.5 rounded-full shadow-sm">{{ count($closed) }}</span>
                     </div>
                     <!-- Per-column vertical scroll on desktop, natural flow on mobile -->
                     <div class="flex flex-col gap-4 pr-1 sm:pr-2 pb-6 lg:flex-1 lg:min-h-0 lg:overflow-y-auto custom-scrollbar">

@@ -50,34 +50,34 @@
             </div>
 
             {{-- Mobile & Split-Screen Segmented Tabs Selector (Only visible < lg) --}}
-            <div class="sticky top-0 bg-[#F8FAFC]/95 backdrop-blur-sm -mx-4 px-4 sm:-mx-6 sm:px-6 py-2 mb-4 z-20 flex lg:hidden">
-                <div class="w-full bg-slate-200/80 p-1 rounded-xl flex gap-1 shadow-inner">
+            <div class="sticky top-0 bg-[#F8FAFC]/95 dark:bg-[#0b1120]/95 backdrop-blur-sm -mx-4 px-4 sm:-mx-6 sm:px-6 py-2 mb-4 z-20 flex lg:hidden">
+                <div class="w-full bg-slate-200/80 dark:bg-slate-800/90 p-1 rounded-xl flex gap-1 shadow-inner border border-slate-300/40 dark:border-slate-700/60">
                     <button type="button" @click="activeTab = 'open'" 
-                        :class="activeTab === 'open' ? 'bg-white text-sky-600 shadow-sm font-bold' : 'text-slate-600 hover:text-slate-800 font-semibold'" 
+                        :class="activeTab === 'open' ? 'bg-white dark:bg-slate-700 text-sky-600 dark:text-sky-400 shadow-sm font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 font-semibold'" 
                         class="flex-1 py-2 px-2 rounded-lg text-xs flex items-center justify-center gap-1.5 transition-all">
                         <span>Open</span>
-                        <span class="px-1.5 py-0.2 rounded-full text-[10px] font-bold" 
-                            :class="activeTab === 'open' ? 'bg-sky-100 text-sky-700' : 'bg-slate-300/80 text-slate-600'">
+                        <span class="px-2 py-0.5 rounded-full text-xs font-black min-w-[22px] text-center inline-flex items-center justify-center transition-all" 
+                            :class="activeTab === 'open' ? 'bg-sky-500 text-white shadow-sm shadow-sky-500/30' : 'bg-sky-100 dark:bg-sky-950/80 text-sky-800 dark:text-sky-300 border border-sky-200 dark:border-sky-800/80'">
                             {{ count($open) }}
                         </span>
                     </button>
                     
                     <button type="button" @click="activeTab = 'progress'" 
-                        :class="activeTab === 'progress' ? 'bg-white text-amber-600 shadow-sm font-bold' : 'text-slate-600 hover:text-slate-800 font-semibold'" 
+                        :class="activeTab === 'progress' ? 'bg-white dark:bg-slate-700 text-amber-600 dark:text-amber-400 shadow-sm font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 font-semibold'" 
                         class="flex-1 py-2 px-2 rounded-lg text-xs flex items-center justify-center gap-1.5 transition-all">
                         <span>Progress</span>
-                        <span class="px-1.5 py-0.2 rounded-full text-[10px] font-bold" 
-                            :class="activeTab === 'progress' ? 'bg-amber-100 text-amber-700' : 'bg-slate-300/80 text-slate-600'">
+                        <span class="px-2 py-0.5 rounded-full text-xs font-black min-w-[22px] text-center inline-flex items-center justify-center transition-all" 
+                            :class="activeTab === 'progress' ? 'bg-amber-500 text-white shadow-sm shadow-amber-500/30' : 'bg-amber-100 dark:bg-amber-950/80 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800/80'">
                             {{ count($progress) }}
                         </span>
                     </button>
                     
                     <button type="button" @click="activeTab = 'closed'" 
-                        :class="activeTab === 'closed' ? 'bg-white text-emerald-600 shadow-sm font-bold' : 'text-slate-600 hover:text-slate-800 font-semibold'" 
+                        :class="activeTab === 'closed' ? 'bg-white dark:bg-slate-700 text-emerald-600 dark:text-emerald-400 shadow-sm font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 font-semibold'" 
                         class="flex-1 py-2 px-2 rounded-lg text-xs flex items-center justify-center gap-1.5 transition-all">
                         <span>Closed</span>
-                        <span class="px-1.5 py-0.2 rounded-full text-[10px] font-bold" 
-                            :class="activeTab === 'closed' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-300/80 text-slate-600'">
+                        <span class="px-2 py-0.5 rounded-full text-xs font-black min-w-[22px] text-center inline-flex items-center justify-center transition-all" 
+                            :class="activeTab === 'closed' ? 'bg-emerald-500 text-white shadow-sm shadow-emerald-500/30' : 'bg-emerald-100 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/80'">
                             {{ count($closed) }}
                         </span>
                     </button>
@@ -90,11 +90,11 @@
                 {{-- Column 1: Open --}}
                 <div :class="activeTab === 'open' ? 'flex' : 'hidden lg:flex'" class="flex-col w-full">
                     <div class="flex items-center justify-between mb-4 px-1">
-                        <a href="{{ ($isMyReq ?? true) ? '/myproc/2' : '/mrq/2' }}" class="text-xs font-extrabold uppercase tracking-wider text-slate-600 hover:text-sky-600 flex items-center gap-1.5 transition-colors group">
+                        <a href="{{ ($isMyReq ?? true) ? '/myproc/2' : '/mrq/2' }}" class="text-xs font-extrabold uppercase tracking-wider text-slate-600 dark:text-slate-300 hover:text-sky-600 dark:hover:text-sky-400 flex items-center gap-1.5 transition-colors group">
                             <span>Open</span>
-                            <i class="fa-solid fa-arrow-up-right-from-square text-[10px] text-slate-400 group-hover:text-sky-600 transition-colors"></i>
+                            <i class="fa-solid fa-arrow-up-right-from-square text-[10px] text-slate-400 group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors"></i>
                         </a>
-                        <span class="bg-sky-100 text-sky-700 text-[11px] font-extrabold px-2 py-0.5 rounded-full border border-sky-200">
+                        <span class="bg-sky-100 dark:bg-sky-950/80 text-sky-800 dark:text-sky-300 text-xs font-black px-2.5 py-0.5 rounded-full border border-sky-300 dark:border-sky-800/80 shadow-sm">
                             {{ count($open) }}
                         </span>
                     </div>
@@ -164,11 +164,11 @@
                 {{-- Column 2: Progress --}}
                 <div :class="activeTab === 'progress' ? 'flex' : 'hidden lg:flex'" class="flex-col w-full">
                     <div class="flex items-center justify-between mb-4 px-1">
-                        <a href="{{ ($isMyReq ?? true) ? '/myproc/3' : '/mrq/3' }}" class="text-xs font-extrabold uppercase tracking-wider text-slate-600 hover:text-amber-600 flex items-center gap-1.5 transition-colors group">
+                        <a href="{{ ($isMyReq ?? true) ? '/myproc/3' : '/mrq/3' }}" class="text-xs font-extrabold uppercase tracking-wider text-slate-600 dark:text-slate-300 hover:text-amber-600 dark:hover:text-amber-400 flex items-center gap-1.5 transition-colors group">
                             <span>Progress</span>
-                            <i class="fa-solid fa-arrow-up-right-from-square text-[10px] text-slate-400 group-hover:text-amber-600 transition-colors"></i>
+                            <i class="fa-solid fa-arrow-up-right-from-square text-[10px] text-slate-400 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors"></i>
                         </a>
-                        <span class="bg-amber-100 text-amber-700 text-[11px] font-extrabold px-2 py-0.5 rounded-full border border-amber-200">
+                        <span class="bg-amber-100 dark:bg-amber-950/80 text-amber-800 dark:text-amber-300 text-xs font-black px-2.5 py-0.5 rounded-full border border-amber-300 dark:border-amber-800/80 shadow-sm">
                             {{ count($progress) }}
                         </span>
                     </div>
@@ -238,11 +238,11 @@
                 {{-- Column 3: Closed --}}
                 <div :class="activeTab === 'closed' ? 'flex' : 'hidden lg:flex'" class="flex-col w-full">
                     <div class="flex items-center justify-between mb-4 px-1">
-                        <a href="{{ ($isMyReq ?? true) ? '/myproc/4' : '/mrq/4' }}" class="text-xs font-extrabold uppercase tracking-wider text-slate-600 hover:text-emerald-600 flex items-center gap-1.5 transition-colors group">
+                        <a href="{{ ($isMyReq ?? true) ? '/myproc/4' : '/mrq/4' }}" class="text-xs font-extrabold uppercase tracking-wider text-slate-600 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-400 flex items-center gap-1.5 transition-colors group">
                             <span>Closed</span>
-                            <i class="fa-solid fa-arrow-up-right-from-square text-[10px] text-slate-400 group-hover:text-emerald-600 transition-colors"></i>
+                            <i class="fa-solid fa-arrow-up-right-from-square text-[10px] text-slate-400 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors"></i>
                         </a>
-                        <span class="bg-emerald-100 text-emerald-700 text-[11px] font-extrabold px-2 py-0.5 rounded-full border border-emerald-200">
+                        <span class="bg-emerald-100 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-300 text-xs font-black px-2.5 py-0.5 rounded-full border border-emerald-300 dark:border-emerald-800/80 shadow-sm">
                             {{ count($closed) }}
                         </span>
                     </div>

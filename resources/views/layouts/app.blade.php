@@ -323,7 +323,9 @@
             html.dark .bg-indigo-50 { background-color: rgba(99, 102, 241, 0.16) !important; color: #a5b4fc !important; border-color: rgba(99, 102, 241, 0.3) !important; }
             html.dark .bg-indigo-100 { background-color: rgba(99, 102, 241, 0.22) !important; color: #c7d2fe !important; border-color: rgba(99, 102, 241, 0.4) !important; }
             html.dark .bg-sky-50 { background-color: rgba(14, 165, 233, 0.16) !important; color: #7dd3fc !important; border-color: rgba(14, 165, 233, 0.3) !important; }
+            html.dark .bg-sky-100 { background-color: rgba(14, 165, 233, 0.22) !important; color: #bae6fd !important; border-color: rgba(14, 165, 233, 0.4) !important; }
             html.dark .bg-emerald-50 { background-color: rgba(16, 185, 129, 0.16) !important; color: #6ee7b7 !important; border-color: rgba(16, 185, 129, 0.3) !important; }
+            html.dark .bg-emerald-100 { background-color: rgba(16, 185, 129, 0.22) !important; color: #a7f3d0 !important; border-color: rgba(16, 185, 129, 0.4) !important; }
             html.dark .bg-blue-50 { background-color: rgba(37, 99, 235, 0.16) !important; color: #93c5fd !important; border-color: rgba(37, 99, 235, 0.3) !important; }
             html.dark .bg-amber-50 { background-color: rgba(245, 158, 11, 0.16) !important; color: #fcd34d !important; border-color: rgba(245, 158, 11, 0.3) !important; }
             html.dark .bg-amber-100 { background-color: rgba(245, 158, 11, 0.22) !important; color: #fde68a !important; border-color: rgba(245, 158, 11, 0.4) !important; }
