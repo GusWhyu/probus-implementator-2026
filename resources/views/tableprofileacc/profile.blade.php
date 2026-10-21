@@ -111,7 +111,7 @@
                     {{ Auth::user()->advisedTickets()->count() }}
                 </span>
                 <span class="text-[10px] sm:text-xs font-semibold text-slate-400 dark:text-slate-400 uppercase tracking-wider mt-0.5">
-                    Handled
+                    Advised
                 </span>
             </div>
 

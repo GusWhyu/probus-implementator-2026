@@ -104,9 +104,16 @@
                         <a href="/detailrequest/{{ $item->id }}?from=myreq" class="block bg-white rounded-2xl p-5 border border-slate-200/90 shadow-sm hover:shadow-md hover:border-sky-200 transition-all group relative overflow-hidden">
                             <div class="flex items-center justify-between mb-3">
                                 <span class="text-xs font-bold text-slate-400 font-mono">#{{ $item->id }}</span>
-                                <span class="px-2.5 py-0.5 rounded-md text-[10px] font-extrabold uppercase tracking-wide text-white bg-sky-500">
-                                    Open
-                                </span>
+                                <div class="flex items-center gap-1.5 shrink-0">
+                                    @if($item->is_new)
+                                    <span class="inline-flex items-center gap-1 bg-gradient-to-r from-emerald-500 to-teal-500 text-white text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider shadow-sm shadow-emerald-500/25">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>NEW
+                                    </span>
+                                    @endif
+                                    <span class="px-2.5 py-0.5 rounded-md text-[10px] font-extrabold uppercase tracking-wide text-white bg-sky-500">
+                                        Open
+                                    </span>
+                                </div>
                             </div>
 
                             <h4 class="font-extrabold text-slate-800 text-[14px] leading-snug mb-3.5 group-hover:text-sky-600 transition-colors line-clamp-2 uppercase">

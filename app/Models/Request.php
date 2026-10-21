@@ -17,6 +17,16 @@ class Request extends Model
         'approval_date', 'approval_note', 'module', 'tipe_penanganan'
     ];
 
+    public function getIsNewAttribute()
+    {
+        if (!in_array($this->status_id, [1, 2])) {
+            return false;
+        }
+
+        // Request baru dibuat dalam 24 jam terakhir
+        return $this->created_at && $this->created_at->gt(now()->subHours(24));
+    }
+
     public function user(){
         return $this->belongsTo(User::class);
     }

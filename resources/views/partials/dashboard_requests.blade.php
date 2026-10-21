@@ -40,6 +40,11 @@
             }
         @endphp
         <div class="flex items-center gap-1.5 flex-wrap">
+            @if($req->is_new)
+            <span class="inline-flex items-center gap-0.5 bg-gradient-to-r from-emerald-500 to-teal-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded-full uppercase tracking-wider">
+                NEW
+            </span>
+            @endif
             <span class="px-2.5 py-1 rounded-lg text-[10px] font-bold {{ $statusClass }}">
                 {{ $statusName }}
             </span>

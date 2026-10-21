@@ -284,15 +284,22 @@
                                 <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1">Request ID</p>
                                 <span class="text-blue-600 font-bold text-xl font-mono">RQ-{{ $datarq->id }}</span>
                             </div>
-                            @if ($stid == 4)
-                            <span class="px-3.5 py-1.5 rounded-xl text-xs font-extrabold uppercase tracking-wider border bg-emerald-50 text-emerald-700 border-emerald-200 flex items-center gap-1.5 shadow-sm" title="{{ $closedLog && $closedLog->user ? 'Ditutup oleh ' . $closedLog->user->name : 'Closed' }}">
-                                <i class="fa-solid fa-circle-check"></i> {{ $closedLog && $closedLog->user ? 'Closed by ' . $closedLog->user->name : 'Closed' }}
-                            </span>
-                            @else
-                            <span class="px-3.5 py-1.5 rounded-xl text-xs font-extrabold uppercase tracking-wider border {{ $bg }} flex items-center gap-1.5 shadow-sm">
-                                <i class="fa-solid {{ $icon }}"></i> {{ $datarq->status ? $datarq->status->name : (in_array($datarq->status_id, [1, 2]) ? 'Open' : ($datarq->status_id == 3 ? 'Progress' : 'Closed')) }}
-                            </span>
-                            @endif
+                            <div class="flex items-center gap-2">
+                                @if ($datarq->is_new)
+                                <span class="inline-flex items-center gap-1 bg-gradient-to-r from-emerald-500 to-teal-500 text-white text-[10px] font-black px-2.5 py-1 rounded-full uppercase tracking-wider shadow-sm shadow-emerald-500/25">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>NEW
+                                </span>
+                                @endif
+                                @if ($stid == 4)
+                                <span class="px-3.5 py-1.5 rounded-xl text-xs font-extrabold uppercase tracking-wider border bg-emerald-50 text-emerald-700 border-emerald-200 flex items-center gap-1.5 shadow-sm" title="{{ $closedLog && $closedLog->user ? 'Ditutup oleh ' . $closedLog->user->name : 'Closed' }}">
+                                    <i class="fa-solid fa-circle-check"></i> {{ $closedLog && $closedLog->user ? 'Closed by ' . $closedLog->user->name : 'Closed' }}
+                                </span>
+                                @else
+                                <span class="px-3.5 py-1.5 rounded-xl text-xs font-extrabold uppercase tracking-wider border {{ $bg }} flex items-center gap-1.5 shadow-sm">
+                                    <i class="fa-solid {{ $icon }}"></i> {{ $datarq->status ? $datarq->status->name : (in_array($datarq->status_id, [1, 2]) ? 'Open' : ($datarq->status_id == 3 ? 'Progress' : 'Closed')) }}
+                                </span>
+                                @endif
+                            </div>
                         </div>
 
                         <!-- Info Grid -->

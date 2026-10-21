@@ -494,6 +494,27 @@ class RequestController extends Controller
             'approval_status' => 'pending',
         ]);
         
+        // Catat ke RequestLog
+        RequestLog::create([
+            'request_id' => $data->id,
+            'status_id' => 2,
+            'user_id' => Auth::id(),
+        ]);
+
+        // Notifikasi ke anggota divisi terkait dan superadmin/admin
+        $targetUsers = User::where(function($query) use ($tagId) {
+            $query->where('tag_id', $tagId)
+                  ->orWhereIn('usertype', ['admin', 'superadmin', 'Superadministrator']);
+        })->where('id', '!=', Auth::id())->get();
+
+        foreach ($targetUsers as $targetUser) {
+            $targetUser->notify(new RequestStatusChanged(
+                $data,
+                Auth::user()->name . " membuat request baru '" . $data->judul . "'.",
+                "Request Baru Dibuat"
+            ));
+        }
+
         $imagedata = [];
         if($request->hasfile('images')){
             foreach ($request->file('images') as $image) {

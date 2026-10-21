@@ -86,10 +86,17 @@
                                     </div>
                                 </td>
                                 <td class="py-4 px-5 align-middle text-center">
-                                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-extrabold border uppercase tracking-wider {{ $badgeClass }}">
-                                        <span class="w-1.5 h-1.5 rounded-full {{ $dotClass }}"></span>
-                                        {{ $displayStatus }}
-                                    </span>
+                                    <div class="inline-flex items-center gap-1.5">
+                                        @if($rq->is_new)
+                                        <span class="inline-flex items-center gap-1 bg-gradient-to-r from-emerald-500 to-teal-500 text-white text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider shadow-sm shadow-emerald-500/25">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>NEW
+                                        </span>
+                                        @endif
+                                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-extrabold border uppercase tracking-wider {{ $badgeClass }}">
+                                            <span class="w-1.5 h-1.5 rounded-full {{ $dotClass }}"></span>
+                                            {{ $displayStatus }}
+                                        </span>
+                                    </div>
                                 </td>
                                 <td class="py-4 px-5 align-middle">
                                     <div class="text-xs font-semibold text-slate-700">{{ $rq->created_at ? $rq->created_at->format('d M Y') : '-' }}</div>
@@ -143,10 +150,17 @@
                     <div class="bg-white rounded-xl p-4 border border-slate-200/90 shadow-xs hover:border-blue-200 transition-all">
                         <div class="flex items-center justify-between mb-2.5">
                             <span class="font-mono font-bold text-xs text-slate-400">#{{ $rq->id }}</span>
-                            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold border uppercase tracking-wider {{ $badgeClass }}">
-                                <span class="w-1.5 h-1.5 rounded-full {{ $dotClass }}"></span>
-                                {{ $displayStatus }}
-                            </span>
+                            <div class="flex items-center gap-1.5">
+                                @if($rq->is_new)
+                                <span class="inline-flex items-center gap-1 bg-gradient-to-r from-emerald-500 to-teal-500 text-white text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider shadow-sm shadow-emerald-500/25">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>NEW
+                                </span>
+                                @endif
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold border uppercase tracking-wider {{ $badgeClass }}">
+                                    <span class="w-1.5 h-1.5 rounded-full {{ $dotClass }}"></span>
+                                    {{ $displayStatus }}
+                                </span>
+                            </div>
                         </div>
                         <a href="/detailrequest/{{ $rq->id }}?from=history" class="block font-bold text-slate-800 hover:text-blue-600 transition-colors text-sm mb-2 leading-snug">
                             {{ $rq->judul }}
