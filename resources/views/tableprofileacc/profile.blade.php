@@ -102,7 +102,7 @@
 
         <!-- Activity Stats Card -->
         <div class="grid grid-cols-3 gap-2.5 sm:gap-4">
-            <!-- Stat 1: Ditangani -->
+            <!-- Stat 1: Handled -->
             <div class="bg-white dark:bg-slate-800 rounded-2xl p-3 sm:p-4 border border-slate-200/80 dark:border-slate-700/80 shadow-sm flex flex-col items-center justify-center text-center">
                 <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-blue-600 dark:bg-blue-500 text-white shadow-sm shadow-blue-500/25 flex items-center justify-center mb-1.5 text-xs sm:text-sm">
                     <i class="fa-solid fa-headset"></i>
@@ -111,11 +111,11 @@
                     {{ Auth::user()->advisedTickets()->count() }}
                 </span>
                 <span class="text-[10px] sm:text-xs font-semibold text-slate-400 dark:text-slate-400 uppercase tracking-wider mt-0.5">
-                    Ditangani
+                    Handled
                 </span>
             </div>
 
-            <!-- Stat 2: Tiket Saya -->
+            <!-- Stat 2: My Tickets -->
             <div class="bg-white dark:bg-slate-800 rounded-2xl p-3 sm:p-4 border border-slate-200/80 dark:border-slate-700/80 shadow-sm flex flex-col items-center justify-center text-center">
                 <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-amber-500 dark:bg-amber-500 text-white shadow-sm shadow-amber-500/25 flex items-center justify-center mb-1.5 text-xs sm:text-sm">
                     <i class="fa-solid fa-ticket"></i>
@@ -124,11 +124,11 @@
                     {{ Auth::user()->clientTickets()->count() }}
                 </span>
                 <span class="text-[10px] sm:text-xs font-semibold text-slate-400 dark:text-slate-400 uppercase tracking-wider mt-0.5">
-                    Tiket Saya
+                    My Tickets
                 </span>
             </div>
 
-            <!-- Stat 3: Request -->
+            <!-- Stat 3: Requests -->
             <div class="bg-white dark:bg-slate-800 rounded-2xl p-3 sm:p-4 border border-slate-200/80 dark:border-slate-700/80 shadow-sm flex flex-col items-center justify-center text-center">
                 <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-emerald-600 dark:bg-emerald-500 text-white shadow-sm shadow-emerald-500/25 flex items-center justify-center mb-1.5 text-xs sm:text-sm">
                     <i class="fa-solid fa-clipboard-list"></i>
@@ -137,7 +137,7 @@
                     {{ Auth::user()->requests()->count() }}
                 </span>
                 <span class="text-[10px] sm:text-xs font-semibold text-slate-400 dark:text-slate-400 uppercase tracking-wider mt-0.5">
-                    Request
+                    Requests
                 </span>
             </div>
         </div>
