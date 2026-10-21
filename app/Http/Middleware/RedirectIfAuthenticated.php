@@ -23,6 +23,10 @@ class RedirectIfAuthenticated
 
         foreach ($guards as $guard) {
             if (Auth::guard($guard)->check()) {
+                $user = Auth::guard($guard)->user();
+                if ($user && method_exists($user, 'isProduksi') && $user->isProduksi()) {
+                    return redirect()->route('myreq');
+                }
                 return redirect(RouteServiceProvider::HOME);
             }
         }

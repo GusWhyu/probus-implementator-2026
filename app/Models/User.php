@@ -54,6 +54,11 @@ class User extends Authenticatable
         return $this->belongsTo(Departemen::class, 'departemen_id');
     }
 
+    public function isProduksi()
+    {
+        return $this->departemen_id == 2 || (isset($this->departemen) && strtolower($this->departemen->name) === 'produksi');
+    }
+
     public function performanceReviews() {
         return $this->hasMany(PerformanceReview::class, 'user_id');
     }

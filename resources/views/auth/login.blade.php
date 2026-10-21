@@ -1,8 +1,8 @@
 <x-guest-layout>
     <div class="min-h-screen w-full flex flex-col md:flex-row bg-[#F8FAFC] overflow-x-hidden">
         
-        <!-- LEFT PANEL: Full-Screen Vibrant Hero Banner with Streak Lines -->
-        <div class="relative w-full md:w-1/2 lg:w-[48%] xl:w-[45%] bg-gradient-to-br from-[#0052D4] via-[#4364F7] to-[#002B7A] p-8 sm:p-12 lg:p-16 xl:p-20 flex flex-col justify-between overflow-hidden text-white min-h-[420px] md:min-h-screen shrink-0">
+        <!-- LEFT PANEL: Full-Screen Vibrant Hero Banner with Streak Lines (Desktop only) -->
+        <div class="hidden md:flex relative md:w-1/2 lg:w-[48%] xl:w-[45%] bg-gradient-to-br from-[#0052D4] via-[#4364F7] to-[#002B7A] p-8 sm:p-12 lg:p-16 xl:p-20 flex-col justify-between overflow-hidden text-white min-h-screen shrink-0">
             
             <!-- Glowing ambient background orbs -->
             <div class="absolute -top-32 -left-32 w-96 h-96 bg-sky-400/25 rounded-full blur-3xl pointer-events-none"></div>
@@ -79,9 +79,23 @@
         </div>
 
         <!-- RIGHT PANEL: Full-Height Clean Form -->
-        <div class="w-full md:w-1/2 lg:w-[52%] xl:w-[55%] bg-[#F8FAFC] min-h-screen flex flex-col justify-center items-center p-6 sm:p-12 lg:p-16 xl:p-24 relative">
+        <div class="w-full md:w-1/2 lg:w-[52%] xl:w-[55%] bg-[#F8FAFC] min-h-screen flex flex-col justify-center items-center p-4 sm:p-6 md:p-12 lg:p-16 xl:p-24 relative overflow-hidden">
             
-            <div class="w-full max-w-md space-y-6">
+            <!-- Mobile Ambient Glow Accents -->
+            <div class="absolute -top-24 -right-24 w-72 h-72 bg-blue-100/60 rounded-full blur-3xl pointer-events-none md:hidden"></div>
+            <div class="absolute -bottom-24 -left-24 w-72 h-72 bg-sky-100/60 rounded-full blur-3xl pointer-events-none md:hidden"></div>
+
+            <div class="w-full max-w-md my-auto py-4 sm:py-6 space-y-5 sm:space-y-6 relative z-10">
+                
+                <!-- Mobile Brand Header (Visible only on mobile/tablet portrait) -->
+                <div class="md:hidden flex flex-col items-center text-center mb-2 sm:mb-4">
+                    <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#0052D4] via-[#4364F7] to-[#002B7A] flex items-center justify-center p-2.5 shadow-lg shadow-blue-600/25 mb-3 border border-blue-400/30">
+                        <img src="{{ asset('img/logo.png') }}" alt="Probus Logo" class="w-full h-full object-contain filter drop-shadow">
+                    </div>
+                    <div class="text-[11px] font-extrabold tracking-widest uppercase text-blue-600 leading-tight">PROBUS SYSTEM</div>
+                    <div class="text-lg sm:text-xl font-bold text-slate-800 tracking-wider uppercase leading-tight mt-0.5">IMPLEMENTATOR</div>
+                    <p class="text-xs text-slate-500 mt-1 max-w-xs">Sistem manajemen request & ticketing</p>
+                </div>
                 
                 <!-- Feedback Notifications -->
                 @if (session('status'))
@@ -152,6 +166,13 @@
                         </button>
                     </div>
                 </form>
+
+                <!-- Mobile Footer Copyright -->
+                <div class="md:hidden text-center pt-2 text-xs font-medium text-slate-400 flex items-center justify-center gap-2">
+                    <span>&copy; {{ date('Y') }} Probus System</span>
+                    <span>&bull;</span>
+                    <a href="https://probussystem.com" target="_blank" class="text-blue-600 hover:underline">Website</a>
+                </div>
             </div>
         </div>
     </div>

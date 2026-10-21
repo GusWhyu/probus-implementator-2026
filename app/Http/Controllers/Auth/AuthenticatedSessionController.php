@@ -32,6 +32,16 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
+        $user = Auth::user();
+        if ($user && $user->isProduksi()) {
+            $intended = session('url.intended');
+            if (!$intended || in_array(url()->to($intended), [url('/'), url('/dashboard'), route('dashboard')])) {
+                session()->forget('url.intended');
+                return redirect()->route('myreq');
+            }
+            return redirect()->intended(route('myreq'));
+        }
+
         return redirect()->intended(RouteServiceProvider::HOME);
     }
 
