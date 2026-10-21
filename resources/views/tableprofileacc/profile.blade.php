@@ -103,54 +103,54 @@
         <!-- Activity Stats Card -->
         <div class="grid grid-cols-3 gap-2.5 sm:gap-4">
             <!-- Stat 1: Ditangani -->
-            <div class="bg-white rounded-2xl p-3 sm:p-4 border border-slate-200/80 shadow-sm flex flex-col items-center justify-center text-center">
-                <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center mb-1.5 text-xs sm:text-sm">
+            <div class="bg-white dark:bg-slate-800 rounded-2xl p-3 sm:p-4 border border-slate-200/80 dark:border-slate-700/80 shadow-sm flex flex-col items-center justify-center text-center">
+                <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-blue-600 dark:bg-blue-500 text-white shadow-sm shadow-blue-500/25 flex items-center justify-center mb-1.5 text-xs sm:text-sm">
                     <i class="fa-solid fa-headset"></i>
                 </div>
-                <span class="text-base sm:text-xl font-black text-slate-800">
+                <span class="text-base sm:text-xl font-black text-slate-800 dark:text-slate-100">
                     {{ Auth::user()->advisedTickets()->count() }}
                 </span>
-                <span class="text-[10px] sm:text-xs font-semibold text-slate-400 uppercase tracking-wider mt-0.5">
+                <span class="text-[10px] sm:text-xs font-semibold text-slate-400 dark:text-slate-400 uppercase tracking-wider mt-0.5">
                     Ditangani
                 </span>
             </div>
 
             <!-- Stat 2: Tiket Saya -->
-            <div class="bg-white rounded-2xl p-3 sm:p-4 border border-slate-200/80 shadow-sm flex flex-col items-center justify-center text-center">
-                <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center mb-1.5 text-xs sm:text-sm">
+            <div class="bg-white dark:bg-slate-800 rounded-2xl p-3 sm:p-4 border border-slate-200/80 dark:border-slate-700/80 shadow-sm flex flex-col items-center justify-center text-center">
+                <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-amber-500 dark:bg-amber-500 text-white shadow-sm shadow-amber-500/25 flex items-center justify-center mb-1.5 text-xs sm:text-sm">
                     <i class="fa-solid fa-ticket"></i>
                 </div>
-                <span class="text-base sm:text-xl font-black text-slate-800">
+                <span class="text-base sm:text-xl font-black text-slate-800 dark:text-slate-100">
                     {{ Auth::user()->clientTickets()->count() }}
                 </span>
-                <span class="text-[10px] sm:text-xs font-semibold text-slate-400 uppercase tracking-wider mt-0.5">
+                <span class="text-[10px] sm:text-xs font-semibold text-slate-400 dark:text-slate-400 uppercase tracking-wider mt-0.5">
                     Tiket Saya
                 </span>
             </div>
 
             <!-- Stat 3: Request -->
-            <div class="bg-white rounded-2xl p-3 sm:p-4 border border-slate-200/80 shadow-sm flex flex-col items-center justify-center text-center">
-                <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center mb-1.5 text-xs sm:text-sm">
+            <div class="bg-white dark:bg-slate-800 rounded-2xl p-3 sm:p-4 border border-slate-200/80 dark:border-slate-700/80 shadow-sm flex flex-col items-center justify-center text-center">
+                <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-emerald-600 dark:bg-emerald-500 text-white shadow-sm shadow-emerald-500/25 flex items-center justify-center mb-1.5 text-xs sm:text-sm">
                     <i class="fa-solid fa-clipboard-list"></i>
                 </div>
-                <span class="text-base sm:text-xl font-black text-slate-800">
+                <span class="text-base sm:text-xl font-black text-slate-800 dark:text-slate-100">
                     {{ Auth::user()->requests()->count() }}
                 </span>
-                <span class="text-[10px] sm:text-xs font-semibold text-slate-400 uppercase tracking-wider mt-0.5">
+                <span class="text-[10px] sm:text-xs font-semibold text-slate-400 dark:text-slate-400 uppercase tracking-wider mt-0.5">
                     Request
                 </span>
             </div>
         </div>
 
         <!-- Account Details Section -->
-        <div class="bg-white rounded-2xl sm:rounded-3xl border border-slate-200/80 shadow-sm overflow-hidden">
-            <div class="px-4 sm:px-6 py-3.5 sm:py-4 border-b border-slate-100 flex items-center justify-between">
+        <div class="bg-white dark:bg-slate-800 rounded-2xl sm:rounded-3xl border border-slate-200/80 dark:border-slate-700/80 shadow-sm overflow-hidden">
+            <div class="px-4 sm:px-6 py-3.5 sm:py-4 border-b border-slate-100 dark:border-slate-700/80 flex items-center justify-between">
                 <div>
-                    <h3 class="text-sm sm:text-base font-bold text-slate-800 flex items-center gap-2">
-                        <i class="fa-solid fa-user-gear text-blue-600"></i>
+                    <h3 class="text-sm sm:text-base font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
+                        <i class="fa-solid fa-user-gear text-blue-600 dark:text-blue-400"></i>
                         <span>Informasi Akun</span>
                     </h3>
-                    <p class="text-[11px] sm:text-xs text-slate-400 font-medium mt-0.5">
+                    <p class="text-[11px] sm:text-xs text-slate-400 dark:text-slate-400 font-medium mt-0.5">
                         Detail hak akses dan penempatan organisasi
                     </p>
                 </div>
@@ -159,78 +159,78 @@
             <div class="p-4 sm:p-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
                 
                 <!-- Detail Item: User Tag -->
-                <div class="flex items-center gap-3 p-3 rounded-xl bg-slate-50/70 border border-slate-100">
-                    <div class="w-10 h-10 rounded-xl bg-blue-100/70 text-blue-600 flex items-center justify-center shrink-0 text-sm">
+                <div class="flex items-center gap-3.5 p-3 sm:p-3.5 rounded-xl bg-slate-50/70 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-700/60 hover:border-slate-200 dark:hover:border-slate-600 transition-colors">
+                    <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-blue-600 dark:bg-blue-500 text-white flex items-center justify-center shrink-0 text-sm sm:text-base shadow-sm shadow-blue-500/30">
                         <i class="fa-solid fa-tags"></i>
                     </div>
                     <div class="min-w-0 flex-1">
-                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">User Tag</p>
-                        <p class="font-bold text-slate-800 text-xs sm:text-sm truncate">
+                        <p class="text-[10px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-wider">User Tag</p>
+                        <p class="font-bold text-slate-800 dark:text-slate-100 text-xs sm:text-sm truncate mt-0.5">
                             {{ Auth::user()->tag ? Auth::user()->tag->name : 'Tidak Ada Tag' }}
                         </p>
                     </div>
                 </div>
 
                 <!-- Detail Item: User Type / Role -->
-                <div class="flex items-center gap-3 p-3 rounded-xl bg-slate-50/70 border border-slate-100">
-                    <div class="w-10 h-10 rounded-xl bg-indigo-100/70 text-indigo-600 flex items-center justify-center shrink-0 text-sm">
+                <div class="flex items-center gap-3.5 p-3 sm:p-3.5 rounded-xl bg-slate-50/70 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-700/60 hover:border-slate-200 dark:hover:border-slate-600 transition-colors">
+                    <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-indigo-600 dark:bg-indigo-500 text-white flex items-center justify-center shrink-0 text-sm sm:text-base shadow-sm shadow-indigo-500/30">
                         <i class="fa-solid fa-id-badge"></i>
                     </div>
                     <div class="min-w-0 flex-1">
-                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Role Akses</p>
-                        <p class="font-bold text-slate-800 text-xs sm:text-sm capitalize truncate">
+                        <p class="text-[10px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-wider">Role Akses</p>
+                        <p class="font-bold text-slate-800 dark:text-slate-100 text-xs sm:text-sm capitalize truncate mt-0.5">
                             {{ Auth::user()->usertype }}
                         </p>
                     </div>
                 </div>
 
                 <!-- Detail Item: Departemen -->
-                <div class="flex items-center gap-3 p-3 rounded-xl bg-slate-50/70 border border-slate-100">
-                    <div class="w-10 h-10 rounded-xl bg-emerald-100/70 text-emerald-600 flex items-center justify-center shrink-0 text-sm">
+                <div class="flex items-center gap-3.5 p-3 sm:p-3.5 rounded-xl bg-slate-50/70 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-700/60 hover:border-slate-200 dark:hover:border-slate-600 transition-colors">
+                    <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-emerald-600 dark:bg-emerald-500 text-white flex items-center justify-center shrink-0 text-sm sm:text-base shadow-sm shadow-emerald-500/30">
                         <i class="fa-solid fa-building"></i>
                     </div>
                     <div class="min-w-0 flex-1">
-                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Departemen</p>
-                        <p class="font-bold text-slate-800 text-xs sm:text-sm capitalize truncate">
+                        <p class="text-[10px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-wider">Departemen</p>
+                        <p class="font-bold text-slate-800 dark:text-slate-100 text-xs sm:text-sm capitalize truncate mt-0.5">
                             {{ Auth::user()->departemen ? Auth::user()->departemen->name : 'Semua Departemen' }}
                         </p>
                     </div>
                 </div>
 
                 <!-- Detail Item: Email Terdaftar -->
-                <div class="flex items-center gap-3 p-3 rounded-xl bg-slate-50/70 border border-slate-100">
-                    <div class="w-10 h-10 rounded-xl bg-violet-100/70 text-violet-600 flex items-center justify-center shrink-0 text-sm">
+                <div class="flex items-center gap-3.5 p-3 sm:p-3.5 rounded-xl bg-slate-50/70 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-700/60 hover:border-slate-200 dark:hover:border-slate-600 transition-colors">
+                    <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-violet-600 dark:bg-violet-500 text-white flex items-center justify-center shrink-0 text-sm sm:text-base shadow-sm shadow-violet-500/30">
                         <i class="fa-solid fa-envelope"></i>
                     </div>
                     <div class="min-w-0 flex-1">
-                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Email Akun</p>
-                        <p class="font-bold text-slate-800 text-xs sm:text-sm truncate">
+                        <p class="text-[10px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-wider">Email Akun</p>
+                        <p class="font-bold text-slate-800 dark:text-slate-100 text-xs sm:text-sm truncate mt-0.5">
                             {{ Auth::user()->email }}
                         </p>
                     </div>
                 </div>
 
                 <!-- Detail Item: Status -->
-                <div class="flex items-center gap-3 p-3 rounded-xl bg-slate-50/70 border border-slate-100">
-                    <div class="w-10 h-10 rounded-xl bg-teal-100/70 text-teal-600 flex items-center justify-center shrink-0 text-sm">
+                <div class="flex items-center gap-3.5 p-3 sm:p-3.5 rounded-xl bg-slate-50/70 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-700/60 hover:border-slate-200 dark:hover:border-slate-600 transition-colors">
+                    <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-teal-600 dark:bg-teal-500 text-white flex items-center justify-center shrink-0 text-sm sm:text-base shadow-sm shadow-teal-500/30">
                         <i class="fa-solid fa-circle-check"></i>
                     </div>
                     <div class="min-w-0 flex-1">
-                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Status Akun</p>
-                        <p class="font-bold text-slate-800 text-xs sm:text-sm truncate">
+                        <p class="text-[10px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-wider">Status Akun</p>
+                        <p class="font-bold text-slate-800 dark:text-slate-100 text-xs sm:text-sm truncate mt-0.5">
                             Aktif & Terverifikasi
                         </p>
                     </div>
                 </div>
 
                 <!-- Detail Item: Bergabung Sejak -->
-                <div class="flex items-center gap-3 p-3 rounded-xl bg-slate-50/70 border border-slate-100">
-                    <div class="w-10 h-10 rounded-xl bg-sky-100/70 text-sky-600 flex items-center justify-center shrink-0 text-sm">
+                <div class="flex items-center gap-3.5 p-3 sm:p-3.5 rounded-xl bg-slate-50/70 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-700/60 hover:border-slate-200 dark:hover:border-slate-600 transition-colors">
+                    <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-sky-600 dark:bg-sky-500 text-white flex items-center justify-center shrink-0 text-sm sm:text-base shadow-sm shadow-sky-500/30">
                         <i class="fa-solid fa-calendar-days"></i>
                     </div>
                     <div class="min-w-0 flex-1">
-                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Bergabung Sejak</p>
-                        <p class="font-bold text-slate-800 text-xs sm:text-sm truncate">
+                        <p class="text-[10px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-wider">Bergabung Sejak</p>
+                        <p class="font-bold text-slate-800 dark:text-slate-100 text-xs sm:text-sm truncate mt-0.5">
                             {{ Auth::user()->created_at ? Auth::user()->created_at->format('d M Y') : '-' }}
                         </p>
                     </div>
