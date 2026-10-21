@@ -361,31 +361,31 @@
                             @endforeach
                         </tbody>
                         <tfoot>
-                            <tr class="bg-slate-50 border-t-2 border-slate-200 font-extrabold text-xs text-slate-800">
-                                <td class="py-3.5 px-4 uppercase text-slate-500 font-bold">Total Keseluruhan</td>
-                                <td class="py-3.5 px-4 text-center text-slate-400">&ndash;</td>
-                                <td class="py-3.5 px-4 text-center text-blue-600 font-black">{{ $rapor->moduleDetails->sum('total_ticket') }} tiket</td>
-                                <td class="py-3.5 px-4 text-center text-slate-500 font-semibold">{{ $rapor->lama_waktu ?: ($rapor->rata_rata_waktu ?: '-') }}</td>
-                                <td class="py-3.5 px-4 text-center text-slate-500 font-semibold">{{ $rapor->rata_rata_waktu ?: '-' }}</td>
-                                <td class="py-3.5 px-4 text-right font-mono font-black text-blue-700 text-sm">{{ number_format($rapor->raw_ticket_score ?? $rapor->moduleDetails->sum('score'), 0, ',', '.') }} poin</td>
+                            <tr class="bg-slate-50 dark:bg-slate-800/80 border-t-2 border-slate-200 dark:border-slate-700 font-extrabold text-xs text-slate-800 dark:text-slate-100">
+                                <td class="py-3.5 px-4 uppercase text-slate-500 dark:text-slate-400 font-bold">Total Keseluruhan</td>
+                                <td class="py-3.5 px-4 text-center text-slate-400 dark:text-slate-500">&ndash;</td>
+                                <td class="py-3.5 px-4 text-center text-blue-600 dark:text-blue-400 font-black">{{ $rapor->moduleDetails->sum('total_ticket') }} tiket</td>
+                                <td class="py-3.5 px-4 text-center text-slate-500 dark:text-slate-400 font-semibold">{{ $rapor->lama_waktu ?: ($rapor->rata_rata_waktu ?: '-') }}</td>
+                                <td class="py-3.5 px-4 text-center text-slate-500 dark:text-slate-400 font-semibold">{{ $rapor->rata_rata_waktu ?: '-' }}</td>
+                                <td class="py-3.5 px-4 text-right font-mono font-black text-blue-700 dark:text-blue-400 text-sm">{{ number_format($rapor->raw_ticket_score ?? $rapor->moduleDetails->sum('score'), 0, ',', '.') }} poin</td>
                             </tr>
                         </tfoot>
                     </table>
                 </div>
 
                 @if(($rapor->max_ticket_score ?? 0) > 0)
-                <div class="mt-4 pt-3 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between text-xs text-slate-600 gap-2 bg-slate-50/70 p-3 rounded-xl">
+                <div class="mt-4 pt-3 border-t border-slate-100 dark:border-slate-700 flex flex-col sm:flex-row sm:items-center justify-between text-xs text-slate-600 dark:text-slate-400 gap-2 bg-slate-50/70 dark:bg-slate-800/60 p-3 rounded-xl">
                     <div>
-                        <span class="font-bold text-slate-700">Hasil Normalisasi Nilai:</span>
-                        <span class="font-mono text-slate-500">({{ number_format($rapor->raw_ticket_score ?? $rapor->moduleDetails->sum('score'), 0, ',', '.') }} : {{ number_format($rapor->max_ticket_score, 0, ',', '.') }}) × 100</span>
+                        <span class="font-bold text-slate-700 dark:text-slate-200">Hasil Normalisasi Nilai:</span>
+                        <span class="font-mono text-slate-500 dark:text-slate-400">({{ number_format($rapor->raw_ticket_score ?? $rapor->moduleDetails->sum('score'), 0, ',', '.') }} : {{ number_format($rapor->max_ticket_score, 0, ',', '.') }}) × 100</span>
                     </div>
                     <div class="flex items-center gap-3">
                         @if(($rapor->team_portion ?? 0) > 0)
-                        <span class="text-indigo-600 font-bold bg-indigo-50 px-2.5 py-1 rounded-lg border border-indigo-100">
+                        <span class="text-indigo-600 dark:text-indigo-400 font-bold bg-indigo-50 dark:bg-indigo-950/40 px-2.5 py-1 rounded-lg border border-indigo-100 dark:border-indigo-800/40">
                             Porsi Tim: {{ $rapor->team_portion }}%
                         </span>
                         @endif
-                        <span class="text-blue-700 font-extrabold bg-blue-100 px-3 py-1 rounded-lg">
+                        <span class="text-blue-700 dark:text-blue-400 font-extrabold bg-blue-100 dark:bg-blue-950/60 px-3 py-1 rounded-lg">
                             Nilai Tiket: {{ $rapor->module_score }} / 100
                         </span>
                     </div>
@@ -439,25 +439,25 @@
                         $scale5 = round($rawScore / 20, 1);
                         $desc = $categoryDescriptions[$cat->name] ?? 'Kriteria evaluasi perilaku dan kapabilitas pelayanan implementator.';
                     @endphp
-                    <div class="p-4 rounded-xl border border-slate-100 bg-slate-50/60 hover:bg-slate-50 transition-colors flex flex-col justify-between">
+                    <div class="p-4 rounded-xl border border-slate-100 dark:border-slate-700/60 bg-slate-50/60 dark:bg-slate-800/60 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors flex flex-col justify-between">
                         <div class="flex items-start justify-between gap-2 mb-2">
                             <div>
-                                <h4 class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                                    <span class="text-[10px] text-blue-600 font-mono font-bold bg-blue-50 border border-blue-100 px-1.5 py-0.5 rounded">{{ sprintf('%02d', $loop->iteration) }}</span>
+                                <h4 class="text-xs font-bold text-slate-800 dark:text-slate-100 flex items-center gap-1.5">
+                                    <span class="text-[10px] text-blue-600 dark:text-blue-400 font-mono font-bold bg-blue-50 dark:bg-blue-950/50 border border-blue-100 dark:border-blue-800/50 px-1.5 py-0.5 rounded">{{ sprintf('%02d', $loop->iteration) }}</span>
                                     {{ $cat->name }}
                                 </h4>
-                                <p class="text-[11px] text-slate-500 mt-1 leading-relaxed">{{ $desc }}</p>
+                                <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">{{ $desc }}</p>
                             </div>
-                            <span class="text-xs font-extrabold text-slate-800 shrink-0 font-mono bg-white px-2 py-0.5 rounded-md border border-slate-200">
+                            <span class="text-xs font-extrabold text-slate-800 dark:text-slate-100 shrink-0 font-mono bg-white dark:bg-slate-800 px-2 py-0.5 rounded-md border border-slate-200 dark:border-slate-700">
                                 {{ round($rawScore, 1) }} <span class="text-[10px] text-slate-400 font-normal">/ 100</span>
                             </span>
                         </div>
-                        <div class="flex items-center justify-between pt-2 border-t border-slate-200/60 text-xs">
+                        <div class="flex items-center justify-between pt-2 border-t border-slate-200/60 dark:border-slate-700/60 text-xs">
                             <div class="flex items-center gap-1 text-amber-400">
                                 @for($st = 1; $st <= 5; $st++)
-                                    <i class="fa-solid fa-star text-xs {{ $st <= round($scale5) ? 'text-amber-400' : 'text-slate-200' }}"></i>
+                                    <i class="fa-solid fa-star text-xs {{ $st <= round($scale5) ? 'text-amber-400' : 'text-slate-200 dark:text-slate-700' }}"></i>
                                 @endfor
-                                <span class="text-[11px] font-bold text-slate-600 ml-1">{{ $scale5 }} / 5.0</span>
+                                <span class="text-[11px] font-bold text-slate-600 dark:text-slate-300 ml-1">{{ $scale5 }} / 5.0</span>
                             </div>
                             <span class="text-[10px] font-bold uppercase tracking-wider {{ $rawScore >= 80 ? 'text-emerald-600' : ($rawScore >= 60 ? 'text-amber-600' : 'text-rose-600') }}">
                                 {{ $rawScore >= 80 ? 'Sangat Baik' : ($rawScore >= 60 ? 'Baik' : 'Perlu Ditingkatkan') }}

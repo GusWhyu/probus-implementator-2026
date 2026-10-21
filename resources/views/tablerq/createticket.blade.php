@@ -3,18 +3,18 @@
     <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
 
-    <div class="py-8 bg-slate-50/50 min-h-screen">
+    <div class="py-8 bg-slate-50/50 dark:bg-[#0b1120] min-h-screen">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             
             <!-- Header section -->
             <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-8 gap-4">
                 <div class="flex items-center gap-4">
-                    <a href="{{ route('daftartiket') }}" class="w-11 h-11 bg-white border border-slate-200 rounded-full flex items-center justify-center text-slate-500 hover:text-blue-600 hover:border-blue-200 hover:bg-blue-50 transition-all shadow-sm shrink-0">
+                    <a href="{{ route('daftartiket') }}" class="w-11 h-11 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-full flex items-center justify-center text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:border-blue-200 dark:hover:border-blue-500/50 hover:bg-blue-50 dark:hover:bg-slate-700 transition-all shadow-sm shrink-0">
                         <i class="fa-solid fa-arrow-left"></i>
                     </a>
                     <div>
-                        <h1 class="text-2xl font-extrabold text-slate-800 tracking-tight">Buat Tiket Baru</h1>
-                        <p class="text-sm text-slate-500 font-medium mt-1">Lengkapi formulir di bawah untuk membuat tiket bantuan.</p>
+                        <h1 class="text-2xl font-extrabold text-slate-800 dark:text-slate-100 tracking-tight">Buat Tiket Baru</h1>
+                        <p class="text-sm text-slate-500 dark:text-slate-400 font-medium mt-1">Lengkapi formulir di bawah untuk membuat tiket bantuan.</p>
                     </div>
                 </div>
             </div>
@@ -27,10 +27,10 @@
                     @csrf
                     
                     <!-- Section 1: Informasi Utama -->
-                    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden mb-5">
-                        <div class="px-6 md:px-8 py-4 border-b border-slate-100 bg-slate-50/60">
-                            <h2 class="text-[13px] font-extrabold text-slate-700 uppercase tracking-wider flex items-center gap-2.5">
-                                <div class="w-7 h-7 rounded-lg bg-blue-100 text-blue-500 flex items-center justify-center">
+                    <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700/80 overflow-hidden mb-5">
+                        <div class="px-6 md:px-8 py-4 border-b border-slate-100 dark:border-slate-700 bg-slate-50/60 dark:bg-slate-900/60">
+                            <h2 class="text-[13px] font-extrabold text-slate-700 dark:text-slate-200 uppercase tracking-wider flex items-center gap-2.5">
+                                <div class="w-7 h-7 rounded-lg bg-blue-100 dark:bg-blue-950/60 text-blue-500 dark:text-blue-400 flex items-center justify-center">
                                     <i class="fa-solid fa-ticket text-xs"></i>
                                 </div>
                                 Informasi Tiket
@@ -41,26 +41,26 @@
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                                 <div>
                                     <div class="flex items-center justify-between mb-2">
-                                        <label class="flex items-center gap-1.5 text-xs font-bold text-slate-600">
+                                        <label class="flex items-center gap-1.5 text-xs font-bold text-slate-600 dark:text-slate-300">
                                             <i class="fa-solid fa-heading text-slate-400 text-[10px]"></i> Judul Tiket <span class="text-rose-500">*</span>
                                         </label>
-                                        <span class="text-[10px] font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full" id="title-counter">0/100</span>
+                                        <span class="text-[10px] font-bold text-slate-400 bg-slate-100 dark:bg-slate-700/60 px-2 py-0.5 rounded-full" id="title-counter">0/100</span>
                                     </div>
-                                    <input type="text" id="title-input" name="title" value="{{ old('title') }}" maxlength="100" class="w-full bg-slate-50 border border-slate-200 text-slate-800 text-sm rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white block p-3.5 transition-all outline-none placeholder:text-slate-400" placeholder="Masukkan judul permasalahan..." required>
+                                    <input type="text" id="title-input" name="title" value="{{ old('title') }}" maxlength="100" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-sm rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white dark:focus:bg-slate-900 block p-3.5 transition-all outline-none placeholder:text-slate-400 dark:placeholder:text-slate-100" placeholder="Masukkan judul permasalahan..." required>
                                 </div>
                                 
                                 <div>
-                                    <label class="flex items-center gap-1.5 text-xs font-bold text-slate-600 mb-2">
+                                    <label class="flex items-center gap-1.5 text-xs font-bold text-slate-600 dark:text-slate-300 mb-2">
                                         <i class="fa-solid fa-user text-slate-400 text-[10px]"></i> Client <span class="text-rose-500">*</span>
                                     </label>
                                     <div class="relative group">
-                                        <select id="client-select" name="client" class="w-full bg-slate-50 border border-slate-200 text-slate-800 text-sm rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white block p-3.5 transition-all outline-none" required>
+                                        <select id="client-select" name="client" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-sm rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white dark:focus:bg-slate-900 block p-3.5 transition-all outline-none" required>
                                             <option value="" disabled selected>Pilih client...</option>
                                             @foreach ($clients as $client)
                                             <option value="{{ $client->id }}" {{ old('client') == $client->id ? 'selected' : '' }}>{{ $client->nm_out }}</option>
                                             @endforeach
                                         </select>
-                                        <div class="absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none flex items-center justify-center w-7 h-7 rounded-lg bg-white shadow-sm border border-slate-100 z-10 transition-colors text-slate-400">
+                                        <div class="absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none flex items-center justify-center w-7 h-7 rounded-lg bg-white dark:bg-slate-800 shadow-sm border border-slate-100 dark:border-slate-700 z-10 transition-colors text-slate-400 dark:text-slate-400">
                                             <i class="fa-solid fa-magnifying-glass text-[11px]"></i>
                                         </div>
                                     </div>
@@ -70,11 +70,11 @@
                             <!-- Row 2: System | Module -->
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                                 <div>
-                                    <label class="flex items-center gap-1.5 text-xs font-bold text-slate-600 mb-2">
+                                    <label class="flex items-center gap-1.5 text-xs font-bold text-slate-600 dark:text-slate-300 mb-2">
                                         <i class="fa-solid fa-server text-slate-400 text-[10px]"></i> System <span class="text-rose-500">*</span>
                                     </label>
                                     <div class="relative">
-                                        <select name="tag" class="w-full bg-slate-50 border border-slate-200 text-slate-800 text-sm rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white block p-3.5 transition-all outline-none appearance-none cursor-pointer pr-10" required>
+                                        <select name="tag" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-sm rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white dark:focus:bg-slate-900 block p-3.5 transition-all outline-none appearance-none cursor-pointer pr-10" required>
                                             <option value="" disabled selected>Pilih system...</option>
                                             @foreach ($tag as $tagitem)
                                             <option value="{{ $tagitem->id }}" {{ old('tag') == $tagitem->id ? 'selected' : '' }}>{{ $tagitem->name }}</option>
@@ -85,11 +85,11 @@
                                 </div>
                                 
                                 <div>
-                                    <label class="flex items-center gap-1.5 text-xs font-bold text-slate-600 mb-2">
+                                    <label class="flex items-center gap-1.5 text-xs font-bold text-slate-600 dark:text-slate-300 mb-2">
                                         <i class="fa-solid fa-cube text-slate-400 text-[10px]"></i> Module <span class="text-rose-500">*</span>
                                     </label>
                                     <div class="relative">
-                                        <select name="category" class="w-full bg-slate-50 border border-slate-200 text-slate-800 text-sm rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white block p-3.5 transition-all outline-none appearance-none cursor-pointer pr-10" required>
+                                        <select name="category" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-sm rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white dark:focus:bg-slate-900 block p-3.5 transition-all outline-none appearance-none cursor-pointer pr-10" required>
                                             <option value="" disabled selected>Pilih module...</option>
                                             @foreach ($kategori as $kategoriitem)
                                             <option value="{{ $kategoriitem->id }}" {{ old('category') == $kategoriitem->id ? 'selected' : '' }}>{{ $kategoriitem->name }}</option>
@@ -103,11 +103,11 @@
                             <!-- Row 3: Tipe Penanganan | Advisor -->
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                                 <div>
-                                    <label class="flex items-center gap-1.5 text-xs font-bold text-slate-600 mb-2">
+                                    <label class="flex items-center gap-1.5 text-xs font-bold text-slate-600 dark:text-slate-300 mb-2">
                                         <i class="fa-solid fa-wrench text-slate-400 text-[10px]"></i> Tipe Penanganan <span class="text-rose-500">*</span>
                                     </label>
                                     <div class="relative">
-                                        <select name="tipe_penanganan" class="w-full bg-slate-50 border border-slate-200 text-slate-800 text-sm rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white block p-3.5 transition-all outline-none appearance-none cursor-pointer pr-10" required>
+                                        <select name="tipe_penanganan" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-sm rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white dark:focus:bg-slate-900 block p-3.5 transition-all outline-none appearance-none cursor-pointer pr-10" required>
                                             <option value="" disabled selected>Pilih tipe...</option>
                                             <option value="On Site" {{ old('tipe_penanganan') == 'On Site' ? 'selected' : '' }}>On Site</option>
                                             <option value="Remote" {{ old('tipe_penanganan') == 'Remote' ? 'selected' : '' }}>Remote</option>
@@ -119,11 +119,11 @@
                                 </div>
                                 
                                 <div>
-                                    <label class="flex items-center gap-1.5 text-xs font-bold text-slate-600 mb-2">
+                                    <label class="flex items-center gap-1.5 text-xs font-bold text-slate-600 dark:text-slate-300 mb-2">
                                         <i class="fa-solid fa-user-gear text-slate-400 text-[10px]"></i> Advisor
                                     </label>
                                     <div class="relative">
-                                        <select name="advisor" class="w-full bg-slate-50 border border-slate-200 text-slate-800 text-sm rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white block p-3.5 transition-all outline-none appearance-none cursor-pointer pr-10">
+                                        <select name="advisor" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-sm rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white dark:focus:bg-slate-900 block p-3.5 transition-all outline-none appearance-none cursor-pointer pr-10">
                                             <option value="" selected>Pilih advisor (Opsional)...</option>
                                             @foreach ($advisors as $u)
                                             <option value="{{ $u->id }}" {{ old('advisor') == $u->id ? 'selected' : '' }}>{{ $u->name }}</option>
@@ -137,7 +137,7 @@
                             <!-- Row 4: Deadline -->
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                                 <div>
-                                    <label class="flex items-center gap-1.5 text-xs font-bold text-slate-600 mb-2">
+                                    <label class="flex items-center gap-1.5 text-xs font-bold text-slate-600 dark:text-slate-300 mb-2">
                                         <i class="fa-regular fa-calendar text-slate-400 text-[10px]"></i> Deadline (Due Date) <span class="text-rose-500">*</span>
                                     </label>
                                     @php
@@ -145,7 +145,7 @@
                                         $defaultDeadline = $now->copy()->addDay()->format('Y-m-d H:i');
                                     @endphp
                                     <div class="relative">
-                                        <input type="text" id="due-date-picker" name="due_date" value="{{ old('due_date', $defaultDeadline) }}" class="w-full bg-slate-50 border border-slate-200 text-slate-800 text-sm rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white block p-3.5 transition-all outline-none pl-10 cursor-pointer" placeholder="Pilih tanggal dan waktu" required>
+                                        <input type="text" id="due-date-picker" name="due_date" value="{{ old('due_date', $defaultDeadline) }}" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-sm rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white dark:focus:bg-slate-900 block p-3.5 transition-all outline-none pl-10 cursor-pointer" placeholder="Pilih tanggal dan waktu" required>
                                         <i class="fa-regular fa-calendar-days absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
                                     </div>
                                 </div>
@@ -154,47 +154,47 @@
                     </div>
 
                     <!-- Section 2: Deskripsi Masalah -->
-                    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden mb-5">
-                        <div class="px-6 md:px-8 py-4 border-b border-slate-100 bg-slate-50/60">
-                            <h2 class="text-[13px] font-extrabold text-slate-700 uppercase tracking-wider flex items-center gap-2.5">
-                                <div class="w-7 h-7 rounded-lg bg-amber-100 text-amber-500 flex items-center justify-center">
+                    <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700/80 overflow-hidden mb-5">
+                        <div class="px-6 md:px-8 py-4 border-b border-slate-100 dark:border-slate-700 bg-slate-50/60 dark:bg-slate-900/60">
+                            <h2 class="text-[13px] font-extrabold text-slate-700 dark:text-slate-200 uppercase tracking-wider flex items-center gap-2.5">
+                                <div class="w-7 h-7 rounded-lg bg-amber-100 dark:bg-amber-950/60 text-amber-500 dark:text-amber-400 flex items-center justify-center">
                                     <i class="fa-solid fa-align-left text-xs"></i>
                                 </div>
                                 Deskripsi Masalah <span class="text-rose-500">*</span>
                             </h2>
                         </div>
                         <div class="p-6 md:p-8">
-                            <div class="bg-white rounded-xl border border-slate-200 overflow-hidden focus-within:ring-2 focus-within:ring-blue-500/20 focus-within:border-blue-500 transition-all">
-                                <div class="bg-slate-50 border-b border-slate-200 px-4 py-2">
+                            <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden focus-within:ring-2 focus-within:ring-blue-500/20 focus-within:border-blue-500 transition-all">
+                                <div class="bg-slate-50 dark:bg-slate-800/80 border-b border-slate-200 dark:border-slate-700 px-4 py-2">
                                     <trix-toolbar id="trix-toolbar-create"></trix-toolbar>
                                 </div>
                                 <input type="hidden" id="body" name="body" value="{{ old('body') }}">
-                                <trix-editor toolbar="trix-toolbar-create" trix-attachment-remove input="body" class="p-4 min-h-[180px] text-sm text-slate-700 border-none focus:outline-none prose max-w-none" placeholder="Jelaskan masalah pelanggan secara rinci..."></trix-editor>
+                                <trix-editor toolbar="trix-toolbar-create" trix-attachment-remove input="body" class="p-4 min-h-[180px] text-sm text-slate-700 dark:text-slate-200 border-none focus:outline-none prose max-w-none" placeholder="Jelaskan masalah pelanggan secara rinci..."></trix-editor>
                             </div>
                         </div>
                     </div>
 
                     <!-- Section 3: Lampiran -->
-                    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden mb-5">
-                        <div class="px-6 md:px-8 py-4 border-b border-slate-100 bg-slate-50/60">
-                            <h2 class="text-[13px] font-extrabold text-slate-700 uppercase tracking-wider flex items-center gap-2.5">
-                                <div class="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-500 flex items-center justify-center">
+                    <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700/80 overflow-hidden mb-5">
+                        <div class="px-6 md:px-8 py-4 border-b border-slate-100 dark:border-slate-700 bg-slate-50/60 dark:bg-slate-900/60">
+                            <h2 class="text-[13px] font-extrabold text-slate-700 dark:text-slate-200 uppercase tracking-wider flex items-center gap-2.5">
+                                <div class="w-7 h-7 rounded-lg bg-emerald-100 dark:bg-emerald-950/60 text-emerald-500 dark:text-emerald-400 flex items-center justify-center">
                                     <i class="fa-solid fa-paperclip text-xs"></i>
                                 </div>
                                 Lampiran
                             </h2>
-                            <p class="text-[11px] text-slate-400 font-medium mt-1 ml-[38px]">Maks. 6 file, format JPG/PNG, ukuran per file maks. 1MB</p>
+                            <p class="text-[11px] text-slate-400 dark:text-slate-400 font-medium mt-1 ml-[38px]">Maks. 6 file, format JPG/PNG, ukuran per file maks. 1MB</p>
                         </div>
                         <div class="p-6 md:p-8">
                             <div class="relative group" id="dropzone-wrapper">
                                 <input type="file" multiple accept="image/jpeg,image/png,image/jpg" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" name="images[]" id="file-upload">
-                                <div class="w-full py-10 px-6 bg-[#f8fbff] border-2 border-dashed border-[#c5d9f5] rounded-2xl text-center group-hover:bg-[#eef5ff] group-hover:border-blue-400 transition-all duration-200 flex flex-col items-center justify-center gap-3">
-                                    <div class="w-14 h-14 bg-blue-100 rounded-2xl flex items-center justify-center text-blue-500 group-hover:scale-110 transition-transform duration-200">
+                                <div class="w-full py-10 px-6 bg-[#f8fbff] dark:bg-slate-900/60 border-2 border-dashed border-[#c5d9f5] dark:border-slate-700 group-hover:bg-[#eef5ff] dark:group-hover:bg-slate-800/80 group-hover:border-blue-400 dark:group-hover:border-blue-500 rounded-2xl text-center transition-all duration-200 flex flex-col items-center justify-center gap-3">
+                                    <div class="w-14 h-14 bg-blue-100 dark:bg-blue-950/60 rounded-2xl flex items-center justify-center text-blue-500 dark:text-blue-400 group-hover:scale-110 transition-transform duration-200">
                                         <i class="fa-solid fa-cloud-arrow-up text-2xl"></i>
                                     </div>
                                     <div>
-                                        <p class="text-sm font-bold text-slate-600" id="file-name">Tarik & lepas file di sini</p>
-                                        <p class="text-xs text-slate-400 font-medium mt-1">atau <span class="text-blue-500 font-bold cursor-pointer hover:underline">klik untuk memilih file</span></p>
+                                        <p class="text-sm font-bold text-slate-600 dark:text-slate-200" id="file-name">Tarik & lepas file di sini</p>
+                                        <p class="text-xs text-slate-400 dark:text-slate-400 font-medium mt-1">atau <span class="text-blue-500 dark:text-blue-400 font-bold cursor-pointer hover:underline">klik untuk memilih file</span></p>
                                     </div>
                                 </div>
                             </div>
@@ -205,7 +205,7 @@
 
                     <!-- Submit Actions -->
                     <div class="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-3 pt-2 pb-4">
-                        <a href="{{ route('daftartiket') }}" class="w-full sm:w-auto text-center px-7 py-3 bg-white border border-slate-200 text-slate-600 font-bold text-sm rounded-xl hover:bg-slate-50 transition-colors shadow-sm">
+                        <a href="{{ route('daftartiket') }}" class="w-full sm:w-auto text-center px-7 py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-bold text-sm rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shadow-sm">
                             <i class="fa-solid fa-xmark mr-1.5 text-slate-400"></i> Batal
                         </a>
                         <button type="submit" class="w-full sm:w-auto justify-center px-7 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm rounded-xl shadow-md shadow-blue-500/20 transition-all active:scale-95 flex items-center gap-2">
@@ -247,6 +247,35 @@
         trix-editor:empty:not(:focus)::before {
             color: #94a3b8;
             font-style: normal;
+        }
+
+        html.dark trix-toolbar .trix-button-group,
+        html[data-theme="dark"] trix-toolbar .trix-button-group {
+            border-color: #334155 !important;
+            background: #0f172a !important;
+        }
+        html.dark trix-toolbar .trix-button,
+        html[data-theme="dark"] trix-toolbar .trix-button {
+            border: none !important;
+            background: transparent !important;
+        }
+        html.dark trix-toolbar .trix-button:not(:first-child),
+        html[data-theme="dark"] trix-toolbar .trix-button:not(:first-child) {
+            border-left: 1px solid #334155 !important;
+        }
+        html.dark trix-toolbar .trix-button:hover,
+        html[data-theme="dark"] trix-toolbar .trix-button:hover {
+            background: #1e293b !important;
+        }
+        html.dark trix-toolbar .trix-button.trix-active,
+        html[data-theme="dark"] trix-toolbar .trix-button.trix-active {
+            background: #2563eb !important;
+            color: #ffffff !important;
+        }
+        html.dark trix-toolbar .trix-button--icon::before,
+        html[data-theme="dark"] trix-toolbar .trix-button--icon::before {
+            filter: invert(0.9) brightness(1.2) !important;
+            opacity: 0.85 !important;
         }
     </style>
 
@@ -390,21 +419,21 @@
                 const fileUrl = URL.createObjectURL(file);
                 
                 const item = document.createElement('div');
-                item.className = 'flex items-center justify-between p-2.5 bg-[#fafcfd] border border-slate-100 rounded-xl shadow-[0_2px_10px_-3px_rgba(0,0,0,0.05)]';
+                item.className = 'flex items-center justify-between p-2.5 bg-[#fafcfd] dark:bg-slate-900 border border-slate-100 dark:border-slate-700/80 rounded-xl shadow-[0_2px_10px_-3px_rgba(0,0,0,0.05)]';
                 item.innerHTML = `
                     <div class="flex items-center gap-4 overflow-hidden">
-                        <div class="w-12 h-12 bg-[#e8f1ff] text-[#3b82f6] rounded-xl flex items-center justify-center shrink-0 overflow-hidden border border-slate-200/50">
+                        <div class="w-12 h-12 bg-[#e8f1ff] dark:bg-blue-950/60 text-[#3b82f6] dark:text-blue-400 rounded-xl flex items-center justify-center shrink-0 overflow-hidden border border-slate-200/50 dark:border-slate-700">
                             ${file.type.startsWith('image/') 
                                 ? `<img src="${fileUrl}" class="w-full h-full object-cover" alt="Preview" />` 
                                 : `<i class="fa-solid fa-file text-lg"></i>`
                             }
                         </div>
                         <div class="overflow-hidden">
-                            <p class="text-[13px] font-bold text-slate-700 truncate mb-0.5" title="${file.name}">${file.name}</p>
-                            <p class="text-[11px] font-semibold text-slate-400">${fileSize}</p>
+                            <p class="text-[13px] font-bold text-slate-700 dark:text-slate-200 truncate mb-0.5" title="${file.name}">${file.name}</p>
+                            <p class="text-[11px] font-semibold text-slate-400 dark:text-slate-500">${fileSize}</p>
                         </div>
                     </div>
-                    <button type="button" class="w-8 h-8 rounded-full bg-white border border-slate-200 shadow-sm text-slate-500 hover:text-rose-500 hover:border-rose-200 flex items-center justify-center shrink-0 transition-all z-20 relative mr-1 hover:bg-rose-50" onclick="removeFile(${index})">
+                    <button type="button" class="w-8 h-8 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm text-slate-500 dark:text-slate-400 hover:text-rose-500 dark:hover:text-rose-400 hover:border-rose-200 dark:hover:border-rose-500/50 flex items-center justify-center shrink-0 transition-all z-20 relative mr-1 hover:bg-rose-50 dark:hover:bg-rose-950/40" onclick="removeFile(${index})">
                         <i class="fa-solid fa-xmark text-sm"></i>
                     </button>
                 `;
@@ -540,6 +569,64 @@
             background-color: #eff6ff !important; /* hover:bg-blue-50 */
             color: #2563eb !important; /* text-blue-600 */
             font-weight: 600;
+        }
+
+        /* Title Input Placeholder in Dark Mode to match other fields (white) */
+        html.dark #title-input::placeholder,
+        html[data-theme="dark"] #title-input::placeholder {
+            color: #f1f5f9 !important;
+            opacity: 1 !important;
+        }
+
+        /* Dark Mode Overrides for TomSelect */
+        html.dark .ts-control,
+        html[data-theme="dark"] .ts-control {
+            background-color: #0f172a !important;
+            border-color: #334155 !important;
+            color: #f1f5f9 !important;
+        }
+        html.dark .ts-control input,
+        html[data-theme="dark"] .ts-control input {
+            color: #f1f5f9 !important;
+        }
+        html.dark .ts-control input::placeholder,
+        html[data-theme="dark"] .ts-control input::placeholder,
+        html.dark .ts-control .placeholder,
+        html[data-theme="dark"] .ts-control .placeholder {
+            color: #f1f5f9 !important;
+            opacity: 1 !important;
+        }
+        html.dark .ts-control .item,
+        html[data-theme="dark"] .ts-control .item {
+            color: #f1f5f9 !important;
+        }
+        html.dark .ts-control.focus,
+        html[data-theme="dark"] .ts-control.focus {
+            background-color: #0f172a !important;
+            border-color: #3b82f6 !important;
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.25) !important;
+        }
+        html.dark .ts-dropdown,
+        html[data-theme="dark"] .ts-dropdown {
+            background-color: #1e293b !important;
+            border-color: #334155 !important;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5) !important;
+        }
+        html.dark .ts-dropdown .option,
+        html[data-theme="dark"] .ts-dropdown .option {
+            color: #cbd5e1 !important;
+        }
+        html.dark .ts-dropdown .active,
+        html.dark .ts-dropdown .option:hover,
+        html[data-theme="dark"] .ts-dropdown .active,
+        html[data-theme="dark"] .ts-dropdown .option:hover {
+            background-color: rgba(37, 99, 235, 0.25) !important;
+            color: #60a5fa !important;
+        }
+        html.dark .ts-dropdown .option.selected,
+        html[data-theme="dark"] .ts-dropdown .option.selected {
+            background-color: rgba(37, 99, 235, 0.4) !important;
+            color: #93c5fd !important;
         }
     </style>
 </x-app-layout>

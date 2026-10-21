@@ -69,12 +69,12 @@
                     <div class="absolute inset-0 bg-gradient-to-br from-white via-white to-blue-100 pointer-events-none stat-card-gradient"></div>
                     <div class="absolute -right-6 -bottom-6 w-32 h-32 bg-blue-500/10 rounded-full blur-2xl pointer-events-none group-hover:scale-125 transition-transform duration-500"></div>
                     <div class="flex items-center justify-between mb-3 relative z-10">
-                        <span class="text-[11px] font-bold text-slate-500 group-hover:text-blue-700 uppercase tracking-wider transition-colors">Total Requests</span>
-                        <div class="stat-card-icon-box w-10 h-10 bg-white shadow-sm border border-blue-100 rounded-xl flex items-center justify-center text-blue-600 group-hover:scale-110 group-hover:bg-blue-600 group-hover:text-white transition-all duration-300">
-                            <i class="fa-solid fa-layer-group text-sm"></i>
+                        <span class="text-xs sm:text-sm font-extrabold text-slate-500 dark:text-slate-300 group-hover:text-blue-700 dark:group-hover:text-blue-400 uppercase tracking-wider transition-colors">Total Requests</span>
+                        <div class="stat-card-icon-box w-10 h-10 bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 shadow-sm border border-blue-100 dark:border-blue-900/40 rounded-xl flex items-center justify-center group-hover:scale-110 group-hover:bg-blue-600 group-hover:text-white transition-all duration-300">
+                            <i class="fa-solid fa-ticket text-base"></i>
                         </div>
                     </div>
-                    <div id="total-count" class="text-3xl font-extrabold text-slate-800 tracking-tight mb-1 dashboard-stat-number relative z-10 transition-all">{{ $total_count ?? 0 }}</div>
+                    <div id="total-count" class="text-3xl sm:text-4xl font-extrabold text-slate-800 tracking-tight mb-1 dashboard-stat-number relative z-10 transition-all">{{ $total_count ?? 0 }}</div>
                 </div>
 
                 {{-- Card 2: Open Requests --}}
@@ -83,26 +83,26 @@
                     <div class="absolute inset-0 bg-gradient-to-br from-white via-white to-indigo-100 pointer-events-none stat-card-gradient"></div>
                     <div class="absolute -right-6 -bottom-6 w-32 h-32 bg-indigo-500/10 rounded-full blur-2xl pointer-events-none group-hover:scale-125 transition-transform duration-500"></div>
                     <div class="flex items-center justify-between mb-3 relative z-10">
-                        <span class="text-[11px] font-bold text-indigo-600 uppercase tracking-wider">Open</span>
-                        <div class="stat-card-icon-box w-10 h-10 bg-white shadow-sm border border-indigo-100 rounded-xl flex items-center justify-center text-indigo-600 group-hover:scale-110 group-hover:bg-indigo-600 group-hover:text-white transition-all duration-300">
-                            <i class="fa-solid fa-envelope-open-text text-sm"></i>
+                        <span class="text-xs sm:text-sm font-extrabold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider">Open</span>
+                        <div class="stat-card-icon-box w-10 h-10 bg-indigo-50 dark:bg-indigo-950/60 text-indigo-500 dark:text-indigo-400 shadow-sm border border-indigo-100 dark:border-indigo-900/40 rounded-xl flex items-center justify-center group-hover:scale-110 group-hover:bg-indigo-600 group-hover:text-white transition-all duration-300">
+                            <i class="fa-regular fa-clock text-base"></i>
                         </div>
                     </div>
-                    <div id="open-count" class="text-3xl font-extrabold text-slate-800 tracking-tight mb-1 dashboard-stat-number relative z-10 transition-all">{{ $open_count ?? 0 }}</div>
+                    <div id="open-count" class="text-3xl sm:text-4xl font-extrabold text-slate-800 tracking-tight mb-1 dashboard-stat-number relative z-10 transition-all">{{ $open_count ?? 0 }}</div>
                 </div>
 
                 {{-- Card 3: In Progress --}}
-                <div class="bg-white dashboard-stat-card rounded-2xl p-5 shadow-sm border border-sky-100/80 hover:border-sky-300 hover:shadow-lg hover:shadow-sky-500/10 transition-all duration-300 group relative overflow-hidden" style="background-color: #ffffff;">
-                    <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-sky-400 to-blue-500 z-10"></div>
-                    <div class="absolute inset-0 bg-gradient-to-br from-white via-white to-sky-100 pointer-events-none stat-card-gradient"></div>
-                    <div class="absolute -right-6 -bottom-6 w-32 h-32 bg-sky-500/10 rounded-full blur-2xl pointer-events-none group-hover:scale-125 transition-transform duration-500"></div>
+                <div class="bg-white dashboard-stat-card rounded-2xl p-5 shadow-sm border border-amber-100/80 hover:border-amber-300 hover:shadow-lg hover:shadow-amber-500/10 transition-all duration-300 group relative overflow-hidden" style="background-color: #ffffff;">
+                    <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-400 to-orange-500 z-10"></div>
+                    <div class="absolute inset-0 bg-gradient-to-br from-white via-white to-amber-100 pointer-events-none stat-card-gradient"></div>
+                    <div class="absolute -right-6 -bottom-6 w-32 h-32 bg-amber-500/10 rounded-full blur-2xl pointer-events-none group-hover:scale-125 transition-transform duration-500"></div>
                     <div class="flex items-center justify-between mb-3 relative z-10">
-                        <span class="text-[11px] font-bold text-sky-600 uppercase tracking-wider">In Progress</span>
-                        <div class="stat-card-icon-box w-10 h-10 bg-white shadow-sm border border-sky-100 rounded-xl flex items-center justify-center text-sky-600 group-hover:scale-110 group-hover:bg-sky-500 group-hover:text-white transition-all duration-300">
-                            <i class="fa-solid fa-arrows-rotate text-sm"></i>
+                        <span class="text-xs sm:text-sm font-extrabold text-amber-600 dark:text-amber-400 uppercase tracking-wider">In Progress</span>
+                        <div class="stat-card-icon-box w-10 h-10 bg-amber-50 dark:bg-amber-950/60 text-amber-500 dark:text-amber-400 shadow-sm border border-amber-100 dark:border-amber-900/40 rounded-xl flex items-center justify-center group-hover:scale-110 group-hover:bg-amber-500 group-hover:text-white transition-all duration-300">
+                            <i class="fa-solid fa-arrows-rotate text-base"></i>
                         </div>
                     </div>
-                    <div id="progress-count" class="text-3xl font-extrabold text-slate-800 tracking-tight mb-1 dashboard-stat-number relative z-10 transition-all">{{ $progress_count ?? 0 }}</div>
+                    <div id="progress-count" class="text-3xl sm:text-4xl font-extrabold text-slate-800 tracking-tight mb-1 dashboard-stat-number relative z-10 transition-all">{{ $progress_count ?? 0 }}</div>
                 </div>
 
                 {{-- Card 4: Closed Requests --}}
@@ -111,12 +111,12 @@
                     <div class="absolute inset-0 bg-gradient-to-br from-white via-white to-emerald-100 pointer-events-none stat-card-gradient"></div>
                     <div class="absolute -right-6 -bottom-6 w-32 h-32 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none group-hover:scale-125 transition-transform duration-500"></div>
                     <div class="flex items-center justify-between mb-3 relative z-10">
-                        <span class="text-[11px] font-bold text-emerald-600 uppercase tracking-wider">Closed</span>
-                        <div class="stat-card-icon-box w-10 h-10 bg-white shadow-sm border border-emerald-100 rounded-xl flex items-center justify-center text-emerald-600 group-hover:scale-110 group-hover:bg-emerald-500 group-hover:text-white transition-all duration-300">
-                            <i class="fa-solid fa-circle-check text-sm"></i>
+                        <span class="text-xs sm:text-sm font-extrabold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">Closed</span>
+                        <div class="stat-card-icon-box w-10 h-10 bg-emerald-50 dark:bg-emerald-950/60 text-emerald-500 dark:text-emerald-400 shadow-sm border border-emerald-100 dark:border-emerald-900/40 rounded-xl flex items-center justify-center group-hover:scale-110 group-hover:bg-emerald-500 group-hover:text-white transition-all duration-300">
+                            <i class="fa-regular fa-circle-check text-base"></i>
                         </div>
                     </div>
-                    <div id="closed-count" class="text-3xl font-extrabold text-slate-800 tracking-tight mb-1 dashboard-stat-number relative z-10 transition-all">{{ $closed_count ?? 0 }}</div>
+                    <div id="closed-count" class="text-3xl sm:text-4xl font-extrabold text-slate-800 tracking-tight mb-1 dashboard-stat-number relative z-10 transition-all">{{ $closed_count ?? 0 }}</div>
                 </div>
             </div>
 
