@@ -1,27 +1,24 @@
 @php
     if (!function_exists('renderDurationBadge')) {
         function renderDurationBadge($text) {
-            if (!$text || $text === '-' || !preg_match('/(\d+)\s*menit/i', $text, $m)) {
-                return '<span class="text-slate-400 font-medium">' . e($text ?: '-') . '</span>';
+            if (!$text || $text === '-') {
+                return '<span class="text-slate-400 font-medium">-</span>';
+            }
+            if (!preg_match('/(\d+)\s*menit/i', $text, $m)) {
+                return '<span class="text-slate-400 font-medium">' . e($text) . '</span>';
             }
             $totalM = (int)$m[1];
             if ($totalM == 0) {
                 return '<span class="text-slate-400 font-medium">0 m</span>';
             }
-            $formattedM = number_format($totalM, 0, ',', '.') . ' m';
             if ($totalM < 60) {
-                return '<span class="font-bold text-slate-700">' . $totalM . ' menit</span>';
+                return '<span class="font-bold text-slate-700 dark:text-slate-200">' . $totalM . ' menit</span>';
             }
-            $hours = floor($totalM / 60);
-            if ($hours < 48) {
-                $sub = '±' . $hours . ' jam';
-            } else {
-                $days = round($totalM / 1440, 1);
-                $sub = '±' . $hours . 'j (' . $days . ' hari)';
-            }
+            $readable = \App\Models\Ticket::formatMinutesToText($totalM);
+            $formattedM = number_format($totalM, 0, ',', '.') . ' m';
             return '<div class="flex flex-col items-center leading-tight">
-                        <span class="font-bold text-slate-800">' . $formattedM . '</span>
-                        <span class="text-[10px] text-slate-400 font-normal">(' . $sub . ')</span>
+                        <span class="font-bold text-slate-800 dark:text-slate-200">' . e($readable) . '</span>
+                        <span class="text-[10px] text-slate-400 dark:text-slate-400 font-normal">(' . $formattedM . ')</span>
                     </div>';
         }
     }

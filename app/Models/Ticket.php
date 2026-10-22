@@ -70,7 +70,23 @@ class Ticket extends Model
             return '< 1 menit';
         }
 
-        return "{$mins} menit";
+        $days = intdiv($mins, 1440);
+        $remMinutes = $mins % 1440;
+        $hours = intdiv($remMinutes, 60);
+        $minutes = $remMinutes % 60;
+
+        $parts = [];
+        if ($days > 0) {
+            $parts[] = "{$days} hari";
+        }
+        if ($hours > 0) {
+            $parts[] = "{$hours} jam";
+        }
+        if ($minutes > 0) {
+            $parts[] = "{$minutes} menit";
+        }
+
+        return !empty($parts) ? implode(' ', $parts) : '< 1 menit';
     }
 
     public function getTakeoverExpireTimeAttribute()

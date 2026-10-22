@@ -156,17 +156,16 @@
                 $hasTopCS = !empty($topCS['best_performance']) || !empty($topCS['clients_favorite']) || !empty($topCS['best_team_player']);
             @endphp
             <div class="mb-8">
-                <div class="flex items-center justify-between mb-4">
-                    <div class="flex items-center gap-2.5">
-                        <div class="w-8 h-8 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center font-bold text-sm shadow-sm">
+                <div class="flex items-center justify-between mb-4">                    <div class="flex items-center gap-2.5">
+                        <div class="w-8 h-8 rounded-lg bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 border border-transparent dark:border-amber-800/60 flex items-center justify-center font-bold text-sm shadow-sm">
                             <i class="fa-solid fa-trophy"></i>
                         </div>
                         <div>
-                            <h2 class="text-base sm:text-lg font-extrabold text-slate-800 leading-tight">Top 3 Customer Support Terbaik</h2>
-                            <p class="text-xs text-slate-500 font-medium">Penghargaan performa dan kontribusi CS periode {{ \Carbon\Carbon::createFromDate($year, $month, 1)->locale('id')->translatedFormat('F Y') }}</p>
+                            <h2 class="text-base sm:text-lg font-extrabold text-slate-800 dark:text-slate-100 leading-tight">Top 3 Customer Support Terbaik</h2>
+                            <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Penghargaan performa dan kontribusi CS periode {{ \Carbon\Carbon::createFromDate($year, $month, 1)->locale('id')->translatedFormat('F Y') }}</p>
                         </div>
                     </div>
-                    <div class="hidden sm:flex items-center gap-1.5 text-xs font-bold text-slate-500 bg-white px-3 py-1.5 rounded-xl border border-slate-200 shadow-sm">
+                    <div class="hidden sm:flex items-center gap-1.5 text-xs font-bold text-slate-500 dark:text-slate-300 bg-white dark:bg-slate-800 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
                         <i class="fa-solid fa-ranking-star text-amber-500"></i> Spotlight Kinerja
                     </div>
                 </div>
@@ -182,55 +181,55 @@
                         $isFemaleBp = in_array(strtolower(trim($bpUser->name)), ['dyah kusuma', 'dewi', 'siti rahma', 'dewi anggraini', 'rina wulandari', 'ayu lestari']);
                         $avatarBp = $bpUser->profile_image ? asset('storage/' . $bpUser->profile_image) : asset($isFemaleBp ? 'img/avatar-female.png' : 'img/avatar-default.png');
                     @endphp
-                    <div class="bg-white rounded-2xl border border-amber-200/80 shadow-sm hover:shadow-md hover:border-amber-300 transition-all flex flex-col overflow-hidden relative group">
+                    <div class="bg-white dark:bg-slate-800/95 rounded-2xl border border-amber-300/80 dark:border-amber-500/40 shadow-sm hover:shadow-md hover:border-amber-400 dark:hover:border-amber-500/70 transition-all flex flex-col overflow-hidden relative group">
                         <div class="h-1.5 bg-gradient-to-r from-amber-400 via-amber-500 to-yellow-400"></div>
                         <div class="p-5 flex-1 flex flex-col justify-between">
                             <div>
                                 <!-- Category Badge -->
                                 <div class="flex items-center justify-between gap-2 mb-4">
-                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-extrabold uppercase tracking-wider bg-amber-50 text-amber-700 border border-amber-200">
-                                        <i class="fa-solid fa-crown text-amber-500 text-xs"></i> Best Performance
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-extrabold uppercase tracking-wider bg-amber-50 dark:bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-500/30 shadow-2xs">
+                                        <i class="fa-solid fa-crown text-amber-500 dark:text-amber-400 text-xs"></i> Best Performance
                                     </span>
-                                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Juara 1</span>
+                                    <span class="text-[10px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-wider">Juara 1</span>
                                 </div>
 
                                 <!-- User Info Highlight Box -->
-                                <div class="flex items-center gap-4 mb-4 p-3 bg-amber-50/50 border border-amber-200/60 rounded-2xl">
+                                <div class="flex items-center gap-4 mb-4 p-3 bg-amber-50/50 dark:bg-amber-950/20 border border-amber-200/60 dark:border-amber-500/30 rounded-2xl">
                                     <div class="relative shrink-0">
-                                        <div class="w-20 h-20 rounded-2xl p-1 bg-white border-2 border-amber-400 shadow-md ring-4 ring-amber-400/20 overflow-hidden">
-                                            <img src="{{ $avatarBp }}" alt="{{ $bpUser->name }}" class="w-full h-full rounded-xl object-cover bg-amber-50/30" style="{{ $isFemaleBp && !$bpUser->profile_image ? 'object-position: top;' : '' }}">
+                                        <div class="w-20 h-20 rounded-2xl p-1 bg-white dark:bg-slate-800 border-2 border-amber-400 shadow-md ring-4 ring-amber-400/20 overflow-hidden">
+                                            <img src="{{ $avatarBp }}" alt="{{ $bpUser->name }}" class="w-full h-full rounded-xl object-cover bg-amber-50/30 dark:bg-slate-800" style="{{ $isFemaleBp && !$bpUser->profile_image ? 'object-position: top;' : '' }}">
                                         </div>
-                                        <div class="absolute -bottom-1 -right-1 w-6 h-6 rounded-lg bg-amber-500 text-white flex items-center justify-center text-[10px] shadow-sm border-2 border-white">
+                                        <div class="absolute -bottom-1 -right-1 w-6 h-6 rounded-lg bg-amber-500 text-white flex items-center justify-center text-[10px] shadow-sm border-2 border-white dark:border-slate-800">
                                             <i class="fa-solid fa-trophy"></i>
                                         </div>
                                     </div>
                                     <div class="min-w-0 flex-1">
-                                        <div class="text-[10px] font-bold text-amber-700 uppercase tracking-wider mb-0.5">Penerima Penghargaan</div>
-                                        <h3 class="font-extrabold text-slate-800 text-base sm:text-lg leading-tight truncate group-hover:text-amber-600 transition-colors" title="{{ $bpUser->name }}">
+                                        <div class="text-[10px] font-bold text-amber-700 dark:text-amber-400 uppercase tracking-wider mb-0.5">Penerima Penghargaan</div>
+                                        <h3 class="font-extrabold text-slate-800 dark:text-slate-100 text-base sm:text-lg leading-tight truncate group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors" title="{{ $bpUser->name }}">
                                             {{ $bpUser->name }}
                                         </h3>
-                                        <p class="text-xs text-slate-500 font-medium truncate mt-0.5">{{ $bpUser->email }}</p>
-                                        <span class="inline-block mt-2 text-[10px] font-bold text-amber-800 bg-amber-100/80 border border-amber-200 px-2.5 py-0.5 rounded-lg uppercase tracking-wider">
+                                        <p class="text-xs text-slate-500 dark:text-slate-400 font-medium truncate mt-0.5">{{ $bpUser->email }}</p>
+                                        <span class="inline-block mt-2 text-[10px] font-bold text-amber-800 dark:text-amber-300 bg-amber-100/80 dark:bg-amber-500/20 border border-amber-200 dark:border-amber-500/40 px-2.5 py-0.5 rounded-lg uppercase tracking-wider">
                                             {{ $bpUser->usertype ?? 'Customer Support' }}
                                         </span>
                                     </div>
                                 </div>
 
                                 <!-- Key Metric Highlight Box -->
-                                <div class="bg-amber-50/70 border border-amber-200/60 rounded-xl p-3 text-center mb-3">
-                                    <div class="text-2xl font-black text-amber-700 leading-none mb-1">
+                                <div class="bg-amber-50/70 dark:bg-amber-950/30 border border-amber-200/60 dark:border-amber-500/30 rounded-xl p-3 text-center mb-3">
+                                    <div class="text-2xl font-black text-amber-600 dark:text-amber-400 leading-none mb-1">
                                         {{ number_format($bp['total_score'], 1) }}
-                                        <span class="text-xs font-bold text-amber-500">/ 100</span>
+                                        <span class="text-xs font-bold text-amber-500 dark:text-amber-300">/ 100</span>
                                     </div>
-                                    <div class="text-[11px] font-extrabold text-amber-900 uppercase tracking-wider">Skor Kinerja Keseluruhan</div>
-                                    <div class="text-[11px] text-amber-700/90 font-medium mt-1">
+                                    <div class="text-[11px] font-extrabold text-amber-900 dark:text-amber-200 uppercase tracking-wider">Skor Kinerja Keseluruhan</div>
+                                    <div class="text-[11px] text-amber-700/90 dark:text-amber-300/90 font-medium mt-1">
                                         {{ $bp['handled_count'] }} tiket ditangani ({{ $bp['closed_count'] }} selesai)
                                     </div>
                                 </div>
                             </div>
 
                             <!-- Tombol Download Kartu Achievement HD (Poin 12) -->
-                            <div class="pt-2 border-t border-slate-100">
+                            <div class="pt-2 border-t border-slate-100 dark:border-slate-700/60">
                                 <button type="button" 
                                     onclick="downloadAchievementCard({
                                         name: '{{ addslashes($bpUser->name) }}',
@@ -263,56 +262,56 @@
                         $isFemaleCf = in_array(strtolower(trim($cfUser->name)), ['dyah kusuma', 'dewi', 'siti rahma', 'dewi anggraini', 'rina wulandari', 'ayu lestari']);
                         $avatarCf = $cfUser->profile_image ? asset('storage/' . $cfUser->profile_image) : asset($isFemaleCf ? 'img/avatar-female.png' : 'img/avatar-default.png');
                     @endphp
-                    <div class="bg-white rounded-2xl border border-rose-200/80 shadow-sm hover:shadow-md hover:border-rose-300 transition-all flex flex-col overflow-hidden relative group">
+                    <div class="bg-white dark:bg-slate-800/95 rounded-2xl border border-rose-300/80 dark:border-rose-500/40 shadow-sm hover:shadow-md hover:border-rose-400 dark:hover:border-rose-500/70 transition-all flex flex-col overflow-hidden relative group">
                         <div class="h-1.5 bg-gradient-to-r from-rose-500 via-pink-500 to-rose-400"></div>
                         <div class="p-5 flex-1 flex flex-col justify-between">
                             <div>
                                 <!-- Category Badge -->
                                 <div class="flex items-center justify-between gap-2 mb-4">
-                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-extrabold uppercase tracking-wider bg-rose-50 text-rose-700 border border-rose-200">
-                                        <i class="fa-solid fa-heart text-rose-500 text-xs"></i> Client's Favorite
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-extrabold uppercase tracking-wider bg-rose-50 dark:bg-rose-500/15 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-500/30 shadow-2xs">
+                                        <i class="fa-solid fa-heart text-rose-500 dark:text-rose-400 text-xs"></i> Client's Favorite
                                     </span>
-                                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Favorit</span>
+                                    <span class="text-[10px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-wider">Favorit</span>
                                 </div>
 
                                 <!-- User Info Highlight Box -->
-                                <div class="flex items-center gap-4 mb-4 p-3 bg-rose-50/50 border border-rose-200/60 rounded-2xl">
+                                <div class="flex items-center gap-4 mb-4 p-3 bg-rose-50/50 dark:bg-rose-950/20 border border-rose-200/60 dark:border-rose-500/30 rounded-2xl">
                                     <div class="relative shrink-0">
-                                        <div class="w-20 h-20 rounded-2xl p-1 bg-white border-2 border-rose-400 shadow-md ring-4 ring-rose-400/20 overflow-hidden">
-                                            <img src="{{ $avatarCf }}" alt="{{ $cfUser->name }}" class="w-full h-full rounded-xl object-cover bg-rose-50/30" style="{{ $isFemaleCf && !$cfUser->profile_image ? 'object-position: top;' : '' }}">
+                                        <div class="w-20 h-20 rounded-2xl p-1 bg-white dark:bg-slate-800 border-2 border-rose-400 shadow-md ring-4 ring-rose-400/20 overflow-hidden">
+                                            <img src="{{ $avatarCf }}" alt="{{ $cfUser->name }}" class="w-full h-full rounded-xl object-cover bg-rose-50/30 dark:bg-slate-800" style="{{ $isFemaleCf && !$cfUser->profile_image ? 'object-position: top;' : '' }}">
                                         </div>
-                                        <div class="absolute -bottom-1 -right-1 w-6 h-6 rounded-lg bg-rose-500 text-white flex items-center justify-center text-[10px] shadow-sm border-2 border-white">
+                                        <div class="absolute -bottom-1 -right-1 w-6 h-6 rounded-lg bg-rose-500 text-white flex items-center justify-center text-[10px] shadow-sm border-2 border-white dark:border-slate-800">
                                             <i class="fa-solid fa-star"></i>
                                         </div>
                                     </div>
                                     <div class="min-w-0 flex-1">
-                                        <div class="text-[10px] font-bold text-rose-700 uppercase tracking-wider mb-0.5">Penerima Penghargaan</div>
-                                        <h3 class="font-extrabold text-slate-800 text-base sm:text-lg leading-tight truncate group-hover:text-rose-600 transition-colors" title="{{ $cfUser->name }}">
+                                        <div class="text-[10px] font-bold text-rose-700 dark:text-rose-400 uppercase tracking-wider mb-0.5">Penerima Penghargaan</div>
+                                        <h3 class="font-extrabold text-slate-800 dark:text-slate-100 text-base sm:text-lg leading-tight truncate group-hover:text-rose-600 dark:group-hover:text-rose-400 transition-colors" title="{{ $cfUser->name }}">
                                             {{ $cfUser->name }}
                                         </h3>
-                                        <p class="text-xs text-slate-500 font-medium truncate mt-0.5">{{ $cfUser->email }}</p>
-                                        <span class="inline-block mt-2 text-[10px] font-bold text-rose-800 bg-rose-100/80 border border-rose-200 px-2.5 py-0.5 rounded-lg uppercase tracking-wider">
+                                        <p class="text-xs text-slate-500 dark:text-slate-400 font-medium truncate mt-0.5">{{ $cfUser->email }}</p>
+                                        <span class="inline-block mt-2 text-[10px] font-bold text-rose-800 dark:text-rose-300 bg-rose-100/80 dark:bg-rose-500/20 border border-rose-200 dark:border-rose-500/40 px-2.5 py-0.5 rounded-lg uppercase tracking-wider">
                                             {{ $cfUser->usertype ?? 'Customer Support' }}
                                         </span>
                                     </div>
                                 </div>
 
                                 <!-- Key Metric Highlight Box -->
-                                <div class="bg-rose-50/70 border border-rose-200/60 rounded-xl p-3 text-center mb-3">
-                                    <div class="text-2xl font-black text-rose-700 leading-none mb-1 flex items-center justify-center gap-1.5">
+                                <div class="bg-rose-50/70 dark:bg-rose-950/30 border border-rose-200/60 dark:border-rose-500/30 rounded-xl p-3 text-center mb-3">
+                                    <div class="text-2xl font-black text-rose-600 dark:text-rose-400 leading-none mb-1 flex items-center justify-center gap-1.5">
                                         <i class="fa-solid fa-star text-amber-400 text-lg"></i>
                                         <span>{{ number_format($cf['client_rating'], 1) }}</span>
-                                        <span class="text-xs font-bold text-rose-500">/ 5.0</span>
+                                        <span class="text-xs font-bold text-rose-500 dark:text-rose-300">/ 5.0</span>
                                     </div>
-                                    <div class="text-[11px] font-extrabold text-rose-900 uppercase tracking-wider">Tingkat Kepuasan Pelanggan</div>
-                                    <div class="text-[11px] text-rose-700/90 font-medium mt-1">
+                                    <div class="text-[11px] font-extrabold text-rose-900 dark:text-rose-200 uppercase tracking-wider">Tingkat Kepuasan Pelanggan</div>
+                                    <div class="text-[11px] text-rose-700/90 dark:text-rose-300/90 font-medium mt-1">
                                         Skor CSAT: {{ number_format($cf['client_score'], 0) }}% Kepuasan
                                     </div>
                                 </div>
                             </div>
 
                             <!-- Tombol Download Kartu Achievement HD (Poin 12) -->
-                            <div class="pt-2 border-t border-slate-100">
+                            <div class="pt-2 border-t border-slate-100 dark:border-slate-700/60">
                                 <button type="button" 
                                     onclick="downloadAchievementCard({
                                         name: '{{ addslashes($cfUser->name) }}',
@@ -345,55 +344,55 @@
                         $isFemaleTp = in_array(strtolower(trim($tpUser->name)), ['dyah kusuma', 'dewi', 'siti rahma', 'dewi anggraini', 'rina wulandari', 'ayu lestari']);
                         $avatarTp = $tpUser->profile_image ? asset('storage/' . $tpUser->profile_image) : asset($isFemaleTp ? 'img/avatar-female.png' : 'img/avatar-default.png');
                     @endphp
-                    <div class="bg-white rounded-2xl border border-indigo-200/80 shadow-sm hover:shadow-md hover:border-indigo-300 transition-all flex flex-col overflow-hidden relative group">
+                    <div class="bg-white dark:bg-slate-800/95 rounded-2xl border border-indigo-300/80 dark:border-indigo-500/40 shadow-sm hover:shadow-md hover:border-indigo-400 dark:hover:border-indigo-500/70 transition-all flex flex-col overflow-hidden relative group">
                         <div class="h-1.5 bg-gradient-to-r from-blue-600 via-indigo-600 to-indigo-500"></div>
                         <div class="p-5 flex-1 flex flex-col justify-between">
                             <div>
                                 <!-- Category Badge -->
                                 <div class="flex items-center justify-between gap-2 mb-4">
-                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-extrabold uppercase tracking-wider bg-indigo-50 text-indigo-700 border border-indigo-200">
-                                        <i class="fa-solid fa-handshake-angle text-indigo-500 text-xs"></i> Best Team Player
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-extrabold uppercase tracking-wider bg-indigo-50 dark:bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-500/30 shadow-2xs">
+                                        <i class="fa-solid fa-handshake-angle text-indigo-500 dark:text-indigo-400 text-xs"></i> Best Team Player
                                     </span>
-                                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Kolaboratif</span>
+                                    <span class="text-[10px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-wider">Kolaboratif</span>
                                 </div>
 
                                 <!-- User Info Highlight Box -->
-                                <div class="flex items-center gap-4 mb-4 p-3 bg-indigo-50/50 border border-indigo-200/60 rounded-2xl">
+                                <div class="flex items-center gap-4 mb-4 p-3 bg-indigo-50/50 dark:bg-indigo-950/20 border border-indigo-200/60 dark:border-indigo-500/30 rounded-2xl">
                                     <div class="relative shrink-0">
-                                        <div class="w-20 h-20 rounded-2xl p-1 bg-white border-2 border-indigo-500 shadow-md ring-4 ring-indigo-500/20 overflow-hidden">
-                                            <img src="{{ $avatarTp }}" alt="{{ $tpUser->name }}" class="w-full h-full rounded-xl object-cover bg-indigo-50/30" style="{{ $isFemaleTp && !$tpUser->profile_image ? 'object-position: top;' : '' }}">
+                                        <div class="w-20 h-20 rounded-2xl p-1 bg-white dark:bg-slate-800 border-2 border-indigo-500 shadow-md ring-4 ring-indigo-500/20 overflow-hidden">
+                                            <img src="{{ $avatarTp }}" alt="{{ $tpUser->name }}" class="w-full h-full rounded-xl object-cover bg-indigo-50/30 dark:bg-slate-800" style="{{ $isFemaleTp && !$tpUser->profile_image ? 'object-position: top;' : '' }}">
                                         </div>
-                                        <div class="absolute -bottom-1 -right-1 w-6 h-6 rounded-lg bg-indigo-600 text-white flex items-center justify-center text-[10px] shadow-sm border-2 border-white">
+                                        <div class="absolute -bottom-1 -right-1 w-6 h-6 rounded-lg bg-indigo-600 text-white flex items-center justify-center text-[10px] shadow-sm border-2 border-white dark:border-slate-800">
                                             <i class="fa-solid fa-users"></i>
                                         </div>
                                     </div>
                                     <div class="min-w-0 flex-1">
-                                        <div class="text-[10px] font-bold text-indigo-700 uppercase tracking-wider mb-0.5">Penerima Penghargaan</div>
-                                        <h3 class="font-extrabold text-slate-800 text-base sm:text-lg leading-tight truncate group-hover:text-indigo-600 transition-colors" title="{{ $tpUser->name }}">
+                                        <div class="text-[10px] font-bold text-indigo-700 dark:text-indigo-400 uppercase tracking-wider mb-0.5">Penerima Penghargaan</div>
+                                        <h3 class="font-extrabold text-slate-800 dark:text-slate-100 text-base sm:text-lg leading-tight truncate group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors" title="{{ $tpUser->name }}">
                                             {{ $tpUser->name }}
                                         </h3>
-                                        <p class="text-xs text-slate-500 font-medium truncate mt-0.5">{{ $tpUser->email }}</p>
-                                        <span class="inline-block mt-2 text-[10px] font-bold text-indigo-800 bg-indigo-100/80 border border-indigo-200 px-2.5 py-0.5 rounded-lg uppercase tracking-wider">
+                                        <p class="text-xs text-slate-500 dark:text-slate-400 font-medium truncate mt-0.5">{{ $tpUser->email }}</p>
+                                        <span class="inline-block mt-2 text-[10px] font-bold text-indigo-800 dark:text-indigo-300 bg-indigo-100/80 dark:bg-indigo-500/20 border border-indigo-200 dark:border-indigo-500/40 px-2.5 py-0.5 rounded-lg uppercase tracking-wider">
                                             {{ $tpUser->usertype ?? 'Customer Support' }}
                                         </span>
                                     </div>
                                 </div>
 
                                 <!-- Key Metric Highlight Box -->
-                                <div class="bg-indigo-50/70 border border-indigo-200/60 rounded-xl p-3 text-center mb-3">
-                                    <div class="text-2xl font-black text-indigo-700 leading-none mb-1">
+                                <div class="bg-indigo-50/70 dark:bg-indigo-950/30 border border-indigo-200/60 dark:border-indigo-500/30 rounded-xl p-3 text-center mb-3">
+                                    <div class="text-2xl font-black text-indigo-600 dark:text-indigo-400 leading-none mb-1">
                                         {{ $tp['advice_count'] }}
-                                        <span class="text-xs font-bold text-indigo-500">Tiket</span>
+                                        <span class="text-xs font-bold text-indigo-500 dark:text-indigo-300">Tiket</span>
                                     </div>
-                                    <div class="text-[11px] font-extrabold text-indigo-900 uppercase tracking-wider">Tiket Didampingi / Alih</div>
-                                    <div class="text-[11px] text-indigo-700/90 font-medium mt-1">
+                                    <div class="text-[11px] font-extrabold text-indigo-900 dark:text-indigo-200 uppercase tracking-wider">Tiket Didampingi / Alih</div>
+                                    <div class="text-[11px] text-indigo-700/90 dark:text-indigo-300/90 font-medium mt-1">
                                         Skor Kolaborasi: {{ $tp['team_player_score'] }} Poin Tim
                                     </div>
                                 </div>
                             </div>
 
                             <!-- Tombol Download Kartu Achievement HD (Poin 12) -->
-                            <div class="pt-2 border-t border-slate-100">
+                            <div class="pt-2 border-t border-slate-100 dark:border-slate-700/60">
                                 <button type="button" 
                                     onclick="downloadAchievementCard({
                                         name: '{{ addslashes($tpUser->name) }}',

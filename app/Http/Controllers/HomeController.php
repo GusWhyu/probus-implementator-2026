@@ -1005,8 +1005,8 @@ class HomeController extends Controller
         }
 
         // Pastikan max_ticket_score tidak lebih kecil dari skor user ini
-        if ($raw_ticket_score > $max_ticket_score) {
-            $max_ticket_score = $raw_ticket_score;
+        if ($raw_ticket_score >= $max_ticket_score || empty($top_performer_name)) {
+            $max_ticket_score = max($raw_ticket_score, $max_ticket_score);
             $top_performer_name = $user->name;
         }
 
@@ -1452,12 +1452,24 @@ class HomeController extends Controller
         $team_portion = $rapor ? (float)($rapor->team_portion ?? 0) : 0;
         $top_performer_name = null;
         if ($max_ticket_score > 0) {
-            $topRev = PerformanceReview::whereMonth('periode', $month)->whereYear('periode', $year)
-                ->where('raw_ticket_score', '>=', $max_ticket_score)
-                ->with('user')
-                ->first();
-            if ($topRev && $topRev->user) {
-                $top_performer_name = $topRev->user->name;
+            if ($raw_ticket_score >= $max_ticket_score) {
+                $top_performer_name = $user->name;
+            } else {
+                $topRev = PerformanceReview::whereMonth('periode', $month)->whereYear('periode', $year)
+                    ->whereHas('user', function($q) use ($user) {
+                        $q->where('departemen_id', $user->departemen_id)
+                          ->where('usertype', 'user');
+                    })
+                    ->where('raw_ticket_score', '>=', $max_ticket_score)
+                    ->orderByDesc('raw_ticket_score')
+                    ->with('user')
+                    ->first();
+                if ($topRev && $topRev->user) {
+                    $top_performer_name = $topRev->user->name;
+                }
+            }
+            if (empty($top_performer_name) && $raw_ticket_score >= $max_ticket_score) {
+                $top_performer_name = $user->name;
             }
         }
         
@@ -1569,12 +1581,24 @@ class HomeController extends Controller
         $team_portion = $rapor ? (float)($rapor->team_portion ?? 0) : 0;
         $top_performer_name = null;
         if ($max_ticket_score > 0) {
-            $topRev = PerformanceReview::whereMonth('periode', $m)->whereYear('periode', $y)
-                ->where('raw_ticket_score', '>=', $max_ticket_score)
-                ->with('user')
-                ->first();
-            if ($topRev && $topRev->user) {
-                $top_performer_name = $topRev->user->name;
+            if ($raw_ticket_score >= $max_ticket_score) {
+                $top_performer_name = $user->name;
+            } else {
+                $topRev = PerformanceReview::whereMonth('periode', $m)->whereYear('periode', $y)
+                    ->whereHas('user', function($q) use ($user) {
+                        $q->where('departemen_id', $user->departemen_id)
+                          ->where('usertype', 'user');
+                    })
+                    ->where('raw_ticket_score', '>=', $max_ticket_score)
+                    ->orderByDesc('raw_ticket_score')
+                    ->with('user')
+                    ->first();
+                if ($topRev && $topRev->user) {
+                    $top_performer_name = $topRev->user->name;
+                }
+            }
+            if (empty($top_performer_name) && $raw_ticket_score >= $max_ticket_score) {
+                $top_performer_name = $user->name;
             }
         }
 
