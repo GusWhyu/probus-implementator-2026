@@ -160,12 +160,12 @@
         {{-- Table Section --}}
         <div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700/80 rounded-2xl shadow-sm overflow-hidden mb-6">
             <div class="w-full overflow-x-auto custom-scrollbar">
-                <table class="w-full text-left border-collapse min-w-[1330px] table-fixed">
+                <table class="w-full text-left border-collapse min-w-[1245px] table-fixed">
                     <colgroup>
                         <col style="width: 130px;">
                         <col style="width: 155px;">
                         <col style="width: auto;">
-                        <col style="width: 260px;">
+                        <col style="width: 175px;">
                         <col style="width: 110px;">
                         <col style="width: 135px;">
                         <col style="width: 120px;">
@@ -178,7 +178,7 @@
                             <th class="py-3 px-3 sm:px-4 text-[10px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-widest whitespace-nowrap" style="width: 130px;">No. Tiket</th>
                             <th class="py-3 px-3 sm:px-4 text-[10px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-widest" style="width: 155px;">User</th>
                             <th class="py-3 px-3 sm:px-4 text-[10px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Judul</th>
-                            <th class="py-3 px-2 sm:px-3 text-[10px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-widest text-left leading-tight" style="width: 260px;">
+                            <th class="py-3 px-2 sm:px-3 text-[10px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-widest text-left leading-tight" style="width: 175px;">
                                 Lama<br>Pengerjaan
                             </th>
                             <th class="py-3 px-3 sm:px-4 text-[10px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-widest text-left leading-tight" style="width: 110px;">
