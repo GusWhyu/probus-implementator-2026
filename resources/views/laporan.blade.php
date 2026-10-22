@@ -381,12 +381,12 @@
                                 <!-- Key Metric Highlight Box -->
                                 <div class="bg-indigo-50/70 dark:bg-indigo-950/30 border border-indigo-200/60 dark:border-indigo-500/30 rounded-xl p-3 text-center mb-3">
                                     <div class="text-2xl font-black text-indigo-600 dark:text-indigo-400 leading-none mb-1">
-                                        {{ $tp['advice_count'] }}
-                                        <span class="text-xs font-bold text-indigo-500 dark:text-indigo-300">Tiket</span>
+                                        {{ $tp['team_player_score'] }}
+                                        <span class="text-xs font-bold text-indigo-500 dark:text-indigo-300">Poin</span>
                                     </div>
-                                    <div class="text-[11px] font-extrabold text-indigo-900 dark:text-indigo-200 uppercase tracking-wider">Tiket Didampingi / Alih</div>
+                                    <div class="text-[11px] font-extrabold text-indigo-900 dark:text-indigo-200 uppercase tracking-wider">Skor Kerjasama Tim</div>
                                     <div class="text-[11px] text-indigo-700/90 dark:text-indigo-300/90 font-medium mt-1">
-                                        Skor Kolaborasi: {{ $tp['team_player_score'] }} Poin Tim
+                                        Tiket Selesai: {{ $tp['closed_count'] }} Tiket
                                     </div>
                                 </div>
                             </div>
@@ -403,9 +403,9 @@
                                         avatar: '{{ $avatarTp }}',
                                         theme: 'indigo',
                                         metrics: [
-                                            { label: 'Tiket Didampingi', value: '{{ $tp['advice_count'] }} Tiket' },
-                                            { label: 'Poin Kolaborasi', value: '{{ $tp['team_player_score'] }} Poin' },
-                                            { label: 'Tiket Selesai', value: '{{ $tp['closed_count'] }} Tiket' }
+                                            { label: 'Poin Kerjasama', value: '{{ $tp['team_player_score'] }} Poin' },
+                                            { label: 'Tiket Selesai', value: '{{ $tp['closed_count'] }} Tiket' },
+                                            { label: 'Rating Klien', value: '{{ $tp['client_rating'] }} / 5.0' }
                                         ]
                                     })" 
                                     class="w-full py-2 px-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow-xs transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-98">

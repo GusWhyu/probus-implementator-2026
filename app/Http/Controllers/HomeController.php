@@ -488,9 +488,9 @@ class HomeController extends Controller
             foreach ($allCsUsers as $u) {
                 $rev = $reviews->firstWhere('user_id', $u->id);
 
-                $uHandled = $monthTickets->filter(fn($t) => $t->user_id == $u->id || $t->advisor_id == $u->id);
+                // Hanya tiket utama pembuat/penangan tiket yang dihitung ke laporan/penilaian (advisor tidak dihitung)
+                $uHandled = $monthTickets->filter(fn($t) => $t->user_id == $u->id);
                 $uClosed = $uHandled->filter(fn($t) => strtoupper($t->status) === 'CLOSED');
-                $uAsAdvisor = $monthTickets->filter(fn($t) => $t->advisor_id == $u->id && $t->user_id != $u->id);
 
                 $rawTicketPoints = 0;
                 foreach ($uHandled as $ht) {
@@ -499,9 +499,7 @@ class HomeController extends Controller
 
                 $surveyRatings = \Illuminate\Support\Facades\DB::table('ticket_surveys')
                     ->join('tickets', 'ticket_surveys.ticket_id', '=', 'tickets.id')
-                    ->where(function($q) use ($u) {
-                        $q->where('tickets.user_id', $u->id)->orWhere('tickets.advisor_id', $u->id);
-                    })
+                    ->where('tickets.user_id', $u->id)
                     ->whereMonth('tickets.created_at', $month)
                     ->whereYear('tickets.created_at', $year)
                     ->pluck('rating');
@@ -527,9 +525,9 @@ class HomeController extends Controller
                     'closed_count' => $uClosed->count(),
                     'client_score' => $rev ? (float)$rev->review_score : 0,
                     'client_rating' => $rev ? round(($rev->review_score / 20), 1) : 0,
-                    'advice_count' => $rev && $rev->total_ticket_yang_di_advice ? $rev->total_ticket_yang_di_advice : $uAsAdvisor->count(),
+                    'advice_count' => 0,
                     'teamwork_soft_score' => $teamworkScore ?: 0,
-                    'team_player_score' => ($rev && $rev->total_ticket_yang_di_advice ? $rev->total_ticket_yang_di_advice * 10 : $uAsAdvisor->count() * 10) + ($teamworkScore ?: 0),
+                    'team_player_score' => $teamworkScore ?: 0,
                 ];
             }
 
@@ -558,7 +556,7 @@ class HomeController extends Controller
             $sortedTeamPlayer = collect($csMetrics)->reject(fn($item) => in_array($item['user']->id, $selectedUserIds))
                 ->sortByDesc(fn($item) => $item['team_player_score']);
             $teamPlayerItem = $sortedTeamPlayer->first();
-            if ($teamPlayerItem && ($teamPlayerItem['advice_count'] > 0 || $teamPlayerItem['team_player_score'] > 0)) {
+            if ($teamPlayerItem && $teamPlayerItem['team_player_score'] > 0) {
                 $selectedUserIds[] = $teamPlayerItem['user']->id;
             } else {
                 $teamPlayerItem = null;
@@ -616,17 +614,12 @@ class HomeController extends Controller
         $modules = ModuleSystem::orderBy('id', 'asc')->get();
         $moduleBobotMap = $modules->pluck('bobot', 'id');
 
-        // Tiket CS pada periode ini
-        $tiketQuery = Ticket::where(function($q) use ($id) {
-            $q->where('user_id', $id)->orWhere('advisor_id', $id);
-        })->whereMonth('created_at', $month)->whereYear('created_at', $year);
+        // Tiket CS pada periode ini (hanya user_id, advisor tidak dihitung ke penilaian)
+        $tiketQuery = Ticket::where('user_id', $id)->whereMonth('created_at', $month)->whereYear('created_at', $year);
 
         $total_ticket = (clone $tiketQuery)->count();
         $tiket_selesai = (clone $tiketQuery)->whereRaw('UPPER(status) = ?', ['CLOSED'])->count();
-        $tiket_di_advice = Ticket::where('advisor_id', $id)
-            ->whereMonth('created_at', $month)
-            ->whereYear('created_at', $year)
-            ->count();
+        $tiket_di_advice = 0;
 
         // Rata-rata waktu: totalin seluruh durasi menit tiket selesai dulu, baru dibagi jumlah tiket selesai
         $closedTickets = (clone $tiketQuery)->whereRaw('UPPER(status) = ?', ['CLOSED'])
@@ -656,9 +649,7 @@ class HomeController extends Controller
 
         foreach ($modules as $mod) {
             $modTickets = Ticket::where('module_system_id', $mod->id)
-                ->where(function($q) use ($id) {
-                    $q->where('user_id', $id)->orWhere('advisor_id', $id);
-                })
+                ->where('user_id', $id)
                 ->whereMonth('created_at', $month)
                 ->whereYear('created_at', $year)
                 ->get();
@@ -704,7 +695,7 @@ class HomeController extends Controller
             ->get(['id', 'user_id', 'advisor_id', 'module_system_id']);
 
         foreach ($allUsers as $u) {
-            $uTickets = $allMonthTickets->filter(fn($t) => $t->user_id == $u->id || $t->advisor_id == $u->id);
+            $uTickets = $allMonthTickets->filter(fn($t) => $t->user_id == $u->id);
             if ($uTickets->count() > 0) {
                 $uScore = 0;
                 foreach ($uTickets as $ut) {
@@ -727,9 +718,7 @@ class HomeController extends Controller
         // Ambil review by client (kepuasan survey)
         $surveyRatings = \Illuminate\Support\Facades\DB::table('ticket_surveys')
             ->join('tickets', 'ticket_surveys.ticket_id', '=', 'tickets.id')
-            ->where(function($q) use ($id) {
-                $q->where('tickets.user_id', $id)->orWhere('tickets.advisor_id', $id);
-            })
+            ->where('tickets.user_id', $id)
             ->whereMonth('tickets.created_at', $month)
             ->whereYear('tickets.created_at', $year)
             ->pluck('rating');
@@ -871,17 +860,12 @@ class HomeController extends Controller
         $highestBobotModule = $highestBobotModuleObj ? $highestBobotModuleObj->name : '-';
         $highestBobotVal = $highestBobotModuleObj ? (int)$highestBobotModuleObj->bobot : 0;
 
-        // 1. Tiket user ini di bulan berjalan (sebagai pembuat atau advisor)
-        $tiketQuery = Ticket::where(function($q) use ($id) {
-            $q->where('user_id', $id)->orWhere('advisor_id', $id);
-        })->whereMonth('created_at', $currentMonth)->whereYear('created_at', $currentYear);
+        // 1. Tiket user ini di bulan berjalan (hanya user_id, advisor tidak dihitung ke penilaian)
+        $tiketQuery = Ticket::where('user_id', $id)->whereMonth('created_at', $currentMonth)->whereYear('created_at', $currentYear);
 
         $tiket_ditangani = (clone $tiketQuery)->count();
         $tiket_selesai = (clone $tiketQuery)->whereRaw('UPPER(status) = ?', ['CLOSED'])->count();
-        $tiket_di_advice = Ticket::where('advisor_id', $id)
-            ->whereMonth('created_at', $currentMonth)
-            ->whereYear('created_at', $currentYear)
-            ->count();
+        $tiket_di_advice = 0;
 
         // Rata-rata waktu penyelesaian: Totalin durasi seluruh tiket selesai dulu, baru dibagi jumlah tiket selesai
         $closedTickets = (clone $tiketQuery)->whereRaw('UPPER(status) = ?', ['CLOSED'])
@@ -918,9 +902,7 @@ class HomeController extends Controller
 
         foreach ($modules as $mod) {
             $modTickets = Ticket::where('module_system_id', $mod->id)
-                ->where(function($q) use ($id) {
-                    $q->where('user_id', $id)->orWhere('advisor_id', $id);
-                })
+                ->where('user_id', $id)
                 ->whereMonth('created_at', $currentMonth)
                 ->whereYear('created_at', $currentYear)
                 ->get();
@@ -986,7 +968,7 @@ class HomeController extends Controller
 
         foreach ($allUsers as $u) {
             $uTickets = $allMonthTickets->filter(function($t) use ($u) {
-                return $t->user_id == $u->id || $t->advisor_id == $u->id;
+                return $t->user_id == $u->id;
             });
 
             if ($uTickets->count() > 0) {
@@ -1037,9 +1019,7 @@ class HomeController extends Controller
         // Review by client (Rating Bintang)
         $surveyRatings = \Illuminate\Support\Facades\DB::table('ticket_surveys')
             ->join('tickets', 'ticket_surveys.ticket_id', '=', 'tickets.id')
-            ->where(function($q) use ($id) {
-                $q->where('tickets.user_id', $id)->orWhere('tickets.advisor_id', $id);
-            })
+            ->where('tickets.user_id', $id)
             ->whereMonth('tickets.created_at', $currentMonth)
             ->whereYear('tickets.created_at', $currentYear)
             ->pluck('rating');
@@ -1154,13 +1134,11 @@ class HomeController extends Controller
             $currentYear = (int)$request->input('year', date('Y'));
         }
 
-        // Hitung total ticket, rata-rata waktu (totalin dulu durasi baru dirata-ratakan)
-        $tiketQuery = Ticket::where(function($q) use ($id) {
-            $q->where('user_id', $id)->orWhere('advisor_id', $id);
-        })->whereMonth('created_at', $currentMonth)->whereYear('created_at', $currentYear);
+        // Hitung total ticket, rata-rata waktu (hanya user_id, advisor tidak dihitung ke penilaian)
+        $tiketQuery = Ticket::where('user_id', $id)->whereMonth('created_at', $currentMonth)->whereYear('created_at', $currentYear);
 
-        $total_ticket = $request->input('total_ticket', (clone $tiketQuery)->count());
-        $tiket_di_advice = $request->input('total_ticket_yang_di_advice', Ticket::where('advisor_id', $id)->whereMonth('created_at', $currentMonth)->whereYear('created_at', $currentYear)->count());
+        $total_ticket = (clone $tiketQuery)->count();
+        $tiket_di_advice = 0;
 
         $closedTickets = (clone $tiketQuery)->whereRaw('UPPER(status) = ?', ['CLOSED'])
             ->whereNotNull('closed_at')
@@ -1234,9 +1212,7 @@ class HomeController extends Controller
         $modules = ModuleSystem::all();
         foreach($modules as $mod) {
             $modTickets = Ticket::where('module_system_id', $mod->id)
-                ->where(function($q) use ($id) {
-                    $q->where('user_id', $id)->orWhere('advisor_id', $id);
-                })
+                ->where('user_id', $id)
                 ->whereMonth('created_at', $currentMonth)
                 ->whereYear('created_at', $currentYear)
                 ->get();
@@ -1355,14 +1331,13 @@ class HomeController extends Controller
         $history = PerformanceReview::where('user_id', $id)->orderBy('periode', 'asc')->take(4)->get();
         $categories = PerformanceCategory::orderBy('id')->get();
 
-        // 1. Hitung Statistik Tiket untuk Periode Ini
-        $tiketQuery = Ticket::where(function($q) use ($id) {
-            $q->where('user_id', $id)->orWhere('advisor_id', $id);
-        })->whereMonth('created_at', $month)->whereYear('created_at', $year);
+        // 1. Hitung Statistik Tiket untuk Periode Ini (hanya tiket milik user_id, advisor tidak dihitung)
+        $tiketQuery = Ticket::where('user_id', $id)->whereMonth('created_at', $month)->whereYear('created_at', $year);
 
-        $tiket_ditangani = $rapor ? (int)($rapor->total_ticket ?: 0) : (clone $tiketQuery)->count();
+        $tiket_ditangani = (clone $tiketQuery)->count();
         $tiket_selesai = (clone $tiketQuery)->whereRaw('UPPER(status) = ?', ['CLOSED'])->count();
-        $tiket_di_advice = $rapor ? (int)($rapor->total_ticket_yang_di_advice ?: 0) : Ticket::where('advisor_id', $id)->whereMonth('created_at', $month)->whereYear('created_at', $year)->count();
+        $tiket_di_advice = 0;
+        $tiket_progress = (clone $tiketQuery)->whereRaw('UPPER(status) = ?', ['PROGRESS'])->count();
         $completion_rate = $tiket_ditangani > 0 ? round(($tiket_selesai / $tiket_ditangani) * 100, 1) : 0;
 
         // 2. Modul Terbanyak Ditangani
@@ -1393,9 +1368,7 @@ class HomeController extends Controller
         } else {
             $surveyRatings = \Illuminate\Support\Facades\DB::table('ticket_surveys')
                 ->join('tickets', 'ticket_surveys.ticket_id', '=', 'tickets.id')
-                ->where(function($q) use ($id) {
-                    $q->where('tickets.user_id', $id)->orWhere('tickets.advisor_id', $id);
-                })
+                ->where('tickets.user_id', $id)
                 ->whereMonth('tickets.created_at', $month)
                 ->whereYear('tickets.created_at', $year)
                 ->pluck('rating');
@@ -1483,6 +1456,7 @@ class HomeController extends Controller
             'categories',
             'tiket_ditangani',
             'tiket_selesai',
+            'tiket_progress',
             'tiket_di_advice',
             'completion_rate',
             'topHandledModuleName',
@@ -1530,13 +1504,12 @@ class HomeController extends Controller
         $m = $periode->format('m');
         $y = $periode->format('Y');
 
-        $tiketQuery = Ticket::where(function($q) use ($id) {
-            $q->where('user_id', $id)->orWhere('advisor_id', $id);
-        })->whereMonth('created_at', $m)->whereYear('created_at', $y);
+        $tiketQuery = Ticket::where('user_id', $id)->whereMonth('created_at', $m)->whereYear('created_at', $y);
 
         $tiket_selesai = (clone $tiketQuery)->whereRaw('UPPER(status) = ?', ['CLOSED'])->count();
-        $tiket_ditangani = ($rapor && $rapor->total_ticket > 0) ? (int)$rapor->total_ticket : (clone $tiketQuery)->count();
-        $tiket_di_advice = ($rapor && $rapor->total_ticket_yang_di_advice !== null) ? (int)$rapor->total_ticket_yang_di_advice : Ticket::where('advisor_id', $id)->whereMonth('created_at', $m)->whereYear('created_at', $y)->count();
+        $tiket_ditangani = (clone $tiketQuery)->count();
+        $tiket_di_advice = 0;
+        $tiket_progress = (clone $tiketQuery)->whereRaw('UPPER(status) = ?', ['PROGRESS'])->count();
         $completion_rate = $tiket_ditangani > 0 ? round(($tiket_selesai / $tiket_ditangani) * 100, 1) : 0;
 
         $total_bobot = 0;
@@ -1608,6 +1581,7 @@ class HomeController extends Controller
             'history', 
             'tiket_ditangani', 
             'tiket_selesai', 
+            'tiket_progress',
             'tiket_di_advice',
             'completion_rate',
             'topHandledModuleName',

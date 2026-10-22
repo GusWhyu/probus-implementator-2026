@@ -149,9 +149,9 @@
                             </tr>
                             <tr>
                                 <td style="color: #475569; padding: 2px 0;">
-                                    <span style="color: #94a3b8;">&#9656;</span> Tiket di advice
+                                    <span style="color: #0284c7;">&#8635;</span> Tiket diproses
                                 </td>
-                                <td style="text-align: right; font-weight: bold; color: #0f172a;">{{ $tiket_di_advice ?? 0 }}</td>
+                                <td style="text-align: right; font-weight: bold; color: #0f172a;">{{ $tiket_progress ?? 0 }}</td>
                             </tr>
                             <tr>
                                 <td style="color: #475569; padding: 2px 0;">
