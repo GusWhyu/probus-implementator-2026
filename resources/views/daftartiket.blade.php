@@ -199,6 +199,12 @@
                                 </td>
                                 <td class="py-3 px-3 sm:px-4 align-top">
                                     <div class="text-sm font-semibold text-slate-800 dark:text-slate-200 truncate" title="{{ $rq->user->name ?? '-' }}">{{ $rq->user->name ?? '-' }}</div>
+                                    @if($rq->advisor)
+                                        <div class="text-[11px] text-indigo-600 dark:text-indigo-400 font-medium leading-tight flex items-center gap-1.5 mt-0.5" title="Advisor: {{ $rq->advisor->name }}">
+                                            <i class="fa-solid fa-headset text-[10px] text-indigo-500 shrink-0"></i>
+                                            <span class="truncate">Adv: {{ $rq->advisor->name }}</span>
+                                        </div>
+                                    @endif
                                     <div class="text-[11px] text-blue-600 dark:text-blue-400 mt-0.5 font-medium leading-tight flex items-center gap-1.5" title="{{ $rq->client->nm_out ?? $rq->client->name ?? '-' }}{{ !empty($rq->client->lokasi) ? ' (' . $rq->client->lokasi . ')' : '' }}">
                                         <i class="fa-solid fa-hotel text-[10px] text-blue-500 shrink-0"></i>
                                         <span class="truncate">
