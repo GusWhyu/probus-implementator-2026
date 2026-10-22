@@ -28,7 +28,9 @@
     <div class="py-6 bg-slate-50 min-h-screen" x-data="{
         nilaiTiket: {{ (float)$nilai_tiket }},
         clientScore: {{ (float)$client_score }},
-        clientRating: {{ (float)$client_rating }},
+        wTicket: {{ (float)($weights['ticket'] ?? 30) }},
+        wSoftSkill: {{ (float)($weights['soft_skill'] ?? 40) }},
+        wClient: {{ (float)($weights['client_review'] ?? 30) }},
         softSkills: {
             @foreach($categories as $cat)
                 {{ $cat->id }}: {{ (isset($catScores[$cat->id]) && (float)$catScores[$cat->id] > 0) ? round((float)$catScores[$cat->id] / 20) : 0 }},
@@ -41,8 +43,17 @@
             let sum = filled.reduce((a, b) => a + b, 0);
             return (sum / (filled.length * 5)) * 100;
         },
+        kontribusiTiket() {
+            return Number(((Number(this.nilaiTiket) || 0) * (this.wTicket / 100)).toFixed(2));
+        },
+        kontribusiSoftSkill() {
+            return Number((this.softSkillAvg() * (this.wSoftSkill / 100)).toFixed(2));
+        },
+        kontribusiClient() {
+            return Number(((Number(this.clientScore) || 0) * (this.wClient / 100)).toFixed(2));
+        },
         nilaiAkhir() {
-            return ((this.nilaiTiket * 0.3) + (this.softSkillAvg() * 0.4) + (this.clientScore * 0.3)).toFixed(2);
+            return (this.kontribusiTiket() + this.kontribusiSoftSkill() + this.kontribusiClient()).toFixed(2);
         },
         validateFinal(e) {
             let vals = Object.values(this.softSkills).map(Number);
@@ -64,7 +75,7 @@
                         <span class="text-sm font-bold">&laquo;</span> Kembali ke daftar
                     </a>
                     <h1 class="text-2xl font-bold text-slate-800 tracking-tight">
-                        Penilaian Kinerja CS
+                        Penilaian Kinerja Staff
                     </h1>
                 </div>
                 <div class="flex flex-col sm:items-end">
@@ -100,7 +111,7 @@
                     <div>
                         <h2 class="text-base sm:text-lg font-bold text-slate-900 leading-tight">{{ $user->name }}</h2>
                         <p class="text-xs text-slate-500 font-medium mt-0.5">
-                            <span class="capitalize">{{ $user->usertype ?? 'Customer Support' }}</span> &bull; 
+                            <span class="capitalize">{{ $user->usertype ?? 'Staff' }}</span> &bull; 
                             <span class="inline-flex items-center gap-1 font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded">
                                 <i class="fa-solid fa-building text-[10px]"></i> Departemen {{ ucfirst($user->departemen->name ?? 'Operasional') }}
                             </span>
@@ -251,27 +262,27 @@
                                         <tbody class="divide-y divide-slate-100 dark:divide-slate-800 text-xs">
                                             <tr>
                                                 <td class="py-3.5 font-semibold text-slate-700 dark:text-slate-200">Nilai Tiket (Σ bobot × qty)</td>
-                                                <td class="py-3.5 font-bold text-slate-700 dark:text-slate-300 text-center">30%</td>
+                                                <td class="py-3.5 font-bold text-slate-700 dark:text-slate-300 text-center">{{ $weights['ticket'] ?? 30 }}%</td>
                                                 <td class="py-3.5 font-bold text-slate-700 dark:text-slate-300 text-center">{{ (float)$nilai_tiket > 0 ? round((float)$nilai_tiket, 2) : 0 }}</td>
-                                                <td class="py-3.5 font-bold text-emerald-500 dark:text-emerald-400 text-right">{{ (float)$nilai_tiket * 0.3 > 0 ? round((float)$nilai_tiket * 0.3, 2) : 0 }}</td>
+                                                <td class="py-3.5 font-bold text-emerald-500 dark:text-emerald-400 text-right" x-text="kontribusiTiket() > 0 ? kontribusiTiket().toFixed(2) : 0">{{ (float)$nilai_tiket * (($weights['ticket'] ?? 30) / 100) > 0 ? round((float)$nilai_tiket * (($weights['ticket'] ?? 30) / 100), 2) : 0 }}</td>
                                             </tr>
                                             <tr>
                                                 <td class="py-3.5 font-semibold text-slate-700 dark:text-slate-200">Nilai Soft Skill</td>
-                                                <td class="py-3.5 font-bold text-slate-700 dark:text-slate-300 text-center">40%</td>
+                                                <td class="py-3.5 font-bold text-slate-700 dark:text-slate-300 text-center">{{ $weights['soft_skill'] ?? 40 }}%</td>
                                                 <td class="py-3.5 font-bold text-slate-700 dark:text-slate-300 text-center" x-text="softSkillAvg() > 0 ? softSkillAvg().toFixed(2) : 0"></td>
-                                                <td class="py-3.5 font-bold text-emerald-500 dark:text-emerald-400 text-right" x-text="(softSkillAvg() * 0.4) > 0 ? (softSkillAvg() * 0.4).toFixed(2) : 0"></td>
+                                                <td class="py-3.5 font-bold text-emerald-500 dark:text-emerald-400 text-right" x-text="kontribusiSoftSkill() > 0 ? kontribusiSoftSkill().toFixed(2) : 0"></td>
                                             </tr>
                                             <tr>
                                                 <td class="py-3.5 font-semibold text-slate-700 dark:text-slate-200">Kepuasan Klien (Survey)</td>
-                                                <td class="py-3.5 font-bold text-slate-700 dark:text-slate-300 text-center">30%</td>
+                                                <td class="py-3.5 font-bold text-slate-700 dark:text-slate-300 text-center">{{ $weights['client_review'] ?? 30 }}%</td>
                                                 <td class="py-3.5 font-bold text-slate-700 dark:text-slate-300 text-center" x-text="clientScore > 0 ? clientScore.toFixed(2) : 0"></td>
-                                                <td class="py-3.5 font-bold text-emerald-500 dark:text-emerald-400 text-right" x-text="(clientScore * 0.3) > 0 ? (clientScore * 0.3).toFixed(2) : 0"></td>
+                                                <td class="py-3.5 font-bold text-emerald-500 dark:text-emerald-400 text-right" x-text="kontribusiClient() > 0 ? kontribusiClient().toFixed(2) : 0"></td>
                                             </tr>
                                         </tbody>
                                         <tfoot>
                                             <tr class="border-t-2 border-slate-200 dark:border-slate-700">
                                                 <td class="py-3.5 text-xs font-bold text-slate-800 dark:text-white">Nilai Akhir</td>
-                                                <td class="py-3.5 text-xs font-bold text-slate-800 dark:text-white text-center">100%</td>
+                                                <td class="py-3.5 text-xs font-bold text-slate-800 dark:text-white text-center">{{ (float)($weights['ticket'] ?? 30) + (float)($weights['soft_skill'] ?? 40) + (float)($weights['client_review'] ?? 30) }}%</td>
                                                 <td class="py-3.5 text-xs font-bold text-slate-800 dark:text-white text-center" x-text="Number(nilaiAkhir()) > 0 ? nilaiAkhir() : 0"></td>
                                                 <td class="py-3.5 text-sm sm:text-base font-black text-slate-900 dark:text-white text-right font-mono" x-text="Number(nilaiAkhir()) > 0 ? nilaiAkhir() : 0"></td>
                                             </tr>
@@ -479,7 +490,7 @@
                     <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6 space-y-5">
                         <div>
                             <label class="block text-xs sm:text-sm font-medium text-slate-800 mb-2">Catatan dari Penilai</label>
-                            <textarea name="catatan" rows="3" placeholder="Tuliskan catatan penilaian kinerja CS..." 
+                            <textarea name="catatan" rows="3" placeholder="Tuliskan catatan penilaian kinerja staff..." 
                                 class="w-full p-3.5 bg-slate-50/50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 resize-none transition-all">{{ old('catatan', optional($existingReview)->catatan) }}</textarea>
                         </div>
 

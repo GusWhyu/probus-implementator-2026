@@ -129,7 +129,7 @@
                     {{-- Left Card: Ringkasan Aktivitas Tiket CS --}}
                     <td style="width: 50%; vertical-align: top; background: #ffffff; border: 1.2px solid #e2e8f0; border-radius: 10px; padding: 8px 11px;">
                         <div style="font-size: 10.5px; font-weight: bold; color: #0f172a; margin-bottom: 5px;">
-                            <span style="color: #2563eb; font-size: 10px;">&#9656;</span> Ringkasan Aktivitas Tiket CS
+                            <span style="color: #2563eb; font-size: 10px;">&#9656;</span> Ringkasan Aktivitas Tiket Staff
                         </div>
                         <table style="width: 100%; font-size: 9px;">
                             <tr>
@@ -176,31 +176,31 @@
                         <table style="width: 100%; font-size: 8.5px; border-collapse: collapse;">
                             <tr style="border-bottom: 1px solid #f1f5f9;">
                                 <td style="color: #475569; padding: 2px 0;">
-                                    <span style="color: #2563eb; font-weight: bold;">[30%]</span> Kinerja Tiket CS
+                                    <span style="color: #2563eb; font-weight: bold;">[{{ $weights['ticket'] ?? 30 }}%]</span> Kinerja Tiket Staff
                                 </td>
                                 <td style="text-align: right; color: #64748b; padding: 2px 0;">
-                                    Skor {{ number_format($scoreTicket, 0) }} &rarr; <span style="font-weight: bold; color: #0f172a;">{{ number_format($scoreTicket * 0.3, 1) }}</span>
+                                    Skor {{ number_format($scoreTicket, 0) }} &rarr; <span style="font-weight: bold; color: #0f172a;">{{ number_format($scoreTicket * (($weights['ticket'] ?? 30) / 100), 1) }}</span>
                                 </td>
                             </tr>
                             <tr style="border-bottom: 1px solid #f1f5f9;">
                                 <td style="color: #475569; padding: 2px 0;">
-                                    <span style="color: #059669; font-weight: bold;">[40%]</span> Soft Skill
+                                    <span style="color: #059669; font-weight: bold;">[{{ $weights['soft_skill'] ?? 40 }}%]</span> Soft Skill
                                 </td>
                                 <td style="text-align: right; color: #64748b; padding: 2px 0;">
-                                    Skor {{ number_format($scoreQuality, 0) }} &rarr; <span style="font-weight: bold; color: #0f172a;">{{ number_format($scoreQuality * 0.4, 1) }}</span>
+                                    Skor {{ number_format($scoreQuality, 0) }} &rarr; <span style="font-weight: bold; color: #0f172a;">{{ number_format($scoreQuality * (($weights['soft_skill'] ?? 40) / 100), 1) }}</span>
                                 </td>
                             </tr>
                             <tr style="border-bottom: 1px solid #f1f5f9;">
                                 <td style="color: #475569; padding: 2px 0;">
-                                    <span style="color: #7c3aed; font-weight: bold;">[30%]</span> Kepuasan Klien
+                                    <span style="color: #7c3aed; font-weight: bold;">[{{ $weights['client_review'] ?? 30 }}%]</span> Kepuasan Klien
                                 </td>
                                 <td style="text-align: right; color: #64748b; padding: 2px 0;">
-                                    <span style="color: #f59e0b;">&#9733;</span> {{ number_format($client_rating, 1) }} &rarr; <span style="font-weight: bold; color: #0f172a;">{{ number_format($scoreSurvey * 0.3, 1) }}</span>
+                                    <span style="color: #f59e0b;">&#9733;</span> {{ number_format($client_rating, 1) }} &rarr; <span style="font-weight: bold; color: #0f172a;">{{ number_format($scoreSurvey * (($weights['client_review'] ?? 30) / 100), 1) }}</span>
                                 </td>
                             </tr>
                             <tr>
                                 <td style="color: #0f172a; font-weight: bold; padding: 3px 0 0 0;">
-                                    Total Nilai Akhir (100%)
+                                    Total Nilai Akhir ({{ (float)($weights['ticket'] ?? 30) + (float)($weights['soft_skill'] ?? 40) + (float)($weights['client_review'] ?? 30) }}%)
                                 </td>
                                 <td style="text-align: right; padding: 3px 0 0 0;">
                                     <span style="font-weight: bold; font-size: 12px; color: #0f172a;">{{ number_format($scoreTotal, 1) }}</span>

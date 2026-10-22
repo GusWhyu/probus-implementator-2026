@@ -5,9 +5,9 @@
             <!-- Header Section -->
             <div class="flex flex-col lg:flex-row lg:items-center justify-between mb-8 gap-4">
                 <div>
-                    <h1 class="text-2xl font-extrabold text-slate-800 dark:text-slate-100 tracking-tight">Penilaian Kinerja CS</h1>
+                    <h1 class="text-2xl font-extrabold text-slate-800 dark:text-slate-100 tracking-tight">Penilaian Kinerja Staff</h1>
                     <p class="text-sm text-slate-500 dark:text-slate-400 font-medium mt-1 flex flex-wrap items-center gap-2">
-                        <span>Kelola penilaian dan pantau performa staf Customer Support</span>
+                        <span>Kelola penilaian dan pantau performa staff</span>
                         <span class="inline-flex items-center gap-1.5 text-xs font-semibold text-blue-700 bg-blue-50 dark:bg-blue-950/50 dark:text-blue-300 border border-blue-200 dark:border-blue-800 px-2.5 py-0.5 rounded-lg shadow-xs">
                             <i class="fa-solid fa-building text-blue-500"></i> Departemen {{ ucfirst($currentDepartemen->name ?? 'Operasional') }}
                         </span>
@@ -91,13 +91,13 @@
 
             <!-- Stats Cards -->
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
-                <!-- Total CS -->
+                <!-- Total Staff -->
                 <div class="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700 shadow-sm flex items-center gap-4">
                     <div class="w-14 h-14 rounded-full bg-blue-50 dark:bg-blue-950/60 text-blue-500 dark:text-blue-400 flex items-center justify-center shrink-0">
                         <i class="fa-solid fa-user-group text-lg"></i>
                     </div>
                     <div>
-                        <p class="text-[11px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-wider mb-1">Total CS</p>
+                        <p class="text-[11px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-wider mb-1">Total Staff</p>
                         <h3 class="text-3xl font-extrabold text-slate-800 dark:text-slate-100 leading-none">{{ $totalCS ?? $users->count() }}</h3>
                     </div>
                 </div>
@@ -161,8 +161,8 @@
                             <i class="fa-solid fa-trophy"></i>
                         </div>
                         <div>
-                            <h2 class="text-base sm:text-lg font-extrabold text-slate-800 dark:text-slate-100 leading-tight">Top 3 Customer Support Terbaik</h2>
-                            <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Penghargaan performa dan kontribusi CS periode {{ \Carbon\Carbon::createFromDate($year, $month, 1)->locale('id')->translatedFormat('F Y') }}</p>
+                            <h2 class="text-base sm:text-lg font-extrabold text-slate-800 dark:text-slate-100 leading-tight">Top 3 Staff Terbaik</h2>
+                            <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Penghargaan performa dan kontribusi staff periode {{ \Carbon\Carbon::createFromDate($year, $month, 1)->locale('id')->translatedFormat('F Y') }}</p>
                         </div>
                     </div>
                     <div class="hidden sm:flex items-center gap-1.5 text-xs font-bold text-slate-500 dark:text-slate-300 bg-white dark:bg-slate-800 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
@@ -210,7 +210,7 @@
                                         </h3>
                                         <p class="text-xs text-slate-500 dark:text-slate-400 font-medium truncate mt-0.5">{{ $bpUser->email }}</p>
                                         <span class="inline-block mt-2 text-[10px] font-bold text-amber-800 dark:text-amber-300 bg-amber-100/80 dark:bg-amber-500/20 border border-amber-200 dark:border-amber-500/40 px-2.5 py-0.5 rounded-lg uppercase tracking-wider">
-                                            {{ $bpUser->usertype ?? 'Customer Support' }}
+                                            {{ $bpUser->usertype ?? 'Staff' }}
                                         </span>
                                     </div>
                                 </div>
@@ -233,9 +233,9 @@
                                 <button type="button" 
                                     onclick="downloadAchievementCard({
                                         name: '{{ addslashes($bpUser->name) }}',
-                                        role: '{{ addslashes($bpUser->usertype ?? 'Customer Support Specialist') }}',
+                                        role: '{{ addslashes($bpUser->usertype ?? 'Staff') }}',
                                         category: 'BEST PERFORMANCE',
-                                        title: 'Juara 1 - Top Performer Customer Support of the Month',
+                                        title: 'Juara 1 - Top Performer Staff of the Month',
                                         period: '{{ \Carbon\Carbon::createFromDate($year, $month, 1)->locale('id')->translatedFormat('F Y') }}',
                                         avatar: '{{ $avatarBp }}',
                                         theme: 'gold',
@@ -291,7 +291,7 @@
                                         </h3>
                                         <p class="text-xs text-slate-500 dark:text-slate-400 font-medium truncate mt-0.5">{{ $cfUser->email }}</p>
                                         <span class="inline-block mt-2 text-[10px] font-bold text-rose-800 dark:text-rose-300 bg-rose-100/80 dark:bg-rose-500/20 border border-rose-200 dark:border-rose-500/40 px-2.5 py-0.5 rounded-lg uppercase tracking-wider">
-                                            {{ $cfUser->usertype ?? 'Customer Support' }}
+                                            {{ $cfUser->usertype ?? 'Staff' }}
                                         </span>
                                     </div>
                                 </div>
@@ -315,7 +315,7 @@
                                 <button type="button" 
                                     onclick="downloadAchievementCard({
                                         name: '{{ addslashes($cfUser->name) }}',
-                                        role: '{{ addslashes($cfUser->usertype ?? 'Customer Support Specialist') }}',
+                                        role: '{{ addslashes($cfUser->usertype ?? 'Staff') }}',
                                         category: 'CLIENT\'S FAVORITE',
                                         title: 'Pilihan Pelanggan - Customer Satisfaction Champion',
                                         period: '{{ \Carbon\Carbon::createFromDate($year, $month, 1)->locale('id')->translatedFormat('F Y') }}',
@@ -373,7 +373,7 @@
                                         </h3>
                                         <p class="text-xs text-slate-500 dark:text-slate-400 font-medium truncate mt-0.5">{{ $tpUser->email }}</p>
                                         <span class="inline-block mt-2 text-[10px] font-bold text-indigo-800 dark:text-indigo-300 bg-indigo-100/80 dark:bg-indigo-500/20 border border-indigo-200 dark:border-indigo-500/40 px-2.5 py-0.5 rounded-lg uppercase tracking-wider">
-                                            {{ $tpUser->usertype ?? 'Customer Support' }}
+                                            {{ $tpUser->usertype ?? 'Staff' }}
                                         </span>
                                     </div>
                                 </div>
@@ -396,7 +396,7 @@
                                 <button type="button" 
                                     onclick="downloadAchievementCard({
                                         name: '{{ addslashes($tpUser->name) }}',
-                                        role: '{{ addslashes($tpUser->usertype ?? 'Customer Support Specialist') }}',
+                                        role: '{{ addslashes($tpUser->usertype ?? 'Staff') }}',
                                         category: 'BEST TEAM PLAYER',
                                         title: 'Kolaborasi Terbaik - Team Player & Support Champion',
                                         period: '{{ \Carbon\Carbon::createFromDate($year, $month, 1)->locale('id')->translatedFormat('F Y') }}',
@@ -423,19 +423,19 @@
                     <div class="w-14 h-14 rounded-2xl bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800 text-amber-500 dark:text-amber-400 flex items-center justify-center mx-auto mb-3.5 text-xl shadow-xs">
                         <i class="fa-solid fa-trophy"></i>
                     </div>
-                    <h3 class="text-sm sm:text-base font-extrabold text-slate-800 dark:text-slate-100 mb-1">Top 3 CS Belum Tersedia (Kosong)</h3>
+                    <h3 class="text-sm sm:text-base font-extrabold text-slate-800 dark:text-slate-100 mb-1">Top 3 Staff Belum Tersedia (Kosong)</h3>
                     @if($totalCS > 0)
                         <p class="text-xs text-slate-500 dark:text-slate-400 max-w-lg mx-auto leading-relaxed">
-                            Data Top 3 CS masih kosong karena belum seluruh Customer Support selesai dinilai.<br>
-                            Saat ini baru <span class="font-extrabold text-slate-800 dark:text-slate-200">{{ $sudahDinilai }}</span> dari <span class="font-extrabold text-slate-800 dark:text-slate-200">{{ $totalCS }}</span> CS di Departemen {{ ucfirst($currentDepartemen->name ?? '') }} yang sudah selesai dinilai (<span class="font-extrabold text-amber-600 dark:text-amber-400">{{ $belumDinilai }}</span> CS belum dinilai).
+                            Data Top 3 Staff masih kosong karena belum seluruh staff selesai dinilai.<br>
+                            Saat ini baru <span class="font-extrabold text-slate-800 dark:text-slate-200">{{ $sudahDinilai }}</span> dari <span class="font-extrabold text-slate-800 dark:text-slate-200">{{ $totalCS }}</span> staff di Departemen {{ ucfirst($currentDepartemen->name ?? '') }} yang sudah selesai dinilai (<span class="font-extrabold text-amber-600 dark:text-amber-400">{{ $belumDinilai }}</span> staff belum dinilai).
                         </p>
                         <div class="mt-4 inline-flex items-center gap-2 text-xs font-bold text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800/80 px-3.5 py-1.5 rounded-xl">
                             <i class="fa-solid fa-circle-info text-amber-600 dark:text-amber-400"></i>
-                            <span>Selesaikan penilaian seluruh CS di departemen ini untuk mengaktifkan penghargaan Top 3 CS</span>
+                            <span>Selesaikan penilaian seluruh staff di departemen ini untuk mengaktifkan penghargaan Top 3 Staff</span>
                         </div>
                     @else
                         <p class="text-xs text-slate-500 dark:text-slate-400 max-w-lg mx-auto leading-relaxed">
-                            Belum ada staf Customer Support (role: user) yang terdaftar di Departemen {{ ucfirst($currentDepartemen->name ?? '') }}.
+                            Belum ada staff (role: user) yang terdaftar di Departemen {{ ucfirst($currentDepartemen->name ?? '') }}.
                         </p>
                     @endif
                 </div>
@@ -452,7 +452,7 @@
                         <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                             <i class="fa-solid fa-magnifying-glass text-slate-400"></i>
                         </div>
-                        <input type="text" name="search" value="{{ request('search') }}" class="w-full pl-11 pr-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-200 placeholder:text-slate-400 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all shadow-sm" placeholder="Cari nama CS atau email...">
+                        <input type="text" name="search" value="{{ request('search') }}" class="w-full pl-11 pr-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-200 placeholder:text-slate-400 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all shadow-sm" placeholder="Cari nama staff atau email...">
                     </div>
 
                     <!-- Status Filter -->
@@ -474,14 +474,14 @@
 
                 <!-- Tombol Proses Semua Nilai (Hanya 1 kali per periode) -->
                 @if($isAllProcessed)
-                    <button type="button" onclick="alertSudahDiproses()" class="w-full sm:w-auto px-4 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all shadow-xs cursor-pointer whitespace-nowrap" title="Seluruh CS telah diproses untuk periode ini">
+                    <button type="button" onclick="alertSudahDiproses()" class="w-full sm:w-auto px-4 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all shadow-xs cursor-pointer whitespace-nowrap" title="Seluruh staff telah diproses untuk periode ini">
                         <i class="fa-solid fa-circle-check text-emerald-500 text-sm"></i>
                         <span>Sudah Diproses ({{ $sudahDiproses }}/{{ $totalCS }})</span>
                     </button>
                 @elseif($totalCS === 0)
                     <button type="button" disabled class="w-full sm:w-auto px-4 py-2.5 bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 border border-slate-200 dark:border-slate-700 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 opacity-60 cursor-not-allowed whitespace-nowrap">
                         <i class="fa-solid fa-ban"></i>
-                        <span>Tidak Ada CS</span>
+                        <span>Tidak Ada Staff</span>
                     </button>
                 @else
                     <form id="form-proses-semua" action="{{ route('laporan.proses_semua') }}" method="POST">
@@ -490,7 +490,7 @@
                         <input type="hidden" name="year" value="{{ $year }}">
                         <input type="hidden" name="period" value="{{ sprintf('%04d-%02d', $year, $month) }}">
                         <input type="hidden" name="department_id" value="{{ $selectedDeptId }}">
-                        <button type="button" id="btn-proses-semua" onclick="konfirmasiProsesSemua()" class="w-full sm:w-auto px-4 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all shadow-md shadow-blue-500/25 active:scale-95 cursor-pointer whitespace-nowrap" title="Hitung agregat tiket seluruh CS departemen ini sekaligus">
+                        <button type="button" id="btn-proses-semua" onclick="konfirmasiProsesSemua()" class="w-full sm:w-auto px-4 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all shadow-md shadow-blue-500/25 active:scale-95 cursor-pointer whitespace-nowrap" title="Hitung agregat tiket seluruh staff departemen ini sekaligus">
                             <i class="fa-solid fa-bolt text-amber-300"></i>
                             <span>Proses Semua Nilai</span>
                         </button>
@@ -505,7 +505,7 @@
                         <thead>
                             <tr class="bg-slate-50/80 dark:bg-slate-900/60 border-b border-slate-200 dark:border-slate-700">
                                 <th class="py-4 px-6 text-[11px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-wider w-16">No</th>
-                                <th class="py-4 px-6 text-[11px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-wider">CS</th>
+                                <th class="py-4 px-6 text-[11px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-wider">Staff</th>
                                 <th class="py-4 px-6 text-[11px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-wider">Periode</th>
                                 <th class="py-4 px-6 text-[11px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-wider">Nilai Akhir</th>
                                 <th class="py-4 px-6 text-[11px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-wider">Status Penilaian</th>
@@ -526,7 +526,7 @@
                                 <td class="py-4 px-6">
                                     <div class="flex items-center gap-3">
                                         @if($u->profile_image)
-                                            <img src="{{ asset('storage/' . $u->profile_image) }}" alt="Avatar" class="w-9 h-9 rounded-full object-cover shrink-0 shadow-sm border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800">
+                                             <img src="{{ asset('storage/' . $u->profile_image) }}" alt="Avatar" class="w-9 h-9 rounded-full object-cover shrink-0 shadow-sm border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800">
                                         @else
                                             <img src="{{ asset($isFemale ? 'img/avatar-female.png' : 'img/avatar-default.png') }}" alt="Avatar" class="w-9 h-9 rounded-full object-cover shrink-0 shadow-sm border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800" style="{{ $isFemale ? 'object-position: top;' : '' }}">
                                         @endif
@@ -598,18 +598,18 @@
                                                 <i class="fa-solid fa-pencil"></i>
                                             </a>
                                         @elseif($isDraft)
-                                            <!-- Tombol Nilai untuk mengisi soft skill CS yang sudah di-sum (Proses hanya sekali) -->
+                                            <!-- Tombol Nilai untuk mengisi soft skill staff yang sudah di-sum (Proses hanya sekali) -->
                                             <a href="{{ route('penilaian', ['id' => $u->id, 'month' => $month, 'year' => $year]) }}" class="px-4 py-1.5 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-sm shadow-blue-500/25 transition-all active:scale-95 flex items-center gap-1.5 cursor-pointer" title="Lengkapi Evaluasi Soft Skill">
                                                 <i class="fa-solid fa-star text-[10px]"></i> Nilai
                                             </a>
                                         @else
-                                            <!-- Tombol Proses Nilai untuk CS yang belum di-sum -->
+                                            <!-- Tombol Proses Nilai untuk staff yang belum di-sum -->
                                             <form id="form-proses-cs-{{ $u->id }}" action="{{ route('laporan.proses_nilai', $u->id) }}" method="POST">
                                                 @csrf
                                                 <input type="hidden" name="month" value="{{ $month }}">
                                                 <input type="hidden" name="year" value="{{ $year }}">
                                                 <input type="hidden" name="department_id" value="{{ $selectedDeptId }}">
-                                                <button type="button" onclick="konfirmasiProsesNilai({{ $u->id }}, '{{ addslashes($u->name) }}')" class="px-3.5 py-1.5 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow-sm shadow-indigo-500/25 transition-all active:scale-95 flex items-center gap-1.5 cursor-pointer" title="Proses dan hitung agregat tiket CS">
+                                                <button type="button" onclick="konfirmasiProsesNilai({{ $u->id }}, '{{ addslashes($u->name) }}')" class="px-3.5 py-1.5 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow-sm shadow-indigo-500/25 transition-all active:scale-95 flex items-center gap-1.5 cursor-pointer" title="Proses dan hitung agregat tiket staff">
                                                     <i class="fa-solid fa-calculator text-[10px]"></i> Proses Nilai
                                                 </button>
                                             </form>
@@ -620,7 +620,7 @@
                             @empty
                             <tr>
                                 <td colspan="6" class="py-12 text-center text-sm font-semibold text-slate-400 dark:text-slate-500">
-                                    Tidak ada data Customer Support (role: user) yang ditemukan pada Departemen {{ ucfirst($currentDepartemen->name ?? '') }}.
+                                    Tidak ada data staff (role: user) yang ditemukan pada Departemen {{ ucfirst($currentDepartemen->name ?? '') }}.
                                 </td>
                             </tr>
                             @endforelse
@@ -632,7 +632,7 @@
 
             <!-- Footer Counter -->
             <div class="flex items-center justify-between text-xs font-medium text-slate-500 px-1">
-                <p>Menampilkan <strong>{{ $users->count() }}</strong> Customer Support</p>
+                <p>Menampilkan <strong>{{ $users->count() }}</strong> Staff</p>
             </div>
         </div>
     </div>
@@ -688,7 +688,7 @@
         // Header: PROBUS SYSTEM
         ctx.fillStyle = '#94a3b8';
         ctx.font = 'bold 15px sans-serif';
-        ctx.fillText('PROBUS SYSTEM  •  CUSTOMER SUPPORT EXCELLENCE AWARD', 70, 85);
+        ctx.fillText('PROBUS SYSTEM  •  STAFF EXCELLENCE AWARD', 70, 85);
 
         ctx.textAlign = 'right';
         ctx.fillStyle = '#cbd5e1';
@@ -782,7 +782,7 @@
             // Verification Line
             ctx.fillStyle = data.theme === 'gold' ? '#fbbf24' : (data.theme === 'rose' ? '#fb7185' : '#a5b4fc');
             ctx.font = 'bold 15px sans-serif';
-            ctx.fillText('✓ VERIFIED TOP CS AWARDEE • PROBUS HELPDESK SYSTEM', 310, 396);
+            ctx.fillText('✓ VERIFIED TOP STAFF AWARDEE • PROBUS HELPDESK SYSTEM', 310, 396);
 
             // 3 Metrics Highlight Boxes
             const startX = 70;
@@ -844,7 +844,7 @@
         };
     }
 
-    // --- Pop-up Modern: Konfirmasi Proses Seluruh Nilai CS ---
+    // --- Pop-up Modern: Konfirmasi Proses Seluruh Nilai Staff ---
     function konfirmasiProsesSemua() {
         const form = document.getElementById('form-proses-semua');
         if (!form) return;
@@ -856,18 +856,18 @@
         const unprocessedCount = @json($belumDiproses ?? 0);
 
         if (!window.Swal) {
-            if (confirm("Apakah Anda yakin ingin memproses seluruh nilai CS di Departemen " + deptName + " untuk periode " + periodeStr + "?")) {
+            if (confirm("Apakah Anda yakin ingin memproses seluruh nilai staff di Departemen " + deptName + " untuk periode " + periodeStr + "?")) {
                 form.submit();
             }
             return;
         }
 
         Swal.fire({
-            title: 'Proses Semua Nilai CS?',
+            title: 'Proses Semua Nilai Staff?',
             html: `
                 <div class="text-left text-xs sm:text-sm space-y-3 pt-2">
                     <p style="color: ${th.isDark ? '#cbd5e1' : '#475569'}">
-                        Apakah Anda yakin ingin memproses dan menghitung agregat nilai tiket seluruh staf CS di departemen ini?
+                        Apakah Anda yakin ingin memproses dan menghitung agregat nilai tiket seluruh staff di departemen ini?
                     </p>
                     <div style="background: ${th.isDark ? '#0f172a' : '#f8fafc'}; border: 1px solid ${th.isDark ? '#334155' : '#e2e8f0'};" class="p-3.5 rounded-xl space-y-2 text-xs">
                         <div class="flex justify-between items-center">
@@ -879,8 +879,8 @@
                             <span class="font-bold" style="color: ${th.isDark ? '#f8fafc' : '#0f172a'};">${periodeStr}</span>
                         </div>
                         <div class="flex justify-between items-center">
-                            <span style="color: #94a3b8;">CS yang Diproses:</span>
-                            <span class="font-extrabold text-blue-500">${unprocessedCount} dari ${totalCsCount} CS</span>
+                            <span style="color: #94a3b8;">Staff yang Diproses:</span>
+                            <span class="font-extrabold text-blue-500">${unprocessedCount} dari ${totalCsCount} Staff</span>
                         </div>
                     </div>
                     <div class="p-2.5 rounded-lg flex items-center gap-2 text-xs" style="background: ${th.isDark ? 'rgba(245, 158, 11, 0.15)' : '#fffbeb'}; border: 1px solid ${th.isDark ? 'rgba(245, 158, 11, 0.3)' : '#fde68a'}; color: ${th.isDark ? '#fbbf24' : '#b45309'};">
@@ -915,8 +915,8 @@
                 }
 
                 Swal.fire({
-                    title: 'Memproses Nilai CS...',
-                    text: 'Sistem sedang menghitung agregat modul dan tiket seluruh staf CS. Mohon tunggu...',
+                    title: 'Memproses Nilai Staff...',
+                    text: 'Sistem sedang menghitung agregat modul dan tiket seluruh staff. Mohon tunggu...',
                     allowOutsideClick: false,
                     allowEscapeKey: false,
                     showConfirmButton: false,
@@ -932,7 +932,7 @@
         });
     }
 
-    // --- Pop-up Info: Seluruh Nilai CS Sudah Diproses Sebelumnya ---
+    // --- Pop-up Info: Seluruh Nilai Staff Sudah Diproses Sebelumnya ---
     function alertSudahDiproses() {
         const th = getSwalTheme();
         const deptName = @json(ucfirst($currentDepartemen->name ?? 'Operasional'));
@@ -941,7 +941,7 @@
         const processedCount = @json($sudahDiproses ?? 0);
 
         if (!window.Swal) {
-            alert("Seluruh CS di Departemen " + deptName + " telah selesai diproses untuk periode " + periodeStr + ".");
+            alert("Seluruh staff di Departemen " + deptName + " telah selesai diproses untuk periode " + periodeStr + ".");
             return;
         }
 
@@ -950,11 +950,11 @@
             html: `
                 <div class="text-left text-xs sm:text-sm space-y-3 pt-2">
                     <p style="color: ${th.isDark ? '#cbd5e1' : '#475569'}">
-                        Seluruh staf CS di <strong>Departemen ${deptName}</strong> (${processedCount} dari ${totalCsCount} CS) untuk periode <strong>${periodeStr}</strong> sudah selesai diproses.
+                        Seluruh staff di <strong>Departemen ${deptName}</strong> (${processedCount} dari ${totalCsCount} staff) untuk periode <strong>${periodeStr}</strong> sudah selesai diproses.
                     </p>
                     <div class="p-3 rounded-xl flex items-center gap-2.5 text-xs" style="background: ${th.isDark ? 'rgba(16, 185, 129, 0.15)' : '#ecfdf5'}; border: 1px solid ${th.isDark ? 'rgba(16, 185, 129, 0.3)' : '#a7f3d0'}; color: ${th.isDark ? '#34d399' : '#047857'};">
                         <i class="fa-solid fa-circle-check text-base shrink-0"></i>
-                        <span>Proses agregat tiket hanya berlaku <strong>1 kali</strong> per periode. Silakan klik tombol <strong>Nilai</strong> pada masing-masing CS untuk mengisi atau memperbarui soft skill.</span>
+                        <span>Proses agregat tiket hanya berlaku <strong>1 kali</strong> per periode. Silakan klik tombol <strong>Nilai</strong> pada masing-masing staff untuk mengisi atau memperbarui soft skill.</span>
                     </div>
                 </div>
             `,
@@ -971,7 +971,7 @@
         });
     }
 
-    // --- Pop-up Modern: Konfirmasi Proses Nilai Individual CS ---
+    // --- Pop-up Modern: Konfirmasi Proses Nilai Individual Staff ---
     function konfirmasiProsesNilai(userId, userName) {
         const form = document.getElementById('form-proses-cs-' + userId);
         if (!form) return;
@@ -987,7 +987,7 @@
         }
 
         Swal.fire({
-            title: 'Proses Nilai CS?',
+            title: 'Proses Nilai Staff?',
             html: `
                 <div class="text-left text-xs sm:text-sm space-y-3 pt-2">
                     <p style="color: ${th.isDark ? '#cbd5e1' : '#475569'}">
@@ -995,7 +995,7 @@
                     </p>
                     <div style="background: ${th.isDark ? '#0f172a' : '#f8fafc'}; border: 1px solid ${th.isDark ? '#334155' : '#e2e8f0'};" class="p-3.5 rounded-xl space-y-1.5 text-xs">
                         <div class="flex justify-between items-center">
-                            <span style="color: #94a3b8;">Customer Support:</span>
+                            <span style="color: #94a3b8;">Staff:</span>
                             <span class="font-extrabold text-blue-500">${userName}</span>
                         </div>
                         <div class="flex justify-between items-center">

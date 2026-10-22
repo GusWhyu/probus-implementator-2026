@@ -189,13 +189,18 @@ Route::get('/demo-tiket', function () {
     return view('demo_tiket');
 });
 
-// Settings -> Penilaian Soft Skill
+// Settings -> Penilaian Soft Skill & Bobot Penilaian
 Route::middleware(['auth', 'can:aspv'])->group(function () {
     Route::get('/pengaturan/soft-skill', [\App\Http\Controllers\PerformanceCategoryController::class, 'index'])->name('soft-skill.index');
     Route::get('/pengaturan/soft-skill/create', [\App\Http\Controllers\PerformanceCategoryController::class, 'create'])->name('soft-skill.create');
     Route::post('/pengaturan/soft-skill', [\App\Http\Controllers\PerformanceCategoryController::class, 'store'])->name('soft-skill.store');
     Route::put('/pengaturan/soft-skill/{id}', [\App\Http\Controllers\PerformanceCategoryController::class, 'update'])->name('soft-skill.update');
     Route::delete('/pengaturan/soft-skill/{id}', [\App\Http\Controllers\PerformanceCategoryController::class, 'destroy'])->name('soft-skill.destroy');
+
+    // Settings -> Master Data Bobot Penilaian (Rincian Perhitungan Nilai Berdasarkan Bobot)
+    Route::get('/pengaturan/bobot-penilaian', [\App\Http\Controllers\PerformanceWeightController::class, 'index'])->name('bobot-penilaian.index');
+    Route::post('/pengaturan/bobot-penilaian', [\App\Http\Controllers\PerformanceWeightController::class, 'update'])->name('bobot-penilaian.update');
+    Route::post('/pengaturan/bobot-penilaian/reset', [\App\Http\Controllers\PerformanceWeightController::class, 'resetDefault'])->name('bobot-penilaian.reset');
 });
 
 // Review Routes (Public)

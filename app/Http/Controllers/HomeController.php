@@ -15,6 +15,7 @@ use App\Models\ModuleSystem;
 use App\Models\User;
 use App\Models\Departemen;
 use App\Models\Outlet;
+use App\Models\PerformanceWeight;
 
 class HomeController extends Controller
 {
@@ -581,7 +582,7 @@ class HomeController extends Controller
         $user = User::findOrFail($id);
 
         if ($user->usertype !== 'user') {
-            return redirect()->back()->with('error', 'Hanya staf CS dengan role user yang dapat dinilai.');
+            return redirect()->back()->with('error', 'Hanya staff dengan role user yang dapat dinilai.');
         }
 
         $currentUser = auth()->user();
@@ -736,6 +737,9 @@ class HomeController extends Controller
         $avgSurvey = $surveyRatings->count() > 0 ? round($surveyRatings->avg(), 1) : null;
         $client_score = $avgSurvey ? ($avgSurvey * 20) : ($tiket_selesai > 0 ? 90 : 0);
 
+        $weights = PerformanceWeight::getWeightsMap();
+        $wTicket = ($weights['ticket'] ?? 30.0) / 100;
+
         // Simpan / update ke PerformanceReview sebagai PROCESSED (sudah di-sum, siap dinilai soft skill)
         $review = PerformanceReview::updateOrCreate(
             [
@@ -744,7 +748,7 @@ class HomeController extends Controller
             ],
             [
                 'reviewer_id' => auth()->id() ?? 1,
-                'total_score' => $nilai_tiket * 0.3, // Skor awal sebelum soft skill
+                'total_score' => round($nilai_tiket * $wTicket, 2), // Skor awal sebelum soft skill
                 'module_score' => $nilai_tiket,
                 'raw_ticket_score' => $raw_ticket_score,
                 'max_ticket_score' => $max_ticket_score,
@@ -803,10 +807,10 @@ class HomeController extends Controller
                 'month' => $month,
                 'year' => $year,
                 'period' => sprintf('%04d-%02d', $year, $month),
-            ])->with('error', "Tidak ada staf CS dengan role user yang terdaftar di departemen ini.");
+            ])->with('error', "Tidak ada staff dengan role user yang terdaftar di departemen ini.");
         }
 
-        // Cari staf CS yang belum diproses untuk periode ini
+        // Cari staff yang belum diproses untuk periode ini
         $unprocessedCs = $csUsers->filter(function($u) use ($month, $year) {
             return !PerformanceReview::where('user_id', $u->id)
                 ->whereMonth('periode', $month)
@@ -819,7 +823,7 @@ class HomeController extends Controller
                 'month' => $month,
                 'year' => $year,
                 'period' => sprintf('%04d-%02d', $year, $month),
-            ])->with('info', "Seluruh staf CS di departemen ini sudah selesai diproses sebelumnya. Proses agregat tiket hanya dapat dilakukan 1 kali per periode.");
+            ])->with('info', "Seluruh staff di departemen ini sudah selesai diproses sebelumnya. Proses agregat tiket hanya dapat dilakukan 1 kali per periode.");
         }
 
         $processedCount = 0;
@@ -838,14 +842,14 @@ class HomeController extends Controller
             'year' => $year,
             'period' => sprintf('%04d-%02d', $year, $month),
             'department_id' => $selectedDeptId,
-        ])->with('success', "Berhasil memproses (sum) data tiket untuk {$processedCount} CS! Sekarang Anda dapat mengisi nilai soft skill per masing-masing CS.");
+        ])->with('success', "Berhasil memproses (sum) data tiket untuk {$processedCount} staff! Sekarang Anda dapat mengisi nilai soft skill per masing-masing staff.");
     }
 
     public function penilaian($id){
         $user = User::findOrFail($id);
 
         if ($user->usertype !== 'user') {
-            return redirect()->route('laporan')->with('error', 'Hanya staf CS dengan role user yang dapat dinilai.');
+            return redirect()->route('laporan')->with('error', 'Hanya staff dengan role user yang dapat dinilai.');
         }
 
         $currentUser = auth()->user();
@@ -1058,6 +1062,8 @@ class HomeController extends Controller
             }
         }
 
+        $weights = PerformanceWeight::getWeightsMap();
+
         return view('penilaian', compact(
             'user', 
             'currentMonth',
@@ -1084,14 +1090,15 @@ class HomeController extends Controller
             'client_rating',
             'client_score',
             'categories',
-            'catScores'
+            'catScores',
+            'weights'
         ));
     }
 
     public function storePenilaian(Request $request, $id) {
         $user = User::findOrFail($id);
         if ($user->usertype !== 'user') {
-            return redirect()->route('laporan')->with('error', 'Hanya staf CS dengan role user yang dapat dinilai.');
+            return redirect()->route('laporan')->with('error', 'Hanya staff dengan role user yang dapat dinilai.');
         }
 
         $currentUser = auth()->user();
@@ -1136,12 +1143,17 @@ class HomeController extends Controller
 
         $avg_kualitas = ($filledCount > 0) ? round($totalSkillScore / $filledCount, 2) : 0;
 
+        $weights = PerformanceWeight::getWeightsMap();
+        $wTicket = ($weights['ticket'] ?? 30.0) / 100;
+        $wSoftSkill = ($weights['soft_skill'] ?? 40.0) / 100;
+        $wClient = ($weights['client_review'] ?? 30.0) / 100;
+
         if (!$isDraft) {
-            $n_akhir = round(($n_t * 0.3) + ($avg_kualitas * 0.4) + ($client_score * 0.3), 2);
+            $n_akhir = round(($n_t * $wTicket) + ($avg_kualitas * $wSoftSkill) + ($client_score * $wClient), 2);
             $status = 'FINAL';
         } else {
             // Draft: akumulasi yang sudah ada
-            $n_akhir = round(($n_t * 0.3) + ($avg_kualitas * 0.4) + ($client_score * 0.3), 2);
+            $n_akhir = round(($n_t * $wTicket) + ($avg_kualitas * $wSoftSkill) + ($client_score * $wClient), 2);
             $status = 'DRAFT';
         }
 
@@ -1473,6 +1485,8 @@ class HomeController extends Controller
             }
         }
         
+        $weights = PerformanceWeight::getWeightsMap();
+
         return view('rapor', compact(
             'user', 
             'rapor', 
@@ -1492,7 +1506,8 @@ class HomeController extends Controller
             'max_ticket_score',
             'raw_ticket_score',
             'team_portion',
-            'top_performer_name'
+            'top_performer_name',
+            'weights'
         ));
     }
 
@@ -1602,6 +1617,8 @@ class HomeController extends Controller
             }
         }
 
+        $weights = PerformanceWeight::getWeightsMap();
+
         $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('rapor_pdf', compact(
             'user', 
             'rapor', 
@@ -1627,7 +1644,8 @@ class HomeController extends Controller
             'month',
             'year',
             'periode',
-            'categories'
+            'categories',
+            'weights'
         ))->setPaper('a4', 'portrait');
                 
         return $pdf->stream('Rapor_Kinerja_CS_' . str_replace(' ', '_', $user->name) . '_' . $periode->format('M_Y') . '.pdf');

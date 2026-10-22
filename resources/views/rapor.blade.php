@@ -57,10 +57,10 @@
                         <img src="{{ $userAvatar }}" alt="Avatar" class="w-12 h-12 sm:w-14 sm:h-14 rounded-full object-cover shrink-0 shadow-sm bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700" style="{{ $isFemale && !$user->profile_image ? 'object-position: top;' : '' }}">
                         <div class="min-w-0 flex-1">
                             <h1 class="text-xl sm:text-2xl font-extrabold text-slate-800 dark:text-slate-100 tracking-tight truncate">
-                                Rapor Kinerja CS
+                                Rapor Kinerja Staff
                             </h1>
                             <p class="text-xs sm:text-sm font-medium text-slate-500 dark:text-slate-400 truncate">
-                                <span class="capitalize">{{ $user->usertype ?? 'Customer Support' }}</span> &bull; Departemen {{ ucfirst($user->departemen->name ?? 'Operasional') }} - <span class="font-bold text-slate-700 dark:text-slate-200">{{ $user->name ?? 'Andi Pratama' }}</span>
+                                <span class="capitalize">{{ $user->usertype ?? 'Staff' }}</span> &bull; Departemen {{ ucfirst($user->departemen->name ?? 'Operasional') }} - <span class="font-bold text-slate-700 dark:text-slate-200">{{ $user->name ?? 'Andi Pratama' }}</span>
                             </p>
                         </div>
                     </div>
@@ -129,7 +129,7 @@
                     </div>
                     <div>
                         <h4 class="text-sm font-bold text-amber-900 dark:text-amber-200">Belum Ada Rapor Kinerja Final untuk Periode Ini</h4>
-                        <p class="text-xs text-amber-700 dark:text-amber-300">Kinerja CS <strong>{{ $user->name }}</strong> untuk periode <strong>{{ \Carbon\Carbon::createFromDate($year, $month, 1)->locale('id')->translatedFormat('F Y') }}</strong> (Cut-off: {{ \Carbon\Carbon::createFromDate($year, $month, 1)->endOfMonth()->locale('id')->translatedFormat('d F Y') }}) belum dievaluasi.</p>
+                        <p class="text-xs text-amber-700 dark:text-amber-300">Kinerja Staff <strong>{{ $user->name }}</strong> untuk periode <strong>{{ \Carbon\Carbon::createFromDate($year, $month, 1)->locale('id')->translatedFormat('F Y') }}</strong> (Cut-off: {{ \Carbon\Carbon::createFromDate($year, $month, 1)->endOfMonth()->locale('id')->translatedFormat('d F Y') }}) belum dievaluasi.</p>
                     </div>
                 </div>
                 <a href="{{ route('penilaian', ['id' => $user->id, 'month' => $month, 'year' => $year]) }}" class="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition-colors shrink-0 shadow-sm self-start sm:self-auto">
@@ -280,7 +280,7 @@
                     <div class="min-w-0">
                         <p class="text-[10px] sm:text-[11px] font-bold text-amber-700 dark:text-amber-400 uppercase tracking-wider flex items-center gap-1.5 flex-wrap">
                             <span>Modul Terbanyak Ditangani</span>
-                            <span class="text-slate-400 font-medium normal-case hidden sm:inline">(Fokus Utama Layanan CS)</span>
+                            <span class="text-slate-400 font-medium normal-case hidden sm:inline">(Fokus Utama Layanan Staff)</span>
                         </p>
                         <p class="text-xs sm:text-sm font-extrabold text-slate-800 dark:text-slate-100 truncate mt-0.5">
                             {{ $topHandledModuleName }}
@@ -381,27 +381,27 @@
                             <tbody class="divide-y divide-slate-100 dark:divide-slate-700/60">
                                 <tr>
                                     <td class="py-3 px-2 text-xs font-semibold text-slate-600 dark:text-slate-300">Nilai Tiket (Σ bobot × qty)</td>
-                                    <td class="py-3 px-1.5 text-xs font-bold text-slate-700 dark:text-slate-300 text-center">30%</td>
+                                    <td class="py-3 px-1.5 text-xs font-bold text-slate-700 dark:text-slate-300 text-center">{{ $weights['ticket'] ?? 30 }}%</td>
                                     <td class="py-3 px-1.5 text-xs font-bold text-slate-700 dark:text-slate-300 text-center">{{ $scoreTicket }}</td>
-                                    <td class="py-3 px-2 text-xs font-bold text-emerald-500 dark:text-emerald-400 text-right">{{ round($scoreTicket * 0.3, 2) }}</td>
+                                    <td class="py-3 px-2 text-xs font-bold text-emerald-500 dark:text-emerald-400 text-right">{{ round($scoreTicket * (($weights['ticket'] ?? 30) / 100), 2) }}</td>
                                 </tr>
                                 <tr>
                                     <td class="py-3 px-2 text-xs font-semibold text-slate-600 dark:text-slate-300">Nilai Soft Skill</td>
-                                    <td class="py-3 px-1.5 text-xs font-bold text-slate-700 dark:text-slate-300 text-center">40%</td>
+                                    <td class="py-3 px-1.5 text-xs font-bold text-slate-700 dark:text-slate-300 text-center">{{ $weights['soft_skill'] ?? 40 }}%</td>
                                     <td class="py-3 px-1.5 text-xs font-bold text-slate-700 dark:text-slate-300 text-center">{{ $scoreQuality }}</td>
-                                    <td class="py-3 px-2 text-xs font-bold text-emerald-500 dark:text-emerald-400 text-right">{{ round($scoreQuality * 0.4, 2) }}</td>
+                                    <td class="py-3 px-2 text-xs font-bold text-emerald-500 dark:text-emerald-400 text-right">{{ round($scoreQuality * (($weights['soft_skill'] ?? 40) / 100), 2) }}</td>
                                 </tr>
                                 <tr>
                                     <td class="py-3 px-2 text-xs font-semibold text-slate-600 dark:text-slate-300">Kepuasan Klien (Survey)</td>
-                                    <td class="py-3 px-1.5 text-xs font-bold text-slate-700 dark:text-slate-300 text-center">30%</td>
+                                    <td class="py-3 px-1.5 text-xs font-bold text-slate-700 dark:text-slate-300 text-center">{{ $weights['client_review'] ?? 30 }}%</td>
                                     <td class="py-3 px-1.5 text-xs font-bold text-slate-700 dark:text-slate-300 text-center">{{ $scoreSurvey }}</td>
-                                    <td class="py-3 px-2 text-xs font-bold text-emerald-500 dark:text-emerald-400 text-right">{{ round($scoreSurvey * 0.3, 2) }}</td>
+                                    <td class="py-3 px-2 text-xs font-bold text-emerald-500 dark:text-emerald-400 text-right">{{ round($scoreSurvey * (($weights['client_review'] ?? 30) / 100), 2) }}</td>
                                 </tr>
                             </tbody>
                             <tfoot>
                                 <tr class="border-t-2 border-slate-200 dark:border-slate-700">
                                     <td class="py-3 px-2 text-xs font-bold text-slate-800 dark:text-slate-100">Nilai Akhir</td>
-                                    <td class="py-3 px-1.5 text-xs font-bold text-slate-800 dark:text-slate-100 text-center">100%</td>
+                                    <td class="py-3 px-1.5 text-xs font-bold text-slate-800 dark:text-slate-100 text-center">{{ (float)($weights['ticket'] ?? 30) + (float)($weights['soft_skill'] ?? 40) + (float)($weights['client_review'] ?? 30) }}%</td>
                                     <td class="py-3 px-1.5 text-xs font-bold text-slate-800 dark:text-slate-100 text-center">{{ $scoreTotal }}</td>
                                     <td class="py-3 px-2 text-sm font-extrabold text-emerald-500 dark:text-emerald-400 text-right">{{ $scoreTotal }}</td>
                                 </tr>
@@ -438,7 +438,7 @@
                         <h3 class="text-sm font-extrabold text-slate-800 dark:text-slate-100 flex items-center gap-2">
                             <i class="fa-solid fa-layer-group text-blue-500"></i> Rincian Penilaian per Modul
                         </h3>
-                        <p class="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5">Rumus: Skor = Σ (Bobot Modul × Total Tiket) | Nilai Tiket = (Skor CS / Skor Tertinggi) × 100</p>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5">Rumus: Skor = Σ (Bobot Modul × Total Tiket) | Nilai Tiket = (Skor Staff / Skor Tertinggi) × 100</p>
                     </div>
                     
                     <div class="flex items-center gap-2.5 flex-wrap w-full sm:w-auto">
@@ -605,9 +605,9 @@
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
                     <div>
                         <h3 class="text-sm font-extrabold text-slate-800 dark:text-slate-100 flex items-center gap-2">
-                            <i class="fa-solid fa-user-check text-blue-500"></i> Rincian Evaluasi Soft Skill CS
+                            <i class="fa-solid fa-user-check text-blue-500"></i> Rincian Evaluasi Soft Skill Staff
                         </h3>
-                        <p class="text-xs text-slate-400 font-medium mt-0.5">Penilaian aspek perilaku dan profesionalisme pelayanan (10 Kriteria • Bobot Kontribusi: 40%)</p>
+                        <p class="text-xs text-slate-400 font-medium mt-0.5">Penilaian aspek perilaku dan profesionalisme pelayanan (10 Kriteria • Bobot Kontribusi: {{ $weights['soft_skill'] ?? 40 }}%)</p>
                     </div>
                     <div class="text-xs bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800/60 text-emerald-700 dark:text-emerald-300 px-3 py-1 rounded-xl font-bold self-start sm:self-auto">
                         Rata-rata Soft Skill: {{ $scoreQuality }} / 100
