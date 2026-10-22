@@ -35,9 +35,6 @@
                 <div class="w-12 h-12 rounded-full flex items-center justify-center transition-colors {{ $isAllActive ? 'bg-indigo-600 text-white shadow-sm shadow-indigo-500/30' : 'bg-slate-50 dark:bg-slate-700/50 text-slate-400 dark:text-slate-400 group-hover:bg-slate-100 dark:group-hover:bg-slate-700 group-hover:text-slate-600 dark:group-hover:text-slate-200' }}">
                     <i class="fa-solid fa-ticket text-xl"></i>
                 </div>
-                @if($isAllActive)
-                <span class="absolute top-2.5 right-3 px-2 py-0.5 text-[9px] font-extrabold uppercase rounded-full bg-indigo-50 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 tracking-wider">Aktif</span>
-                @endif
             </a>
             
             {{-- Open --}}
@@ -51,9 +48,6 @@
                 <div class="w-12 h-12 rounded-full flex items-center justify-center transition-colors {{ $isOpenActive ? 'bg-blue-600 text-white shadow-sm shadow-blue-500/30' : 'bg-blue-50 dark:bg-blue-950/60 text-blue-500 dark:text-blue-400 group-hover:bg-blue-100 dark:group-hover:bg-blue-900/60' }}">
                     <i class="fa-regular fa-clock text-xl"></i>
                 </div>
-                @if($isOpenActive)
-                <span class="absolute top-2.5 right-3 px-2 py-0.5 text-[9px] font-extrabold uppercase rounded-full bg-blue-50 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 tracking-wider">Aktif</span>
-                @endif
             </a>
             
             {{-- Progress --}}
@@ -67,9 +61,6 @@
                 <div class="w-12 h-12 rounded-full flex items-center justify-center transition-colors {{ $isProgressActive ? 'bg-amber-500 text-white shadow-sm shadow-amber-500/30' : 'bg-amber-50 dark:bg-amber-950/60 text-amber-500 dark:text-amber-400 group-hover:bg-amber-100 dark:group-hover:bg-amber-900/60' }}">
                     <i class="fa-solid fa-arrows-rotate text-xl"></i>
                 </div>
-                @if($isProgressActive)
-                <span class="absolute top-2.5 right-3 px-2 py-0.5 text-[9px] font-extrabold uppercase rounded-full bg-amber-50 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800 tracking-wider">Aktif</span>
-                @endif
             </a>
             
             {{-- Closed --}}
@@ -83,9 +74,6 @@
                 <div class="w-12 h-12 rounded-full flex items-center justify-center transition-colors {{ $isClosedActive ? 'bg-emerald-500 text-white shadow-sm shadow-emerald-500/30' : 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-500 dark:text-emerald-400 group-hover:bg-emerald-100 dark:group-hover:bg-emerald-900/60' }}">
                     <i class="fa-regular fa-circle-check text-xl"></i>
                 </div>
-                @if($isClosedActive)
-                <span class="absolute top-2.5 right-3 px-2 py-0.5 text-[9px] font-extrabold uppercase rounded-full bg-emerald-50 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 tracking-wider">Aktif</span>
-                @endif
             </a>
         </div>
         
@@ -172,15 +160,15 @@
         {{-- Table Section --}}
         <div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700/80 rounded-2xl shadow-sm overflow-hidden mb-6">
             <div class="w-full overflow-x-auto custom-scrollbar">
-                <table class="w-full text-left border-collapse min-w-[1100px] table-fixed">
+                <table class="w-full text-left border-collapse min-w-[1260px] table-fixed">
                     <colgroup>
                         <col style="width: 130px;">
-                        <col style="width: 160px;">
+                        <col style="width: 155px;">
                         <col style="width: auto;">
-                        <col style="width: 185px;">
-                        <col style="width: 115px;">
-                        <col style="width: 90px;">
-                        <col style="width: 115px;">
+                        <col style="width: 195px;">
+                        <col style="width: 110px;">
+                        <col style="width: 135px;">
+                        <col style="width: 120px;">
                         <col style="width: 110px;">
                         <col style="width: 105px;">
                         <col style="width: 45px;">
@@ -188,16 +176,16 @@
                     <thead class="bg-slate-50/50 dark:bg-slate-900/60 border-b border-slate-200 dark:border-slate-700">
                         <tr>
                             <th class="py-3 px-3 sm:px-4 text-[10px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-widest whitespace-nowrap" style="width: 130px;">No. Tiket</th>
-                            <th class="py-3 px-3 sm:px-4 text-[10px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-widest" style="width: 160px;">User</th>
+                            <th class="py-3 px-3 sm:px-4 text-[10px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-widest" style="width: 155px;">User</th>
                             <th class="py-3 px-3 sm:px-4 text-[10px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Judul</th>
-                            <th class="py-3 px-3 sm:px-4 text-[10px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-widest text-left leading-tight" style="width: 185px;">
+                            <th class="py-3 px-2 sm:px-3 text-[10px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-widest text-left leading-tight" style="width: 195px;">
                                 Lama<br>Pengerjaan
                             </th>
-                            <th class="py-3 px-3 sm:px-4 text-[10px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-widest text-left leading-tight" style="width: 115px;">
+                            <th class="py-3 px-3 sm:px-4 text-[10px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-widest text-left leading-tight" style="width: 110px;">
                                 Tipe<br>Penanganan
                             </th>
-                            <th class="py-3 px-3 sm:px-4 text-[10px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-widest whitespace-nowrap" style="width: 90px;">System</th>
-                            <th class="py-3 px-3 sm:px-4 text-[10px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-widest whitespace-nowrap" style="width: 115px;">Module</th>
+                            <th class="py-3 px-3 sm:px-4 text-[10px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-widest whitespace-nowrap" style="width: 135px;">System</th>
+                            <th class="py-3 px-3 sm:px-4 text-[10px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-widest whitespace-nowrap" style="width: 120px;">Module</th>
                             <th class="py-3 px-3 sm:px-4 text-[10px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-widest text-center whitespace-nowrap" style="width: 110px;">Status</th>
                             <th class="py-3 px-3 sm:px-4 text-[10px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-widest whitespace-nowrap" style="width: 105px;">Created At</th>
                             <th class="py-3 px-3 sm:px-4 text-[10px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-widest text-center" style="width: 45px;"></th>
@@ -221,19 +209,19 @@
                                 <td class="py-3 px-3 sm:px-4 align-top">
                                     <div class="text-sm font-bold text-slate-800 dark:text-slate-100 leading-snug line-clamp-2 break-words" title="{{ $rq->title }}">{{ $rq->title }}</div>
                                 </td>
-                                <td class="py-3 px-3 sm:px-4 align-top text-left whitespace-nowrap">
+                                <td class="py-3 px-2 sm:px-3 align-top text-left whitespace-nowrap overflow-hidden">
                                     @if($rq->status == 'CLOSED')
-                                        <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-800/80 shadow-xs" title="Selesai dalam {{ $rq->duration_text }}">
-                                            <i class="fa-solid fa-clock-check text-[11px] text-emerald-600 dark:text-emerald-400"></i>
-                                            <span>{{ $rq->duration_text }}</span>
+                                        <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-800/80 shadow-xs max-w-full" title="Selesai dalam {{ $rq->duration_text }}">
+                                            <i class="fa-solid fa-clock-check text-[11px] text-emerald-600 dark:text-emerald-400 shrink-0"></i>
+                                            <span class="truncate">{{ $rq->duration_text }}</span>
                                         </div>
                                     @elseif($rq->status == 'PROGRESS')
-                                        <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-200/80 dark:border-amber-800/80 shadow-xs" title="Sedang diproses">
-                                            <span class="relative flex h-2 w-2">
+                                        <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-200/80 dark:border-amber-800/80 shadow-xs max-w-full" title="Sedang diproses: {{ $rq->duration_text }}">
+                                            <span class="relative flex h-2 w-2 shrink-0">
                                                 <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
                                                 <span class="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
                                             </span>
-                                            <span>{{ $rq->duration_text }}</span>
+                                            <span class="truncate">{{ $rq->duration_text }}</span>
                                         </div>
                                     @else
                                         <div class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold text-slate-400 dark:text-slate-500 bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700" title="Belum diproses">
@@ -251,10 +239,10 @@
                                     @endif
                                 </td>
                                 <td class="py-3 px-3 sm:px-4 align-top whitespace-nowrap">
-                                    <span class="inline-flex items-center px-2 py-1 rounded text-[11px] font-semibold bg-slate-100 dark:bg-slate-700/60 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-600/60 whitespace-nowrap max-w-full truncate" title="{{ $rq->kategoriSystem->name ?? 'N/A' }}">{{ $rq->kategoriSystem->name ?? 'N/A' }}</span>
+                                    <span class="inline-flex items-center px-2 py-1 rounded text-[11px] font-semibold bg-slate-100 dark:bg-slate-700/60 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-600/60 whitespace-nowrap" title="{{ $rq->kategoriSystem->name ?? 'N/A' }}">{{ $rq->kategoriSystem->name ?? 'N/A' }}</span>
                                 </td>
                                 <td class="py-3 px-3 sm:px-4 align-top whitespace-nowrap">
-                                    <span class="inline-flex items-center px-2 py-1 rounded text-[11px] font-semibold bg-slate-100 dark:bg-slate-700/60 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-600/60 whitespace-nowrap max-w-full truncate" title="{{ $rq->moduleSystem->name ?? 'N/A' }}">{{ $rq->moduleSystem->name ?? 'N/A' }}</span>
+                                    <span class="inline-flex items-center px-2 py-1 rounded text-[11px] font-semibold bg-slate-100 dark:bg-slate-700/60 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-600/60 whitespace-nowrap" title="{{ $rq->moduleSystem->name ?? 'N/A' }}">{{ $rq->moduleSystem->name ?? 'N/A' }}</span>
                                 </td>
                                 <td class="py-3 px-3 sm:px-4 align-top text-center">
                                     @if($rq->pending_advisor_id != null)

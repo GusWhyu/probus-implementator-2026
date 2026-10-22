@@ -1,12 +1,43 @@
+@php
+    if (!function_exists('renderDurationBadge')) {
+        function renderDurationBadge($text) {
+            if (!$text || $text === '-' || !preg_match('/(\d+)\s*menit/i', $text, $m)) {
+                return '<span class="text-slate-400 font-medium">' . e($text ?: '-') . '</span>';
+            }
+            $totalM = (int)$m[1];
+            if ($totalM == 0) {
+                return '<span class="text-slate-400 font-medium">0 m</span>';
+            }
+            $formattedM = number_format($totalM, 0, ',', '.') . ' m';
+            if ($totalM < 60) {
+                return '<span class="font-bold text-slate-700">' . $totalM . ' menit</span>';
+            }
+            $hours = floor($totalM / 60);
+            if ($hours < 48) {
+                $sub = '±' . $hours . ' jam';
+            } else {
+                $days = round($totalM / 1440, 1);
+                $sub = '±' . $hours . 'j (' . $days . ' hari)';
+            }
+            return '<div class="flex flex-col items-center leading-tight">
+                        <span class="font-bold text-slate-800">' . $formattedM . '</span>
+                        <span class="text-[10px] text-slate-400 font-normal">(' . $sub . ')</span>
+                    </div>';
+        }
+    }
+@endphp
+
 <x-app-layout>
     @php
         $scoreTicket = $rapor ? (float)($rapor->module_score ?: (optional($rapor->details ? $rapor->details->firstWhere("category.name", "Produktivitas & Resolusi Tiket") : null)->score ?: 0)) : 0;
         $scoreQuality = $rapor ? (float)($rapor->performance_score ?: (optional($rapor->details ? $rapor->details->firstWhere("category.name", "Kualitas Solusi") : null)->score ?: 0)) : 0;
         $scoreSurvey = $rapor ? (float)($rapor->review_score ?: (optional($rapor->details ? $rapor->details->firstWhere("category.name", "Kepuasan Klien (Survey)") : null)->score ?: 0)) : 0;
         $scoreTotal = $rapor ? (float)($rapor->total_score ?: 0) : 0;
-        $totalTicket = $rapor ? (int)($rapor->total_ticket ?: 0) : 0;
-        $ticketDiAdvice = $rapor ? (int)($rapor->total_ticket_yang_di_advice ?: 0) : 0;
+        $totalTicket = isset($tiket_ditangani) ? (int)$tiket_ditangani : ($rapor ? (int)($rapor->total_ticket ?: 0) : 0);
+        $tiketSelesai = isset($tiket_selesai) ? (int)$tiket_selesai : 0;
+        $ticketDiAdvice = isset($tiket_di_advice) ? (int)$tiket_di_advice : ($rapor ? (int)($rapor->total_ticket_yang_di_advice ?: 0) : 0);
         $rataRataWaktu = $rapor ? ($rapor->rata_rata_waktu ?: '-') : '-';
+        $cRate = isset($completion_rate) ? $completion_rate : ($totalTicket > 0 ? round(($tiketSelesai / $totalTicket) * 100, 1) : 0);
         $predikat = $scoreTotal >= 80 ? 'Sangat Baik' : ($scoreTotal >= 70 ? 'Baik' : 'Cukup');
         $badgeClass = $scoreTotal >= 80 ? 'bg-teal-50 text-teal-700 border-teal-200' : ($scoreTotal >= 70 ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-rose-50 text-rose-700 border-rose-200');
     @endphp
@@ -140,16 +171,30 @@
                 </div>
 
                 <!-- Kepuasan Klien -->
-                <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm relative overflow-hidden">
-                    <div class="flex items-center gap-3 mb-4">
-                        <div class="w-10 h-10 rounded-xl bg-purple-50 text-purple-500 flex items-center justify-center">
-                            <i class="fa-regular fa-face-smile"></i>
+                <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm relative overflow-hidden flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="w-10 h-10 rounded-xl bg-purple-50 text-purple-500 flex items-center justify-center">
+                                <i class="fa-regular fa-face-smile"></i>
+                            </div>
+                            <span class="font-bold text-slate-500 text-sm">Kepuasan Klien</span>
                         </div>
-                        <span class="font-bold text-slate-500 text-sm">Kepuasan Klien</span>
+                        <div class="flex items-end gap-2">
+                            <span class="text-4xl font-extrabold text-purple-500">{{ $scoreSurvey }}</span>
+                            <span class="text-sm font-bold text-slate-400 mb-1">/ 100</span>
+                        </div>
                     </div>
-                    <div class="flex items-end gap-2">
-                        <span class="text-4xl font-extrabold text-purple-500">{{ $scoreSurvey }}</span>
-                        <span class="text-sm font-bold text-slate-400 mb-1">/ 100</span>
+                    <div class="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between text-xs">
+                        <div class="flex items-center gap-1 text-amber-400">
+                            @php
+                                $cr5 = isset($client_rating) ? (float)$client_rating : ($scoreSurvey > 0 ? round($scoreSurvey / 20, 1) : 0);
+                            @endphp
+                            @for($s = 1; $s <= 5; $s++)
+                                <i class="fa-solid fa-star text-[11px] {{ $s <= round($cr5) ? 'text-amber-400' : 'text-slate-200' }}"></i>
+                            @endfor
+                            <span class="text-[11px] font-bold text-slate-600 ml-1">{{ number_format($cr5, 1) }} / 5.0</span>
+                        </div>
+                        <span class="text-[10px] font-semibold text-slate-400">Review Klien</span>
                     </div>
                 </div>
 
@@ -173,38 +218,82 @@
                 </div>
             </div>
 
-            <!-- Ticket Stats Row -->
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-6">
-                <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm flex items-center gap-4">
-                    <div class="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
-                        <i class="fa-solid fa-ticket text-lg"></i>
+            <!-- Ticket Stats Row (Mobile-friendly 2x2 Grid on Mobile, 4 Columns on Desktop) -->
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 mb-4">
+                <div class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-sm flex items-center gap-3 sm:gap-4">
+                    <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+                        <i class="fa-solid fa-ticket text-base sm:text-lg"></i>
                     </div>
-                    <div>
-                        <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Total Ticket</span>
-                        <span class="text-2xl font-extrabold text-slate-800">{{ $totalTicket }}</span>
-                    </div>
-                </div>
-
-                <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm flex items-center gap-4">
-                    <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
-                        <i class="fa-solid fa-user-shield text-lg"></i>
-                    </div>
-                    <div>
-                        <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Total Ticket di Advice</span>
-                        <span class="text-2xl font-extrabold text-slate-800">{{ $ticketDiAdvice }}</span>
+                    <div class="min-w-0">
+                        <span class="text-[10px] sm:text-[11px] font-bold text-slate-400 uppercase tracking-wider block truncate">Total Ticket</span>
+                        <span class="text-xl sm:text-2xl font-extrabold text-slate-800">{{ $totalTicket }}</span>
                     </div>
                 </div>
 
-                <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm flex items-center gap-4">
-                    <div class="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
-                        <i class="fa-regular fa-clock text-lg"></i>
+                <div class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-sm flex flex-col justify-between">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2.5 sm:gap-3 min-w-0">
+                            <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+                                <i class="fa-regular fa-circle-check text-base sm:text-lg"></i>
+                            </div>
+                            <div class="min-w-0">
+                                <span class="text-[10px] sm:text-[11px] font-bold text-slate-400 uppercase tracking-wider block truncate">Tiket Selesai</span>
+                                <span class="text-xl sm:text-2xl font-extrabold text-slate-800 leading-tight">{{ $tiketSelesai }}</span>
+                            </div>
+                        </div>
+                        <span class="text-[10px] sm:text-xs font-black text-emerald-600 bg-emerald-50 px-1.5 sm:px-2 py-0.5 rounded-lg border border-emerald-100 shrink-0">{{ $cRate }}%</span>
                     </div>
-                    <div>
-                        <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Rata-rata Waktu</span>
-                        <span class="text-2xl font-extrabold text-slate-800">{{ $rataRataWaktu }}</span>
+                    <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden mt-2.5 sm:mt-3">
+                        <div class="bg-emerald-500 h-full rounded-full transition-all duration-500" style="width: {{ min(100, $cRate) }}%;"></div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-sm flex items-center gap-3 sm:gap-4">
+                    <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
+                        <i class="fa-solid fa-user-shield text-base sm:text-lg"></i>
+                    </div>
+                    <div class="min-w-0">
+                        <span class="text-[10px] sm:text-[11px] font-bold text-slate-400 uppercase tracking-wider block truncate">Ticket Advice</span>
+                        <span class="text-xl sm:text-2xl font-extrabold text-slate-800">{{ $ticketDiAdvice }}</span>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-sm flex items-center gap-3 sm:gap-4">
+                    <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
+                        <i class="fa-regular fa-clock text-base sm:text-lg"></i>
+                    </div>
+                    <div class="min-w-0">
+                        <span class="text-[10px] sm:text-[11px] font-bold text-slate-400 uppercase tracking-wider block truncate">Rata-rata Waktu</span>
+                        <span class="text-sm sm:text-2xl font-extrabold text-slate-800 truncate block" title="{{ $rataRataWaktu }}">{{ $rataRataWaktu }}</span>
                     </div>
                 </div>
             </div>
+
+            <!-- Modul Terbanyak Ditangani (Top Handled Module) -->
+            @if(!empty($topHandledModuleName) && $topHandledModuleName !== '-')
+            <div class="mb-6 p-3.5 sm:p-4 bg-white rounded-2xl border border-slate-200 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div class="flex items-center gap-3 min-w-0">
+                    <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-amber-50 text-amber-600 border border-amber-200/80 flex items-center justify-center shrink-0 shadow-2xs">
+                        <i class="fa-solid fa-crown text-sm sm:text-base"></i>
+                    </div>
+                    <div class="min-w-0">
+                        <p class="text-[10px] sm:text-[11px] font-bold text-amber-700 uppercase tracking-wider flex items-center gap-1.5 flex-wrap">
+                            <span>Modul Terbanyak Ditangani</span>
+                            <span class="text-slate-400 font-medium normal-case hidden xs:inline">(Fokus Utama Layanan CS)</span>
+                        </p>
+                        <p class="text-xs sm:text-sm font-extrabold text-slate-800 truncate mt-0.5">
+                            {{ $topHandledModuleName }}
+                        </p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2 self-start sm:self-center shrink-0 w-full sm:w-auto">
+                    <span class="text-xs font-black px-3 py-1.5 rounded-xl bg-amber-100 text-amber-900 border border-amber-200/80 shadow-2xs inline-flex items-center justify-center gap-1.5 w-full sm:w-auto">
+                        <i class="fa-solid fa-ticket text-xs text-amber-600"></i>
+                        {{ $topHandledModuleCount }} Tiket Ditangani
+                    </span>
+                </div>
+            </div>
+            @endif
 
             <!-- Middle Section -->
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
@@ -279,11 +368,11 @@
                     <div class="flex-1">
                         <table class="w-full text-left border-collapse">
                             <thead>
-                                <tr class="border-b border-slate-200">
-                                    <th class="py-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Komponen</th>
-                                    <th class="py-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider text-center">Bobot (%)</th>
-                                    <th class="py-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider text-center">Nilai (100)</th>
-                                    <th class="py-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider text-right">Kontribusi</th>
+                                <tr class="border-b-2 border-slate-200 dark:border-slate-700 bg-slate-100/90 dark:bg-slate-800/90 text-slate-800 dark:text-slate-100">
+                                    <th class="py-2.5 px-3 text-[11px] sm:text-xs font-black text-slate-800 dark:text-slate-100 uppercase tracking-wider">Komponen</th>
+                                    <th class="py-2.5 px-2 text-[11px] sm:text-xs font-black text-slate-800 dark:text-slate-100 uppercase tracking-wider text-center">Bobot (%)</th>
+                                    <th class="py-2.5 px-2 text-[11px] sm:text-xs font-black text-slate-800 dark:text-slate-100 uppercase tracking-wider text-center">Nilai (100)</th>
+                                    <th class="py-2.5 px-3 text-[11px] sm:text-xs font-black text-slate-800 dark:text-slate-100 uppercase tracking-wider text-right">Kontribusi</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-slate-100">
@@ -319,75 +408,165 @@
                 </div>
             </div>
 
-            <!-- Rincian Modul Tiket (6 Kolom: Modul, Beban, Total Ticket, Lama Waktu, Rata-rata Waktu, Rata-rata Skor) -->
-            @if($rapor && $rapor->moduleDetails && $rapor->moduleDetails->count() > 0)
-            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 mb-6">
+            <!-- Rincian Penilaian per Modul (6 Kolom: Modul, Beban, Total Ticket, Lama Waktu, Rata-rata Waktu, Skor Poin) -->
+            @php
+                $modulesList = isset($moduleTableData) && count($moduleTableData) > 0 ? $moduleTableData : [];
+                if (empty($modulesList) && $rapor && $rapor->moduleDetails) {
+                    foreach ($rapor->moduleDetails as $mdItem) {
+                        $modulesList[] = [
+                            'id' => $mdItem->module_id,
+                            'name' => $mdItem->moduleSystem->name ?? $mdItem->module->name ?? 'Modul',
+                            'bobot' => $mdItem->bobot,
+                            'total_ticket' => $mdItem->total_ticket,
+                            'lama_waktu' => $mdItem->lama_waktu ?: ($mdItem->rata_rata_waktu ?: '-'),
+                            'rata_rata_waktu' => $mdItem->rata_rata_waktu ?: '-',
+                            'score' => $mdItem->score,
+                        ];
+                    }
+                }
+                $handledCount = collect($modulesList)->where('total_ticket', '>', 0)->count();
+                $totalSumTickets = collect($modulesList)->sum('total_ticket');
+                $totalSumScore = $raw_ticket_score ?? collect($modulesList)->sum('score');
+            @endphp
+            @if(count($modulesList) > 0)
+            <div x-data="{ onlyHandled: {{ $handledCount > 0 ? 'false' : 'false' }} }" class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 mb-6">
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
                     <div>
                         <h3 class="text-sm font-extrabold text-slate-800 flex items-center gap-2">
                             <i class="fa-solid fa-layer-group text-blue-500"></i> Rincian Penilaian per Modul
                         </h3>
-                        <p class="text-xs text-slate-400 font-medium mt-0.5">Rumus: Skor = Σ (Beban Modul × Total Ticket) | Nilai Tiket = (Skor CS / Skor Tertinggi) × 100</p>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5">Rumus: Skor = Σ (Bobot Modul × Total Tiket) | Nilai Tiket = (Skor CS / Skor Tertinggi) × 100</p>
                     </div>
-                    @if(($rapor->max_ticket_score ?? 0) > 0)
-                    <div class="text-xs bg-blue-50 border border-blue-200 text-blue-700 px-3 py-1 rounded-xl font-bold">
-                        Benchmark Tertinggi: {{ number_format($rapor->max_ticket_score, 0, ',', '.') }} poin
+                    
+                    <div class="flex items-center gap-2.5 flex-wrap w-full sm:w-auto">
+                        <!-- Filter Toggle: Semua Modul vs Hanya Ditangani -->
+                        <div class="inline-flex items-center p-1 bg-slate-100 dark:bg-slate-800 rounded-xl text-xs font-semibold shrink-0 w-full sm:w-auto justify-between sm:justify-start">
+                            <button type="button" @click="onlyHandled = false" 
+                                :class="!onlyHandled ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-xs' : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-300'"
+                                class="px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer flex-1 sm:flex-initial justify-center">
+                                <span>Semua Modul</span>
+                                <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-slate-200/70 dark:bg-slate-600 text-slate-600 dark:text-slate-300 font-bold">{{ count($modulesList) }}</span>
+                            </button>
+                            <button type="button" @click="onlyHandled = true" 
+                                :class="onlyHandled ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-xs' : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-300'"
+                                class="px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer flex-1 sm:flex-initial justify-center">
+                                <span>Hanya Ditangani</span>
+                                <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-blue-100 dark:bg-blue-900/60 text-blue-700 dark:text-blue-300 font-bold">{{ $handledCount }}</span>
+                            </button>
+                        </div>
+
+                        @if(($max_ticket_score ?? ($rapor->max_ticket_score ?? 0)) > 0)
+                        <div class="text-xs bg-blue-50 dark:bg-blue-950/50 border border-blue-200 dark:border-blue-800/60 text-blue-700 dark:text-blue-300 px-3 py-1.5 rounded-xl font-bold whitespace-nowrap self-start sm:self-auto">
+                            Benchmark Tertinggi: {{ number_format($max_ticket_score ?? $rapor->max_ticket_score, 0, ',', '.') }} poin
+                        </div>
+                        @endif
                     </div>
-                    @endif
                 </div>
 
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse">
+                <div class="overflow-x-auto -mx-5 sm:mx-0 px-5 sm:px-0">
+                    <table class="w-full text-left border-collapse min-w-[620px]">
                         <thead>
-                            <tr class="border-b border-slate-200 bg-slate-50/50">
-                                <th class="py-3 px-4 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Modul</th>
-                                <th class="py-3 px-4 text-[10px] font-bold text-slate-400 uppercase tracking-wider text-center">Beban</th>
-                                <th class="py-3 px-4 text-[10px] font-bold text-slate-400 uppercase tracking-wider text-center">Total Ticket</th>
-                                <th class="py-3 px-4 text-[10px] font-bold text-slate-400 uppercase tracking-wider text-center">Lama Waktu</th>
-                                <th class="py-3 px-4 text-[10px] font-bold text-slate-400 uppercase tracking-wider text-center">Rata-rata Waktu</th>
-                                <th class="py-3 px-4 text-[10px] font-bold text-slate-400 uppercase tracking-wider text-right">Rata-rata Skor</th>
+                            <tr class="border-b-2 border-slate-200 dark:border-slate-700 bg-slate-100/90 dark:bg-slate-800/90 text-slate-800 dark:text-slate-100 text-[11px] sm:text-xs font-black uppercase tracking-wider">
+                                <th class="py-3 px-3.5 sm:px-4 text-slate-800 dark:text-slate-100 font-black">Modul</th>
+                                <th class="py-3 px-3 sm:px-4 text-center text-slate-800 dark:text-slate-100 font-black">Bobot</th>
+                                <th class="py-3 px-3 sm:px-4 text-center text-slate-800 dark:text-slate-100 font-black">Total Tiket</th>
+                                <th class="py-3 px-3 sm:px-4 text-center text-slate-800 dark:text-slate-100 font-black">Lama Pengerjaan</th>
+                                <th class="py-3 px-3 sm:px-4 text-center text-slate-800 dark:text-slate-100 font-black">Rata-rata Waktu</th>
+                                <th class="py-3 px-3.5 sm:px-4 text-right text-slate-800 dark:text-slate-100 font-black">Skor Poin</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100">
-                            @foreach($rapor->moduleDetails as $md)
-                            <tr>
-                                <td class="py-3 px-4 text-xs font-bold text-slate-700">{{ $md->moduleSystem->name ?? $md->module->name ?? 'Modul' }}</td>
-                                <td class="py-3 px-4 text-xs font-semibold text-slate-600 text-center">{{ $md->bobot }}</td>
-                                <td class="py-3 px-4 text-xs font-bold text-slate-800 text-center">{{ $md->total_ticket }}</td>
-                                <td class="py-3 px-4 text-xs font-semibold text-slate-600 text-center">{{ $md->lama_waktu ?: ($md->rata_rata_waktu ?: '-') }}</td>
-                                <td class="py-3 px-4 text-xs font-semibold text-slate-600 text-center">{{ $md->rata_rata_waktu ?: '-' }}</td>
-                                <td class="py-3 px-4 text-xs font-extrabold text-blue-600 text-right font-mono">{{ number_format($md->score, 0, ',', '.') }}</td>
+                            @foreach($modulesList as $md)
+                            @php
+                                $hasTickets = ($md['total_ticket'] > 0);
+                            @endphp
+                            <tr x-show="!onlyHandled || {{ $hasTickets ? 'true' : 'false' }}"
+                                class="transition-colors {{ $hasTickets ? 'bg-blue-50/20 hover:bg-blue-50/40' : 'opacity-40 hover:opacity-100 hover:bg-slate-50/50' }}">
+                                <td class="py-3 px-4 text-xs font-bold {{ $hasTickets ? 'text-slate-800' : 'text-slate-500' }}">
+                                    <div class="flex items-center gap-2">
+                                        @if($hasTickets)
+                                        <span class="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0"></span>
+                                        @else
+                                        <span class="w-1.5 h-1.5 rounded-full bg-slate-300 shrink-0"></span>
+                                        @endif
+                                        <span>{{ $md['name'] }}</span>
+                                    </div>
+                                </td>
+                                <td class="py-3 px-4 text-xs font-semibold text-slate-600 text-center">{{ $md['bobot'] }}</td>
+                                <td class="py-3 px-4 text-xs font-bold text-center">
+                                    @if($hasTickets)
+                                    <span class="inline-flex items-center justify-center px-2.5 py-1 rounded-lg text-xs font-black bg-blue-100 text-blue-700 border border-blue-200 shadow-2xs">
+                                        {{ $md['total_ticket'] }} Tiket
+                                    </span>
+                                    @else
+                                    <span class="text-xs text-slate-400 font-medium">0</span>
+                                    @endif
+                                </td>
+                                <td class="py-3 px-4 text-xs font-semibold text-slate-600 text-center">{!! renderDurationBadge($md['lama_waktu'] ?? '-') !!}</td>
+                                <td class="py-3 px-4 text-xs font-semibold text-slate-600 text-center">{!! renderDurationBadge($md['rata_rata_waktu'] ?? '-') !!}</td>
+                                <td class="py-3 px-4 text-xs font-black text-right font-mono {{ $hasTickets ? 'text-blue-600' : 'text-slate-400' }}">
+                                    {{ number_format($md['score'], 0, ',', '.') }}
+                                </td>
                             </tr>
                             @endforeach
                         </tbody>
                         <tfoot>
-                            <tr class="bg-slate-50 dark:bg-slate-800/80 border-t-2 border-slate-200 dark:border-slate-700 font-extrabold text-xs text-slate-800 dark:text-slate-100">
-                                <td class="py-3.5 px-4 uppercase text-slate-500 dark:text-slate-400 font-bold">Total Keseluruhan</td>
-                                <td class="py-3.5 px-4 text-center text-slate-400 dark:text-slate-500">&ndash;</td>
-                                <td class="py-3.5 px-4 text-center text-blue-600 dark:text-blue-400 font-black">{{ $rapor->moduleDetails->sum('total_ticket') }} tiket</td>
-                                <td class="py-3.5 px-4 text-center text-slate-500 dark:text-slate-400 font-semibold">{{ $rapor->lama_waktu ?: ($rapor->rata_rata_waktu ?: '-') }}</td>
-                                <td class="py-3.5 px-4 text-center text-slate-500 dark:text-slate-400 font-semibold">{{ $rapor->rata_rata_waktu ?: '-' }}</td>
-                                <td class="py-3.5 px-4 text-right font-mono font-black text-blue-700 dark:text-blue-400 text-sm">{{ number_format($rapor->raw_ticket_score ?? $rapor->moduleDetails->sum('score'), 0, ',', '.') }} poin</td>
+                            <tr class="bg-slate-50 border-t-2 border-slate-200 font-extrabold text-xs text-slate-800">
+                                <td class="py-3.5 px-4 uppercase text-slate-500 font-bold">Total Keseluruhan</td>
+                                <td class="py-3.5 px-4 text-center text-slate-400">&ndash;</td>
+                                <td class="py-3.5 px-4 text-center">
+                                    <span class="inline-flex items-center justify-center px-2.5 py-1 rounded-lg text-xs font-black bg-blue-600 text-white shadow-xs">
+                                        {{ $totalSumTickets }} tiket
+                                    </span>
+                                </td>
+                                <td class="py-3.5 px-4 text-center">{!! renderDurationBadge($rapor->lama_waktu ?? '-') !!}</td>
+                                <td class="py-3.5 px-4 text-center">{!! renderDurationBadge($rapor->rata_rata_waktu ?? '-') !!}</td>
+                                <td class="py-3.5 px-4 text-right font-mono font-black text-blue-700 text-sm">{{ number_format($totalSumScore, 0, ',', '.') }} poin</td>
                             </tr>
                         </tfoot>
                     </table>
                 </div>
 
-                @if(($rapor->max_ticket_score ?? 0) > 0)
-                <div class="mt-4 pt-3 border-t border-slate-100 dark:border-slate-700 flex flex-col sm:flex-row sm:items-center justify-between text-xs text-slate-600 dark:text-slate-400 gap-2 bg-slate-50/70 dark:bg-slate-800/60 p-3 rounded-xl">
-                    <div>
-                        <span class="font-bold text-slate-700 dark:text-slate-200">Hasil Normalisasi Nilai:</span>
-                        <span class="font-mono text-slate-500 dark:text-slate-400">({{ number_format($rapor->raw_ticket_score ?? $rapor->moduleDetails->sum('score'), 0, ',', '.') }} : {{ number_format($rapor->max_ticket_score, 0, ',', '.') }}) × 100</span>
+                @php
+                    $finalMaxScore = $max_ticket_score ?? ($rapor->max_ticket_score ?? 0);
+                    $finalRawScore = $raw_ticket_score ?? ($rapor->raw_ticket_score ?? $totalSumScore);
+                    $finalTeamPortion = $team_portion ?? ($rapor->team_portion ?? 0);
+                @endphp
+                @if($finalMaxScore > 0)
+                <div class="mt-4 p-3.5 sm:p-4 rounded-xl bg-slate-50 dark:bg-slate-900/70 border border-slate-200/80 dark:border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-3 sm:gap-4">
+                    <div class="flex items-start sm:items-center gap-3">
+                        <div class="w-9 h-9 rounded-xl bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 border border-blue-200/60 dark:border-blue-900/40 flex items-center justify-center shrink-0">
+                            <i class="fa-solid fa-calculator text-sm"></i>
+                        </div>
+                        <div>
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <span class="text-xs font-bold text-slate-800 dark:text-slate-200">Kalkulasi Normalisasi Nilai Tiket</span>
+                                @if(!empty($top_performer_name))
+                                <span class="text-[10px] font-semibold text-slate-500 dark:text-slate-400 bg-slate-200/60 dark:bg-slate-800 px-2 py-0.5 rounded-md">
+                                    Benchmark Tertinggi: {{ $top_performer_name }} ({{ number_format($finalMaxScore, 0, ',', '.') }} poin)
+                                </span>
+                                @else
+                                <span class="text-[10px] font-semibold text-slate-500 dark:text-slate-400 bg-slate-200/60 dark:bg-slate-800 px-2 py-0.5 rounded-md">
+                                    Benchmark Tertinggi: {{ number_format($finalMaxScore, 0, ',', '.') }} poin
+                                </span>
+                                @endif
+                            </div>
+                            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                                Rumus: <span class="font-mono font-semibold text-slate-700 dark:text-slate-300">({{ number_format($finalRawScore, 0, ',', '.') }} poin ÷ {{ number_format($finalMaxScore, 0, ',', '.') }} poin) × 100</span>
+                            </p>
+                        </div>
                     </div>
-                    <div class="flex items-center gap-3">
-                        @if(($rapor->team_portion ?? 0) > 0)
-                        <span class="text-indigo-600 dark:text-indigo-400 font-bold bg-indigo-50 dark:bg-indigo-950/40 px-2.5 py-1 rounded-lg border border-indigo-100 dark:border-indigo-800/40">
-                            Porsi Tim: {{ $rapor->team_portion }}%
+                    <div class="flex items-center justify-between sm:justify-end gap-2.5 sm:gap-3 shrink-0 border-t md:border-t-0 pt-3 md:pt-0 border-slate-200/60 dark:border-slate-800 w-full md:w-auto">
+                        @if($finalTeamPortion > 0)
+                        <span class="text-indigo-600 dark:text-indigo-400 font-bold bg-indigo-50 dark:bg-indigo-950/40 px-2.5 py-1 rounded-lg border border-indigo-100 dark:border-indigo-800/40 text-xs">
+                            Porsi Tim: {{ $finalTeamPortion }}%
                         </span>
                         @endif
-                        <span class="text-blue-700 dark:text-blue-400 font-extrabold bg-blue-100 dark:bg-blue-950/60 px-3 py-1 rounded-lg">
-                            Nilai Tiket: {{ $rapor->module_score }} / 100
-                        </span>
+                        <div class="flex items-baseline gap-1 bg-blue-100 dark:bg-blue-950/60 px-3 py-1 rounded-lg border border-blue-200/60 dark:border-blue-900/40">
+                            <span class="text-xs font-bold text-blue-800 dark:text-blue-300 uppercase tracking-wide mr-1">Nilai Tiket:</span>
+                            <span class="text-lg sm:text-xl font-black text-blue-700 dark:text-blue-400 font-mono">{{ $scoreTicket }}</span>
+                            <span class="text-xs font-bold text-blue-500 dark:text-blue-400">/ 100</span>
+                        </div>
                     </div>
                 </div>
                 @endif

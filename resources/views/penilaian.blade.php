@@ -1,3 +1,32 @@
+@php
+    if (!function_exists('renderDurationBadge')) {
+        function renderDurationBadge($text) {
+            if (!$text || $text === '-' || !preg_match('/(\d+)\s*menit/i', $text, $m)) {
+                return '<span class="text-slate-400 font-medium">' . e($text ?: '-') . '</span>';
+            }
+            $totalM = (int)$m[1];
+            if ($totalM == 0) {
+                return '<span class="text-slate-400 font-medium">0 m</span>';
+            }
+            $formattedM = number_format($totalM, 0, ',', '.') . ' m';
+            if ($totalM < 60) {
+                return '<span class="font-bold text-slate-700 dark:text-slate-200">' . $totalM . ' menit</span>';
+            }
+            $hours = floor($totalM / 60);
+            if ($hours < 48) {
+                $sub = '±' . $hours . ' jam';
+            } else {
+                $days = round($totalM / 1440, 1);
+                $sub = '±' . $hours . 'j (' . $days . ' hari)';
+            }
+            return '<div class="flex flex-col items-center leading-tight">
+                        <span class="font-bold text-slate-800 dark:text-slate-200">' . $formattedM . '</span>
+                        <span class="text-[10px] text-slate-400 dark:text-slate-400 font-normal">(' . $sub . ')</span>
+                    </div>';
+        }
+    }
+@endphp
+
 <x-app-layout>
     <div class="py-6 bg-slate-50 min-h-screen" x-data="{
         nilaiTiket: {{ (float)$nilai_tiket }},
@@ -109,131 +138,297 @@
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                         
                         <!-- Ringkasan Statistik Ticket -->
-                        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6">
-                            <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2 mb-5">
-                                <i class="fa-regular fa-clipboard text-blue-500"></i> Ringkasan Statistik Ticket
-                            </h3>
-                            <div class="space-y-4 text-xs sm:text-sm">
-                                <div class="flex items-center justify-between text-slate-600">
-                                    <span class="flex items-center gap-2.5">
-                                        <i class="fa-regular fa-comment-dots text-slate-400 w-4"></i> Tiket ditangani
-                                    </span>
-                                    <span class="font-bold text-slate-900">{{ $tiket_ditangani }}</span>
+                        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-5 sm:p-6 flex flex-col justify-between">
+                            <div>
+                                <div class="flex items-center justify-between mb-4">
+                                    <h3 class="text-sm font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
+                                        <i class="fa-regular fa-clipboard text-blue-500"></i> Ringkasan Statistik Tiket
+                                    </h3>
+                                    <span class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Aktivitas Bulanan</span>
                                 </div>
-                                <div class="flex items-center justify-between text-slate-600">
-                                    <span class="flex items-center gap-2.5">
-                                        <i class="fa-regular fa-clock text-slate-400 w-4"></i> Tiket selesai
-                                    </span>
-                                    <span class="font-bold text-slate-900">{{ $tiket_selesai }}</span>
+
+                                <!-- Mini Metrics Grid (2x2) -->
+                                <div class="grid grid-cols-2 gap-3 mb-4">
+                                    <!-- Tiket Ditangani -->
+                                    <div class="bg-slate-50/80 dark:bg-slate-900/60 p-3 rounded-xl border border-slate-100 dark:border-slate-800/80">
+                                        <div class="flex items-center gap-2 text-slate-400 dark:text-slate-400 mb-1">
+                                            <i class="fa-regular fa-comment-dots text-xs text-blue-500"></i>
+                                            <span class="text-[11px] font-medium truncate">Tiket Ditangani</span>
+                                        </div>
+                                        <div class="text-lg font-black text-slate-900 dark:text-white leading-tight">
+                                            {{ $tiket_ditangani }}
+                                        </div>
+                                    </div>
+
+                                    <!-- Tiket Selesai -->
+                                    <div class="bg-slate-50/80 dark:bg-slate-900/60 p-3 rounded-xl border border-slate-100 dark:border-slate-800/80">
+                                        <div class="flex items-center gap-2 text-slate-400 dark:text-slate-400 mb-1">
+                                            <i class="fa-regular fa-circle-check text-xs text-emerald-500"></i>
+                                            <span class="text-[11px] font-medium truncate">Tiket Selesai</span>
+                                        </div>
+                                        <div class="text-lg font-black text-slate-900 dark:text-white leading-tight">
+                                            {{ $tiket_selesai }}
+                                        </div>
+                                    </div>
+
+                                    <!-- Rata-rata Respon -->
+                                    <div class="bg-slate-50/80 dark:bg-slate-900/60 p-3 rounded-xl border border-slate-100 dark:border-slate-800/80">
+                                        <div class="flex items-center gap-2 text-slate-400 dark:text-slate-400 mb-1">
+                                            <i class="fa-solid fa-stopwatch text-xs text-purple-500"></i>
+                                            <span class="text-[11px] font-medium truncate">Rata-rata Respon</span>
+                                        </div>
+                                        <div class="text-xs sm:text-sm font-bold text-slate-900 dark:text-white leading-tight truncate" title="{{ $rata_rata_waktu }}">
+                                            {{ $rata_rata_waktu }}
+                                        </div>
+                                    </div>
+
+                                    <!-- Persentase Penyelesaian -->
+                                    @php
+                                        $completionRate = $tiket_ditangani > 0 ? round(($tiket_selesai / $tiket_ditangani) * 100, 1) : 0;
+                                    @endphp
+                                    <div class="bg-slate-50/80 dark:bg-slate-900/60 p-3 rounded-xl border border-slate-100 dark:border-slate-800/80 flex flex-col justify-between">
+                                        <div class="flex items-center justify-between text-slate-400 dark:text-slate-400 mb-1">
+                                            <span class="text-[11px] font-medium truncate">Penyelesaian</span>
+                                            <span class="text-xs font-black text-slate-900 dark:text-white">{{ $completionRate }}%</span>
+                                        </div>
+                                        <div class="w-full bg-slate-200 dark:bg-slate-700/60 h-1.5 rounded-full overflow-hidden mt-1">
+                                            <div class="bg-emerald-500 h-full rounded-full transition-all duration-500" style="width: {{ min(100, $completionRate) }}%;"></div>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="flex items-center justify-between text-slate-600">
-                                    <span class="flex items-center gap-2.5">
-                                        <i class="fa-solid fa-stopwatch text-slate-400 w-4"></i> Rata-rata respon
-                                    </span>
-                                    <span class="font-bold text-slate-900">{{ $rata_rata_waktu }}</span>
+                            </div>
+
+                            <!-- Opsi A: Modul Terbanyak Ditangani (Riil Kinerja CS) -->
+                            <div class="p-3 bg-amber-50/60 dark:bg-amber-950/30 border border-amber-200/80 dark:border-amber-800/50 rounded-xl flex items-center justify-between gap-3">
+                                <div class="flex items-center gap-2.5 min-w-0">
+                                    <div class="w-7 h-7 rounded-lg bg-amber-100 dark:bg-amber-900/50 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
+                                        <i class="fa-solid fa-crown text-xs"></i>
+                                    </div>
+                                    <div class="min-w-0">
+                                        <p class="text-[10px] font-bold text-amber-800 dark:text-amber-300 uppercase tracking-wider">Modul Terbanyak Ditangani</p>
+                                        <p class="text-xs font-bold text-slate-800 dark:text-slate-100 truncate mt-0.5">
+                                            {{ $topHandledModuleName ?? '-' }}
+                                        </p>
+                                    </div>
                                 </div>
-                                <div class="flex items-center justify-between text-slate-600">
-                                    <span class="flex items-center gap-2.5">
-                                        <i class="fa-solid fa-chart-line text-slate-400 w-4"></i> Persentase tiket selesai
-                                    </span>
-                                    <span class="font-bold text-slate-900">
-                                        {{ $tiket_ditangani > 0 ? round(($tiket_selesai / $tiket_ditangani) * 100, 1) : 0 }}%
-                                    </span>
-                                </div>
-                                <div class="flex items-center justify-between text-slate-600 pt-1 border-t border-slate-100">
-                                    <span class="flex items-center gap-2.5">
-                                        <i class="fa-solid fa-crown text-amber-500 w-4"></i> Bobot Tertinggi Modul
-                                    </span>
-                                    <span class="font-bold text-slate-900">
-                                        {{ is_object($highestBobotModule) ? $highestBobotModule->name : ($highestBobotModule ?? '-') }} <span class="text-xs text-slate-500 font-semibold">(Bobot: {{ $highestBobotVal ?? 0 }})</span>
-                                    </span>
-                                </div>
+                                <span class="text-xs font-extrabold px-2.5 py-1 rounded-lg bg-amber-100 dark:bg-amber-900/60 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800/60 shrink-0 whitespace-nowrap">
+                                    {{ $topHandledModuleCount ?? 0 }} Tiket
+                                </span>
                             </div>
                         </div>
 
-                        <!-- Bobot Nilai -->
-                        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6">
-                            <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2 mb-5">
-                                <i class="fa-regular fa-lightbulb text-emerald-500"></i> Bobot Nilai
-                            </h3>
-                            <div class="space-y-4 text-xs sm:text-sm">
-                                <div class="flex items-center justify-between text-slate-600">
-                                    <span>Nilai Tiket (30%)</span>
-                                    <span class="font-bold text-slate-900">{{ $nilai_tiket }}</span>
+                        <!-- Table Rincian Perhitungan Nilai Berdasarkan Bobot (Format Rapor) -->
+                        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-5 sm:p-6 flex flex-col justify-between">
+                            <div>
+                                <div class="flex items-center justify-between mb-3">
+                                    <h3 class="text-sm font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
+                                        <i class="fa-regular fa-chart-bar text-emerald-500"></i> Rincian Perhitungan Nilai Berdasarkan Bobot
+                                    </h3>
+                                    <span class="px-2.5 py-1 rounded-lg text-xs font-extrabold uppercase tracking-wide border shadow-xs inline-flex items-center gap-1.5 shrink-0"
+                                        :class="{
+                                            'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800': Number(nilaiAkhir()) >= 85,
+                                            'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/60 dark:text-blue-300 dark:border-blue-800': Number(nilaiAkhir()) >= 70 && Number(nilaiAkhir()) < 85,
+                                            'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-800': Number(nilaiAkhir()) >= 50 && Number(nilaiAkhir()) < 70,
+                                            'bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/60 dark:text-rose-300 dark:border-rose-800': Number(nilaiAkhir()) < 50
+                                        }">
+                                        <i class="fa-solid fa-award text-xs"></i>
+                                        <span x-text="Number(nilaiAkhir()) >= 85 ? 'Sangat Baik' : (Number(nilaiAkhir()) >= 70 ? 'Baik' : (Number(nilaiAkhir()) >= 50 ? 'Cukup' : 'Perlu Evaluasi'))"></span>
+                                    </span>
                                 </div>
-                                <div class="flex items-center justify-between text-slate-600">
-                                    <span>Nilai Soft Skill (40%)</span>
-                                    <span class="font-bold text-slate-900" x-text="softSkillAvg().toFixed(1)"></span>
-                                </div>
-                                <div class="flex items-center justify-between text-slate-600">
-                                    <span>Kepuasan Klien (30%)</span>
-                                    <span class="font-bold text-slate-900" x-text="clientScore.toFixed(1)"></span>
-                                </div>
-                                <div class="flex items-center justify-between text-slate-600 pt-1 border-t border-slate-100">
-                                    <span class="font-semibold text-slate-700">Nilai akhir gabungan seluruh komponen:</span>
-                                    <span class="font-black text-blue-600 text-base" x-text="nilaiAkhir()"></span>
+
+                                <div class="overflow-x-auto">
+                                    <table class="w-full text-left border-collapse">
+                                        <thead>
+                                            <tr class="border-b-2 border-slate-200 dark:border-slate-700 bg-slate-100/90 dark:bg-slate-800/90 text-slate-800 dark:text-slate-100">
+                                                <th class="py-2.5 px-3 text-[11px] sm:text-xs font-black text-slate-800 dark:text-slate-100 uppercase tracking-wider">Komponen</th>
+                                                <th class="py-2.5 px-2 text-[11px] sm:text-xs font-black text-slate-800 dark:text-slate-100 uppercase tracking-wider text-center">Bobot (%)</th>
+                                                <th class="py-2.5 px-2 text-[11px] sm:text-xs font-black text-slate-800 dark:text-slate-100 uppercase tracking-wider text-center">Nilai (100)</th>
+                                                <th class="py-2.5 px-3 text-[11px] sm:text-xs font-black text-slate-800 dark:text-slate-100 uppercase tracking-wider text-right">Kontribusi</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="divide-y divide-slate-100 dark:divide-slate-800 text-xs">
+                                            <tr>
+                                                <td class="py-3.5 font-semibold text-slate-700 dark:text-slate-200">Nilai Tiket (Σ bobot × qty)</td>
+                                                <td class="py-3.5 font-bold text-slate-700 dark:text-slate-300 text-center">30%</td>
+                                                <td class="py-3.5 font-bold text-slate-700 dark:text-slate-300 text-center">{{ (float)$nilai_tiket > 0 ? round((float)$nilai_tiket, 2) : 0 }}</td>
+                                                <td class="py-3.5 font-bold text-emerald-500 dark:text-emerald-400 text-right">{{ (float)$nilai_tiket * 0.3 > 0 ? round((float)$nilai_tiket * 0.3, 2) : 0 }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td class="py-3.5 font-semibold text-slate-700 dark:text-slate-200">Nilai Soft Skill</td>
+                                                <td class="py-3.5 font-bold text-slate-700 dark:text-slate-300 text-center">40%</td>
+                                                <td class="py-3.5 font-bold text-slate-700 dark:text-slate-300 text-center" x-text="softSkillAvg() > 0 ? softSkillAvg().toFixed(2) : 0"></td>
+                                                <td class="py-3.5 font-bold text-emerald-500 dark:text-emerald-400 text-right" x-text="(softSkillAvg() * 0.4) > 0 ? (softSkillAvg() * 0.4).toFixed(2) : 0"></td>
+                                            </tr>
+                                            <tr>
+                                                <td class="py-3.5 font-semibold text-slate-700 dark:text-slate-200">Kepuasan Klien (Survey)</td>
+                                                <td class="py-3.5 font-bold text-slate-700 dark:text-slate-300 text-center">30%</td>
+                                                <td class="py-3.5 font-bold text-slate-700 dark:text-slate-300 text-center" x-text="clientScore > 0 ? clientScore.toFixed(2) : 0"></td>
+                                                <td class="py-3.5 font-bold text-emerald-500 dark:text-emerald-400 text-right" x-text="(clientScore * 0.3) > 0 ? (clientScore * 0.3).toFixed(2) : 0"></td>
+                                            </tr>
+                                        </tbody>
+                                        <tfoot>
+                                            <tr class="border-t-2 border-slate-200 dark:border-slate-700">
+                                                <td class="py-3.5 text-xs font-bold text-slate-800 dark:text-white">Nilai Akhir</td>
+                                                <td class="py-3.5 text-xs font-bold text-slate-800 dark:text-white text-center">100%</td>
+                                                <td class="py-3.5 text-xs font-bold text-slate-800 dark:text-white text-center" x-text="Number(nilaiAkhir()) > 0 ? nilaiAkhir() : 0"></td>
+                                                <td class="py-3.5 text-sm sm:text-base font-black text-slate-900 dark:text-white text-right font-mono" x-text="Number(nilaiAkhir()) > 0 ? nilaiAkhir() : 0"></td>
+                                            </tr>
+                                        </tfoot>
+                                    </table>
                                 </div>
                             </div>
                         </div>
 
                     </div>
 
-                    <!-- Rincian Penilaian per Modul (6 Kolom: Modul, Beban, Total Ticket, Lama Waktu, Rata-rata Waktu, Rata-rata Skor) -->
-                    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6">
-                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-5">
-                            <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
-                                <i class="fa-regular fa-envelope text-blue-500"></i> Rincian Penilaian per Modul
-                            </h3>
-                            <span class="text-xs text-slate-500 font-medium">Rumus: Skor = Beban (Bobot) × Total Ticket</span>
+                    <!-- Rincian Penilaian per Modul (6 Kolom: Modul, Beban, Total Ticket, Lama Waktu, Rata-rata Waktu, Skor Poin) -->
+                    <div x-data="{ onlyHandled: false }" class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
+                            <div>
+                                <h3 class="text-sm font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
+                                    <i class="fa-regular fa-envelope text-blue-500"></i> Rincian Penilaian per Modul
+                                </h3>
+                                <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Rumus: Skor = Bobot × Total Tiket</p>
+                            </div>
+
+                            <!-- Filter Toggle: Semua vs Hanya yang Ditangani -->
+                            <div class="inline-flex items-center p-1 bg-slate-100 dark:bg-slate-900 rounded-xl text-xs font-semibold shrink-0">
+                                <button type="button" @click="onlyHandled = false" 
+                                    :class="!onlyHandled ? 'bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 shadow-xs' : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-300'"
+                                    class="px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer">
+                                    <span>Semua Modul</span>
+                                    <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-slate-200/70 dark:bg-slate-700 text-slate-600 dark:text-slate-300 font-bold">{{ count($module_details ?? []) }}</span>
+                                </button>
+                                <button type="button" @click="onlyHandled = true" 
+                                    :class="onlyHandled ? 'bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 shadow-xs' : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-300'"
+                                    class="px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer">
+                                    <span>Hanya Ditangani</span>
+                                    <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-blue-100 dark:bg-blue-900/60 text-blue-700 dark:text-blue-300 font-bold">{{ collect($module_details ?? [])->where('total_ticket', '>', 0)->count() }}</span>
+                                </button>
+                            </div>
                         </div>
 
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-left border-collapse">
+                        <div class="overflow-x-auto -mx-5 sm:mx-0 px-5 sm:px-0">
+                            <table class="w-full text-left border-collapse min-w-[620px]">
                                 <thead>
-                                    <tr class="border-b border-slate-200 text-[11px] font-bold text-slate-400 uppercase tracking-wider bg-slate-50/50">
-                                        <th class="py-3 px-3">Modul</th>
-                                        <th class="py-3 px-3 text-center">Beban</th>
-                                        <th class="py-3 px-3 text-center">Total Ticket</th>
-                                        <th class="py-3 px-3 text-center">Lama Waktu</th>
-                                        <th class="py-3 px-3 text-center">Rata-rata Waktu</th>
-                                        <th class="py-3 px-3 text-right">Rata-rata Skor</th>
+                                    <tr class="border-b-2 border-slate-200 dark:border-slate-700 text-[11px] sm:text-xs font-black uppercase tracking-wider bg-slate-100/90 dark:bg-slate-800/90 text-slate-800 dark:text-slate-100">
+                                        <th class="py-3 px-3.5 sm:px-4 text-slate-800 dark:text-slate-100 font-black">Modul</th>
+                                        <th class="py-3 px-3 sm:px-4 text-center text-slate-800 dark:text-slate-100 font-black">Bobot</th>
+                                        <th class="py-3 px-3 sm:px-4 text-center text-slate-800 dark:text-slate-100 font-black">Total Tiket</th>
+                                        <th class="py-3 px-3 sm:px-4 text-center text-slate-800 dark:text-slate-100 font-black">Lama Pengerjaan</th>
+                                        <th class="py-3 px-3 sm:px-4 text-center text-slate-800 dark:text-slate-100 font-black">Rata-rata Waktu</th>
+                                        <th class="py-3 px-3.5 sm:px-4 text-right text-slate-800 dark:text-slate-100 font-black">Skor Poin</th>
                                     </tr>
                                 </thead>
-                                <tbody class="divide-y divide-slate-100 text-xs sm:text-sm">
+                                <tbody class="divide-y divide-slate-100 dark:divide-slate-800 text-xs sm:text-sm">
                                     @forelse($module_details ?? [] as $md)
-                                    <tr class="hover:bg-slate-50/50 transition-colors">
-                                        <td class="py-3 px-3 font-semibold text-slate-800">{{ $md['name'] }}</td>
-                                        <td class="py-3 px-3 text-center font-medium text-slate-600">{{ $md['bobot'] }}</td>
-                                        <td class="py-3 px-3 text-center font-bold text-slate-900">{{ $md['total_ticket'] }}</td>
-                                        <td class="py-3 px-3 text-center font-medium text-slate-600">{{ $md['lama_waktu'] ?? '-' }}</td>
-                                        <td class="py-3 px-3 text-center font-medium text-slate-600">{{ $md['rata_rata_waktu'] ?? '-' }}</td>
-                                        <td class="py-3 px-3 text-right font-bold text-blue-600 font-mono">{{ number_format($md['score'], 0, ',', '.') }}</td>
+                                    @php
+                                        $hasTickets = ($md['total_ticket'] > 0);
+                                    @endphp
+                                    <tr x-show="!onlyHandled || {{ $hasTickets ? 'true' : 'false' }}"
+                                        class="transition-colors {{ $hasTickets ? 'bg-blue-50/20 dark:bg-blue-950/15 hover:bg-blue-50/40 dark:hover:bg-blue-950/30' : 'opacity-40 hover:opacity-100 hover:bg-slate-50/50 dark:hover:bg-slate-800/40' }}">
+                                        
+                                        <td class="py-3 px-3.5 font-bold {{ $hasTickets ? 'text-slate-800 dark:text-slate-100' : 'text-slate-500 dark:text-slate-400' }}">
+                                            <div class="flex items-center gap-2">
+                                                @if($hasTickets)
+                                                <span class="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0"></span>
+                                                @else
+                                                <span class="w-1.5 h-1.5 rounded-full bg-slate-300 dark:bg-slate-600 shrink-0"></span>
+                                                @endif
+                                                <span>{{ $md['name'] }}</span>
+                                            </div>
+                                        </td>
+                                        
+                                        <td class="py-3 px-3 text-center font-semibold text-slate-600 dark:text-slate-400">
+                                            {{ $md['bobot'] }}
+                                        </td>
+                                        
+                                        <td class="py-3 px-3 text-center">
+                                            @if($hasTickets)
+                                            <span class="inline-flex items-center justify-center px-2.5 py-1 rounded-lg text-xs font-black bg-blue-100 dark:bg-blue-900/60 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800/60 shadow-2xs">
+                                                {{ $md['total_ticket'] }} Tiket
+                                            </span>
+                                            @else
+                                            <span class="text-xs text-slate-400 dark:text-slate-500 font-medium">0</span>
+                                            @endif
+                                        </td>
+                                        
+                                        <td class="py-3 px-3 text-center">
+                                            {!! renderDurationBadge($md['lama_waktu'] ?? '-') !!}
+                                        </td>
+                                        
+                                        <td class="py-3 px-3 text-center">
+                                            {!! renderDurationBadge($md['rata_rata_waktu'] ?? '-') !!}
+                                        </td>
+                                        
+                                        <td class="py-3 px-3.5 text-right">
+                                            @if($hasTickets)
+                                            <span class="font-black text-blue-600 dark:text-blue-400 text-sm sm:text-base font-mono">{{ number_format($md['score'], 0, ',', '.') }}</span>
+                                            @else
+                                            <span class="text-xs text-slate-400 dark:text-slate-500 font-mono">0</span>
+                                            @endif
+                                        </td>
                                     </tr>
                                     @empty
                                     <tr>
-                                        <td colspan="6" class="py-6 text-center text-slate-400 text-xs">Belum ada data modul tiket pada periode ini.</td>
+                                        <td colspan="6" class="py-8 text-center text-slate-400 text-xs">Belum ada data modul tiket pada periode ini.</td>
                                     </tr>
                                     @endforelse
                                 </tbody>
                                 <tfoot>
-                                    <tr class="border-t-2 border-slate-200 dark:border-slate-700 font-bold text-xs sm:text-sm text-slate-900 dark:text-slate-100 bg-slate-50/60 dark:bg-slate-800/80">
-                                        <td class="py-3 px-3">Total</td>
-                                        <td class="py-3 px-3 text-center text-slate-700 dark:text-slate-300 font-semibold">{{ $total_bobot ?? array_sum(array_column($module_details, 'bobot')) }}</td>
-                                        <td class="py-3 px-3 text-center text-blue-700 dark:text-blue-400 font-extrabold">{{ $total_qty ?? 0 }} tiket</td>
-                                        <td class="py-3 px-3 text-center text-slate-700 dark:text-slate-300 font-semibold">{{ $total_lama_waktu ?? '-' }}</td>
-                                        <td class="py-3 px-3 text-center text-slate-700 dark:text-slate-300 font-semibold">{{ $rata_rata_waktu }}</td>
-                                        <td class="py-3 px-3 text-right font-black text-blue-700 dark:text-blue-400 font-mono">{{ number_format($raw_ticket_score, 0, ',', '.') }}</td>
+                                    <tr class="border-t-2 border-slate-200 dark:border-slate-700 font-bold text-xs sm:text-sm text-slate-900 dark:text-slate-100 bg-slate-50/80 dark:bg-slate-800/80">
+                                        <td class="py-3.5 px-3.5 uppercase text-slate-700 dark:text-slate-200 font-extrabold tracking-wide">
+                                            Total Keseluruhan
+                                        </td>
+                                        <td class="py-3.5 px-3 text-center text-slate-400 dark:text-slate-500 font-normal">
+                                            &ndash;
+                                        </td>
+                                        <td class="py-3.5 px-3 text-center">
+                                            <span class="inline-flex items-center justify-center px-3 py-1 rounded-lg text-xs font-black bg-blue-600 text-white shadow-xs">
+                                                {{ $total_qty ?? 0 }} tiket
+                                            </span>
+                                        </td>
+                                        <td class="py-3.5 px-3 text-center">
+                                            {!! renderDurationBadge($total_lama_waktu ?? '-') !!}
+                                        </td>
+                                        <td class="py-3.5 px-3 text-center">
+                                            {!! renderDurationBadge($rata_rata_waktu ?? '-') !!}
+                                        </td>
+                                        <td class="py-3.5 px-3.5 text-right font-black text-blue-700 dark:text-blue-400 text-base sm:text-lg font-mono">
+                                            {{ number_format($raw_ticket_score, 0, ',', '.') }} <span class="text-xs font-bold text-slate-400">poin</span>
+                                        </td>
                                     </tr>
                                 </tfoot>
                             </table>
                         </div>
 
-                        <!-- Nilai Akhir Ticket aligned right -->
-                        <div class="mt-4 pt-3 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between text-xs text-slate-600 gap-2">
-                            <span class="text-slate-500">Normalisasi Tim: ({{ number_format($raw_ticket_score, 0, ',', '.') }} ÷ {{ number_format($max_ticket_score, 0, ',', '.') }}) × 100</span>
-                            <span class="text-sm sm:text-base font-bold text-slate-900 text-right">
-                                Nilai Akhir Ticket: <span class="text-lg sm:text-xl font-extrabold text-blue-600">{{ $nilai_tiket }}</span> <span class="text-xs text-slate-400">/ 100</span>
-                            </span>
+                        <!-- Mini Card Normalisasi Nilai Tiket -->
+                        <div class="mt-5 p-4 rounded-xl bg-slate-50 dark:bg-slate-900/70 border border-slate-200/80 dark:border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                            <div class="flex items-start sm:items-center gap-3">
+                                <div class="w-9 h-9 rounded-xl bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 border border-blue-200/60 dark:border-blue-900/40 flex items-center justify-center shrink-0">
+                                    <i class="fa-solid fa-calculator text-sm"></i>
+                                </div>
+                                <div>
+                                    <div class="flex items-center gap-2 flex-wrap">
+                                        <span class="text-xs font-bold text-slate-800 dark:text-slate-200">Kalkulasi Normalisasi Nilai Tiket</span>
+                                        @if(!empty($top_performer_name))
+                                        <span class="text-[10px] font-semibold text-slate-500 dark:text-slate-400 bg-slate-200/60 dark:bg-slate-800 px-2 py-0.5 rounded-md">
+                                            Benchmark Tertinggi: {{ $top_performer_name }} ({{ number_format($max_ticket_score, 0, ',', '.') }} poin)
+                                        </span>
+                                        @endif
+                                    </div>
+                                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                                        Rumus: <span class="font-mono font-semibold text-slate-700 dark:text-slate-300">({{ number_format($raw_ticket_score, 0, ',', '.') }} poin ÷ {{ number_format($max_ticket_score, 0, ',', '.') }} poin) × 100</span>
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="flex items-center sm:justify-end gap-2 shrink-0 border-t md:border-t-0 pt-3 md:pt-0 border-slate-200/60 dark:border-slate-800">
+                                <span class="text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wide">Nilai Tiket:</span>
+                                <div class="flex items-baseline gap-1">
+                                    <span class="text-2xl font-black text-blue-600 dark:text-blue-400 font-mono">{{ $nilai_tiket }}</span>
+                                    <span class="text-xs font-bold text-slate-400">/ 100</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
 

@@ -43,7 +43,7 @@
                         <i class="fa-solid fa-arrow-left"></i>
                     </a>
                     <div>
-                        <h1 class="text-2xl font-extrabold text-slate-800 tracking-tight">Detail Request <span class="text-blue-600">RQ-{{ $datarq->id }}</span></h1>
+                        <h1 class="text-2xl font-extrabold text-slate-800 tracking-tight">Detail Request <span class="text-blue-600 whitespace-nowrap">RQ-{{ $datarq->id }}</span></h1>
                         <p class="text-sm text-slate-500 font-medium mt-1">Pantau deskripsi, progres, dan diskusi terkait request pengerjaan sistem ini.</p>
                     </div>
                 </div>
@@ -279,25 +279,32 @@
                     <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 relative overflow-hidden">
                         
                         <!-- Status Header -->
-                        <div class="flex items-center justify-between mb-8 pb-6 border-b border-slate-100">
-                            <div>
+                        <div class="flex items-center justify-between gap-3 mb-8 pb-6 border-b border-slate-100 dark:border-slate-800">
+                            <div class="shrink-0">
                                 <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1">Request ID</p>
-                                <span class="text-blue-600 font-bold text-xl font-mono">RQ-{{ $datarq->id }}</span>
+                                <span class="text-blue-600 dark:text-blue-400 font-bold text-xl font-mono whitespace-nowrap">RQ-{{ $datarq->id }}</span>
                             </div>
-                            <div class="flex items-center gap-2">
-                                @if ($datarq->is_new)
-                                <span class="inline-flex items-center gap-1 bg-gradient-to-r from-emerald-500 to-teal-500 text-white text-[10px] font-black px-2.5 py-1 rounded-full uppercase tracking-wider shadow-sm shadow-emerald-500/25">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>NEW
-                                </span>
-                                @endif
-                                @if ($stid == 4)
-                                <span class="px-3.5 py-1.5 rounded-xl text-xs font-extrabold uppercase tracking-wider border bg-emerald-50 text-emerald-700 border-emerald-200 flex items-center gap-1.5 shadow-sm" title="{{ $closedLog && $closedLog->user ? 'Ditutup oleh ' . $closedLog->user->name : 'Closed' }}">
-                                    <i class="fa-solid fa-circle-check"></i> {{ $closedLog && $closedLog->user ? 'Closed by ' . $closedLog->user->name : 'Closed' }}
-                                </span>
-                                @else
-                                <span class="px-3.5 py-1.5 rounded-xl text-xs font-extrabold uppercase tracking-wider border {{ $bg }} flex items-center gap-1.5 shadow-sm">
-                                    <i class="fa-solid {{ $icon }}"></i> {{ $datarq->status ? $datarq->status->name : (in_array($datarq->status_id, [1, 2]) ? 'Open' : ($datarq->status_id == 3 ? 'Progress' : 'Closed')) }}
-                                </span>
+                            <div class="flex flex-col items-end shrink-0">
+                                <div class="flex items-center gap-2">
+                                    @if ($datarq->is_new)
+                                    <span class="inline-flex items-center gap-1 bg-gradient-to-r from-emerald-500 to-teal-500 text-white text-[10px] font-black px-2.5 py-1 rounded-full uppercase tracking-wider shadow-sm shadow-emerald-500/25 shrink-0 whitespace-nowrap">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>NEW
+                                    </span>
+                                    @endif
+                                    @if ($stid == 4)
+                                    <span class="px-3.5 py-1.5 rounded-xl text-xs font-extrabold uppercase tracking-wider border bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-800/60 flex items-center gap-1.5 shadow-sm shrink-0 whitespace-nowrap" title="{{ $closedLog && $closedLog->user ? 'Ditutup oleh ' . $closedLog->user->name : 'Closed' }}">
+                                        <i class="fa-solid fa-circle-check"></i> Closed
+                                    </span>
+                                    @else
+                                    <span class="px-3.5 py-1.5 rounded-xl text-xs font-extrabold uppercase tracking-wider border {{ $bg }} flex items-center gap-1.5 shadow-sm shrink-0 whitespace-nowrap">
+                                        <i class="fa-solid {{ $icon }}"></i> {{ $datarq->status ? $datarq->status->name : (in_array($datarq->status_id, [1, 2]) ? 'Open' : ($datarq->status_id == 3 ? 'Progress' : 'Closed')) }}
+                                    </span>
+                                    @endif
+                                </div>
+                                @if ($stid == 4 && $closedLog && $closedLog->user)
+                                <p class="text-[10px] font-medium text-slate-400 dark:text-slate-400 mt-1.5 text-right truncate max-w-[150px] sm:max-w-[200px]" title="Closed by {{ $closedLog->user->name }}">
+                                    by <span class="font-bold text-slate-600 dark:text-slate-300">{{ $closedLog->user->name }}</span>
+                                </p>
                                 @endif
                             </div>
                         </div>
@@ -348,11 +355,23 @@
                                 <div class="w-8 h-8 rounded-lg bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-400 shrink-0">
                                     <i class="fa-solid fa-user-tie text-xs"></i>
                                 </div>
-                                <div>
+                                <div class="min-w-0">
                                     <div class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-0.5">User Reporter</div>
                                     <div class="font-bold text-slate-800 text-sm truncate" title="{{ $datarq->user->name }}">{{ $datarq->user->name }}</div>
                                 </div>
                             </div>
+
+                            @if ($stid == 4 && $closedLog && $closedLog->user)
+                            <div class="flex items-start gap-4">
+                                <div class="w-8 h-8 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-100 dark:border-emerald-800/60 flex items-center justify-center text-emerald-600 dark:text-emerald-400 shrink-0">
+                                    <i class="fa-solid fa-user-check text-xs"></i>
+                                </div>
+                                <div class="min-w-0">
+                                    <div class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-0.5">Closed By</div>
+                                    <div class="font-bold text-emerald-600 dark:text-emerald-400 text-sm truncate" title="{{ $closedLog->user->name }}">{{ $closedLog->user->name }}</div>
+                                </div>
+                            </div>
+                            @endif
                         </div>
 
                         <!-- Timestamps Footer -->
@@ -375,9 +394,14 @@
                         <div class="grid grid-cols-1 gap-3">
                             @if ($stid == 4)
                                 <!-- STATUS CLOSED -->
-                                <button disabled class="w-full flex items-center justify-center bg-slate-100 text-slate-400 py-3.5 rounded-xl font-bold text-sm transition-all cursor-not-allowed gap-2">
+                                <button disabled class="w-full flex items-center justify-center bg-slate-100 dark:bg-slate-800 text-slate-400 py-3.5 rounded-xl font-bold text-sm transition-all cursor-not-allowed gap-2">
                                     <i class="fa-solid fa-circle-check text-emerald-500"></i> Request Selesai
                                 </button>
+                                @if ($closedLog && $closedLog->user)
+                                <p class="text-center text-[11px] text-slate-400 dark:text-slate-400 font-medium">
+                                    Ditutup oleh <span class="font-bold text-slate-600 dark:text-slate-200">{{ $closedLog->user->name }}</span>
+                                </p>
+                                @endif
                             @elseif ($stid == 3)
                                 <!-- STATUS PROGRESS -->
                                 @if ($canManage)
