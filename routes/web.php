@@ -168,6 +168,7 @@ Route::post('/editprofile/{id}', [ProfileController::class, 'updateprofile'])->m
 Route::post('/profile/delete-photo/{id}', [ProfileController::class, 'deletePhoto'])->middleware(['auth'])->name('profile.deletePhoto');
 Route::get('/editpassacc', [ProfileController::class, 'editpass'])->middleware(['auth'])->name('editpassacc');
 Route::post('/editpassacc', [ProfileController::class, 'updatepass'])->middleware(['auth'])->name('updatepassacc');
+Route::post('/profile/update-theme', [ProfileController::class, 'updateTheme'])->middleware(['auth'])->name('profile.updateTheme');
 
 //Route History, My Request & Update System
 Route::get('/history', [MyrequsController::class, 'history'])->middleware(['auth'])->name('history');

@@ -25,6 +25,7 @@ class User extends Authenticatable
         'tag_id',
         'departemen_id',
         'profile_image',
+        'theme',
     ];
 
     /**

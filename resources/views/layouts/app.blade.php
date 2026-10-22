@@ -1,5 +1,8 @@
+@php
+    $userTheme = Auth::check() ? Auth::user()->theme : null;
+@endphp
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" data-theme="light">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" data-theme="{{ $userTheme ?? 'light' }}" class="{{ $userTheme === 'dark' ? 'dark' : '' }}">
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -31,9 +34,37 @@
         <!-- Anti-FOUC: Check theme before page renders to prevent flash -->
         <script>
             (function() {
+                const userDbTheme = @json(Auth::check() ? Auth::user()->theme : null);
                 const storedTheme = localStorage.getItem('color-theme');
-                const isDark = storedTheme === 'dark' || (!storedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches);
-                if (isDark) {
+
+                // Determine active theme (DB has priority for authenticated user, fallback to localStorage/OS)
+                let theme = userDbTheme || storedTheme;
+                if (!theme) {
+                    theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+                }
+
+                // Keep localStorage in sync with user's DB theme
+                if (userDbTheme && storedTheme !== userDbTheme) {
+                    localStorage.setItem('color-theme', userDbTheme);
+                }
+
+                // If user is logged in without DB theme set, but has local preference, sync it to DB
+                @if(Auth::check() && !Auth::user()->theme)
+                if (storedTheme) {
+                    try {
+                        fetch('{{ route("profile.updateTheme") }}', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                            },
+                            body: JSON.stringify({ theme: storedTheme })
+                        }).catch(() => {});
+                    } catch(e) {}
+                }
+                @endif
+
+                if (theme === 'dark') {
                     document.documentElement.classList.add('dark');
                     document.documentElement.setAttribute('data-theme', 'dark');
                     document.documentElement.style.colorScheme = 'dark';
@@ -919,18 +950,30 @@
                 document.documentElement.classList.add('theme-transitioning');
                 const isCurrentlyDark = document.documentElement.classList.contains('dark');
                 const nextIsDark = !isCurrentlyDark;
+                const nextTheme = nextIsDark ? 'dark' : 'light';
 
                 if (nextIsDark) {
                     document.documentElement.classList.add('dark');
                     document.documentElement.setAttribute('data-theme', 'dark');
                     document.documentElement.style.colorScheme = 'dark';
-                    localStorage.setItem('color-theme', 'dark');
                 } else {
                     document.documentElement.classList.remove('dark');
                     document.documentElement.setAttribute('data-theme', 'light');
                     document.documentElement.style.colorScheme = 'light';
-                    localStorage.setItem('color-theme', 'light');
                 }
+                localStorage.setItem('color-theme', nextTheme);
+
+                // Asynchronously save theme preference to user database account
+                @if(Auth::check())
+                fetch('{{ route("profile.updateTheme") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    },
+                    body: JSON.stringify({ theme: nextTheme })
+                }).catch(err => console.error('Failed to save theme preference:', err));
+                @endif
 
                 syncThemeIcons(nextIsDark);
                 window.dispatchEvent(new CustomEvent('themeChanged', { detail: { isDark: nextIsDark } }));
@@ -957,6 +1000,24 @@
             document.addEventListener('DOMContentLoaded', function() {
                 const isDark = document.documentElement.classList.contains('dark');
                 syncThemeIcons(isDark);
+            });
+
+            // Cross-tab synchronization
+            window.addEventListener('storage', function(e) {
+                if (e.key === 'color-theme') {
+                    const isDark = e.newValue === 'dark';
+                    if (isDark) {
+                        document.documentElement.classList.add('dark');
+                        document.documentElement.setAttribute('data-theme', 'dark');
+                        document.documentElement.style.colorScheme = 'dark';
+                    } else {
+                        document.documentElement.classList.remove('dark');
+                        document.documentElement.setAttribute('data-theme', 'light');
+                        document.documentElement.style.colorScheme = 'light';
+                    }
+                    syncThemeIcons(isDark);
+                    window.dispatchEvent(new CustomEvent('themeChanged', { detail: { isDark: isDark } }));
+                }
             });
 
             // Enhanced Rich Text Editor (Quill 2.0) Helper

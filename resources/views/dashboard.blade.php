@@ -197,6 +197,9 @@
                 <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
                     <div class="h-56 w-full relative">
                         <canvas id="agentChart"></canvas>
+                        <div id="agentChartEmpty" class="absolute inset-0 flex items-center justify-center pointer-events-none {{ !empty($agentLabels) ? 'hidden' : '' }}">
+                            <p class="text-xs text-slate-400 font-medium">Belum ada data tiket yang diselesaikan oleh agen pada periode ini</p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -576,9 +579,18 @@
 
                     // Update Agent Chart
                     if (agentChartInstance) {
-                        agentChartInstance.data.labels = data.agentLabels;
-                        agentChartInstance.data.datasets[0].data = data.agentData;
+                        agentChartInstance.data.labels = data.agentLabels || [];
+                        agentChartInstance.data.datasets[0].data = data.agentData || [];
                         agentChartInstance.update();
+
+                        const agentEmptyEl = document.getElementById('agentChartEmpty');
+                        if (agentEmptyEl) {
+                            if (!data.agentLabels || data.agentLabels.length === 0) {
+                                agentEmptyEl.classList.remove('hidden');
+                            } else {
+                                agentEmptyEl.classList.add('hidden');
+                            }
+                        }
                     }
 
                     // Update Client Bar Chart

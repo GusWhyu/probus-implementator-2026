@@ -177,13 +177,13 @@ class HomeController extends Controller
                 $agentsQuery->where('departemen_id', $selectedDeptId);
             }
             $topAgents = $agentsQuery->whereHas('clientTickets', function($q) use ($hasDate, $startOfMonth, $selectedDate) {
-                    $q->where('status', 'CLOSED');
+                    $q->whereRaw('UPPER(status) = ?', ['CLOSED']);
                     if ($hasDate) {
                         $q->whereBetween('created_at', [$startOfMonth, $selectedDate->copy()->endOfDay()]);
                     }
                 })
                 ->withCount(['clientTickets as closed_count' => function($q) use ($hasDate, $startOfMonth, $selectedDate) {
-                    $q->where('status', 'CLOSED');
+                    $q->whereRaw('UPPER(status) = ?', ['CLOSED']);
                     if ($hasDate) {
                         $q->whereBetween('created_at', [$startOfMonth, $selectedDate->copy()->endOfDay()]);
                     }
@@ -192,27 +192,6 @@ class HomeController extends Controller
                 ->take(5)
                 ->get();
 
-            if ($topAgents->isEmpty()) {
-                $agentsQuery2 = User::query();
-                if ($isDeptFiltered) {
-                    $agentsQuery2->where('departemen_id', $selectedDeptId);
-                }
-                $topAgents = $agentsQuery2->whereHas('advisedTickets', function($q) use ($hasDate, $startOfMonth, $selectedDate) {
-                        $q->where('status', 'CLOSED');
-                        if ($hasDate) {
-                            $q->whereBetween('created_at', [$startOfMonth, $selectedDate->copy()->endOfDay()]);
-                        }
-                    })
-                    ->withCount(['advisedTickets as closed_count' => function($q) use ($hasDate, $startOfMonth, $selectedDate) {
-                        $q->where('status', 'CLOSED');
-                        if ($hasDate) {
-                            $q->whereBetween('created_at', [$startOfMonth, $selectedDate->copy()->endOfDay()]);
-                        }
-                    }])
-                    ->orderByDesc('closed_count')
-                    ->take(5)
-                    ->get();
-            }
             $agentLabels = $topAgents->pluck('name')->toArray();
             $agentData = $topAgents->pluck('closed_count')->toArray();
         }
@@ -410,9 +389,16 @@ class HomeController extends Controller
     }
 
     public function laporan(Request $request){
-        if (auth()->user()->usertype == 'user') {
+        $currentUser = auth()->user();
+        if ($currentUser->usertype == 'user') {
             return redirect()->route('dashboard')->with('error', 'Akses ditolak. Anda tidak memiliki izin untuk melihat modul Laporan.');
         }
+
+        $userDeptId = $currentUser->departemen_id;
+
+        // Departemen pengguna yang sedang login (Admin dan Supervisor sama-sama khusus melihat departemen miliknya).
+        $selectedDeptId = (int)($userDeptId ?: 1);
+        $currentDepartemen = Departemen::find($selectedDeptId);
 
         if ($request->filled('period')) {
             $parts = explode('-', $request->input('period'));
@@ -423,13 +409,19 @@ class HomeController extends Controller
             $year = (int)$request->input('year', date('Y'));
         }
         
-        $usersQuery = User::with(['performanceReviews' => function($q) use ($month, $year) {
+        // HANYA CS dengan usertype == 'user' dan berada di departemen yang dipilih
+        $baseCsQuery = User::where('usertype', 'user')
+            ->where('departemen_id', $selectedDeptId);
+
+        $usersQuery = (clone $baseCsQuery)->with(['performanceReviews' => function($q) use ($month, $year) {
             $q->whereMonth('periode', $month)->whereYear('periode', $year);
         }]);
 
         if ($request->filled('search')) {
             $s = trim($request->search);
-            $usersQuery->where('name', 'like', "%{$s}%")->orWhere('email', 'like', "%{$s}%");
+            $usersQuery->where(function($q) use ($s) {
+                $q->where('name', 'like', "%{$s}%")->orWhere('email', 'like', "%{$s}%");
+            });
         }
 
         $allUsers = $usersQuery->get();
@@ -448,7 +440,8 @@ class HomeController extends Controller
             $users = $allUsers;
         }
 
-        $allCsUsers = User::with(['performanceReviews' => function($q) use ($month, $year) {
+        // Seluruh staf CS pada departemen ini untuk periode ini
+        $allCsUsers = (clone $baseCsQuery)->with(['performanceReviews' => function($q) use ($month, $year) {
             $q->whereMonth('periode', $month)->whereYear('periode', $year);
         }])->get();
 
@@ -462,6 +455,13 @@ class HomeController extends Controller
             $rev = $u->performanceReviews->first();
             return $rev && strtoupper($rev->status) === 'FINAL' && $rev->total_score >= 80;
         })->count();
+
+        // Cek status pemrosesan agregat tiket CS (apakah sudah pernah di-sum)
+        $sudahDiproses = $allCsUsers->filter(function($u) {
+            return $u->performanceReviews->isNotEmpty();
+        })->count();
+        $belumDiproses = $totalCS - $sudahDiproses;
+        $isAllProcessed = ($totalCS > 0 && $belumDiproses === 0);
 
         // --- Kalkulasi Top 3 Profile CS: Kosongkan sebelum seluruh CS selesai dinilai (FINAL) ---
         $allCsEvaluated = ($totalCS > 0 && $belumDinilai === 0);
@@ -481,6 +481,7 @@ class HomeController extends Controller
                 ->whereMonth('periode', $month)
                 ->whereYear('periode', $year)
                 ->where('status', 'FINAL')
+                ->whereIn('user_id', $allCsUsers->pluck('id'))
                 ->get();
 
             $csMetrics = [];
@@ -570,11 +571,23 @@ class HomeController extends Controller
             ];
         }
 
-        return view('laporan', compact('users', 'month', 'year', 'totalCS', 'sudahDinilai', 'belumDinilai', 'sangatBaik', 'topCS'));
+        return view('laporan', compact(
+            'users', 'month', 'year', 'totalCS', 'sudahDinilai', 'belumDinilai', 'sangatBaik', 'topCS',
+            'selectedDeptId', 'currentDepartemen', 'isAllProcessed', 'sudahDiproses', 'belumDiproses'
+        ));
     }
 
     public function prosesNilai(Request $request, $id){
         $user = User::findOrFail($id);
+
+        if ($user->usertype !== 'user') {
+            return redirect()->back()->with('error', 'Hanya staf CS dengan role user yang dapat dinilai.');
+        }
+
+        $currentUser = auth()->user();
+        if ($currentUser && $currentUser->departemen_id != $user->departemen_id) {
+            return redirect()->back()->with('error', 'Anda hanya memiliki izin memproses nilai untuk staf di departemen Anda.');
+        }
         
         $month = (int)$request->input('month', date('m'));
         $year = (int)$request->input('year', date('Y'));
@@ -584,6 +597,20 @@ class HomeController extends Controller
             $month = isset($parts[1]) && is_numeric($parts[1]) ? (int)$parts[1] : $month;
         }
         $periode = sprintf('%04d-%02d-01', $year, $month);
+
+        // Pastikan hanya bisa diproses 1 kali per periode
+        $existing = PerformanceReview::where('user_id', $id)
+            ->whereMonth('periode', $month)
+            ->whereYear('periode', $year)
+            ->first();
+        if ($existing) {
+            return redirect()->route('laporan', [
+                'month' => $month,
+                'year' => $year,
+                'period' => sprintf('%04d-%02d', $year, $month),
+                'department_id' => $user->departemen_id
+            ])->with('info', "Nilai untuk staf {$user->name} sudah pernah diproses sebelumnya. Silakan klik 'Nilai' untuk mengisi atau memperbarui evaluasi soft skill.");
+        }
 
         // Modul sistem & bobot
         $modules = ModuleSystem::orderBy('id', 'asc')->get();
@@ -665,8 +692,10 @@ class HomeController extends Controller
             }
         }
 
-        // Benchmark terhadap seluruh tim CS
-        $allUsers = User::all();
+        // Benchmark terhadap seluruh tim CS pada departemen yang sama
+        $allUsers = User::where('usertype', 'user')
+            ->where('departemen_id', $user->departemen_id)
+            ->get();
         $max_ticket_score = 0;
         $total_team_score = 0;
 
@@ -745,8 +774,12 @@ class HomeController extends Controller
             ]);
         }
 
-        return redirect()->route('laporan', ['month' => $month, 'year' => $year, 'period' => sprintf('%04d-%02d', $year, $month)])
-            ->with('success', "Data tiket {$user->name} berhasil di-proses (di-sum)! Silakan klik 'Nilai' untuk mengisi evaluasi soft skill.");
+        return redirect()->route('laporan', [
+            'month' => $month,
+            'year' => $year,
+            'period' => sprintf('%04d-%02d', $year, $month),
+            'department_id' => $user->departemen_id
+        ])->with('success', "Data tiket {$user->name} berhasil di-proses (di-sum)! Silakan klik 'Nilai' untuk mengisi evaluasi soft skill.");
     }
 
     public function prosesSemuaNilai(Request $request){
@@ -758,24 +791,67 @@ class HomeController extends Controller
             $month = isset($parts[1]) && is_numeric($parts[1]) ? (int)$parts[1] : $month;
         }
 
-        $allUsers = User::all();
-        $processedCount = 0;
+        $currentUser = auth()->user();
+        $selectedDeptId = (int)($currentUser ? ($currentUser->departemen_id ?: 1) : 1);
 
-        foreach ($allUsers as $u) {
+        $csUsers = User::where('usertype', 'user')
+            ->where('departemen_id', $selectedDeptId)
+            ->get();
+
+        if ($csUsers->isEmpty()) {
+            return redirect()->route('laporan', [
+                'month' => $month,
+                'year' => $year,
+                'period' => sprintf('%04d-%02d', $year, $month),
+            ])->with('error', "Tidak ada staf CS dengan role user yang terdaftar di departemen ini.");
+        }
+
+        // Cari staf CS yang belum diproses untuk periode ini
+        $unprocessedCs = $csUsers->filter(function($u) use ($month, $year) {
+            return !PerformanceReview::where('user_id', $u->id)
+                ->whereMonth('periode', $month)
+                ->whereYear('periode', $year)
+                ->exists();
+        });
+
+        if ($unprocessedCs->isEmpty()) {
+            return redirect()->route('laporan', [
+                'month' => $month,
+                'year' => $year,
+                'period' => sprintf('%04d-%02d', $year, $month),
+            ])->with('info', "Seluruh staf CS di departemen ini sudah selesai diproses sebelumnya. Proses agregat tiket hanya dapat dilakukan 1 kali per periode.");
+        }
+
+        $processedCount = 0;
+        foreach ($unprocessedCs as $u) {
             $subReq = new Request([
                 'month' => $month,
                 'year' => $year,
+                'department_id' => $selectedDeptId,
             ]);
             $this->prosesNilai($subReq, $u->id);
             $processedCount++;
         }
 
-        return redirect()->route('laporan', ['month' => $month, 'year' => $year, 'period' => sprintf('%04d-%02d', $year, $month)])
-            ->with('success', "Berhasil memproses (sum) data tiket untuk {$processedCount} CS! Sekarang Anda dapat mengisi nilai soft skill per masing-masing CS.");
+        return redirect()->route('laporan', [
+            'month' => $month,
+            'year' => $year,
+            'period' => sprintf('%04d-%02d', $year, $month),
+            'department_id' => $selectedDeptId,
+        ])->with('success', "Berhasil memproses (sum) data tiket untuk {$processedCount} CS! Sekarang Anda dapat mengisi nilai soft skill per masing-masing CS.");
     }
 
     public function penilaian($id){
         $user = User::findOrFail($id);
+
+        if ($user->usertype !== 'user') {
+            return redirect()->route('laporan')->with('error', 'Hanya staf CS dengan role user yang dapat dinilai.');
+        }
+
+        $currentUser = auth()->user();
+        if ($currentUser && $currentUser->departemen_id != $user->departemen_id) {
+            return redirect()->route('laporan')->with('error', 'Anda hanya memiliki izin menilai staf di departemen Anda.');
+        }
         
         if (request()->filled('period')) {
             $parts = explode('-', request('period'));
@@ -896,8 +972,10 @@ class HomeController extends Controller
         $topHandledModuleCount = $topHandledModule ? (int)$topHandledModule['total_ticket'] : 0;
         $topHandledModuleBobot = $topHandledModule ? (int)$topHandledModule['bobot'] : 0;
 
-        // 3. Benchmarking terhadap Seluruh Tim CS di Periode Ini
-        $allUsers = User::all();
+        // 3. Benchmarking terhadap Seluruh Tim CS di Departemen yang Sama di Periode Ini
+        $allUsers = User::where('usertype', 'user')
+            ->where('departemen_id', $user->departemen_id)
+            ->get();
         $max_ticket_score = 0;
         $total_team_score = 0;
         $top_performer_name = null;
@@ -1011,6 +1089,16 @@ class HomeController extends Controller
     }
 
     public function storePenilaian(Request $request, $id) {
+        $user = User::findOrFail($id);
+        if ($user->usertype !== 'user') {
+            return redirect()->route('laporan')->with('error', 'Hanya staf CS dengan role user yang dapat dinilai.');
+        }
+
+        $currentUser = auth()->user();
+        if ($currentUser && $currentUser->departemen_id != $user->departemen_id) {
+            return redirect()->route('laporan')->with('error', 'Anda hanya memiliki izin menilai staf di departemen Anda.');
+        }
+
         $isDraft = ($request->input('action') === 'draft');
         $categories = PerformanceCategory::orderBy('id')->get();
         $softSkillInputs = $request->input('soft_skills', []);
@@ -1187,7 +1275,12 @@ class HomeController extends Controller
         }
 
         if ($isDraft) {
-            return redirect()->route('laporan', ['month' => $currentMonth, 'year' => $currentYear, 'period' => sprintf('%04d-%02d', $currentYear, $currentMonth)])->with('success', 'Draft penilaian CS berhasil disimpan!');
+            return redirect()->route('laporan', [
+                'month' => $currentMonth,
+                'year' => $currentYear,
+                'period' => sprintf('%04d-%02d', $currentYear, $currentMonth),
+                'department_id' => $user->departemen_id,
+            ])->with('success', 'Draft penilaian CS berhasil disimpan!');
         }
 
         return redirect()->route('rapor', ['id' => $id, 'month' => $currentMonth, 'year' => $currentYear, 'period' => sprintf('%04d-%02d', $currentYear, $currentMonth)])->with('success', 'Penilaian final berhasil disimpan lengkap dengan evaluasi soft skill!');
@@ -1195,6 +1288,15 @@ class HomeController extends Controller
 
     public function rapor($id){
         $user = User::findOrFail($id);
+
+        $currentUser = auth()->user();
+        if ($currentUser && $currentUser->usertype === 'supervisor' && $currentUser->departemen_id != $user->departemen_id) {
+            return redirect()->route('laporan')->with('error', 'Anda hanya memiliki izin melihat rapor staf di departemen Anda.');
+        }
+        if ($currentUser && $currentUser->usertype === 'user' && $currentUser->id != $user->id) {
+            return redirect()->route('dashboard')->with('error', 'Anda hanya memiliki izin melihat rapor Anda sendiri.');
+        }
+
         $query = PerformanceReview::with(['details.category', 'moduleDetails.moduleSystem'])->where('user_id', $id);
         
         $m = request('month');

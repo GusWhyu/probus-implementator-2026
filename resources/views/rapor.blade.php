@@ -48,7 +48,7 @@
             <!-- Top Bar -->
             <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
                 <div>
-                    <a href="{{ route('laporan', ['month' => $month, 'year' => $year]) }}" class="inline-flex items-center gap-1.5 text-sm font-semibold text-blue-600 hover:text-blue-700 mb-2 transition-colors">
+                    <a href="{{ route('laporan', ['month' => $month, 'year' => $year, 'department_id' => $user->departemen_id]) }}" class="inline-flex items-center gap-1.5 text-sm font-semibold text-blue-600 hover:text-blue-700 mb-2 transition-colors">
                         <i class="fa-solid fa-chevron-left text-[10px]"></i> Kembali ke daftar
                     </a>
                     
@@ -62,7 +62,7 @@
                             <h1 class="text-2xl font-extrabold text-slate-800 tracking-tight flex items-center gap-3">
                                 Rapor Kinerja CS
                             </h1>
-                            <p class="text-sm font-medium text-slate-500">{{ $user->usertype ?? 'Customer Support' }} - <span class="font-bold text-slate-700">{{ $user->name ?? 'Andi Pratama' }}</span></p>
+                            <p class="text-sm font-medium text-slate-500"><span class="capitalize">{{ $user->usertype ?? 'Customer Support' }}</span> &bull; Departemen {{ ucfirst($user->departemen->name ?? 'Operasional') }} - <span class="font-bold text-slate-700">{{ $user->name ?? 'Andi Pratama' }}</span></p>
                         </div>
                     </div>
                 </div>
