@@ -34,7 +34,7 @@
             <!-- Breadcrumb & Top Bar -->
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
-                    <a href="{{ route('laporan', ['month' => $currentMonth, 'year' => $currentYear, 'period' => sprintf('%04d-%02d', $currentYear, $currentMonth)]) }}" class="inline-flex items-center gap-1.5 text-xs font-semibold text-blue-600 hover:text-blue-700 mb-1.5 transition-colors">
+                    <a href="{{ route('laporan', ['month' => $currentMonth, 'year' => $currentYear, 'period' => sprintf('%04d-%02d', $currentYear, $currentMonth), 'department_id' => $user->departemen_id]) }}" class="inline-flex items-center gap-1.5 text-xs font-semibold text-blue-600 hover:text-blue-700 mb-1.5 transition-colors">
                         <span class="text-sm font-bold">&laquo;</span> Kembali ke daftar
                     </a>
                     <h1 class="text-2xl font-bold text-slate-800 tracking-tight">
@@ -73,7 +73,12 @@
                     </div>
                     <div>
                         <h2 class="text-base sm:text-lg font-bold text-slate-900 leading-tight">{{ $user->name }}</h2>
-                        <p class="text-xs text-slate-400 font-medium mt-0.5">{{ $user->usertype ?? 'Customer Support' }}</p>
+                        <p class="text-xs text-slate-500 font-medium mt-0.5">
+                            <span class="capitalize">{{ $user->usertype ?? 'Customer Support' }}</span> &bull; 
+                            <span class="inline-flex items-center gap-1 font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded">
+                                <i class="fa-solid fa-building text-[10px]"></i> Departemen {{ ucfirst($user->departemen->name ?? 'Operasional') }}
+                            </span>
+                        </p>
                     </div>
                 </div>
 

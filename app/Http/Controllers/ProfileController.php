@@ -146,4 +146,21 @@ class ProfileController extends Controller
         Alert::success('Password Successfully Changed!');
         return redirect('/profile');
     }
+
+    public function updateTheme(Request $request)
+    {
+        $request->validate([
+            'theme' => 'required|in:light,dark',
+        ]);
+
+        $user = Auth::user();
+        if ($user) {
+            $user->update(['theme' => $request->theme]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'theme' => $request->theme,
+        ]);
+    }
 }

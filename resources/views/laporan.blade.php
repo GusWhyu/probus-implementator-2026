@@ -3,34 +3,40 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             
             <!-- Header Section -->
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-8 gap-4">
+            <div class="flex flex-col lg:flex-row lg:items-center justify-between mb-8 gap-4">
                 <div>
-                    <h1 class="text-2xl font-extrabold text-slate-800 tracking-tight">Penilaian Kinerja CS</h1>
-                    <p class="text-sm text-slate-500 font-medium mt-1 flex flex-wrap items-center gap-2">
-                        <span>Kelola penilaian dan pantau performa Customer Support</span>
-                        <span class="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-600 bg-white border border-slate-200 px-2.5 py-0.5 rounded-lg shadow-xs">
+                    <h1 class="text-2xl font-extrabold text-slate-800 dark:text-slate-100 tracking-tight">Penilaian Kinerja CS</h1>
+                    <p class="text-sm text-slate-500 dark:text-slate-400 font-medium mt-1 flex flex-wrap items-center gap-2">
+                        <span>Kelola penilaian dan pantau performa staf Customer Support</span>
+                        <span class="inline-flex items-center gap-1.5 text-xs font-semibold text-blue-700 bg-blue-50 dark:bg-blue-950/50 dark:text-blue-300 border border-blue-200 dark:border-blue-800 px-2.5 py-0.5 rounded-lg shadow-xs">
+                            <i class="fa-solid fa-building text-blue-500"></i> Departemen {{ ucfirst($currentDepartemen->name ?? 'Operasional') }}
+                        </span>
+                        <span class="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-2.5 py-0.5 rounded-lg shadow-xs">
                             <i class="fa-regular fa-calendar-check text-blue-500"></i> Cut-off Akhir Bulan: {{ \Carbon\Carbon::createFromDate($year, $month, 1)->endOfMonth()->translatedFormat('d F Y') }}
                         </span>
                     </p>
                 </div>
-                <div class="flex items-center gap-3">
-                    <form action="{{ route('laporan') }}" method="GET" class="relative">
+                <div class="flex flex-wrap items-center gap-3">
+                    <form action="{{ route('laporan') }}" method="GET" class="flex flex-wrap items-center gap-3">
                         @if(request('search'))
                             <input type="hidden" name="search" value="{{ request('search') }}">
                         @endif
                         @if(request('status'))
                             <input type="hidden" name="status" value="{{ request('status') }}">
                         @endif
-                        <div class="relative bg-white border border-slate-200 rounded-xl shadow-sm text-sm font-bold text-slate-700 flex items-center hover:border-slate-300 transition-colors focus-within:border-blue-500 focus-within:ring-4 focus-within:ring-blue-500/10">
+
+
+                        {{-- Period Picker --}}
+                        <div class="relative bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm text-sm font-bold text-slate-700 dark:text-slate-200 flex items-center hover:border-slate-300 dark:hover:border-slate-600 transition-colors focus-within:border-blue-500 focus-within:ring-4 focus-within:ring-blue-500/10">
                             <i class="fa-regular fa-calendar text-blue-500 ml-4 pointer-events-none text-base"></i>
-                            <select name="period" onchange="this.form.submit()" class="bg-transparent border-0 text-sm font-bold text-slate-700 py-2.5 pl-2.5 pr-9 focus:ring-0 cursor-pointer appearance-none">
+                            <select name="period" onchange="this.form.submit()" class="bg-transparent border-0 text-sm font-bold text-slate-700 dark:text-slate-200 py-2.5 pl-2.5 pr-9 focus:ring-0 cursor-pointer appearance-none">
                                 @for ($i = 0; $i < 12; $i++)
                                     @php
                                         $d = \Carbon\Carbon::now()->subMonths($i);
                                         $optVal = $d->format('Y-m');
                                         $currentSelected = sprintf('%04d-%02d', $year, $month);
                                     @endphp
-                                    <option value="{{ $optVal }}" {{ $optVal === $currentSelected ? 'selected' : '' }}>
+                                    <option value="{{ $optVal }}" {{ $optVal === $currentSelected ? 'selected' : '' }} class="dark:bg-slate-800 dark:text-slate-200">
                                         {{ $d->locale('id')->translatedFormat('F Y') }} {{ $i === 0 ? '(Bulan Berjalan)' : '' }}
                                     </option>
                                 @endfor
@@ -42,13 +48,43 @@
             </div>
 
             @if(session('success'))
-            <div class="mb-6 p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs sm:text-sm font-semibold flex items-center justify-between shadow-xs">
-                <div class="flex items-center gap-2.5">
-                    <i class="fa-solid fa-circle-check text-emerald-500 text-base"></i>
+            <div class="mb-6 p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/80 text-emerald-800 dark:text-emerald-200 text-xs sm:text-sm font-semibold flex items-center justify-between shadow-xs transition-all">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-xl bg-emerald-100 dark:bg-emerald-900/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+                        <i class="fa-solid fa-circle-check text-base"></i>
+                    </div>
                     <span>{{ session('success') }}</span>
                 </div>
-                <button type="button" onclick="this.parentElement.remove()" class="text-emerald-500 hover:text-emerald-700 text-xs">
-                    <i class="fa-solid fa-xmark"></i>
+                <button type="button" onclick="this.closest('.mb-6').remove()" class="p-1.5 rounded-lg text-emerald-500 hover:text-emerald-700 dark:hover:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 transition-colors">
+                    <i class="fa-solid fa-xmark text-sm"></i>
+                </button>
+            </div>
+            @endif
+
+            @if(session('error'))
+            <div class="mb-6 p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/80 text-rose-800 dark:text-rose-200 text-xs sm:text-sm font-semibold flex items-center justify-between shadow-xs transition-all">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-xl bg-rose-100 dark:bg-rose-900/60 text-rose-600 dark:text-rose-400 flex items-center justify-center shrink-0">
+                        <i class="fa-solid fa-circle-exclamation text-base"></i>
+                    </div>
+                    <span>{{ session('error') }}</span>
+                </div>
+                <button type="button" onclick="this.closest('.mb-6').remove()" class="p-1.5 rounded-lg text-rose-500 hover:text-rose-700 dark:hover:text-rose-300 hover:bg-rose-100 dark:hover:bg-rose-900/40 transition-colors">
+                    <i class="fa-solid fa-xmark text-sm"></i>
+                </button>
+            </div>
+            @endif
+
+            @if(session('info'))
+            <div class="mb-6 p-4 rounded-2xl bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800/80 text-blue-800 dark:text-blue-200 text-xs sm:text-sm font-semibold flex items-center justify-between shadow-xs transition-all">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-xl bg-blue-100 dark:bg-blue-900/60 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
+                        <i class="fa-solid fa-circle-info text-base"></i>
+                    </div>
+                    <span>{{ session('info') }}</span>
+                </div>
+                <button type="button" onclick="this.closest('.mb-6').remove()" class="p-1.5 rounded-lg text-blue-500 hover:text-blue-700 dark:hover:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors">
+                    <i class="fa-solid fa-xmark text-sm"></i>
                 </button>
             </div>
             @endif
@@ -384,19 +420,25 @@
 
                 </div>
                 @else
-                <div class="bg-white rounded-2xl border border-dashed border-slate-300 p-8 sm:p-10 text-center shadow-xs">
-                    <div class="w-14 h-14 rounded-2xl bg-amber-50 border border-amber-200 text-amber-500 flex items-center justify-center mx-auto mb-3.5 text-xl shadow-xs">
+                <div class="bg-white dark:bg-slate-800 rounded-2xl border border-dashed border-slate-300 dark:border-slate-700 p-8 sm:p-10 text-center shadow-xs">
+                    <div class="w-14 h-14 rounded-2xl bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800 text-amber-500 dark:text-amber-400 flex items-center justify-center mx-auto mb-3.5 text-xl shadow-xs">
                         <i class="fa-solid fa-trophy"></i>
                     </div>
-                    <h3 class="text-sm sm:text-base font-extrabold text-slate-800 mb-1">Top 3 CS Belum Tersedia (Kosong)</h3>
-                    <p class="text-xs text-slate-500 max-w-lg mx-auto leading-relaxed">
-                        Data Top 3 CS masih kosong karena belum seluruh Customer Support selesai dinilai.<br>
-                        Saat ini baru <span class="font-extrabold text-slate-800">{{ $sudahDinilai }}</span> dari <span class="font-extrabold text-slate-800">{{ $totalCS }}</span> CS yang sudah selesai dinilai (<span class="font-extrabold text-amber-600">{{ $belumDinilai }}</span> CS belum dinilai).
-                    </p>
-                    <div class="mt-4 inline-flex items-center gap-2 text-xs font-bold text-amber-800 bg-amber-50 border border-amber-200 px-3.5 py-1.5 rounded-xl">
-                        <i class="fa-solid fa-circle-info text-amber-600"></i>
-                        <span>Selesaikan penilaian seluruh CS untuk mengaktifkan penghargaan Top 3 CS</span>
-                    </div>
+                    <h3 class="text-sm sm:text-base font-extrabold text-slate-800 dark:text-slate-100 mb-1">Top 3 CS Belum Tersedia (Kosong)</h3>
+                    @if($totalCS > 0)
+                        <p class="text-xs text-slate-500 dark:text-slate-400 max-w-lg mx-auto leading-relaxed">
+                            Data Top 3 CS masih kosong karena belum seluruh Customer Support selesai dinilai.<br>
+                            Saat ini baru <span class="font-extrabold text-slate-800 dark:text-slate-200">{{ $sudahDinilai }}</span> dari <span class="font-extrabold text-slate-800 dark:text-slate-200">{{ $totalCS }}</span> CS di Departemen {{ ucfirst($currentDepartemen->name ?? '') }} yang sudah selesai dinilai (<span class="font-extrabold text-amber-600 dark:text-amber-400">{{ $belumDinilai }}</span> CS belum dinilai).
+                        </p>
+                        <div class="mt-4 inline-flex items-center gap-2 text-xs font-bold text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800/80 px-3.5 py-1.5 rounded-xl">
+                            <i class="fa-solid fa-circle-info text-amber-600 dark:text-amber-400"></i>
+                            <span>Selesaikan penilaian seluruh CS di departemen ini untuk mengaktifkan penghargaan Top 3 CS</span>
+                        </div>
+                    @else
+                        <p class="text-xs text-slate-500 dark:text-slate-400 max-w-lg mx-auto leading-relaxed">
+                            Belum ada staf Customer Support (role: user) yang terdaftar di Departemen {{ ucfirst($currentDepartemen->name ?? '') }}.
+                        </p>
+                    @endif
                 </div>
                 @endif
             </div>
@@ -405,6 +447,7 @@
             <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 mb-6">
                 <form action="{{ route('laporan') }}" method="GET" class="flex flex-col sm:flex-row gap-4 flex-1">
                     <input type="hidden" name="period" value="{{ sprintf('%04d-%02d', $year, $month) }}">
+                    <input type="hidden" name="department_id" value="{{ $selectedDeptId }}">
                     <!-- Search -->
                     <div class="relative flex-1">
                         <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
@@ -424,23 +467,36 @@
                     </div>
 
                     @if(request('search') || request('status'))
-                    <a href="{{ route('laporan', ['period' => sprintf('%04d-%02d', $year, $month)]) }}" class="px-4 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 border border-transparent dark:border-slate-700 rounded-xl text-sm font-bold flex items-center justify-center gap-1.5 transition-colors shadow-sm">
+                    <a href="{{ route('laporan', ['period' => sprintf('%04d-%02d', $year, $month), 'department_id' => $selectedDeptId]) }}" class="px-4 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 border border-transparent dark:border-slate-700 rounded-xl text-sm font-bold flex items-center justify-center gap-1.5 transition-colors shadow-sm">
                         <i class="fa-solid fa-rotate-left text-xs"></i> Reset
                     </a>
                     @endif
                 </form>
 
-                <!-- Tombol Proses Semua Nilai (Poin 13) -->
-                <form action="{{ route('laporan.proses_semua') }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin memproses (menghitung total dan agregat modul) seluruh CS untuk periode {{ \Carbon\Carbon::createFromDate($year, $month, 1)->locale('id')->translatedFormat('F Y') }}?');">
-                    @csrf
-                    <input type="hidden" name="month" value="{{ $month }}">
-                    <input type="hidden" name="year" value="{{ $year }}">
-                    <input type="hidden" name="period" value="{{ sprintf('%04d-%02d', $year, $month) }}">
-                    <button type="submit" class="w-full sm:w-auto px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all shadow-sm shadow-blue-500/20 active:scale-95 cursor-pointer whitespace-nowrap" title="Hitung agregat tiket seluruh CS periode ini sekaligus">
-                        <i class="fa-solid fa-bolt text-amber-300"></i>
-                        <span>Proses Semua Nilai</span>
+                <!-- Tombol Proses Semua Nilai (Hanya 1 kali per periode) -->
+                @if($isAllProcessed)
+                    <button type="button" onclick="alertSudahDiproses()" class="w-full sm:w-auto px-4 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all shadow-xs cursor-pointer whitespace-nowrap" title="Seluruh CS telah diproses untuk periode ini">
+                        <i class="fa-solid fa-circle-check text-emerald-500 text-sm"></i>
+                        <span>Sudah Diproses ({{ $sudahDiproses }}/{{ $totalCS }})</span>
                     </button>
-                </form>
+                @elseif($totalCS === 0)
+                    <button type="button" disabled class="w-full sm:w-auto px-4 py-2.5 bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 border border-slate-200 dark:border-slate-700 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 opacity-60 cursor-not-allowed whitespace-nowrap">
+                        <i class="fa-solid fa-ban"></i>
+                        <span>Tidak Ada CS</span>
+                    </button>
+                @else
+                    <form id="form-proses-semua" action="{{ route('laporan.proses_semua') }}" method="POST">
+                        @csrf
+                        <input type="hidden" name="month" value="{{ $month }}">
+                        <input type="hidden" name="year" value="{{ $year }}">
+                        <input type="hidden" name="period" value="{{ sprintf('%04d-%02d', $year, $month) }}">
+                        <input type="hidden" name="department_id" value="{{ $selectedDeptId }}">
+                        <button type="button" id="btn-proses-semua" onclick="konfirmasiProsesSemua()" class="w-full sm:w-auto px-4 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all shadow-md shadow-blue-500/25 active:scale-95 cursor-pointer whitespace-nowrap" title="Hitung agregat tiket seluruh CS departemen ini sekaligus">
+                            <i class="fa-solid fa-bolt text-amber-300"></i>
+                            <span>Proses Semua Nilai</span>
+                        </button>
+                    </form>
+                @endif
             </div>
 
             <!-- Main Table Card -->
@@ -543,25 +599,18 @@
                                                 <i class="fa-solid fa-pencil"></i>
                                             </a>
                                         @elseif($isDraft)
-                                            <!-- Tombol Nilai untuk mengisi soft skill CS yang sudah di-sum -->
+                                            <!-- Tombol Nilai untuk mengisi soft skill CS yang sudah di-sum (Proses hanya sekali) -->
                                             <a href="{{ route('penilaian', ['id' => $u->id, 'month' => $month, 'year' => $year]) }}" class="px-4 py-1.5 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-sm shadow-blue-500/25 transition-all active:scale-95 flex items-center gap-1.5 cursor-pointer" title="Lengkapi Evaluasi Soft Skill">
                                                 <i class="fa-solid fa-star text-[10px]"></i> Nilai
                                             </a>
-                                            <form action="{{ route('laporan.proses_nilai', $u->id) }}" method="POST" class="inline">
-                                                @csrf
-                                                <input type="hidden" name="month" value="{{ $month }}">
-                                                <input type="hidden" name="year" value="{{ $year }}">
-                                                <button type="submit" class="px-2.5 py-1.5 text-xs font-semibold text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors bg-white dark:bg-slate-800 shadow-2xs cursor-pointer" title="Hitung Ulang Tiket CS">
-                                                    <i class="fa-solid fa-arrows-rotate text-[11px]"></i>
-                                                </button>
-                                            </form>
                                         @else
-                                            <!-- Tombol Proses Nilai untuk CS yang belum di-sum (Poin 13) -->
-                                            <form action="{{ route('laporan.proses_nilai', $u->id) }}" method="POST">
+                                            <!-- Tombol Proses Nilai untuk CS yang belum di-sum -->
+                                            <form id="form-proses-cs-{{ $u->id }}" action="{{ route('laporan.proses_nilai', $u->id) }}" method="POST">
                                                 @csrf
                                                 <input type="hidden" name="month" value="{{ $month }}">
                                                 <input type="hidden" name="year" value="{{ $year }}">
-                                                <button type="submit" class="px-4 py-1.5 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow-sm shadow-indigo-500/25 transition-all active:scale-95 flex items-center gap-1.5 cursor-pointer" title="Proses dan hitung agregat tiket CS">
+                                                <input type="hidden" name="department_id" value="{{ $selectedDeptId }}">
+                                                <button type="button" onclick="konfirmasiProsesNilai({{ $u->id }}, '{{ addslashes($u->name) }}')" class="px-3.5 py-1.5 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow-sm shadow-indigo-500/25 transition-all active:scale-95 flex items-center gap-1.5 cursor-pointer" title="Proses dan hitung agregat tiket CS">
                                                     <i class="fa-solid fa-calculator text-[10px]"></i> Proses Nilai
                                                 </button>
                                             </form>
@@ -572,7 +621,7 @@
                             @empty
                             <tr>
                                 <td colspan="6" class="py-12 text-center text-sm font-semibold text-slate-400 dark:text-slate-500">
-                                    Tidak ada data Customer Support yang ditemukan.
+                                    Tidak ada data Customer Support (role: user) yang ditemukan pada Departemen {{ ucfirst($currentDepartemen->name ?? '') }}.
                                 </td>
                             </tr>
                             @endforelse
@@ -783,5 +832,255 @@
             document.body.removeChild(link);
         }
     }
+
+    // --- Helper Tema SweetAlert2 (Dark Mode & Light Mode Responsive) ---
+    function getSwalTheme() {
+        const isDark = document.documentElement.classList.contains('dark') || document.documentElement.getAttribute('data-theme') === 'dark';
+        return {
+            isDark: isDark,
+            background: isDark ? '#1e293b' : '#ffffff',
+            color: isDark ? '#f8fafc' : '#0f172a',
+            confirmButtonColor: '#2563eb',
+            cancelButtonColor: isDark ? '#475569' : '#94a3b8'
+        };
+    }
+
+    // --- Pop-up Modern: Konfirmasi Proses Seluruh Nilai CS ---
+    function konfirmasiProsesSemua() {
+        const form = document.getElementById('form-proses-semua');
+        if (!form) return;
+
+        const th = getSwalTheme();
+        const deptName = @json(ucfirst($currentDepartemen->name ?? 'Operasional'));
+        const periodeStr = @json(\Carbon\Carbon::createFromDate($year, $month, 1)->locale('id')->translatedFormat('F Y'));
+        const totalCsCount = @json($totalCS ?? 0);
+        const unprocessedCount = @json($belumDiproses ?? 0);
+
+        if (!window.Swal) {
+            if (confirm("Apakah Anda yakin ingin memproses seluruh nilai CS di Departemen " + deptName + " untuk periode " + periodeStr + "?")) {
+                form.submit();
+            }
+            return;
+        }
+
+        Swal.fire({
+            title: 'Proses Semua Nilai CS?',
+            html: `
+                <div class="text-left text-xs sm:text-sm space-y-3 pt-2">
+                    <p style="color: ${th.isDark ? '#cbd5e1' : '#475569'}">
+                        Apakah Anda yakin ingin memproses dan menghitung agregat nilai tiket seluruh staf CS di departemen ini?
+                    </p>
+                    <div style="background: ${th.isDark ? '#0f172a' : '#f8fafc'}; border: 1px solid ${th.isDark ? '#334155' : '#e2e8f0'};" class="p-3.5 rounded-xl space-y-2 text-xs">
+                        <div class="flex justify-between items-center">
+                            <span style="color: #94a3b8;">Departemen:</span>
+                            <span class="font-bold" style="color: ${th.isDark ? '#f8fafc' : '#0f172a'};">${deptName}</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span style="color: #94a3b8;">Periode:</span>
+                            <span class="font-bold" style="color: ${th.isDark ? '#f8fafc' : '#0f172a'};">${periodeStr}</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span style="color: #94a3b8;">CS yang Diproses:</span>
+                            <span class="font-extrabold text-blue-500">${unprocessedCount} dari ${totalCsCount} CS</span>
+                        </div>
+                    </div>
+                    <div class="p-2.5 rounded-lg flex items-center gap-2 text-xs" style="background: ${th.isDark ? 'rgba(245, 158, 11, 0.15)' : '#fffbeb'}; border: 1px solid ${th.isDark ? 'rgba(245, 158, 11, 0.3)' : '#fde68a'}; color: ${th.isDark ? '#fbbf24' : '#b45309'};">
+                        <i class="fa-solid fa-circle-exclamation text-sm shrink-0"></i>
+                        <span>Tombol proses ini <strong>hanya dapat dijalankan 1 kali</strong> per periode.</span>
+                    </div>
+                </div>
+            `,
+            icon: 'question',
+            iconColor: '#3b82f6',
+            showCancelButton: true,
+            confirmButtonColor: '#2563eb',
+            cancelButtonColor: th.cancelButtonColor,
+            confirmButtonText: '<i class="fa-solid fa-bolt mr-1"></i> Ya, Proses Semua Nilai',
+            cancelButtonText: 'Batal',
+            background: th.background,
+            color: th.color,
+            reverseButtons: true,
+            focusConfirm: true,
+            customClass: {
+                popup: 'rounded-2xl border border-slate-200 dark:border-slate-700 shadow-2xl p-6',
+                confirmButton: 'px-5 py-2.5 rounded-xl font-bold shadow-md shadow-blue-500/25 text-sm',
+                cancelButton: 'px-4 py-2.5 rounded-xl font-semibold text-sm'
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const btn = document.getElementById('btn-proses-semua');
+                if (btn) {
+                    btn.disabled = true;
+                    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Memproses...';
+                    btn.classList.add('opacity-75', 'cursor-not-allowed');
+                }
+
+                Swal.fire({
+                    title: 'Memproses Nilai CS...',
+                    text: 'Sistem sedang menghitung agregat modul dan tiket seluruh staf CS. Mohon tunggu...',
+                    allowOutsideClick: false,
+                    allowEscapeKey: false,
+                    showConfirmButton: false,
+                    background: th.background,
+                    color: th.color,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+
+                form.submit();
+            }
+        });
+    }
+
+    // --- Pop-up Info: Seluruh Nilai CS Sudah Diproses Sebelumnya ---
+    function alertSudahDiproses() {
+        const th = getSwalTheme();
+        const deptName = @json(ucfirst($currentDepartemen->name ?? 'Operasional'));
+        const periodeStr = @json(\Carbon\Carbon::createFromDate($year, $month, 1)->locale('id')->translatedFormat('F Y'));
+        const totalCsCount = @json($totalCS ?? 0);
+        const processedCount = @json($sudahDiproses ?? 0);
+
+        if (!window.Swal) {
+            alert("Seluruh CS di Departemen " + deptName + " telah selesai diproses untuk periode " + periodeStr + ".");
+            return;
+        }
+
+        Swal.fire({
+            title: 'Nilai Sudah Diproses',
+            html: `
+                <div class="text-left text-xs sm:text-sm space-y-3 pt-2">
+                    <p style="color: ${th.isDark ? '#cbd5e1' : '#475569'}">
+                        Seluruh staf CS di <strong>Departemen ${deptName}</strong> (${processedCount} dari ${totalCsCount} CS) untuk periode <strong>${periodeStr}</strong> sudah selesai diproses.
+                    </p>
+                    <div class="p-3 rounded-xl flex items-center gap-2.5 text-xs" style="background: ${th.isDark ? 'rgba(16, 185, 129, 0.15)' : '#ecfdf5'}; border: 1px solid ${th.isDark ? 'rgba(16, 185, 129, 0.3)' : '#a7f3d0'}; color: ${th.isDark ? '#34d399' : '#047857'};">
+                        <i class="fa-solid fa-circle-check text-base shrink-0"></i>
+                        <span>Proses agregat tiket hanya berlaku <strong>1 kali</strong> per periode. Silakan klik tombol <strong>Nilai</strong> pada masing-masing CS untuk mengisi atau memperbarui soft skill.</span>
+                    </div>
+                </div>
+            `,
+            icon: 'info',
+            iconColor: '#10b981',
+            confirmButtonColor: '#2563eb',
+            confirmButtonText: 'Mengerti',
+            background: th.background,
+            color: th.color,
+            customClass: {
+                popup: 'rounded-2xl border border-slate-200 dark:border-slate-700 shadow-2xl p-6',
+                confirmButton: 'px-5 py-2.5 rounded-xl font-bold shadow-md shadow-blue-500/25 text-sm'
+            }
+        });
+    }
+
+    // --- Pop-up Modern: Konfirmasi Proses Nilai Individual CS ---
+    function konfirmasiProsesNilai(userId, userName) {
+        const form = document.getElementById('form-proses-cs-' + userId);
+        if (!form) return;
+
+        const th = getSwalTheme();
+        const periodeStr = @json(\Carbon\Carbon::createFromDate($year, $month, 1)->locale('id')->translatedFormat('F Y'));
+
+        if (!window.Swal) {
+            if (confirm("Apakah Anda yakin ingin memproses nilai untuk " + userName + " pada periode " + periodeStr + "?")) {
+                form.submit();
+            }
+            return;
+        }
+
+        Swal.fire({
+            title: 'Proses Nilai CS?',
+            html: `
+                <div class="text-left text-xs sm:text-sm space-y-3 pt-2">
+                    <p style="color: ${th.isDark ? '#cbd5e1' : '#475569'}">
+                        Apakah Anda yakin ingin menghitung agregat tiket & nilai untuk staf:
+                    </p>
+                    <div style="background: ${th.isDark ? '#0f172a' : '#f8fafc'}; border: 1px solid ${th.isDark ? '#334155' : '#e2e8f0'};" class="p-3.5 rounded-xl space-y-1.5 text-xs">
+                        <div class="flex justify-between items-center">
+                            <span style="color: #94a3b8;">Customer Support:</span>
+                            <span class="font-extrabold text-blue-500">${userName}</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span style="color: #94a3b8;">Periode:</span>
+                            <span class="font-bold" style="color: ${th.isDark ? '#f8fafc' : '#0f172a'};">${periodeStr}</span>
+                        </div>
+                    </div>
+                    <p class="text-[11px] text-slate-400">
+                        * Nilai tiket modul akan diakumulasikan. Setelah selesai, status akan menjadi Terproses (Draft) dan tombol Nilai akan aktif untuk evaluasi soft skill.
+                    </p>
+                </div>
+            `,
+            icon: 'question',
+            iconColor: '#6366f1',
+            showCancelButton: true,
+            confirmButtonColor: '#4f46e5',
+            cancelButtonColor: th.cancelButtonColor,
+            confirmButtonText: '<i class="fa-solid fa-calculator mr-1"></i> Ya, Proses Nilai',
+            cancelButtonText: 'Batal',
+            background: th.background,
+            color: th.color,
+            reverseButtons: true,
+            customClass: {
+                popup: 'rounded-2xl border border-slate-200 dark:border-slate-700 shadow-2xl p-6',
+                confirmButton: 'px-5 py-2.5 rounded-xl font-bold shadow-md shadow-indigo-500/25 text-sm',
+                cancelButton: 'px-4 py-2.5 rounded-xl font-semibold text-sm'
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                Swal.fire({
+                    title: 'Memproses Data...',
+                    text: 'Sedang menghitung nilai tiket ' + userName + '...',
+                    allowOutsideClick: false,
+                    showConfirmButton: false,
+                    background: th.background,
+                    color: th.color,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+                form.submit();
+            }
+        });
+    }
+
+    // Auto-trigger Toast on page load if session flash exists
+    document.addEventListener('DOMContentLoaded', function() {
+        const successMsg = @json(session('success'));
+        const errorMsg = @json(session('error'));
+        const infoMsg = @json(session('info'));
+
+        if (window.Swal) {
+            const th = getSwalTheme();
+            const Toast = Swal.mixin({
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 4000,
+                timerProgressBar: true,
+                background: th.background,
+                color: th.color,
+                didOpen: (toast) => {
+                    toast.addEventListener('mouseenter', Swal.stopTimer);
+                    toast.addEventListener('mouseleave', Swal.resumeTimer);
+                }
+            });
+
+            if (successMsg) {
+                Toast.fire({
+                    icon: 'success',
+                    title: successMsg
+                });
+            } else if (errorMsg) {
+                Toast.fire({
+                    icon: 'error',
+                    title: errorMsg
+                });
+            } else if (infoMsg) {
+                Toast.fire({
+                    icon: 'info',
+                    title: infoMsg
+                });
+            }
+        }
+    });
     </script>
 </x-app-layout>
