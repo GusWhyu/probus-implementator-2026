@@ -32,7 +32,7 @@
         $scoreTotal = $rapor ? (float)($rapor->total_score ?: 0) : 0;
         $totalTicket = isset($tiket_ditangani) ? (int)$tiket_ditangani : ($rapor ? (int)($rapor->total_ticket ?: 0) : 0);
         $tiketSelesai = isset($tiket_selesai) ? (int)$tiket_selesai : 0;
-        $ticketDiAdvice = isset($tiket_di_advice) ? (int)$tiket_di_advice : ($rapor ? (int)($rapor->total_ticket_yang_di_advice ?: 0) : 0);
+        $tiketProgress = isset($tiket_progress) ? (int)$tiket_progress : 0;
         $rataRataWaktu = $rapor ? ($rapor->rata_rata_waktu ?: '-') : '-';
         $cRate = isset($completion_rate) ? $completion_rate : ($totalTicket > 0 ? round(($tiketSelesai / $totalTicket) * 100, 1) : 0);
         $predikat = $scoreTotal >= 80 ? 'Sangat Baik' : ($scoreTotal >= 70 ? 'Baik' : 'Cukup');
@@ -251,11 +251,11 @@
 
                 <div class="bg-white dark:bg-slate-800 rounded-2xl p-3.5 sm:p-5 border border-slate-200 dark:border-slate-700 shadow-sm flex items-center gap-2.5 sm:gap-4 overflow-hidden">
                     <div class="w-9 h-9 sm:w-12 sm:h-12 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 border border-amber-100 dark:border-amber-900/50 flex items-center justify-center shrink-0">
-                        <i class="fa-solid fa-user-shield text-sm sm:text-lg"></i>
+                        <i class="fa-solid fa-arrows-rotate text-sm sm:text-lg"></i>
                     </div>
                     <div class="min-w-0">
-                        <span class="text-[10px] sm:text-[11px] font-bold text-slate-400 uppercase tracking-wider block truncate">Ticket Advice</span>
-                        <span class="text-lg sm:text-2xl font-extrabold text-slate-800 dark:text-slate-100">{{ $ticketDiAdvice }}</span>
+                        <span class="text-[10px] sm:text-[11px] font-bold text-slate-400 uppercase tracking-wider block truncate">Tiket Diproses</span>
+                        <span class="text-lg sm:text-2xl font-extrabold text-slate-800 dark:text-slate-100 leading-tight">{{ $tiketProgress }}</span>
                     </div>
                 </div>
 

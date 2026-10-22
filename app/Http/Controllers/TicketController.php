@@ -396,7 +396,7 @@ class TicketController extends Controller
 
     public function updatestatusWithAdvisor(Request $request, $id, $stid){
         $request->validate([
-            'advisor_id' => 'required|exists:users,id'
+            'advisor_id' => 'nullable|exists:users,id'
         ]);
 
         $data = Ticket::findOrFail($id);
@@ -408,17 +408,19 @@ class TicketController extends Controller
             return redirect()->back();
         }
 
-        $advisorUser = User::find($request->advisor_id);
-        $data->update([
-            'advisor_id' => $request->advisor_id
-        ]);
+        if ($request->filled('advisor_id')) {
+            $advisorUser = User::find($request->advisor_id);
+            $data->update([
+                'advisor_id' => $request->advisor_id
+            ]);
 
-        TicketLog::create([
-            'ticket_id' => $data->id,
-            'user_id' => Auth::id(),
-            'action' => 'ASSIGNED',
-            'description' => 'Advisor tiket ditugaskan kepada ' . ($advisorUser ? $advisorUser->name : '#' . $request->advisor_id) . ' oleh ' . Auth::user()->name . '.',
-        ]);
+            TicketLog::create([
+                'ticket_id' => $data->id,
+                'user_id' => Auth::id(),
+                'action' => 'ASSIGNED',
+                'description' => 'Advisor tiket ditugaskan kepada ' . ($advisorUser ? $advisorUser->name : '#' . $request->advisor_id) . ' oleh ' . Auth::user()->name . '.',
+            ]);
+        }
 
         return $this->updatestatus($id, $stid);
     }

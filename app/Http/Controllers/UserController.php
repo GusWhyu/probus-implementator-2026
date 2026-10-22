@@ -61,6 +61,7 @@ class UserController extends Controller
             'usertype' => $request->usertype,
             'tag_id' => $request->tag,
             'departemen_id' => $request->departemen,
+            'is_active' => true,
         ]);
         Alert::success('Account Successfully Registered!');
         return redirect('/user');
@@ -77,16 +78,63 @@ class UserController extends Controller
             'departemen' => ['required', 'exists:departemen,id'],
         ]);
 
-        $user->update([
+        $updateData = [
             'name' => $request->name,
             'email' => $request->email,
             'usertype' => $request->usertype,
             'tag_id' => $request->tag,
             'departemen_id' => $request->departemen,
-        ]);
+        ];
+
+        if ($request->has('is_active') && $id != 1 && auth()->id() != $id) {
+            $updateData['is_active'] = $request->boolean('is_active');
+        }
+
+        $user->update($updateData);
 
         Alert::success('Account Successfully Edited!');
         return redirect('/user');
+    }
+
+    public function toggleStatus($id)
+    {
+        $this->authorize('aspv');
+        $currentUser = auth()->user();
+
+        if ($currentUser && $currentUser->id == $id) {
+            if (request()->wantsJson() || request()->ajax()) {
+                return response()->json(['success' => false, 'message' => 'Anda tidak dapat menonaktifkan akun Anda sendiri.'], 403);
+            }
+            Alert::error('Aksi Ditolak', 'Anda tidak dapat menonaktifkan akun Anda sendiri.');
+            return redirect()->back();
+        }
+
+        if ($id == 1) {
+            if (request()->wantsJson() || request()->ajax()) {
+                return response()->json(['success' => false, 'message' => 'Akun Superadministrator utama tidak dapat dinonaktifkan.'], 403);
+            }
+            Alert::error('Aksi Ditolak', 'Akun Superadministrator utama tidak dapat dinonaktifkan.');
+            return redirect()->back();
+        }
+
+        $user = User::findOrFail($id);
+        $user->is_active = !$user->is_active;
+        $user->save();
+
+        $statusText = $user->is_active ? 'diaktifkan' : 'dinonaktifkan';
+        $msg = "Akun {$user->name} berhasil {$statusText}!";
+
+        if (request()->wantsJson() || request()->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => $msg,
+                'is_active' => (bool)$user->is_active,
+                'status_label' => $user->is_active ? 'Aktif' : 'Nonaktif',
+            ]);
+        }
+
+        Alert::success('Berhasil!', $msg);
+        return redirect()->back();
     }
 
     public function delete($id){

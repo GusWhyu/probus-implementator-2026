@@ -784,7 +784,7 @@
                 <div class="flex justify-between items-start mb-4">
                     <div>
                         <h3 class="font-extrabold text-[17px] text-slate-800 dark:text-slate-100 mb-1">Selesaikan Tiket</h3>
-                        <p class="text-[11px] text-slate-500 dark:text-slate-400 font-medium">Tiket ini belum memiliki Advisor. Anda wajib memilih Advisor untuk melanjutkan.</p>
+                        <p class="text-[11px] text-slate-500 dark:text-slate-400 font-medium">Tiket ini belum memiliki Advisor. Anda dapat memilih Advisor atau membiarkannya kosong untuk menyelesaikan tiket tanpa Advisor.</p>
                     </div>
                     <button type="button" class="w-8 h-8 rounded-xl bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-100 dark:border-slate-700 transition-colors" onclick="document.getElementById('forceAdvisorModal').close()">
                         <i class="fa-solid fa-xmark"></i>
@@ -792,17 +792,23 @@
                 </div>
 
                 <div class="mb-6">
-                    <p class="text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-2">Pilih Advisor</p>
+                    <div class="flex items-center justify-between mb-2">
+                        <label class="text-[11px] font-bold text-slate-700 dark:text-slate-300">Pilih Advisor</label>
+                        <span class="text-[10px] font-semibold text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-md">Opsional</span>
+                    </div>
                     <div class="relative group">
                         <i class="fa-regular fa-user absolute left-4 top-1/2 -translate-y-1/2 text-blue-500 dark:text-blue-400 text-sm"></i>
-                        <select name="advisor_id" class="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 p-3.5 pl-10 outline-none font-bold appearance-none shadow-sm cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors" required>
-                            <option value="" disabled selected>Pilih advisor...</option>
+                        <select name="advisor_id" class="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 p-3.5 pl-10 pr-9 outline-none font-bold appearance-none shadow-sm cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                            <option value="" selected>-- Tanpa Advisor (Opsional) --</option>
                             @foreach(\App\Models\User::whereIn('usertype', ['admin', 'supervisor', 'user'])->get() as $adv)
                                 <option value="{{ $adv->id }}">{{ $adv->name }} @if($adv->id == Auth::id()) (Anda) @endif</option>
                             @endforeach
                         </select>
                         <i class="fa-solid fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 text-[10px] pointer-events-none group-hover:text-blue-500 transition-colors"></i>
                     </div>
+                    <p class="text-[10.5px] text-slate-400 dark:text-slate-500 mt-2 font-medium">
+                        <i class="fa-solid fa-circle-info mr-1 text-slate-400"></i> Kosongkan jika tiket diselesaikan sendiri tanpa bantuan Advisor.
+                    </p>
                 </div>
 
                 <div class="grid grid-cols-2 gap-3">
