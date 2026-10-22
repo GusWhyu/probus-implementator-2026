@@ -10,7 +10,7 @@ class ReviewController extends Controller
 {
     public function show($ticket_number)
     {
-        $ticket = Ticket::where('ticket_number', $ticket_number)->firstOrFail();
+        $ticket = Ticket::where('ticket_number', $ticket_number)->with(['user', 'client', 'advisor'])->firstOrFail();
         
         // Cek apakah tiket sudah ditutup
         if ($ticket->status != 'CLOSED') {

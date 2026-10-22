@@ -35,6 +35,33 @@
         <div style="border: 1.5px solid #d6dce6; border-radius: 14px; padding: 12px 16px 8px 16px; background-color: #ffffff;">
 
             @php
+                if (!function_exists('formatDurationPdf')) {
+                    function formatDurationPdf($text, $showSub = true) {
+                        if (!$text || $text === '-') {
+                            return '<span style="color: #94a3b8;">-</span>';
+                        }
+                        if (!preg_match('/(\d+)\s*menit/i', $text, $m)) {
+                            return e($text);
+                        }
+                        $totalM = (int)$m[1];
+                        if ($totalM == 0) {
+                            return '<span style="color: #94a3b8;">0 m</span>';
+                        }
+                        if ($totalM < 60) {
+                            return $totalM . ' menit';
+                        }
+                        $readable = \App\Models\Ticket::formatMinutesToText($totalM);
+                        $formattedM = number_format($totalM, 0, ',', '.') . ' m';
+                        if ($showSub) {
+                            return '<div style="line-height: 1.15; text-align: center;">'
+                                . '<span style="font-weight: bold; color: #1e293b;">' . e($readable) . '</span>'
+                                . '<div style="font-size: 7px; color: #94a3b8; margin-top: 1px;">(' . $formattedM . ')</div>'
+                                . '</div>';
+                        }
+                        return e($readable);
+                    }
+                }
+
                 $pdfAvatarSrc = null;
                 if (!empty($user->profile_image)) {
                     $pPath = public_path('storage/' . $user->profile_image);
@@ -130,7 +157,7 @@
                                 <td style="color: #475569; padding: 2px 0;">
                                     <span style="color: #94a3b8;">&#9656;</span> Rata-rata respon
                                 </td>
-                                <td style="text-align: right; font-weight: bold; color: #0f172a;">{{ $rapor->rata_rata_waktu ?? '-' }}</td>
+                                <td style="text-align: right; font-weight: bold; color: #0f172a;">{!! formatDurationPdf($rapor->rata_rata_waktu ?? '-', false) !!}</td>
                             </tr>
                             <tr>
                                 <td style="color: #475569; padding: 2px 0;">
@@ -197,21 +224,21 @@
 
                 <table style="width: 100%; font-size: 8.5px;">
                     <tr style="color: #475569; font-weight: bold; border-bottom: 1.5px solid #cbd5e1;">
-                        <td style="padding: 2.5px 0; width: 25%;">Modul</td>
-                        <td style="text-align: center; width: 10%;">Bobot</td>
-                        <td style="text-align: center; width: 15%;">Total Tiket</td>
-                        <td style="text-align: center; width: 17%;">Lama Pengerjaan</td>
-                        <td style="text-align: center; width: 17%;">Rata-rata Waktu</td>
-                        <td style="text-align: right; width: 16%;">Skor Poin</td>
+                        <td style="padding: 2.5px 0; width: 22%;">Modul</td>
+                        <td style="text-align: center; width: 9%;">Bobot</td>
+                        <td style="text-align: center; width: 13%;">Total Tiket</td>
+                        <td style="text-align: center; width: 21%;">Lama Pengerjaan</td>
+                        <td style="text-align: center; width: 21%;">Rata-rata Waktu</td>
+                        <td style="text-align: right; width: 14%;">Skor Poin</td>
                     </tr>
                     @forelse($rapor && $rapor->moduleDetails ? $rapor->moduleDetails : [] as $md)
                     <tr>
-                        <td style="color: #1e293b; font-weight: bold; padding: 2.5px 0; border-bottom: 1px solid #f1f5f9;">{{ optional($md->moduleSystem)->name ?? ('Modul #' . $md->module_id) }}</td>
-                        <td style="text-align: center; color: #64748b; padding: 2.5px 0; border-bottom: 1px solid #f1f5f9;">{{ $md->bobot }}</td>
-                        <td style="text-align: center; color: #0f172a; font-weight: bold; padding: 2.5px 0; border-bottom: 1px solid #f1f5f9;">{{ $md->total_ticket }}</td>
-                        <td style="text-align: center; color: #64748b; padding: 2.5px 0; border-bottom: 1px solid #f1f5f9;">{{ $md->lama_waktu ?: ($md->rata_rata_waktu ?: '-') }}</td>
-                        <td style="text-align: center; color: #64748b; padding: 2.5px 0; border-bottom: 1px solid #f1f5f9;">{{ $md->rata_rata_waktu ?? '-' }}</td>
-                        <td style="text-align: right; color: #2563eb; font-weight: bold; padding: 2.5px 0; border-bottom: 1px solid #f1f5f9;">{{ number_format($md->score, 0, ',', '.') }}</td>
+                        <td style="color: #1e293b; font-weight: bold; padding: 2.5px 0; border-bottom: 1px solid #f1f5f9; width: 22%;">{{ optional($md->moduleSystem)->name ?? ('Modul #' . $md->module_id) }}</td>
+                        <td style="text-align: center; color: #64748b; padding: 2.5px 0; border-bottom: 1px solid #f1f5f9; width: 9%;">{{ $md->bobot }}</td>
+                        <td style="text-align: center; color: #0f172a; font-weight: bold; padding: 2.5px 0; border-bottom: 1px solid #f1f5f9; width: 13%;">{{ $md->total_ticket }}</td>
+                        <td style="text-align: center; color: #64748b; padding: 2.5px 0; border-bottom: 1px solid #f1f5f9; width: 21%;">{!! formatDurationPdf($md->lama_waktu ?: ($md->rata_rata_waktu ?: '-')) !!}</td>
+                        <td style="text-align: center; color: #64748b; padding: 2.5px 0; border-bottom: 1px solid #f1f5f9; width: 21%;">{!! formatDurationPdf($md->rata_rata_waktu ?? '-') !!}</td>
+                        <td style="text-align: right; color: #2563eb; font-weight: bold; padding: 2.5px 0; border-bottom: 1px solid #f1f5f9; width: 14%;">{{ number_format($md->score, 0, ',', '.') }}</td>
                     </tr>
                     @empty
                     <tr>
@@ -226,12 +253,12 @@
                 {{-- Total Row --}}
                 <table style="width: 100%; font-size: 9px; font-weight: bold;">
                     <tr>
-                        <td style="color: #0f172a; width: 25%; padding: 2px 0;">Total</td>
-                        <td style="text-align: center; color: #334155; width: 10%; padding: 2px 0;">Bobot: {{ $total_bobot ?? ($rapor && $rapor->moduleDetails ? $rapor->moduleDetails->sum('bobot') : 0) }}</td>
-                        <td style="text-align: center; color: #2563eb; width: 15%; padding: 2px 0;">Jumlah: {{ $total_qty ?? ($rapor && $rapor->moduleDetails ? $rapor->moduleDetails->sum('total_ticket') : 0) }}</td>
-                        <td style="text-align: center; color: #334155; width: 17%; padding: 2px 0;">{{ $rapor->lama_waktu ?: ($rapor->rata_rata_waktu ?: '-') }}</td>
-                        <td style="text-align: center; color: #334155; width: 17%; padding: 2px 0;">{{ $rapor->rata_rata_waktu ?? '-' }}</td>
-                        <td style="text-align: right; color: #2563eb; width: 16%; padding: 2px 0;">Total: {{ number_format($raw_ticket_score ?? 0, 0, ',', '.') }} poin</td>
+                        <td style="color: #0f172a; width: 22%; padding: 2px 0;">Total</td>
+                        <td style="text-align: center; color: #334155; width: 9%; padding: 2px 0;">Bobot: {{ $total_bobot ?? ($rapor && $rapor->moduleDetails ? $rapor->moduleDetails->sum('bobot') : 0) }}</td>
+                        <td style="text-align: center; color: #2563eb; width: 13%; padding: 2px 0;">Jumlah: {{ $total_qty ?? ($rapor && $rapor->moduleDetails ? $rapor->moduleDetails->sum('total_ticket') : 0) }}</td>
+                        <td style="text-align: center; color: #334155; width: 21%; padding: 2px 0;">{!! formatDurationPdf($rapor->lama_waktu ?: ($rapor->rata_rata_waktu ?: '-')) !!}</td>
+                        <td style="text-align: center; color: #334155; width: 21%; padding: 2px 0;">{!! formatDurationPdf($rapor->rata_rata_waktu ?? '-') !!}</td>
+                        <td style="text-align: right; color: #2563eb; width: 14%; padding: 2px 0;">Total: {{ number_format($raw_ticket_score ?? 0, 0, ',', '.') }} poin</td>
                     </tr>
                 </table>
 

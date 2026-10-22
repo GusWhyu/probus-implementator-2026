@@ -45,22 +45,43 @@
 
         <div class="p-5 sm:p-8">
             
+            @php
+                $petugas = $ticket->advisor ?? $ticket->user;
+                $petugasName = $petugas ? $petugas->name : ($ticket->user->name ?? 'Tim Implementator');
+                $petugasRole = $petugas ? $petugas->usertype : ($ticket->user->usertype ?? 'user');
+                
+                $fallbackAvatar = 'https://ui-avatars.com/api/?name=' . urlencode($petugasName) . '&background=2563eb&color=fff&bold=true';
+                $petugasAvatar = null;
+                if ($petugas && !empty($petugas->profile_image)) {
+                    $petugasAvatar = asset('storage/' . $petugas->profile_image);
+                } elseif ($ticket->user && !empty($ticket->user->profile_image)) {
+                    $petugasAvatar = asset('storage/' . $ticket->user->profile_image);
+                } elseif ($petugas && !empty($petugas->avatar_url)) {
+                    $petugasAvatar = $petugas->avatar_url;
+                } else {
+                    $petugasAvatar = $fallbackAvatar;
+                }
+            @endphp
+
             <!-- User Pembuat Tiket & Ticket Info Header Card -->
             <div class="bg-slate-50/80 border border-slate-200/70 rounded-2xl p-4 sm:p-5 mb-6 relative overflow-hidden transition-all hover:border-blue-200/80 hover:bg-slate-50">
                 <div class="flex items-center gap-3.5 mb-3.5 pb-3.5 border-b border-slate-200/60">
                     <div class="relative shrink-0">
                         <div class="w-12 h-12 rounded-full overflow-hidden bg-blue-100 ring-2 ring-white shadow-sm">
-                            <img src="https://ui-avatars.com/api/?name={{ urlencode($ticket->user->name ?? 'Implementator') }}&background=2563eb&color=fff&bold=true" alt="{{ $ticket->user->name ?? 'Implementator' }}" class="w-full h-full object-cover">
+                            <img src="{{ $petugasAvatar }}" 
+                                 alt="{{ $petugasName }}" 
+                                 class="w-full h-full object-cover"
+                                 onerror="this.onerror=null; this.src='{{ $fallbackAvatar }}';">
                         </div>
                         <span class="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-emerald-500 border-2 border-white rounded-full"></span>
                     </div>
                     <div class="flex-1 min-w-0">
                         <div class="flex items-center justify-between gap-2">
-                            <h3 class="font-extrabold text-slate-900 text-sm sm:text-[15px] truncate">{{ $ticket->user->name ?? 'Tim Implementator' }}</h3>
-                            <span class="bg-blue-50 text-blue-700 font-extrabold text-[10px] px-2 py-0.5 rounded-md border border-blue-200 shrink-0">
-                                @if(($ticket->user->usertype ?? '') === 'admin')
+                            <h3 class="font-extrabold text-slate-900 text-sm sm:text-[15px] truncate">{{ $petugasName }}</h3>
+                            <span class="bg-blue-50 text-blue-700 font-extrabold text-[10px] px-2 py-0.5 rounded-md border border-blue-200 shrink-0 capitalize">
+                                @if($petugasRole === 'admin')
                                     Admin
-                                @elseif(($ticket->user->usertype ?? '') === 'supervisor')
+                                @elseif($petugasRole === 'supervisor')
                                     Supervisor
                                 @else
                                     Implementator
