@@ -35,7 +35,7 @@
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                         <!-- Departemen -->
                         <div>
                             <label for="departemen" class="block text-sm font-semibold text-slate-700 mb-2">Departemen <span class="text-red-500">*</span></label>
@@ -56,15 +56,34 @@
                                 @endforeach
                             </select>
                         </div>
-                        
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                         <!-- User Type -->
-                        <div class="{{ $user->id == 1 ? 'opacity-50 pointer-events-none' : '' }}">
+                        <div class="{{ $user->id == 1 ? 'opacity-60 pointer-events-none' : '' }}">
                             <label for="usertype" class="block text-sm font-semibold text-slate-700 mb-2">User Type <span class="text-red-500">*</span></label>
                             <select name="usertype" id="usertype" class="block w-full rounded-xl border-slate-200 focus:border-blue-500 focus:ring focus:ring-blue-500/20 shadow-sm text-sm py-2.5 px-4 transition-colors" required>
                                 <option value="admin" {{ old('usertype', $user->usertype) == 'admin' ? 'selected' : '' }}>Admin</option>
                                 <option value="supervisor" {{ old('usertype', $user->usertype) == 'supervisor' ? 'selected' : '' }}>Supervisor</option>
                                 <option value="user" {{ old('usertype', $user->usertype) == 'user' ? 'selected' : '' }}>User</option>
                             </select>
+                            @if($user->id == 1)
+                                <p class="text-[11px] text-slate-400 mt-1 italic">Role Superadministrator utama tidak dapat diubah.</p>
+                            @endif
+                        </div>
+
+                        <!-- Status Akun -->
+                        <div class="{{ ($user->id == 1 || auth()->id() == $user->id) ? 'opacity-60 pointer-events-none' : '' }}">
+                            <label for="is_active" class="block text-sm font-semibold text-slate-700 mb-2">Status Akun <span class="text-red-500">*</span></label>
+                            <select name="is_active" id="is_active" class="block w-full rounded-xl border-slate-200 focus:border-blue-500 focus:ring focus:ring-blue-500/20 shadow-sm text-sm py-2.5 px-4 transition-colors" required>
+                                <option value="1" {{ old('is_active', $user->is_active ? '1' : '0') == '1' ? 'selected' : '' }}>Aktif</option>
+                                <option value="0" {{ old('is_active', $user->is_active ? '1' : '0') == '0' ? 'selected' : '' }}>Nonaktif</option>
+                            </select>
+                            @if($user->id == 1)
+                                <p class="text-[11px] text-slate-400 mt-1 italic">Akun Superadministrator utama tidak dapat dinonaktifkan.</p>
+                            @elseif(auth()->id() == $user->id)
+                                <p class="text-[11px] text-slate-400 mt-1 italic">Anda tidak dapat menonaktifkan akun Anda sendiri.</p>
+                            @endif
                         </div>
                     </div>
         

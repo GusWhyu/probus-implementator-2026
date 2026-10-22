@@ -112,6 +112,7 @@ Route::post('/editacc/{id}',[UserController::class, 'edit'])->middleware(['auth'
 Route::get('/editpass/{id}', [UserController::class, 'editpass'])->middleware(['auth'])->name('editpass');
 Route::delete('/deleteacc/{id}',[UserController::class, 'delete'])->middleware(['auth'])->name('deleteacc');
 Route::post('/editpass/{id}', [UserController::class, 'updatepass'])->middleware(['auth'])->name('updatepass');
+Route::post('/user/{id}/toggle-status', [UserController::class, 'toggleStatus'])->middleware(['auth'])->name('user.toggle-status');
 
 //Route Tag
 Route::get('/tag', [TagController::class, 'index'])->middleware(['auth'])->name('tag');

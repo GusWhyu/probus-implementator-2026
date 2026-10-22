@@ -53,6 +53,18 @@ class LoginRequest extends FormRequest
             ]);
         }
 
+        // Cek apakah akun dinonaktifkan
+        $user = Auth::user();
+        if ($user && isset($user->is_active) && !$user->is_active) {
+            Auth::logout();
+            $this->session()->invalidate();
+            $this->session()->regenerateToken();
+
+            throw ValidationException::withMessages([
+                'email' => 'Akun Anda saat ini dinonaktifkan oleh Administrator. Silakan hubungi admin untuk bantuan lebih lanjut.',
+            ]);
+        }
+
         RateLimiter::clear($this->throttleKey());
     }
 

@@ -22,6 +22,7 @@ class User extends Authenticatable
         'email',
         'password',
         'usertype',
+        'is_active',
         'tag_id',
         'departemen_id',
         'profile_image',
@@ -45,6 +46,7 @@ class User extends Authenticatable
      */
     protected $casts = [
         'email_verified_at' => 'datetime',
+        'is_active' => 'boolean',
     ];
 
     public function tag(){
