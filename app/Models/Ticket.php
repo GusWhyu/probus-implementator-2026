@@ -52,10 +52,10 @@ class Ticket extends Model
             if ($handleStart) {
                 $secs = now()->diffInSeconds(\Carbon\Carbon::parse($handleStart));
                 if ($secs < 60) {
-                    return '< 1 menit (Berjalan)';
+                    return '< 1 menit';
                 }
                 $mins = (int) floor($secs / 60);
-                return self::formatMinutesToText($mins) . ' (Berjalan)';
+                return self::formatMinutesToText($mins);
             }
             return 'Sedang diproses';
         }
