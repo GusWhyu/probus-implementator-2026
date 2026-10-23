@@ -131,6 +131,19 @@
                         <span class="hidden md:inline">Reset</span>
                     </a>
                     @endif
+
+                    <!-- Download Excel Button (Dapat diakses oleh seluruh user) -->
+                    <a href="{{ route('daftartiket.export', request()->except('page')) }}" 
+                       class="inline-flex items-center gap-1.5 px-3.5 py-2 sm:py-2.5 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white border border-emerald-500 rounded-xl text-xs sm:text-sm font-bold transition-all shadow-sm shadow-emerald-600/20 hover:shadow-md hover:shadow-emerald-600/30 shrink-0 transform hover:-translate-y-0.5" 
+                       title="Download data tiket dalam format Excel sesuai filter aktif saat ini">
+                        <i class="fa-solid fa-file-excel text-sm"></i>
+                        <span>Download Excel</span>
+                        @if(request('status'))
+                            <span class="bg-emerald-800/60 text-emerald-100 text-[10px] font-extrabold px-1.5 py-0.5 rounded-md uppercase ml-0.5">
+                                {{ request('status') }}
+                            </span>
+                        @endif
+                    </a>
                     
                     <div class="flex items-center bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-1 shadow-sm shrink-0">
                         <a href="{{ request()->fullUrlWithQuery(['view' => 'list']) }}" class="w-8 h-8 rounded-lg {{ request('view', 'list') == 'list' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700' }} flex items-center justify-center transition-colors">
