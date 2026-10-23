@@ -600,6 +600,93 @@ class HomeController extends Controller
         ));
     }
 
+    public function exportExcel(Request $request)
+    {
+        $currentUser = auth()->user();
+        if ($currentUser->usertype == 'user') {
+            return redirect()->route('dashboard')->with('error', 'Akses ditolak. Anda tidak memiliki izin untuk mengunduh laporan.');
+        }
+
+        $userDeptId = $currentUser->departemen_id;
+        $selectedDeptId = (int)($request->input('department_id', $userDeptId ?: 1));
+        $currentDepartemen = Departemen::find($selectedDeptId);
+
+        if ($request->filled('period')) {
+            $parts = explode('-', $request->input('period'));
+            $year = (int)$parts[0];
+            $month = (int)$parts[1];
+        } else {
+            $month = (int)$request->input('month', date('m'));
+            $year = (int)$request->input('year', date('Y'));
+        }
+
+        // HANYA CS dengan usertype == 'user' dan berada di departemen yang dipilih
+        $baseCsQuery = User::where('usertype', 'user')
+            ->where('departemen_id', $selectedDeptId);
+
+        $usersQuery = (clone $baseCsQuery)->with(['performanceReviews' => function($q) use ($month, $year) {
+            $q->whereMonth('periode', $month)->whereYear('periode', $year);
+        }]);
+
+        if ($request->filled('search')) {
+            $s = trim($request->search);
+            $usersQuery->where(function($q) use ($s) {
+                $q->where('name', 'like', "%{$s}%")->orWhere('email', 'like', "%{$s}%");
+            });
+        }
+
+        $allUsers = $usersQuery->get();
+
+        if ($request->status == 'dinilai') {
+            $users = $allUsers->filter(function($u) {
+                $rev = $u->performanceReviews->first();
+                return $rev && strtoupper($rev->status) === 'FINAL';
+            });
+        } elseif ($request->status == 'belum') {
+            $users = $allUsers->filter(function($u) {
+                $rev = $u->performanceReviews->first();
+                return !$rev || strtoupper($rev->status) !== 'FINAL';
+            });
+        } else {
+            $users = $allUsers;
+        }
+
+        // Agregat tiket per user untuk periode ini
+        $monthClosedTickets = Ticket::whereMonth('created_at', $month)
+            ->whereYear('created_at', $year)
+            ->whereRaw('UPPER(status) = ?', ['CLOSED'])
+            ->selectRaw('user_id, count(*) as total')
+            ->groupBy('user_id')
+            ->pluck('total', 'user_id');
+
+        $monthAdvisedTickets = Ticket::whereMonth('created_at', $month)
+            ->whereYear('created_at', $year)
+            ->whereNotNull('advisor_id')
+            ->selectRaw('advisor_id, count(*) as total')
+            ->groupBy('advisor_id')
+            ->pluck('total', 'advisor_id');
+
+        $monthSurveys = \Illuminate\Support\Facades\DB::table('ticket_surveys')
+            ->join('tickets', 'ticket_surveys.ticket_id', '=', 'tickets.id')
+            ->whereMonth('tickets.created_at', $month)
+            ->whereYear('tickets.created_at', $year)
+            ->selectRaw('tickets.user_id, avg(ticket_surveys.rating) as avg_rating')
+            ->groupBy('tickets.user_id')
+            ->pluck('avg_rating', 'user_id');
+
+        $deptSlug = $currentDepartemen ? \Illuminate\Support\Str::slug($currentDepartemen->name, '_') : 'operasional';
+        $periodSlug = sprintf('%04d_%02d', $year, $month);
+        $filename = "Laporan_Ringkasan_Kinerja_Staff_{$deptSlug}_{$periodSlug}.xls";
+
+        return response()->view('laporan_excel', compact(
+            'users', 'month', 'year', 'selectedDeptId', 'currentDepartemen',
+            'monthClosedTickets', 'monthAdvisedTickets', 'monthSurveys'
+        ))
+        ->header('Content-Type', 'application/vnd.ms-excel; charset=utf-8')
+        ->header('Content-Disposition', 'attachment; filename="' . $filename . '"')
+        ->header('Cache-Control', 'max-age=0, no-cache, must-revalidate, proxy-revalidate');
+    }
+
     public function prosesNilai(Request $request, $id){
         $user = User::findOrFail($id);
 

@@ -472,47 +472,57 @@
                     @endif
                 </form>
 
-                <!-- Tombol Proses Semua Nilai (Hanya 1 kali per periode) -->
-                @if($isAllProcessed)
-                    <button type="button" onclick="alertSudahDiproses()" class="w-full sm:w-auto px-4 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all shadow-xs cursor-pointer whitespace-nowrap" title="Seluruh staff telah diproses untuk periode ini">
-                        <i class="fa-solid fa-circle-check text-emerald-500 text-sm"></i>
-                        <span>Sudah Diproses ({{ $sudahDiproses }}/{{ $totalCS }})</span>
-                    </button>
-                @elseif($totalCS === 0)
-                    <button type="button" disabled class="w-full sm:w-auto px-4 py-2.5 bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 border border-slate-200 dark:border-slate-700 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 opacity-60 cursor-not-allowed whitespace-nowrap">
-                        <i class="fa-solid fa-ban"></i>
-                        <span>Tidak Ada Staff</span>
-                    </button>
-                @else
-                    <form id="form-proses-semua" action="{{ route('laporan.proses_semua') }}" method="POST">
-                        @csrf
-                        <input type="hidden" name="month" value="{{ $month }}">
-                        <input type="hidden" name="year" value="{{ $year }}">
-                        <input type="hidden" name="period" value="{{ sprintf('%04d-%02d', $year, $month) }}">
-                        <input type="hidden" name="department_id" value="{{ $selectedDeptId }}">
-                        <button type="button" id="btn-proses-semua" onclick="konfirmasiProsesSemua()" class="w-full sm:w-auto px-4 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all shadow-md shadow-blue-500/25 active:scale-95 cursor-pointer whitespace-nowrap" title="Hitung agregat tiket seluruh staff departemen ini sekaligus">
-                            <i class="fa-solid fa-bolt text-amber-300"></i>
-                            <span>Proses Semua Nilai</span>
+                <div class="flex flex-wrap items-center gap-2.5">
+                    <!-- Tombol Export Excel (Summary Kinerja Staff) -->
+                    <a href="{{ route('laporan.export_excel', ['period' => sprintf('%04d-%02d', $year, $month), 'department_id' => $selectedDeptId, 'status' => request('status'), 'search' => request('search')]) }}" 
+                       class="w-full sm:w-auto px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all shadow-md shadow-emerald-600/20 active:scale-95 cursor-pointer whitespace-nowrap"
+                       title="Download Laporan Ringkasan Kinerja Staff ke format Excel (.xls)">
+                        <i class="fa-solid fa-file-excel text-base text-emerald-100"></i>
+                        <span>Export Excel</span>
+                    </a>
+
+                    <!-- Tombol Proses Semua Nilai (Hanya 1 kali per periode) -->
+                    @if($isAllProcessed)
+                        <button type="button" onclick="alertSudahDiproses()" class="w-full sm:w-auto px-4 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all shadow-xs cursor-pointer whitespace-nowrap" title="Seluruh staff telah diproses untuk periode ini">
+                            <i class="fa-solid fa-circle-check text-emerald-500 text-sm"></i>
+                            <span>Sudah Diproses ({{ $sudahDiproses }}/{{ $totalCS }})</span>
                         </button>
-                    </form>
-                @endif
+                    @elseif($totalCS === 0)
+                        <button type="button" disabled class="w-full sm:w-auto px-4 py-2.5 bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 border border-slate-200 dark:border-slate-700 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 opacity-60 cursor-not-allowed whitespace-nowrap">
+                            <i class="fa-solid fa-ban"></i>
+                            <span>Tidak Ada Staff</span>
+                        </button>
+                    @else
+                        <form id="form-proses-semua" action="{{ route('laporan.proses_semua') }}" method="POST">
+                            @csrf
+                            <input type="hidden" name="month" value="{{ $month }}">
+                            <input type="hidden" name="year" value="{{ $year }}">
+                            <input type="hidden" name="period" value="{{ sprintf('%04d-%02d', $year, $month) }}">
+                            <input type="hidden" name="department_id" value="{{ $selectedDeptId }}">
+                            <button type="button" id="btn-proses-semua" onclick="konfirmasiProsesSemua()" class="w-full sm:w-auto px-4 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all shadow-md shadow-blue-500/25 active:scale-95 cursor-pointer whitespace-nowrap" title="Hitung agregat tiket seluruh staff departemen ini sekaligus">
+                                <i class="fa-solid fa-bolt text-amber-300"></i>
+                                <span>Proses Semua Nilai</span>
+                            </button>
+                        </form>
+                    @endif
+                </div>
             </div>
 
             <!-- Main Table Card -->
             <div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-sm overflow-hidden mb-6">
                 <div class="overflow-x-auto custom-scrollbar">
-                    <table class="w-full text-left border-collapse min-w-[1080px]">
+                    <table class="w-full text-left border-collapse min-w-[1180px]">
                         <thead>
-                            <tr class="bg-blue-600 dark:bg-slate-900 border-b border-blue-700 dark:border-slate-700 text-white">
-                                <th class="py-4 px-4 text-[11px] font-black text-white dark:text-blue-300 uppercase tracking-wider text-center w-14">No</th>
-                                <th class="py-4 px-6 text-[11px] font-black text-white dark:text-blue-300 uppercase tracking-wider">Staff</th>
-                                <th class="py-4 px-4 text-[11px] font-black text-white dark:text-blue-300 uppercase tracking-wider text-center">Periode</th>
-                                <th class="py-4 px-4 text-[11px] font-black text-white dark:text-blue-300 uppercase tracking-wider text-center">Tiket Selesai</th>
-                                <th class="py-4 px-4 text-[11px] font-black text-white dark:text-blue-300 uppercase tracking-wider text-center">Tiket Di-Advice</th>
-                                <th class="py-4 px-5 text-[11px] font-black text-white dark:text-blue-300 uppercase tracking-wider text-center">Kepuasan Klien</th>
-                                <th class="py-4 px-5 text-[11px] font-black text-white dark:text-blue-300 uppercase tracking-wider text-center">Nilai Akhir</th>
-                                <th class="py-4 px-5 text-[11px] font-black text-white dark:text-blue-300 uppercase tracking-wider text-center">Status Penilaian</th>
-                                <th class="py-4 px-6 text-[11px] font-black text-white dark:text-blue-300 uppercase tracking-wider text-center">Aksi</th>
+                            <tr class="bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-600 dark:from-blue-950 dark:via-blue-900/90 dark:to-indigo-950 border-b border-blue-700 dark:border-blue-800/80 text-white dark:text-blue-100">
+                                <th class="py-3.5 px-4 text-[11px] font-black text-white dark:text-blue-100 uppercase tracking-wider text-center w-14 whitespace-nowrap">No</th>
+                                <th class="py-3.5 px-6 text-[11px] font-black text-white dark:text-blue-100 uppercase tracking-wider whitespace-nowrap">Staff</th>
+                                <th class="py-3.5 px-4 text-[11px] font-black text-white dark:text-blue-100 uppercase tracking-wider text-center whitespace-nowrap">Periode</th>
+                                <th class="py-3.5 px-4 text-[11px] font-black text-white dark:text-blue-100 uppercase tracking-wider text-center whitespace-nowrap">Tiket Selesai</th>
+                                <th class="py-3.5 px-4 text-[11px] font-black text-white dark:text-blue-100 uppercase tracking-wider text-center whitespace-nowrap">Tiket Di-Advice</th>
+                                <th class="py-3.5 px-5 text-[11px] font-black text-white dark:text-blue-100 uppercase tracking-wider text-center whitespace-nowrap">Kepuasan Klien</th>
+                                <th class="py-3.5 px-5 text-[11px] font-black text-white dark:text-blue-100 uppercase tracking-wider text-center whitespace-nowrap">Nilai Akhir</th>
+                                <th class="py-3.5 px-5 text-[11px] font-black text-white dark:text-blue-100 uppercase tracking-wider text-center whitespace-nowrap">Status Penilaian</th>
+                                <th class="py-3.5 px-6 text-[11px] font-black text-white dark:text-blue-100 uppercase tracking-wider text-center whitespace-nowrap">Aksi</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100 dark:divide-slate-700/60">
@@ -541,9 +551,9 @@
                                     $csatRating = 4.5;
                                 }
                             @endphp
-                            <tr class="hover:bg-blue-50/30 dark:hover:bg-slate-700/30 transition-colors">
-                                <td class="py-4 px-4 text-sm font-semibold text-slate-400 dark:text-slate-500 text-center">{{ $index + 1 }}</td>
-                                <td class="py-4 px-6">
+                            <tr class="hover:bg-blue-50/40 dark:hover:bg-slate-700/40 transition-colors">
+                                <td class="py-3.5 px-4 text-sm font-semibold text-slate-400 dark:text-slate-500 text-center whitespace-nowrap">{{ $index + 1 }}</td>
+                                <td class="py-3.5 px-6 whitespace-nowrap">
                                     <div class="flex items-center gap-3">
                                         @if($u->profile_image)
                                              <img src="{{ asset('storage/' . $u->profile_image) }}" alt="Avatar" class="w-9 h-9 rounded-full object-cover shrink-0 shadow-sm border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800">
@@ -556,117 +566,117 @@
                                         </div>
                                     </div>
                                 </td>
-                                <td class="py-4 px-4 text-sm font-semibold text-center {{ $penilaian ? 'text-slate-600 dark:text-slate-300' : 'text-slate-400 dark:text-slate-500' }}">{{ \Carbon\Carbon::createFromDate($year, $month, 1)->translatedFormat('M Y') }}</td>
+                                <td class="py-3.5 px-4 text-sm font-semibold text-center whitespace-nowrap {{ $penilaian ? 'text-slate-600 dark:text-slate-300' : 'text-slate-400 dark:text-slate-500' }}">{{ \Carbon\Carbon::createFromDate($year, $month, 1)->translatedFormat('M Y') }}</td>
                                 
                                 {{-- Tiket Selesai --}}
-                                <td class="py-4 px-4 text-center">
+                                <td class="py-3.5 px-4 text-center whitespace-nowrap">
                                     @if($ticketClosedCount > 0)
-                                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-black bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-800/60 shadow-2xs">
+                                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-black bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-800/60 shadow-2xs whitespace-nowrap">
                                             <i class="fa-solid fa-circle-check text-emerald-500 text-[11px]"></i>
                                             <span>{{ $ticketClosedCount }} Tiket</span>
                                         </span>
                                     @else
-                                        <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold text-slate-400 dark:text-slate-500 bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700">
+                                        <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold text-slate-400 dark:text-slate-500 bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700 whitespace-nowrap">
                                             0 Tiket
                                         </span>
                                     @endif
                                 </td>
 
                                 {{-- Tiket Di-Advice --}}
-                                <td class="py-4 px-4 text-center">
+                                <td class="py-3.5 px-4 text-center whitespace-nowrap">
                                     @if($ticketAdviceCount > 0)
-                                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-black bg-indigo-50 dark:bg-indigo-950/50 text-indigo-700 dark:text-indigo-300 border border-indigo-200/80 dark:border-indigo-800/60 shadow-2xs" title="Mendampingi {{ $ticketAdviceCount }} tiket rekan">
+                                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-black bg-indigo-50 dark:bg-indigo-950/50 text-indigo-700 dark:text-indigo-300 border border-indigo-200/80 dark:border-indigo-800/60 shadow-2xs whitespace-nowrap" title="Mendampingi {{ $ticketAdviceCount }} tiket rekan">
                                             <i class="fa-solid fa-handshake-angle text-indigo-500 text-[11px]"></i>
                                             <span>{{ $ticketAdviceCount }} Tiket</span>
                                         </span>
                                     @else
-                                        <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold text-slate-400 dark:text-slate-500 bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700">
+                                        <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold text-slate-400 dark:text-slate-500 bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700 whitespace-nowrap">
                                             0 Tiket
                                         </span>
                                     @endif
                                 </td>
 
                                 {{-- Kepuasan Klien (CSAT) --}}
-                                <td class="py-4 px-5 text-center">
+                                <td class="py-3.5 px-5 text-center whitespace-nowrap">
                                     @if($csatRating > 0)
-                                        <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-black bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-200/80 dark:border-amber-800/60 shadow-2xs" title="Rating: {{ number_format($csatRating, 1) }} / 5.0 (Kepuasan: {{ round($csatScore) }}%)">
+                                        <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-black bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-200/80 dark:border-amber-800/60 shadow-2xs whitespace-nowrap" title="Rating: {{ number_format($csatRating, 1) }} / 5.0 (Kepuasan: {{ round($csatScore) }}%)">
                                             <i class="fa-solid fa-star text-amber-400 text-xs"></i>
                                             <span class="font-extrabold">{{ number_format($csatRating, 1) }}</span>
                                             <span class="text-[10px] text-amber-600/90 dark:text-amber-400/90 font-medium">({{ round($csatScore) }}%)</span>
                                         </div>
                                     @else
-                                        <span class="text-xs text-slate-400 dark:text-slate-500 font-medium">-</span>
+                                        <span class="text-xs text-slate-400 dark:text-slate-500 font-medium whitespace-nowrap">-</span>
                                     @endif
                                 </td>
 
                                 {{-- Nilai Akhir --}}
-                                <td class="py-4 px-5 text-center">
+                                <td class="py-3.5 px-5 text-center whitespace-nowrap">
                                     @if($isFinal)
-                                        <div class="flex items-center justify-center gap-2">
+                                        <div class="flex items-center justify-center gap-2 whitespace-nowrap">
                                             <div class="flex items-baseline gap-1 font-mono">
                                                 <span class="text-blue-600 dark:text-blue-400 font-black text-base">{{ $penilaian->total_score }}</span>
                                                 <span class="text-xs text-slate-400 dark:text-slate-500 font-bold">/100</span>
                                             </div>
                                             @php
-                                                $score = $penilaian->total_score;
-                                                if ($score >= 80) {
-                                                    $badgeClass = 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800/80';
-                                                    $scoreLabel = 'Sangat Baik';
-                                                } elseif ($score >= 70) {
-                                                    $badgeClass = 'bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800/80';
-                                                    $scoreLabel = 'Baik';
-                                                } else {
-                                                    $badgeClass = 'bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border-rose-200 dark:border-rose-800/80';
-                                                    $scoreLabel = 'Cukup';
-                                                }
+                                                 $score = $penilaian->total_score;
+                                                 if ($score >= 80) {
+                                                     $badgeClass = 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800/80';
+                                                     $scoreLabel = 'Sangat Baik';
+                                                 } elseif ($score >= 70) {
+                                                     $badgeClass = 'bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800/80';
+                                                     $scoreLabel = 'Baik';
+                                                 } else {
+                                                     $badgeClass = 'bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border-rose-200 dark:border-rose-800/80';
+                                                     $scoreLabel = 'Cukup';
+                                                 }
                                             @endphp
-                                            <span class="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border shadow-2xs {{ $badgeClass }}">
+                                            <span class="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border shadow-2xs whitespace-nowrap {{ $badgeClass }}">
                                                 {{ $scoreLabel }}
                                             </span>
                                         </div>
                                     @elseif($isDraft)
-                                        <div class="flex items-center justify-center gap-2 text-xs font-semibold flex-wrap">
-                                            <span class="inline-flex items-center gap-1 font-mono font-bold text-indigo-600 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-950/60 px-2.5 py-1 rounded-lg border border-indigo-200/80 dark:border-indigo-800/80 shadow-2xs">
+                                        <div class="flex items-center justify-center gap-2 text-xs font-semibold whitespace-nowrap">
+                                            <span class="inline-flex items-center gap-1 font-mono font-bold text-indigo-600 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-950/60 px-2.5 py-1 rounded-lg border border-indigo-200/80 dark:border-indigo-800/80 shadow-2xs whitespace-nowrap">
                                                 <i class="fa-solid fa-ticket text-[10px] text-indigo-500 dark:text-indigo-400"></i>
                                                 <span>Tiket: {{ $penilaian->module_score ?? 0 }}</span>
                                             </span>
-                                            <span class="inline-flex items-center gap-1 text-[10px] font-extrabold bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800/80 px-2 py-1 rounded-lg shadow-2xs">
+                                            <span class="inline-flex items-center gap-1 text-[10px] font-extrabold bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800/80 px-2 py-1 rounded-lg shadow-2xs whitespace-nowrap">
                                                 <i class="fa-solid fa-file-pen text-[9px] text-amber-500 dark:text-amber-400"></i> Draft Soft Skill
                                             </span>
                                         </div>
                                     @else
-                                        <span class="text-slate-300 dark:text-slate-600 font-medium">&ndash;</span>
+                                        <span class="text-slate-300 dark:text-slate-600 font-medium whitespace-nowrap">&ndash;</span>
                                     @endif
                                 </td>
 
                                 {{-- Status Penilaian --}}
-                                <td class="py-4 px-5 text-center">
+                                <td class="py-3.5 px-5 text-center whitespace-nowrap">
                                     @if($isFinal)
-                                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/80">
+                                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/80 whitespace-nowrap">
                                             <i class="fa-solid fa-circle-check text-[10px] text-emerald-500 dark:text-emerald-400"></i> Sudah Dinilai (Final)
                                         </span>
                                     @elseif($isDraft)
-                                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800/80">
+                                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800/80 whitespace-nowrap">
                                             <i class="fa-solid fa-file-pen text-[10px] text-amber-500 dark:text-amber-400"></i> Terproses (Draft)
                                         </span>
                                     @else
-                                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
+                                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700 whitespace-nowrap">
                                             <i class="fa-solid fa-clock text-[10px] text-slate-400"></i> Belum Diproses
                                         </span>
                                     @endif
                                 </td>
 
                                 {{-- Aksi --}}
-                                <td class="py-4 px-6 text-center">
-                                    <div class="flex items-center justify-center gap-2">
+                                <td class="py-3.5 px-6 text-center whitespace-nowrap">
+                                    <div class="flex items-center justify-center gap-2 whitespace-nowrap">
                                         @if($isFinal)
-                                            <a href="{{ route('rapor', ['id' => $u->id, 'month' => $month, 'year' => $year, 'period' => sprintf('%04d-%02d', $year, $month)]) }}" class="px-3.5 py-1.5 text-xs font-bold text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800/80 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-950/40 transition-colors bg-white dark:bg-slate-800 shadow-2xs">Lihat Rapor</a>
-                                            <a href="{{ route('penilaian', ['id' => $u->id, 'month' => $month, 'year' => $year]) }}" class="px-2.5 py-1.5 text-xs font-semibold text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors bg-white dark:bg-slate-800 shadow-2xs" title="Edit Nilai">
+                                            <a href="{{ route('rapor', ['id' => $u->id, 'month' => $month, 'year' => $year, 'period' => sprintf('%04d-%02d', $year, $month)]) }}" class="px-3.5 py-1.5 text-xs font-bold text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800/80 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-950/40 transition-colors bg-white dark:bg-slate-800 shadow-2xs whitespace-nowrap">Lihat Rapor</a>
+                                            <a href="{{ route('penilaian', ['id' => $u->id, 'month' => $month, 'year' => $year]) }}" class="px-2.5 py-1.5 text-xs font-semibold text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors bg-white dark:bg-slate-800 shadow-2xs whitespace-nowrap" title="Edit Nilai">
                                                 <i class="fa-solid fa-pencil"></i>
                                             </a>
                                         @elseif($isDraft)
                                             <!-- Tombol Nilai untuk mengisi soft skill staff yang sudah di-sum (Proses hanya sekali) -->
-                                            <a href="{{ route('penilaian', ['id' => $u->id, 'month' => $month, 'year' => $year]) }}" class="px-4 py-1.5 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-sm shadow-blue-500/25 transition-all active:scale-95 flex items-center gap-1.5 cursor-pointer" title="Lengkapi Evaluasi Soft Skill">
+                                            <a href="{{ route('penilaian', ['id' => $u->id, 'month' => $month, 'year' => $year]) }}" class="px-4 py-1.5 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-sm shadow-blue-500/25 transition-all active:scale-95 flex items-center gap-1.5 cursor-pointer whitespace-nowrap" title="Lengkapi Evaluasi Soft Skill">
                                                 <i class="fa-solid fa-star text-[10px]"></i> Nilai
                                             </a>
                                         @else
@@ -676,7 +686,7 @@
                                                 <input type="hidden" name="month" value="{{ $month }}">
                                                 <input type="hidden" name="year" value="{{ $year }}">
                                                 <input type="hidden" name="department_id" value="{{ $selectedDeptId }}">
-                                                <button type="button" onclick="konfirmasiProsesNilai({{ $u->id }}, '{{ addslashes($u->name) }}')" class="px-3.5 py-1.5 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow-sm shadow-indigo-500/25 transition-all active:scale-95 flex items-center gap-1.5 cursor-pointer" title="Proses dan hitung agregat tiket staff">
+                                                <button type="button" onclick="konfirmasiProsesNilai({{ $u->id }}, '{{ addslashes($u->name) }}')" class="px-3.5 py-1.5 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow-sm shadow-indigo-500/25 transition-all active:scale-95 flex items-center gap-1.5 cursor-pointer whitespace-nowrap" title="Proses dan hitung agregat tiket staff">
                                                     <i class="fa-solid fa-calculator text-[10px]"></i> Proses Nilai
                                                 </button>
                                             </form>
