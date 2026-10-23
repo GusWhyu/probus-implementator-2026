@@ -250,8 +250,18 @@
                                 </td>
                                 <td class="py-3 px-3 sm:px-4 align-top text-left whitespace-nowrap">
                                     @if($rq->tipe_penanganan)
-                                        <span class="inline-flex items-center text-[10px] font-bold px-2 py-0.5 rounded-md {{ $rq->tipe_penanganan == 'Remote' ? 'bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800/80' : 'bg-sky-50 dark:bg-sky-950/40 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-800/80' }}">
-                                            <i class="fa-solid {{ $rq->tipe_penanganan == 'Remote' ? 'fa-laptop-code' : 'fa-building-user' }} text-[9px] mr-1"></i>{{ $rq->tipe_penanganan }}
+                                        @php
+                                            $isSite = $rq->tipe_penanganan == 'On Site';
+                                            $isPiket = $rq->tipe_penanganan == 'Piket';
+                                            $badgeClass = $isSite 
+                                                ? 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800/80' 
+                                                : ($isPiket 
+                                                    ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/80' 
+                                                    : 'bg-sky-50 dark:bg-sky-950/40 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-800/80');
+                                            $badgeIcon = $isSite ? 'fa-location-dot' : ($isPiket ? 'fa-calendar-check' : 'fa-building-user');
+                                        @endphp
+                                        <span class="inline-flex items-center text-[10px] font-bold px-2 py-0.5 rounded-md {{ $badgeClass }}">
+                                            <i class="fa-solid {{ $badgeIcon }} text-[9px] mr-1"></i>{{ $rq->tipe_penanganan }}
                                         </span>
                                     @else
                                         <span class="text-slate-400 dark:text-slate-500 text-xs">-</span>
@@ -441,8 +451,18 @@
                             </div>
                         </div>
                         @if($rq->tipe_penanganan)
-                            <span class="text-[10px] font-bold px-2 py-0.5 rounded-md {{ $rq->tipe_penanganan == 'Remote' ? 'bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800/80' : 'bg-sky-50 dark:bg-sky-950/40 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-800/80' }} shrink-0">
-                                <i class="fa-solid {{ $rq->tipe_penanganan == 'Remote' ? 'fa-laptop-code' : 'fa-building-user' }} mr-1"></i>{{ $rq->tipe_penanganan }}
+                            @php
+                                $mIsSite = $rq->tipe_penanganan == 'On Site';
+                                $mIsPiket = $rq->tipe_penanganan == 'Piket';
+                                $mBadgeClass = $mIsSite 
+                                    ? 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800/80' 
+                                    : ($mIsPiket 
+                                        ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/80' 
+                                        : 'bg-sky-50 dark:bg-sky-950/40 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-800/80');
+                                $mBadgeIcon = $mIsSite ? 'fa-location-dot' : ($mIsPiket ? 'fa-calendar-check' : 'fa-building-user');
+                            @endphp
+                            <span class="text-[10px] font-bold px-2 py-0.5 rounded-md {{ $mBadgeClass }} shrink-0">
+                                <i class="fa-solid {{ $mBadgeIcon }} mr-1"></i>{{ $rq->tipe_penanganan }}
                             </span>
                         @endif
                     </div>

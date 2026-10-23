@@ -74,7 +74,7 @@ class MasterSeeder extends Seeder
         for ($i = 0; $i < 30; $i++) {
             $created_at = Carbon::now()->subDays(rand(0, 30))->subHours(rand(0, 23));
             $status = $statuses[array_rand($statuses)];
-            $tipe = ['Remote', 'On Site', 'Office', 'Piket'];
+            $tipe = ['On Site', 'Office', 'Piket'];
             
             Ticket::create([
                 'ticket_number' => 'TCK-' . date('Ym') . '-' . str_pad($i + 1, 4, '0', STR_PAD_LEFT),

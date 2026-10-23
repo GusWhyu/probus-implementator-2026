@@ -28,7 +28,7 @@ class TicketSeeder extends Seeder
                 'description' => 'Pelanggan melaporkan kendala pada aplikasi. Mohon segera dicek dan diselesaikan.',
                 'status' => $status,
                 'priority' => 'Normal',
-                'tipe_penanganan' => 'Remote',
+                'tipe_penanganan' => 'Office',
                 'user_id' => 2, // Client user ID (dummy)
                 'assignee_id' => $users[array_rand($users)], // Assigned to CS
                 'outlet_id' => \App\Models\Outlet::first()->id ?? null,
