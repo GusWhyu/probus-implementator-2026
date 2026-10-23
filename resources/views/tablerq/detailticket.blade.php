@@ -19,11 +19,9 @@
         $icon = "fa-regular fa-clock";
     }
 
-    // Dynamic Alert Conditions
     $isOverdue = $stid == 'PROGRESS' && !empty($datarq->due_date) && Carbon::parse($datarq->due_date)->startOfDay()->lt(Carbon::now()->startOfDay());
-    $isPendingOther = $datarq->pending_advisor_id != null && $datarq->pending_advisor_id != $aid;
-    
-    $showAlert = $isOverdue || $isPendingOther;
+    $isPendingTakeover = $datarq->pending_advisor_id != null;
+    $showAlert = $isOverdue || $isPendingTakeover;
     $prevUrl = url()->previous();
     $currentUrl = url()->current();
     $isInvalidBack = (!$prevUrl || $prevUrl === $currentUrl || str_contains($prevUrl, '/detailticket') || str_contains($prevUrl, '/ticket-') || str_contains($prevUrl, '/editticket'));
@@ -57,8 +55,8 @@
                         @if (in_array($ust, ['admin', 'supervisor']) || $rqid == $aid)
                         <form action="{{ route('ticket.takeover.cancel', $datarq->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin membatalkan pengalihan tiket ini?');" class="inline">
                             @csrf
-                            <button type="submit" class="px-4 py-2.5 bg-white border border-rose-200 hover:bg-rose-50 text-rose-600 font-bold rounded-xl text-sm shadow-sm flex items-center justify-center gap-2 transition-all active:scale-95 cursor-pointer" title="Batalkan Pengalihan Tiket">
-                                <i class="fa-solid fa-ban"></i> Cancel
+                            <button type="submit" class="px-4 py-2.5 bg-white dark:bg-slate-800 border border-rose-200 dark:border-rose-900/60 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-rose-600 dark:text-rose-400 font-bold rounded-xl text-sm shadow-sm flex items-center justify-center gap-2 transition-all active:scale-95 cursor-pointer" title="Batalkan Pengalihan Tiket">
+                                <i class="fa-solid fa-ban"></i> Cancel Alih Tiket
                             </button>
                         </form>
                         @endif
@@ -77,28 +75,94 @@
             </div>
 
             <!-- Dynamic Alert Banner -->
-            @if ($showAlert)
-                @if ($isOverdue)
-                <div class="bg-rose-50 border border-rose-200/60 rounded-2xl p-4 mb-6 flex items-start sm:items-center gap-4 shadow-sm">
-                    <div class="w-10 h-10 bg-rose-100 rounded-full flex items-center justify-center text-rose-600 shrink-0 mt-1 sm:mt-0">
-                        <i class="fa-solid fa-triangle-exclamation text-lg"></i>
+            @if ($isOverdue)
+            <div class="bg-rose-50 dark:bg-rose-950/30 border border-rose-200/80 dark:border-rose-800/60 rounded-2xl p-4 sm:p-5 mb-6 flex items-start sm:items-center gap-4 shadow-sm">
+                <div class="w-10 h-10 bg-rose-100 dark:bg-rose-900/50 rounded-full flex items-center justify-center text-rose-600 dark:text-rose-400 shrink-0 mt-0.5 sm:mt-0">
+                    <i class="fa-solid fa-triangle-exclamation text-lg"></i>
+                </div>
+                <div>
+                    <p class="font-bold text-rose-800 dark:text-rose-200 text-sm">Tiket Melewati Batas Waktu!</p>
+                    <p class="text-[13px] font-medium text-rose-700/80 dark:text-rose-300/80 mt-0.5">Tiket ini masih berstatus PROGRESS meski telah melewati target selesai (Due Date). Harap segera diselesaikan.</p>
+                </div>
+            </div>
+            @endif
+
+            @if ($isPendingTakeover)
+            <div class="bg-amber-50 dark:bg-amber-950/30 border-2 border-amber-300 dark:border-amber-700/80 rounded-3xl p-5 mb-6 shadow-sm relative overflow-hidden">
+                <div class="flex items-start gap-4">
+                    <div class="w-11 h-11 bg-white dark:bg-slate-800 rounded-2xl flex items-center justify-center text-amber-600 dark:text-amber-400 shrink-0 shadow-sm border border-amber-200 dark:border-amber-700/60 mt-0.5">
+                        <i class="fa-solid fa-clock-rotate-left text-xl animate-spin" style="animation-duration: 4s;"></i>
                     </div>
-                    <div>
-                        <p class="font-bold text-rose-800 text-sm">Tiket Melewati Batas Waktu!</p>
-                        <p class="text-[13px] font-medium text-rose-700/80 mt-0.5">Tiket ini masih berstatus PROGRESS meski telah melewati target selesai (Due Date). Harap segera diselesaikan.</p>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-1.5">
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <h4 class="font-extrabold text-amber-900 dark:text-amber-100 text-base">
+                                    Permintaan Alih Tiket (Waiting Approval)
+                                </h4>
+                                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wide bg-amber-200/80 dark:bg-amber-900/80 text-amber-800 dark:text-amber-200 border border-amber-300 dark:border-amber-700">
+                                    Waiting Approval
+                                </span>
+                            </div>
+                            @if($datarq->pending_advisor_at)
+                            <div class="flex items-center gap-1.5 shrink-0 self-start sm:self-auto">
+                                <span class="inline-flex items-center gap-1.5 text-xs font-mono font-extrabold text-amber-900 dark:text-amber-200 bg-white dark:bg-slate-800 px-3 py-1 rounded-xl border border-amber-200 dark:border-amber-700 shadow-xs">
+                                    <i class="fa-regular fa-clock text-amber-600 dark:text-amber-400 text-xs"></i>
+                                    <span class="ticket-countdown" data-expire="{{ $datarq->takeover_expire_time ? $datarq->takeover_expire_time->toISOString() : '' }}">--:--</span>
+                                </span>
+                            </div>
+                            @endif
+                        </div>
+
+                        <p class="text-[13px] font-medium text-amber-800/90 dark:text-amber-300/90 leading-relaxed">
+                            @if ($datarq->pending_advisor_id == $aid)
+                                Seseorang meminta Anda untuk mengambil alih dan menyelesaikan tiket ini. Batas waktu konfirmasi adalah <strong>{{ $datarq->takeover_duration_text }}</strong> sebelum permintaan otomatis dibatalkan. Apakah Anda bersedia?
+                            @else
+                                Tiket ini sedang diajukan untuk dialihkan kepada <strong>{{ $datarq->pendingAdvisor->name ?? 'Advisor lain' }}</strong>. Diskusi dan pembaruan tiket dikunci sementara hingga disetujui atau batas waktu konfirmasi (<strong>{{ $datarq->takeover_duration_text }}</strong>) habis.
+                            @endif
+                        </p>
+
+                        @php
+                            $detailTakeover = $datarq->pendingTakeover ?? ($ticketTakeovers ? $ticketTakeovers->where('status', 'PENDING')->first() : null);
+                            $detailReason = $detailTakeover ? $detailTakeover->reason : null;
+                            $detailFromUser = $detailTakeover && $detailTakeover->fromUser ? $detailTakeover->fromUser->name : ($datarq->user->name ?? null);
+                        @endphp
+                        @if($detailReason)
+                        <div class="mt-3.5 bg-white/90 dark:bg-slate-800/90 rounded-2xl p-3.5 border border-amber-200/90 dark:border-amber-700/60 shadow-xs">
+                            <div class="flex items-center justify-between mb-1">
+                                <span class="font-extrabold text-amber-900 dark:text-amber-300 text-[11px] uppercase tracking-wider flex items-center gap-1.5">
+                                    <i class="fa-solid fa-comment-dots text-amber-600 dark:text-amber-400"></i> Alasan Pengalihan:
+                                </span>
+                                @if($detailFromUser)
+                                <span class="text-[10px] font-bold text-slate-500 dark:text-slate-400">
+                                    Diajukan oleh: <strong class="text-slate-700 dark:text-slate-200">{{ $detailFromUser }}</strong>
+                                </span>
+                                @endif
+                            </div>
+                            <p class="font-semibold text-slate-800 dark:text-slate-100 italic leading-relaxed text-xs sm:text-sm">
+                                "{{ $detailReason }}"
+                            </p>
+                        </div>
+                        @endif
+
+                        @if ($datarq->pending_advisor_id == $aid)
+                        <div class="flex items-center gap-2.5 mt-3.5">
+                            <form action="{{ route('ticket.takeover.reject', $datarq->id) }}" method="POST" class="inline">
+                                @csrf
+                                <button type="submit" class="px-4 py-2 bg-white dark:bg-slate-800 text-rose-600 dark:text-rose-400 font-bold text-xs rounded-xl hover:bg-rose-50 dark:hover:bg-slate-700 transition-colors border border-rose-200 dark:border-rose-800/80 shadow-xs active:scale-95 cursor-pointer">
+                                    <i class="fa-solid fa-xmark mr-1"></i> Tolak
+                                </button>
+                            </form>
+                            <form action="{{ route('ticket.takeover.accept', $datarq->id) }}" method="POST" class="inline">
+                                @csrf
+                                <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl transition-colors shadow-sm shadow-blue-500/20 active:scale-95 cursor-pointer">
+                                    <i class="fa-solid fa-check mr-1"></i> Terima Pengalihan
+                                </button>
+                            </form>
+                        </div>
+                        @endif
                     </div>
                 </div>
-                @elseif ($isPendingOther)
-                <div class="bg-amber-50 border border-amber-200/60 rounded-2xl p-4 mb-6 flex items-start sm:items-center gap-4 shadow-sm">
-                    <div class="w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center text-amber-600 shrink-0 mt-1 sm:mt-0">
-                        <i class="fa-solid fa-clock text-lg"></i>
-                    </div>
-                    <div>
-                        <p class="font-bold text-amber-800 text-sm">Menunggu Persetujuan Alih Tiket</p>
-                        <p class="text-[13px] font-medium text-amber-700/80 mt-0.5">Tiket ini sedang dalam proses pengalihan ke <strong>{{ $datarq->pendingAdvisor->name ?? 'User' }}</strong> dan sedang menunggu persetujuan dari yang bersangkutan.</p>
-                    </div>
-                </div>
-                @endif
+            </div>
             @endif
 
             <div class="flex flex-col lg:flex-row gap-6 items-start">
@@ -285,78 +349,6 @@
 
                 <!-- Right Content (Sidebar Info) -->
                 <div class="w-full lg:w-5/12 xl:w-4/12 shrink-0 space-y-6">
-                    
-                    @if ($datarq->pending_advisor_id != null)
-                    <!-- Pending Take Over Approval Banner -->
-                    <div class="bg-amber-50 border-2 border-amber-300 rounded-3xl p-5 relative overflow-hidden shadow-sm mb-6">
-                        <div class="flex items-start gap-4 relative z-10">
-                            <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center text-amber-600 shrink-0 shadow-sm border border-amber-200">
-                                <i class="fa-solid fa-clock-rotate-left text-lg animate-spin" style="animation-duration: 4s;"></i>
-                            </div>
-                            <div class="flex-1">
-                                <div class="flex items-center justify-between flex-wrap gap-2 mb-1">
-                                    <p class="font-bold text-amber-900 text-sm">Permintaan Alih Tiket (Waiting Approval)</p>
-                                    @if($datarq->pending_advisor_at)
-                                    <span class="text-xs font-mono font-extrabold text-amber-800 bg-white px-2.5 py-1 rounded-lg border border-amber-200 ticket-countdown" data-expire="{{ $datarq->takeover_expire_time ? $datarq->takeover_expire_time->toISOString() : '' }}">
-                                        --:--
-                                    </span>
-                                    @endif
-                                </div>
-                                <p class="text-xs font-medium text-amber-800/80 mb-3">
-                                    @if ($datarq->pending_advisor_id == $aid)
-                                        Seseorang meminta Anda untuk mengambil alih dan menyelesaikan tiket ini. Batas waktu konfirmasi adalah <strong>{{ $datarq->takeover_duration_text }}</strong> sebelum permintaan otomatis dibatalkan. Apakah Anda bersedia?
-                                    @else
-                                        Tiket ini sedang diajukan untuk dialihkan kepada <strong>{{ $datarq->pendingAdvisor->name ?? 'Advisor lain' }}</strong>. Diskusi dikunci sementara hingga disetujui atau batas waktu <strong>{{ $datarq->takeover_duration_text }}</strong> habis.
-                                    @endif
-                                </p>
-                                @php
-                                    $detailTakeover = $datarq->pendingTakeover ?? ($ticketTakeovers ? $ticketTakeovers->where('status', 'PENDING')->first() : null);
-                                    $detailReason = $detailTakeover ? $detailTakeover->reason : null;
-                                    $detailFromUser = $detailTakeover && $detailTakeover->fromUser ? $detailTakeover->fromUser->name : ($datarq->user->name ?? null);
-                                @endphp
-                                @if($detailReason)
-                                <div class="mb-3.5 bg-white/95 rounded-xl p-3 border border-amber-200/90 text-xs shadow-sm">
-                                    <div class="flex items-center justify-between mb-1">
-                                        <span class="font-extrabold text-amber-900 text-[11px] uppercase tracking-wider flex items-center gap-1.5">
-                                            <i class="fa-solid fa-comment-dots text-amber-600"></i> Alasan Pengalihan:
-                                        </span>
-                                        @if($detailFromUser)
-                                        <span class="text-[10px] font-bold text-slate-500">
-                                            Diajukan oleh: <strong class="text-slate-700">{{ $detailFromUser }}</strong>
-                                        </span>
-                                        @endif
-                                    </div>
-                                    <p class="font-semibold text-slate-800 italic leading-relaxed bg-amber-50/60 p-2.5 rounded-lg border border-amber-100">
-                                        "{{ $detailReason }}"
-                                    </p>
-                                </div>
-                                @endif
-
-                                @if ($datarq->pending_advisor_id == $aid)
-                                <div class="flex gap-2">
-                                    <form action="{{ route('ticket.takeover.reject', $datarq->id) }}" method="POST" class="inline">
-                                        @csrf
-                                        <button type="submit" class="px-4 py-2 bg-white text-rose-600 font-bold text-xs rounded-xl hover:bg-rose-50 transition-colors border border-rose-200">Tolak</button>
-                                    </form>
-                                    <form action="{{ route('ticket.takeover.accept', $datarq->id) }}" method="POST" class="inline">
-                                        @csrf
-                                        <button type="submit" class="px-4 py-2 bg-blue-600 text-white font-bold text-xs rounded-xl hover:bg-blue-700 transition-colors shadow-sm shadow-blue-500/20">Terima</button>
-                                    </form>
-                                </div>
-                                @elseif (in_array($ust, ['admin', 'supervisor']) || $rqid == $aid)
-                                <div class="pt-1">
-                                    <form action="{{ route('ticket.takeover.cancel', $datarq->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin membatalkan pengalihan tiket ini?');" class="inline">
-                                        @csrf
-                                        <button type="submit" class="px-3.5 py-1.5 bg-white text-rose-600 hover:bg-rose-50 font-bold text-xs rounded-xl border border-rose-200 transition-all shadow-sm flex items-center gap-1.5 cursor-pointer">
-                                            <i class="fa-solid fa-ban text-[11px]"></i> Cancel Alih Tiket
-                                        </button>
-                                    </form>
-                                </div>
-                                @endif
-                            </div>
-                        </div>
-                    </div>
-                    @endif
 
                     <!-- Status & Meta Card -->
                     <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 md:p-7 relative overflow-hidden">
