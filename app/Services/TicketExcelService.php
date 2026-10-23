@@ -458,10 +458,6 @@ class TicketExcelService
 
         $xml .= '  </sheetData>' . "\n";
 
-        // Tambahkan fitur AutoFilter pada baris header (A7:N...)
-        $lastRow = max($currentRow - 1, $headerRow);
-        $xml .= '  <autoFilter ref="A' . $headerRow . ':N' . $lastRow . '"/>' . "\n";
-
         // Merge cells untuk Judul (A1:N1), Subtitle (A2:N2), dan KPI Cards (A4..L5)
         $xml .= '  <mergeCells count="10">' . "\n";
         $xml .= '    <mergeCell ref="A1:N1"/>' . "\n";
