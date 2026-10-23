@@ -476,7 +476,7 @@
                     <!-- Tombol Export Excel (Summary Kinerja Staff) -->
                     <a href="{{ route('laporan.export_excel', ['period' => sprintf('%04d-%02d', $year, $month), 'department_id' => $selectedDeptId, 'status' => request('status'), 'search' => request('search')]) }}" 
                        class="w-full sm:w-auto px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all shadow-md shadow-emerald-600/20 active:scale-95 cursor-pointer whitespace-nowrap"
-                       title="Download Laporan Ringkasan Kinerja Staff ke format Excel (.xls)">
+                       title="Download Laporan Ringkasan Kinerja Staff ke format Excel (.xlsx)">
                         <i class="fa-solid fa-file-excel text-base text-emerald-100"></i>
                         <span>Export Excel</span>
                     </a>

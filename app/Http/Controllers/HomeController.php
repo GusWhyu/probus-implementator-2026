@@ -18,6 +18,7 @@ use App\Models\Outlet;
 use App\Models\PerformanceWeight;
 use App\Models\Kategori;
 use App\Services\TicketExcelService;
+use App\Services\StaffPerformanceExcelService;
 
 class HomeController extends Controller
 {
@@ -781,15 +782,29 @@ class HomeController extends Controller
 
         $deptSlug = $currentDepartemen ? \Illuminate\Support\Str::slug($currentDepartemen->name, '_') : 'operasional';
         $periodSlug = sprintf('%04d_%02d', $year, $month);
-        $filename = "Laporan_Ringkasan_Kinerja_Staff_{$deptSlug}_{$periodSlug}.xls";
+        $fileName = "Laporan_Kinerja_Staff_{$deptSlug}_{$periodSlug}.xlsx";
 
-        return response()->view('laporan_excel', compact(
-            'users', 'month', 'year', 'selectedDeptId', 'currentDepartemen',
-            'monthClosedTickets', 'monthAdvisedTickets', 'monthSurveys'
-        ))
-        ->header('Content-Type', 'application/vnd.ms-excel; charset=utf-8')
-        ->header('Content-Disposition', 'attachment; filename="' . $filename . '"')
-        ->header('Cache-Control', 'max-age=0, no-cache, must-revalidate, proxy-revalidate');
+        $statusStr = $request->filled('status') ? ($request->status == 'dinilai' ? 'Sudah Dinilai (Final)' : ($request->status == 'belum' ? 'Belum Dinilai' : 'Semua Status')) : 'Semua Status';
+        $currentUser = auth()->user();
+
+        $meta = [
+            'month' => $month,
+            'year' => $year,
+            'departemen_name' => $currentDepartemen->name ?? 'Operasional',
+            'status_filter' => $statusStr,
+            'search' => $request->search,
+            'monthClosedTickets' => $monthClosedTickets,
+            'monthAdvisedTickets' => $monthAdvisedTickets,
+            'monthSurveys' => $monthSurveys,
+            'printed_by' => ($currentUser->name ?? 'Admin') . ' [' . ucfirst($currentUser->usertype ?? 'admin') . ']',
+            'printed_at' => now()->format('d/m/Y H:i') . ' WITA',
+        ];
+
+        $filePath = StaffPerformanceExcelService::createXlsx($users, $meta);
+
+        return response()->download($filePath, $fileName, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        ])->deleteFileAfterSend(true);
     }
 
     public function prosesNilai(Request $request, $id){

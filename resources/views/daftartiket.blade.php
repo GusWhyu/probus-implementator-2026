@@ -186,22 +186,22 @@
                         <col style="width: 105px;">
                         <col style="width: 45px;">
                     </colgroup>
-                    <thead class="bg-slate-50/50 dark:bg-slate-900/60 border-b border-slate-200 dark:border-slate-700">
-                        <tr>
-                            <th class="py-3 px-3 sm:px-4 text-[10px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-widest whitespace-nowrap" style="width: 130px;">No. Tiket</th>
-                            <th class="py-3 px-3 sm:px-4 text-[10px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-widest" style="width: 155px;">User</th>
-                            <th class="py-3 px-3 sm:px-4 text-[10px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Judul</th>
-                            <th class="py-3 px-2 sm:px-3 text-[10px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-widest text-left leading-tight" style="width: 175px;">
+                    <thead class="thead-themed bg-slate-50/50 dark:bg-gradient-to-r dark:from-slate-900 dark:via-blue-950 dark:to-indigo-950/90 border-b border-slate-200 dark:border-blue-800/80">
+                        <tr class="text-slate-500 dark:text-blue-100">
+                            <th class="py-3 px-3 sm:px-4 text-[10px] font-extrabold uppercase tracking-widest whitespace-nowrap" style="width: 130px;">No. Tiket</th>
+                            <th class="py-3 px-3 sm:px-4 text-[10px] font-extrabold uppercase tracking-widest" style="width: 155px;">User</th>
+                            <th class="py-3 px-3 sm:px-4 text-[10px] font-extrabold uppercase tracking-widest">Judul</th>
+                            <th class="py-3 px-2 sm:px-3 text-[10px] font-extrabold uppercase tracking-widest text-left leading-tight" style="width: 175px;">
                                 Lama<br>Pengerjaan
                             </th>
-                            <th class="py-3 px-3 sm:px-4 text-[10px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-widest text-left leading-tight" style="width: 110px;">
+                            <th class="py-3 px-3 sm:px-4 text-[10px] font-extrabold uppercase tracking-widest text-left leading-tight" style="width: 110px;">
                                 Tipe<br>Penanganan
                             </th>
-                            <th class="py-3 px-3 sm:px-4 text-[10px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-widest whitespace-nowrap" style="width: 135px;">System</th>
-                            <th class="py-3 px-3 sm:px-4 text-[10px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-widest whitespace-nowrap" style="width: 120px;">Module</th>
-                            <th class="py-3 px-3 sm:px-4 text-[10px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-widest text-center whitespace-nowrap" style="width: 110px;">Status</th>
-                            <th class="py-3 px-3 sm:px-4 text-[10px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-widest whitespace-nowrap" style="width: 105px;">Created At</th>
-                            <th class="py-3 px-3 sm:px-4 text-[10px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-widest text-center" style="width: 45px;"></th>
+                            <th class="py-3 px-3 sm:px-4 text-[10px] font-extrabold uppercase tracking-widest whitespace-nowrap" style="width: 135px;">System</th>
+                            <th class="py-3 px-3 sm:px-4 text-[10px] font-extrabold uppercase tracking-widest whitespace-nowrap" style="width: 120px;">Module</th>
+                            <th class="py-3 px-3 sm:px-4 text-[10px] font-extrabold uppercase tracking-widest text-center whitespace-nowrap" style="width: 110px;">Status</th>
+                            <th class="py-3 px-3 sm:px-4 text-[10px] font-extrabold uppercase tracking-widest whitespace-nowrap" style="width: 105px;">Created At</th>
+                            <th class="py-3 px-3 sm:px-4 text-[10px] font-extrabold uppercase tracking-widest text-center" style="width: 45px;"></th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100 dark:divide-slate-700/60">

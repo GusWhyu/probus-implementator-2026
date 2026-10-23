@@ -389,15 +389,29 @@
             html.dark .text-blue-700, html[data-theme="dark"] .text-blue-700,
             html.dark .text-blue-600, html[data-theme="dark"] .text-blue-600 { color: #60a5fa !important; }
 
-            /* Tables in Dark Mode */
-            html.dark table thead:not(.thead-themed) th {
-                background-color: #151f30 !important;
-                color: #94a3b8 !important;
-                border-color: #334155 !important;
+            /* Tables in Dark Mode - Selaras dengan Header Laporan (Navy/Blue/Indigo Gradient & Soft Blue Text) */
+            html.dark table thead,
+            html[data-theme="dark"] table thead {
+                background-image: linear-gradient(to right, #0f172a, #172554, rgba(30, 27, 75, 0.9)) !important;
+                background-color: #0f172a !important;
+                border-bottom: 1px solid rgba(30, 58, 138, 0.8) !important;
             }
-            html.dark thead.thead-themed th,
-            html.dark thead.thead-themed tr {
+            html.dark table thead tr,
+            html[data-theme="dark"] table thead tr {
+                background: transparent !important;
                 background-color: transparent !important;
+                background-image: none !important;
+                border-color: rgba(30, 58, 138, 0.6) !important;
+            }
+            html.dark table thead th,
+            html.dark table thead th span,
+            html.dark table thead th div,
+            html[data-theme="dark"] table thead th,
+            html[data-theme="dark"] table thead th span,
+            html[data-theme="dark"] table thead th div {
+                background: transparent !important;
+                background-color: transparent !important;
+                background-image: none !important;
                 color: #dbeafe !important;
                 border-color: rgba(30, 58, 138, 0.6) !important;
             }

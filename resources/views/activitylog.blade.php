@@ -19,8 +19,8 @@
             <div class="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
                 <div class="overflow-x-auto custom-scrollbar">
                     <table class="w-full text-left border-collapse min-w-[800px]">
-                        <thead>
-                            <tr class="bg-slate-50/50 border-b border-slate-100">
+                        <thead class="thead-themed bg-slate-50/50 dark:bg-gradient-to-r dark:from-slate-900 dark:via-blue-950 dark:to-indigo-950/90 border-b border-slate-100 dark:border-blue-800/80">
+                            <tr class="text-[11px] font-extrabold text-slate-500 dark:text-blue-100 uppercase tracking-wider">
                                 <th class="py-4 px-6 text-[11px] font-extrabold text-slate-500 uppercase tracking-wider w-[40%]">Request Name</th>
                                 <th class="py-4 px-6 text-[11px] font-extrabold text-slate-500 uppercase tracking-wider text-center w-[20%]">Status Changes</th>
                                 <th class="py-4 px-6 text-[11px] font-extrabold text-slate-500 uppercase tracking-wider w-[25%]">By User</th>
