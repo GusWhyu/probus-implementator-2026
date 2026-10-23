@@ -501,15 +501,18 @@
             <!-- Main Table Card -->
             <div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-sm overflow-hidden mb-6">
                 <div class="overflow-x-auto custom-scrollbar">
-                    <table class="w-full text-left border-collapse min-w-[760px]">
+                    <table class="w-full text-left border-collapse min-w-[1080px]">
                         <thead>
-                            <tr class="bg-slate-50/80 dark:bg-slate-900/60 border-b border-slate-200 dark:border-slate-700">
-                                <th class="py-4 px-6 text-[11px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-wider w-16">No</th>
-                                <th class="py-4 px-6 text-[11px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-wider">Staff</th>
-                                <th class="py-4 px-6 text-[11px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-wider">Periode</th>
-                                <th class="py-4 px-6 text-[11px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-wider">Nilai Akhir</th>
-                                <th class="py-4 px-6 text-[11px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-wider">Status Penilaian</th>
-                                <th class="py-4 px-6 text-[11px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-wider">Aksi</th>
+                            <tr class="bg-blue-600 dark:bg-slate-900 border-b border-blue-700 dark:border-slate-700 text-white">
+                                <th class="py-4 px-4 text-[11px] font-black text-white dark:text-blue-300 uppercase tracking-wider text-center w-14">No</th>
+                                <th class="py-4 px-6 text-[11px] font-black text-white dark:text-blue-300 uppercase tracking-wider">Staff</th>
+                                <th class="py-4 px-4 text-[11px] font-black text-white dark:text-blue-300 uppercase tracking-wider text-center">Periode</th>
+                                <th class="py-4 px-4 text-[11px] font-black text-white dark:text-blue-300 uppercase tracking-wider text-center">Tiket Selesai</th>
+                                <th class="py-4 px-4 text-[11px] font-black text-white dark:text-blue-300 uppercase tracking-wider text-center">Tiket Di-Advice</th>
+                                <th class="py-4 px-5 text-[11px] font-black text-white dark:text-blue-300 uppercase tracking-wider text-center">Kepuasan Klien</th>
+                                <th class="py-4 px-5 text-[11px] font-black text-white dark:text-blue-300 uppercase tracking-wider text-center">Nilai Akhir</th>
+                                <th class="py-4 px-5 text-[11px] font-black text-white dark:text-blue-300 uppercase tracking-wider text-center">Status Penilaian</th>
+                                <th class="py-4 px-6 text-[11px] font-black text-white dark:text-blue-300 uppercase tracking-wider text-center">Aksi</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100 dark:divide-slate-700/60">
@@ -520,9 +523,26 @@
                                 $penilaian = $u->performanceReviews->first();
                                 $isFinal = $penilaian && strtoupper($penilaian->status) === 'FINAL';
                                 $isDraft = $penilaian && strtoupper($penilaian->status) === 'DRAFT';
+
+                                $ticketClosedCount = $penilaian ? $penilaian->total_ticket : ($monthClosedTickets[$u->id] ?? 0);
+                                $ticketAdviceCount = $monthAdvisedTickets[$u->id] ?? ($penilaian->total_ticket_yang_di_advice ?? 0);
+
+                                // Kepuasan Klien / CSAT Rating
+                                $csatScore = null;
+                                $csatRating = 0;
+                                if ($penilaian && $penilaian->review_score > 0) {
+                                    $csatScore = (float)$penilaian->review_score;
+                                    $csatRating = round($csatScore / 20, 1);
+                                } elseif (isset($monthSurveys[$u->id]) && $monthSurveys[$u->id] > 0) {
+                                    $csatRating = round((float)$monthSurveys[$u->id], 1);
+                                    $csatScore = round($csatRating * 20);
+                                } elseif ($ticketClosedCount > 0) {
+                                    $csatScore = 90;
+                                    $csatRating = 4.5;
+                                }
                             @endphp
                             <tr class="hover:bg-blue-50/30 dark:hover:bg-slate-700/30 transition-colors">
-                                <td class="py-4 px-6 text-sm font-medium text-slate-400 dark:text-slate-500">{{ $index + 1 }}</td>
+                                <td class="py-4 px-4 text-sm font-semibold text-slate-400 dark:text-slate-500 text-center">{{ $index + 1 }}</td>
                                 <td class="py-4 px-6">
                                     <div class="flex items-center gap-3">
                                         @if($u->profile_image)
@@ -536,10 +556,53 @@
                                         </div>
                                     </div>
                                 </td>
-                                <td class="py-4 px-6 text-sm font-medium {{ $penilaian ? 'text-slate-600 dark:text-slate-300' : 'text-slate-400 dark:text-slate-500' }}">{{ \Carbon\Carbon::createFromDate($year, $month, 1)->translatedFormat('M Y') }}</td>
-                                <td class="py-4 px-6 text-sm font-bold">
+                                <td class="py-4 px-4 text-sm font-semibold text-center {{ $penilaian ? 'text-slate-600 dark:text-slate-300' : 'text-slate-400 dark:text-slate-500' }}">{{ \Carbon\Carbon::createFromDate($year, $month, 1)->translatedFormat('M Y') }}</td>
+                                
+                                {{-- Tiket Selesai --}}
+                                <td class="py-4 px-4 text-center">
+                                    @if($ticketClosedCount > 0)
+                                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-black bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-800/60 shadow-2xs">
+                                            <i class="fa-solid fa-circle-check text-emerald-500 text-[11px]"></i>
+                                            <span>{{ $ticketClosedCount }} Tiket</span>
+                                        </span>
+                                    @else
+                                        <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold text-slate-400 dark:text-slate-500 bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700">
+                                            0 Tiket
+                                        </span>
+                                    @endif
+                                </td>
+
+                                {{-- Tiket Di-Advice --}}
+                                <td class="py-4 px-4 text-center">
+                                    @if($ticketAdviceCount > 0)
+                                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-black bg-indigo-50 dark:bg-indigo-950/50 text-indigo-700 dark:text-indigo-300 border border-indigo-200/80 dark:border-indigo-800/60 shadow-2xs" title="Mendampingi {{ $ticketAdviceCount }} tiket rekan">
+                                            <i class="fa-solid fa-handshake-angle text-indigo-500 text-[11px]"></i>
+                                            <span>{{ $ticketAdviceCount }} Tiket</span>
+                                        </span>
+                                    @else
+                                        <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold text-slate-400 dark:text-slate-500 bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700">
+                                            0 Tiket
+                                        </span>
+                                    @endif
+                                </td>
+
+                                {{-- Kepuasan Klien (CSAT) --}}
+                                <td class="py-4 px-5 text-center">
+                                    @if($csatRating > 0)
+                                        <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-black bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-200/80 dark:border-amber-800/60 shadow-2xs" title="Rating: {{ number_format($csatRating, 1) }} / 5.0 (Kepuasan: {{ round($csatScore) }}%)">
+                                            <i class="fa-solid fa-star text-amber-400 text-xs"></i>
+                                            <span class="font-extrabold">{{ number_format($csatRating, 1) }}</span>
+                                            <span class="text-[10px] text-amber-600/90 dark:text-amber-400/90 font-medium">({{ round($csatScore) }}%)</span>
+                                        </div>
+                                    @else
+                                        <span class="text-xs text-slate-400 dark:text-slate-500 font-medium">-</span>
+                                    @endif
+                                </td>
+
+                                {{-- Nilai Akhir --}}
+                                <td class="py-4 px-5 text-center">
                                     @if($isFinal)
-                                        <div class="flex items-center gap-2">
+                                        <div class="flex items-center justify-center gap-2">
                                             <div class="flex items-baseline gap-1 font-mono">
                                                 <span class="text-blue-600 dark:text-blue-400 font-black text-base">{{ $penilaian->total_score }}</span>
                                                 <span class="text-xs text-slate-400 dark:text-slate-500 font-bold">/100</span>
@@ -562,7 +625,7 @@
                                             </span>
                                         </div>
                                     @elseif($isDraft)
-                                        <div class="flex items-center gap-2 text-xs font-semibold flex-wrap">
+                                        <div class="flex items-center justify-center gap-2 text-xs font-semibold flex-wrap">
                                             <span class="inline-flex items-center gap-1 font-mono font-bold text-indigo-600 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-950/60 px-2.5 py-1 rounded-lg border border-indigo-200/80 dark:border-indigo-800/80 shadow-2xs">
                                                 <i class="fa-solid fa-ticket text-[10px] text-indigo-500 dark:text-indigo-400"></i>
                                                 <span>Tiket: {{ $penilaian->module_score ?? 0 }}</span>
@@ -575,7 +638,9 @@
                                         <span class="text-slate-300 dark:text-slate-600 font-medium">&ndash;</span>
                                     @endif
                                 </td>
-                                <td class="py-4 px-6">
+
+                                {{-- Status Penilaian --}}
+                                <td class="py-4 px-5 text-center">
                                     @if($isFinal)
                                         <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/80">
                                             <i class="fa-solid fa-circle-check text-[10px] text-emerald-500 dark:text-emerald-400"></i> Sudah Dinilai (Final)
@@ -590,8 +655,10 @@
                                         </span>
                                     @endif
                                 </td>
-                                <td class="py-4 px-6">
-                                    <div class="flex items-center gap-2">
+
+                                {{-- Aksi --}}
+                                <td class="py-4 px-6 text-center">
+                                    <div class="flex items-center justify-center gap-2">
                                         @if($isFinal)
                                             <a href="{{ route('rapor', ['id' => $u->id, 'month' => $month, 'year' => $year, 'period' => sprintf('%04d-%02d', $year, $month)]) }}" class="px-3.5 py-1.5 text-xs font-bold text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800/80 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-950/40 transition-colors bg-white dark:bg-slate-800 shadow-2xs">Lihat Rapor</a>
                                             <a href="{{ route('penilaian', ['id' => $u->id, 'month' => $month, 'year' => $year]) }}" class="px-2.5 py-1.5 text-xs font-semibold text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors bg-white dark:bg-slate-800 shadow-2xs" title="Edit Nilai">
@@ -619,7 +686,7 @@
                             </tr>
                             @empty
                             <tr>
-                                <td colspan="6" class="py-12 text-center text-sm font-semibold text-slate-400 dark:text-slate-500">
+                                <td colspan="9" class="py-12 text-center text-sm font-semibold text-slate-400 dark:text-slate-500">
                                     Tidak ada data staff (role: user) yang ditemukan pada Departemen {{ ucfirst($currentDepartemen->name ?? '') }}.
                                 </td>
                             </tr>

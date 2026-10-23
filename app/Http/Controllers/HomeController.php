@@ -570,9 +570,33 @@ class HomeController extends Controller
             ];
         }
 
+        // Agregat tiket per user untuk periode ini (tiket selesai, tiket di-advice, dan survey kepuasan)
+        $monthClosedTickets = Ticket::whereMonth('created_at', $month)
+            ->whereYear('created_at', $year)
+            ->whereRaw('UPPER(status) = ?', ['CLOSED'])
+            ->selectRaw('user_id, count(*) as total')
+            ->groupBy('user_id')
+            ->pluck('total', 'user_id');
+
+        $monthAdvisedTickets = Ticket::whereMonth('created_at', $month)
+            ->whereYear('created_at', $year)
+            ->whereNotNull('advisor_id')
+            ->selectRaw('advisor_id, count(*) as total')
+            ->groupBy('advisor_id')
+            ->pluck('total', 'advisor_id');
+
+        $monthSurveys = \Illuminate\Support\Facades\DB::table('ticket_surveys')
+            ->join('tickets', 'ticket_surveys.ticket_id', '=', 'tickets.id')
+            ->whereMonth('tickets.created_at', $month)
+            ->whereYear('tickets.created_at', $year)
+            ->selectRaw('tickets.user_id, avg(ticket_surveys.rating) as avg_rating')
+            ->groupBy('tickets.user_id')
+            ->pluck('avg_rating', 'user_id');
+
         return view('laporan', compact(
             'users', 'month', 'year', 'totalCS', 'sudahDinilai', 'belumDinilai', 'sangatBaik', 'topCS',
-            'selectedDeptId', 'currentDepartemen', 'isAllProcessed', 'sudahDiproses', 'belumDiproses'
+            'selectedDeptId', 'currentDepartemen', 'isAllProcessed', 'sudahDiproses', 'belumDiproses',
+            'monthClosedTickets', 'monthAdvisedTickets', 'monthSurveys'
         ));
     }
 
@@ -620,7 +644,7 @@ class HomeController extends Controller
 
         $total_ticket = (clone $tiketQuery)->count();
         $tiket_selesai = (clone $tiketQuery)->whereRaw('UPPER(status) = ?', ['CLOSED'])->count();
-        $tiket_di_advice = 0;
+        $tiket_di_advice = Ticket::where('advisor_id', $id)->whereMonth('created_at', $month)->whereYear('created_at', $year)->count();
 
         // Rata-rata waktu: totalin seluruh durasi menit tiket selesai dulu, baru dibagi jumlah tiket selesai
         $closedTickets = (clone $tiketQuery)->whereRaw('UPPER(status) = ?', ['CLOSED'])
@@ -869,7 +893,7 @@ class HomeController extends Controller
 
         $tiket_ditangani = (clone $tiketQuery)->count();
         $tiket_selesai = (clone $tiketQuery)->whereRaw('UPPER(status) = ?', ['CLOSED'])->count();
-        $tiket_di_advice = 0;
+        $tiket_di_advice = Ticket::where('advisor_id', $id)->whereMonth('created_at', $currentMonth)->whereYear('created_at', $currentYear)->count();
 
         // Rata-rata waktu penyelesaian: Totalin durasi seluruh tiket selesai dulu, baru dibagi jumlah tiket selesai
         $closedTickets = (clone $tiketQuery)->whereRaw('UPPER(status) = ?', ['CLOSED'])
