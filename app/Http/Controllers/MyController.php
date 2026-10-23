@@ -48,10 +48,44 @@ class MyController extends Controller
         return view('tablemyreq.myreq', compact('open','progress','closed', 'systems', 'modules', 'isMyReq'));
     }
 
-    public function myproc($id){
+    public function myproc(Request $request, $id){
         $uid = Auth::user()->tag_id;
         $statusIds = ($id == 1 || $id == 2) ? [1, 2] : [$id];
-        $data = \App\Models\Request::with(['outlet', 'tag', 'kategori', 'approver', 'status'])->whereIn('status_id', $statusIds)->where('tag_id', $uid)->latest()->paginate(12);
+        $query = \App\Models\Request::with(['outlet', 'tag', 'kategori', 'approver', 'status'])
+            ->whereIn('status_id', $statusIds)
+            ->where('tag_id', $uid);
+
+        if ($request->filled('search')) {
+            $search = trim($request->search);
+            $extractedId = null;
+            if (preg_match('/^(?:#\s*)?(\d+)$/', $search, $matches)) {
+                $extractedId = (int)$matches[1];
+            }
+
+            $query->where(function($q) use ($search, $extractedId) {
+                $q->where('judul', 'like', "%{$search}%")
+                  ->orWhere('deskripsi', 'like', "%{$search}%")
+                  ->orWhere('module', 'like', "%{$search}%");
+
+                if ($extractedId !== null) {
+                    $q->orWhere('id', $extractedId);
+                }
+
+                $q->orWhereHas('outlet', function($sub) use ($search) {
+                    $sub->where('nm_out', 'like', "%{$search}%");
+                });
+
+                $q->orWhereHas('tag', function($sub) use ($search) {
+                    $sub->where('name', 'like', "%{$search}%");
+                });
+
+                $q->orWhereHas('kategori', function($sub) use ($search) {
+                    $sub->where('name', 'like', "%{$search}%");
+                });
+            });
+        }
+
+        $data = $query->latest()->paginate(12)->withQueryString();
         $dataid = $id;
         return view('tablemyreq.myproc', compact('data', 'dataid'));
     }
