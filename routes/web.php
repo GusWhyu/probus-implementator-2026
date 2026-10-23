@@ -38,6 +38,7 @@ Route::get('/activitylog', [HomeController::class, 'activitylog'])->middleware([
 Route::get('/mrq/{id}', [HomeController::class, 'morerq'])->middleware(['auth'])->name('morerequest');
 
 // Route Request 
+Route::get('/daftartiket/export', [HomeController::class, 'exportDaftarTiket'])->middleware(['auth'])->name('daftartiket.export');
 Route::get('/daftartiket', [HomeController::class, 'daftartiket'])->middleware(['auth'])->name('daftartiket');
 Route::get('/inbox-manajemen', [HomeController::class, 'inbox'])->middleware(['auth'])->name('inbox');
 Route::get('/laporan', [HomeController::class, 'laporan'])->middleware(['auth'])->name('laporan');

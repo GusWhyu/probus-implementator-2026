@@ -16,6 +16,8 @@ use App\Models\User;
 use App\Models\Departemen;
 use App\Models\Outlet;
 use App\Models\PerformanceWeight;
+use App\Models\Kategori;
+use App\Services\TicketExcelService;
 
 class HomeController extends Controller
 {
@@ -387,6 +389,109 @@ class HomeController extends Controller
         $modules = ModuleSystem::all();
 
         return view('daftartiket', compact('open', 'progress', 'closed', 'us', 'open_count', 'progress_count', 'closed_count', 'total_count', 'all_tickets', 'systems', 'modules'));
+    }
+
+    /**
+     * Export data tiket ke format Excel (.xlsx) murni sesuai filter aktif.
+     * Dapat diunduh oleh seluruh user yang login (User, Supervisor, Admin).
+     */
+    public function exportDaftarTiket(Request $request)
+    {
+        $query = Ticket::with(['user.departemen', 'client', 'advisor', 'kategoriSystem', 'moduleSystem', 'survey']);
+
+        // Terapkan filter pencarian yang sama persis dengan tampilan web
+        if ($request->filled('search')) {
+            $search = trim($request->search);
+            $noSpaceSearch = str_replace(' ', '', $search);
+
+            $extractedNumber = null;
+            if (preg_match('/^(?:tck[-\s]*|no\.?\s*|#\s*)?(\d+)$/i', $search, $matches)) {
+                $extractedNumber = (int)$matches[1];
+            }
+
+            $query->where(function($q) use ($search, $noSpaceSearch, $extractedNumber) {
+                // 1. Judul & Deskripsi
+                $q->where('title', 'like', "%{$search}%")
+                  ->orWhere('description', 'like', "%{$search}%");
+
+                // 2. ID & Nomor Tiket
+                if ($extractedNumber !== null) {
+                    $q->orWhere('id', $extractedNumber)
+                      ->orWhere('ticket_number', 'like', '%-' . str_pad($extractedNumber, 4, '0', STR_PAD_LEFT));
+                }
+                if (strlen($search) >= 3) {
+                    $q->orWhere('ticket_number', 'like', "%{$search}%");
+                }
+
+                // 3. User (pembuat tiket)
+                $q->orWhereHas('user', function($uq) use ($search, $noSpaceSearch) {
+                    $uq->where('name', 'like', "%{$search}%")
+                       ->orWhere('email', 'like', "%{$search}%");
+                    if (!empty($noSpaceSearch) && $noSpaceSearch !== $search) {
+                        $uq->orWhereRaw("REPLACE(name, ' ', '') LIKE ?", ["%{$noSpaceSearch}%"]);
+                    }
+                });
+
+                // 4. Advisor (advisor penangan tiket)
+                $q->orWhereHas('advisor', function($aq) use ($search, $noSpaceSearch) {
+                    $aq->where('name', 'like', "%{$search}%")
+                       ->orWhere('email', 'like', "%{$search}%");
+                    if (!empty($noSpaceSearch) && $noSpaceSearch !== $search) {
+                        $aq->orWhereRaw("REPLACE(name, ' ', '') LIKE ?", ["%{$noSpaceSearch}%"]);
+                    }
+                });
+
+                // 5. Client (Pelanggan / Outlet & Lokasi)
+                $q->orWhereHas('client', function($cq) use ($search, $noSpaceSearch) {
+                    $cq->where('nm_out', 'like', "%{$search}%")
+                       ->orWhere('lokasi', 'like', "%{$search}%");
+                    if (!empty($noSpaceSearch) && $noSpaceSearch !== $search) {
+                        $cq->orWhereRaw("REPLACE(nm_out, ' ', '') LIKE ?", ["%{$noSpaceSearch}%"])
+                           ->orWhereRaw("REPLACE(lokasi, ' ', '') LIKE ?", ["%{$noSpaceSearch}%"]);
+                    }
+                });
+            });
+        }
+
+        // Filter status (misal: OPEN, PROGRESS, CLOSED)
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        // Filter System
+        if ($request->filled('system')) {
+            $query->where('system', $request->system);
+        }
+
+        // Filter Module
+        if ($request->filled('module')) {
+            $query->where('module_system_id', $request->module);
+        }
+
+        $tickets = $query->latest()->get();
+
+        $statusStr = $request->filled('status') ? strtoupper($request->status) : 'Semua Status';
+        $systemName = $request->filled('system') ? optional(Kategori::find($request->system))->name : 'Semua System';
+        $moduleName = $request->filled('module') ? optional(ModuleSystem::find($request->module))->name : 'Semua Module';
+
+        $currentUser = auth()->user();
+        $meta = [
+            'status' => $statusStr,
+            'system_name' => $systemName ?: 'Semua System',
+            'module_name' => $moduleName ?: 'Semua Module',
+            'search' => $request->search,
+            'printed_by' => ($currentUser->name ?? 'Admin') . ' (' . ucfirst($currentUser->usertype ?? 'admin') . ')',
+            'printed_at' => now()->format('d/m/Y H:i') . ' WITA',
+        ];
+
+        $filePath = TicketExcelService::createXlsx($tickets, $meta);
+
+        $suffix = $request->filled('status') ? '_' . strtoupper($request->status) : '';
+        $fileName = 'Laporan_Tiket' . $suffix . '_' . date('Ymd_His') . '.xlsx';
+
+        return response()->download($filePath, $fileName, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        ])->deleteFileAfterSend(true);
     }
 
     public function laporan(Request $request){
