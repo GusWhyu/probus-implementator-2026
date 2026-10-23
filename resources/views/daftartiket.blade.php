@@ -305,16 +305,29 @@
                                             @if(in_array(Auth::user()->usertype, ['admin', 'supervisor']) || ($rq->user_id == Auth::id() && $rq->status != 'CLOSED'))
                                                 <li><a href="/editticket/{{ $rq->id }}" class="text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/60 hover:text-blue-600 dark:hover:text-blue-400"><i class="fa-regular fa-pen-to-square mr-2"></i> Edit</a></li>
                                             @endif
-                                            @if(in_array(Auth::user()->usertype, ['admin', 'supervisor']) || ($rq->user_id == Auth::id() && $rq->status != 'CLOSED'))
-                                                <li>
-                                                    <form action="{{ route('deleteticket', $rq->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus tiket #{{ $rq->ticket_number ?? $rq->id }}?');">
-                                                        @csrf
-                                                        @method('DELETE')
-                                                        <button type="submit" class="text-xs font-medium text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 w-full text-left flex items-center px-2 py-1.5 rounded-lg">
-                                                            <i class="fa-regular fa-trash-can mr-2"></i> Hapus
-                                                        </button>
-                                                    </form>
-                                                </li>
+                                            @if($rq->pending_advisor_id != null)
+                                                @if(in_array(Auth::user()->usertype, ['admin', 'supervisor']) || $rq->user_id == Auth::id())
+                                                    <li>
+                                                        <form action="{{ route('ticket.takeover.cancel', $rq->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin membatalkan pengalihan tiket ini?');">
+                                                            @csrf
+                                                            <button type="submit" class="text-xs font-medium text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 w-full text-left flex items-center px-2 py-1.5 rounded-lg cursor-pointer">
+                                                                <i class="fa-solid fa-ban mr-2"></i> Cancel Alih
+                                                            </button>
+                                                        </form>
+                                                    </li>
+                                                @endif
+                                            @else
+                                                @if(in_array(Auth::user()->usertype, ['admin', 'supervisor']) || ($rq->user_id == Auth::id() && $rq->status != 'CLOSED'))
+                                                    <li>
+                                                        <form action="{{ route('deleteticket', $rq->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus tiket #{{ $rq->ticket_number ?? $rq->id }}?');">
+                                                            @csrf
+                                                            @method('DELETE')
+                                                            <button type="submit" class="text-xs font-medium text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 w-full text-left flex items-center px-2 py-1.5 rounded-lg cursor-pointer">
+                                                                <i class="fa-regular fa-trash-can mr-2"></i> Hapus
+                                                            </button>
+                                                        </form>
+                                                    </li>
+                                                @endif
                                             @endif
                                         </ul>
                                     </div>
@@ -503,14 +516,25 @@
                                     <i class="fa-regular fa-pen-to-square text-xs"></i>
                                 </a>
                             @endif
-                            @if(in_array(Auth::user()->usertype, ['admin', 'supervisor']) || ($rq->user_id == Auth::id() && $rq->status != 'CLOSED'))
-                                <form action="{{ route('deleteticket', $rq->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus tiket #{{ $rq->ticket_number ?? $rq->id }}?');" class="inline">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="text-slate-400 dark:text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 p-1.5 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors cursor-pointer" title="Hapus Tiket">
-                                        <i class="fa-regular fa-trash-can text-xs"></i>
-                                    </button>
-                                </form>
+                            @if($rq->pending_advisor_id != null)
+                                @if(in_array(Auth::user()->usertype, ['admin', 'supervisor']) || $rq->user_id == Auth::id())
+                                    <form action="{{ route('ticket.takeover.cancel', $rq->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin membatalkan pengalihan tiket ini?');" class="inline">
+                                        @csrf
+                                        <button type="submit" class="text-slate-400 dark:text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 p-1.5 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors cursor-pointer" title="Batalkan Pengalihan">
+                                            <i class="fa-solid fa-ban text-xs"></i>
+                                        </button>
+                                    </form>
+                                @endif
+                            @else
+                                @if(in_array(Auth::user()->usertype, ['admin', 'supervisor']) || ($rq->user_id == Auth::id() && $rq->status != 'CLOSED'))
+                                    <form action="{{ route('deleteticket', $rq->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus tiket #{{ $rq->ticket_number ?? $rq->id }}?');" class="inline">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="text-slate-400 dark:text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 p-1.5 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors cursor-pointer" title="Hapus Tiket">
+                                            <i class="fa-regular fa-trash-can text-xs"></i>
+                                        </button>
+                                    </form>
+                                @endif
                             @endif
                             <a href="/detailticket/{{ $rq->id }}" class="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 font-bold text-xs flex items-center gap-1 group-hover:translate-x-0.5 transition-transform ml-1">
                                 Detail <i class="fa-solid fa-arrow-right text-[10px]"></i>

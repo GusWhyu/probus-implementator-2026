@@ -483,6 +483,11 @@ class TicketController extends Controller
             }
         }
 
+        if ($ticket->pending_advisor_id != null) {
+            Alert::error('Gagal!', 'Tiket yang sedang dalam proses pengalihan tidak dapat dihapus. Silakan batalkan pengalihan terlebih dahulu.');
+            return redirect()->back();
+        }
+
         // Clean up attached images from disk and database
         $images = DataImage::where('ticket_id', $ticket->id)->get();
         foreach ($images as $img) {
@@ -773,6 +778,62 @@ class TicketController extends Controller
             }
             Alert::info('Ditolak!', 'Anda telah menolak permintaan alih tiket.')->autoClose(2500);
         }
+        return redirect()->back();
+    }
+
+    public function takeoverCancel($id) {
+        $ticket = Ticket::findOrFail($id);
+        $user = Auth::user();
+        $isAdminOrSpv = in_array($user->usertype, ['admin', 'supervisor']);
+        $isOwner = ($ticket->user_id == $user->id);
+
+        if (!$isAdminOrSpv && !$isOwner) {
+            Alert::error('Akses Ditolak!', 'Hanya pembuat tiket atau admin/supervisor yang dapat membatalkan pengalihan tiket.');
+            return redirect()->back();
+        }
+
+        if (!$ticket->pending_advisor_id) {
+            Alert::warning('Perhatian', 'Tiket ini tidak sedang dalam proses pengalihan.');
+            return redirect()->back();
+        }
+
+        $targetAdvisor = $ticket->pendingAdvisor;
+
+        $ticket->update([
+            'pending_advisor_id' => null,
+            'pending_advisor_at' => null,
+            'pending_advisor_expires_at' => null,
+            'takeover_duration_minutes' => null
+        ]);
+
+        // Update ticket_takeovers record
+        $pendingTakeover = TicketTakeover::where('ticket_id', $ticket->id)
+            ->where('status', 'PENDING')
+            ->latest()
+            ->first();
+
+        if ($pendingTakeover) {
+            $pendingTakeover->update([
+                'status' => 'REJECTED',
+                'processed_at' => now(),
+            ]);
+        }
+
+        // Record in ticket_logs
+        TicketLog::create([
+            'ticket_id' => $ticket->id,
+            'user_id' => $user->id,
+            'action' => 'TAKEOVER_CANCELLED',
+            'description' => 'Permintaan pengalihan tiket dibatalkan oleh ' . $user->name . '.',
+        ]);
+
+        // Notify the target advisor who was asked to take over
+        if ($targetAdvisor && $targetAdvisor->id !== $user->id) {
+            $targetAdvisor->notify(new RequestStatusChanged($ticket, $user->name . " telah membatalkan permintaan pengalihan tiket '" . $ticket->title . "'.", "Pengalihan Tiket Dibatalkan"));
+        }
+
+        Alert::success('Berhasil Dibatalkan!', 'Permintaan pengalihan tiket telah dibatalkan.')->showConfirmButton('Tutup', '#3b82f6')->autoClose(2500);
+
         return redirect()->back();
     }
 

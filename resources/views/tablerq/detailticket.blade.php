@@ -54,14 +54,25 @@
                     </a>
                     @endif
 
-                    @if (in_array($ust, ['admin', 'supervisor']) || ($rqid == $aid && $stid != 'CLOSED'))
-                    <form action="{{ route('deleteticket', $datarq->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus tiket #{{ $datarq->ticket_number }}? Seluruh riwayat dan data lampiran akan dihapus.');" class="inline">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit" class="px-4 py-2.5 bg-white border border-rose-200 hover:bg-rose-50 text-rose-600 font-bold rounded-xl text-sm shadow-sm flex items-center justify-center gap-2 transition-all active:scale-95 cursor-pointer" title="Hapus Tiket">
-                            <i class="fa-regular fa-trash-can"></i> Hapus
-                        </button>
-                    </form>
+                    @if ($datarq->pending_advisor_id != null)
+                        @if (in_array($ust, ['admin', 'supervisor']) || $rqid == $aid)
+                        <form action="{{ route('ticket.takeover.cancel', $datarq->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin membatalkan pengalihan tiket ini?');" class="inline">
+                            @csrf
+                            <button type="submit" class="px-4 py-2.5 bg-white border border-rose-200 hover:bg-rose-50 text-rose-600 font-bold rounded-xl text-sm shadow-sm flex items-center justify-center gap-2 transition-all active:scale-95 cursor-pointer" title="Batalkan Pengalihan Tiket">
+                                <i class="fa-solid fa-ban"></i> Cancel
+                            </button>
+                        </form>
+                        @endif
+                    @else
+                        @if (in_array($ust, ['admin', 'supervisor']) || ($rqid == $aid && $stid != 'CLOSED'))
+                        <form action="{{ route('deleteticket', $datarq->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus tiket #{{ $datarq->ticket_number }}? Seluruh riwayat dan data lampiran akan dihapus.');" class="inline">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="px-4 py-2.5 bg-white border border-rose-200 hover:bg-rose-50 text-rose-600 font-bold rounded-xl text-sm shadow-sm flex items-center justify-center gap-2 transition-all active:scale-95 cursor-pointer" title="Hapus Tiket">
+                                <i class="fa-regular fa-trash-can"></i> Hapus
+                            </button>
+                        </form>
+                        @endif
                     @endif
                 </div>
             </div>
@@ -318,6 +329,15 @@
                                     <form action="{{ route('ticket.takeover.accept', $datarq->id) }}" method="POST" class="inline">
                                         @csrf
                                         <button type="submit" class="px-4 py-2 bg-blue-600 text-white font-bold text-xs rounded-xl hover:bg-blue-700 transition-colors shadow-sm shadow-blue-500/20">Terima</button>
+                                    </form>
+                                </div>
+                                @elseif (in_array($ust, ['admin', 'supervisor']) || $rqid == $aid)
+                                <div class="pt-1">
+                                    <form action="{{ route('ticket.takeover.cancel', $datarq->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin membatalkan pengalihan tiket ini?');" class="inline">
+                                        @csrf
+                                        <button type="submit" class="px-3.5 py-1.5 bg-white text-rose-600 hover:bg-rose-50 font-bold text-xs rounded-xl border border-rose-200 transition-all shadow-sm flex items-center gap-1.5 cursor-pointer">
+                                            <i class="fa-solid fa-ban text-[11px]"></i> Cancel Alih Tiket
+                                        </button>
                                     </form>
                                 </div>
                                 @endif
