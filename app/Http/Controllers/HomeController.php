@@ -1486,7 +1486,7 @@ class HomeController extends Controller
     }
 
     public function downloadRapor($id){
-        $user = User::findOrFail($id);
+        $user = User::with('departemen')->findOrFail($id);
         $query = PerformanceReview::with(['details.category', 'moduleDetails.moduleSystem'])->where('user_id', $id);
         
         $m = request('month');
@@ -1527,10 +1527,10 @@ class HomeController extends Controller
         $tiket_progress = (clone $tiketQuery)->whereRaw('UPPER(status) = ?', ['PROGRESS'])->count();
         $completion_rate = $tiket_ditangani > 0 ? round(($tiket_selesai / $tiket_ditangani) * 100, 1) : 0;
 
-        $total_bobot = 0;
+        $allModules = ModuleSystem::orderBy('id', 'asc')->get();
+        $total_bobot = $allModules->sum('bobot');
         $total_qty = 0;
         if ($rapor && $rapor->moduleDetails) {
-            $total_bobot = $rapor->moduleDetails->sum('bobot');
             $total_qty = $rapor->moduleDetails->sum('total_ticket');
         }
 
@@ -1619,7 +1619,8 @@ class HomeController extends Controller
             'year',
             'periode',
             'categories',
-            'weights'
+            'weights',
+            'allModules'
         ))->setPaper('a4', 'portrait');
                 
         return $pdf->stream('Rapor_Kinerja_CS_' . str_replace(' ', '_', $user->name) . '_' . $periode->format('M_Y') . '.pdf');
