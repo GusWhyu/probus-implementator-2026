@@ -390,10 +390,16 @@
             html.dark .text-blue-600, html[data-theme="dark"] .text-blue-600 { color: #60a5fa !important; }
 
             /* Tables in Dark Mode */
-            html.dark table thead th {
+            html.dark table thead:not(.thead-themed) th {
                 background-color: #151f30 !important;
                 color: #94a3b8 !important;
                 border-color: #334155 !important;
+            }
+            html.dark thead.thead-themed th,
+            html.dark thead.thead-themed tr {
+                background-color: transparent !important;
+                color: #dbeafe !important;
+                border-color: rgba(30, 58, 138, 0.6) !important;
             }
             html.dark table tbody tr {
                 border-color: #334155 !important;
