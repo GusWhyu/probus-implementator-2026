@@ -5,6 +5,14 @@
     $inboxTicketsCount = \App\Models\Ticket::where('user_id', Auth::id())
         ->where('status', '!=', 'CLOSED')
         ->count();
+
+    // Jumlah tiket yang dialihkan ke user saat ini (menunggu persetujuan)
+    $pendingTakeoverCount = \App\Models\Ticket::where('pending_advisor_id', Auth::id())
+        ->where(function($q) {
+            $q->whereNull('pending_advisor_expires_at')
+              ->orWhere('pending_advisor_expires_at', '>', now());
+        })
+        ->count();
 @endphp
 
 <!-- Mobile overlay -->
@@ -67,9 +75,19 @@
                         <i class="fa-solid fa-inbox w-5 text-center mr-2 {{ request()->routeIs('inbox') ? 'text-blue-600' : 'text-slate-400' }}"></i> 
                         <span>Inbox & Manajemen</span>
                     </div>
-                    @if ($inboxTicketsCount > 0)
-                        <span class="bg-blue-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">{{ $inboxTicketsCount }}</span>
-                    @endif
+                    <div class="flex items-center gap-1.5 shrink-0">
+                        @if ($pendingTakeoverCount > 0)
+                            <span class="text-white text-[10px] font-black px-1.5 py-0.5 rounded-full shadow-sm flex items-center gap-1 animate-pulse" 
+                                  style="background-color: #ea580c !important; box-shadow: 0 1px 4px rgba(234, 88, 12, 0.4) !important;"
+                                  title="{{ $pendingTakeoverCount }} tiket dialihkan ke Anda (Menunggu Persetujuan)">
+                                <i class="fa-solid fa-arrow-right-arrow-left text-[8px]"></i>
+                                <span>{{ $pendingTakeoverCount }}</span>
+                            </span>
+                        @endif
+                        @if ($inboxTicketsCount > 0)
+                            <span class="bg-blue-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full" title="{{ $inboxTicketsCount }} tiket">{{ $inboxTicketsCount }}</span>
+                        @endif
+                    </div>
                 </a></li>
                 @if(Auth::user()->usertype != 'user')
                 <li><a href="{{ route('laporan') }}" class="flex items-center px-3 py-2 text-sm {{ request()->routeIs('laporan') ? 'text-blue-600 bg-blue-50 font-medium' : 'text-slate-600 hover:bg-slate-50' }} rounded-lg transition-colors"><i class="fa-solid fa-file-lines w-5 text-center mr-2 {{ request()->routeIs('laporan') ? 'text-blue-600' : 'text-slate-400' }}"></i> Laporan</a></li>

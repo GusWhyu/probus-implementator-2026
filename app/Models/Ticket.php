@@ -171,6 +171,16 @@ class Ticket extends Model
         return $this->hasMany(TicketTakeover::class);
     }
 
+    public function pendingTakeover()
+    {
+        return $this->hasOne(TicketTakeover::class, 'ticket_id')->where('status', 'PENDING')->latestOfMany();
+    }
+
+    public function latestTakeover()
+    {
+        return $this->hasOne(TicketTakeover::class, 'ticket_id')->latestOfMany();
+    }
+
     public function logs()
     {
         return $this->hasMany(TicketLog::class);

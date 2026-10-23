@@ -1970,7 +1970,10 @@ class HomeController extends Controller
         $progress = (clone $query)->where('status', 'PROGRESS')->latest()->get();
         $closed = (clone $query)->where('status', 'CLOSED')->latest()->get();
 
-        $pendingTakeovers = Ticket::where('pending_advisor_id', auth()->id())->latest()->get();
+        $pendingTakeovers = Ticket::where('pending_advisor_id', auth()->id())
+            ->with(['pendingTakeover.fromUser', 'takeovers.fromUser', 'kategoriSystem', 'moduleSystem', 'client', 'user', 'advisor'])
+            ->latest()
+            ->get();
 
         // 3. Auto expire takeovers if deadline reached for tickets targeting ME
         $expiredFound = false;
@@ -1997,7 +2000,10 @@ class HomeController extends Controller
         
         // Refresh query if any expired for me
         if ($expiredFound) {
-            $pendingTakeovers = Ticket::where('pending_advisor_id', auth()->id())->latest()->get();
+            $pendingTakeovers = Ticket::where('pending_advisor_id', auth()->id())
+                ->with(['pendingTakeover.fromUser', 'takeovers.fromUser', 'kategoriSystem', 'moduleSystem', 'client', 'user', 'advisor'])
+                ->latest()
+                ->get();
         }
 
         $systems = \App\Models\Kategori::all();

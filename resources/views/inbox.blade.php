@@ -82,12 +82,27 @@
         </form>
 
         @if ($pendingTakeovers->count() > 0)
-        <!-- Pending Take Over Banner -->
-        <button type="button" onclick="document.getElementById('modal_takeover_list').showModal()" class="w-full bg-white dark:bg-slate-800 border border-amber-200 dark:border-amber-500/30 rounded-xl p-3 sm:p-4 mb-3 flex items-center justify-between hover:border-amber-300 dark:hover:border-amber-500/50 hover:shadow-sm transition-all text-left shrink-0">
-            <span class="font-extrabold text-slate-800 dark:text-slate-200 text-xs sm:text-sm">Request Pengalihan Ticket</span>
-            <div class="flex gap-2 sm:gap-3">
-                <span class="bg-blue-100/50 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 font-bold px-2 py-0.5 rounded border border-blue-200/50 dark:border-blue-800/40 text-xs">{{ $pendingTakeovers->count() }}</span>
-                <span class="bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 font-bold px-2 py-0.5 rounded text-[10px] tracking-wider border border-amber-100 dark:border-amber-800/40">PENDING</span>
+        <!-- Pending Take Over Banner (Full Orange Theme) -->
+        <button type="button" onclick="document.getElementById('modal_takeover_list').showModal()" 
+            class="w-full rounded-2xl p-3.5 sm:p-4 mb-4 flex items-center justify-between text-white shadow-lg shadow-orange-500/25 hover:shadow-orange-500/40 hover:scale-[1.008] active:scale-[0.995] transition-all text-left shrink-0 group cursor-pointer"
+            style="background: linear-gradient(135deg, #ea580c 0%, #f97316 50%, #f59e0b 100%) !important; border: 1px solid rgba(254, 215, 170, 0.45) !important;">
+            <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-xl flex items-center justify-center text-white shrink-0 border border-white/30 shadow-inner" style="background-color: rgba(255, 255, 255, 0.22) !important;">
+                    <i class="fa-solid fa-arrow-right-arrow-left text-sm group-hover:rotate-180 transition-transform duration-500"></i>
+                </div>
+                <div class="flex flex-col">
+                    <span class="font-black text-white text-xs sm:text-sm tracking-wide leading-tight">Request Pengalihan Ticket</span>
+                    <span class="text-[11px] text-orange-100 font-medium mt-0.5">Ada tiket yang dialihkan ke Anda &bull; Klik untuk meninjau</span>
+                </div>
+            </div>
+            <div class="flex items-center gap-2 sm:gap-3 shrink-0">
+                <span class="font-black px-2.5 py-0.5 rounded-lg shadow-sm text-xs sm:text-sm min-w-[24px] text-center" style="background-color: #ffffff !important; color: #ea580c !important;">
+                    {{ $pendingTakeovers->count() }}
+                </span>
+                <span class="font-extrabold px-2.5 py-0.5 rounded-lg text-[10px] tracking-wider uppercase shadow-sm" style="background-color: rgba(0, 0, 0, 0.22) !important; color: #ffffff !important; border: 1px solid rgba(255, 255, 255, 0.25) !important;">
+                    PENDING
+                </span>
+                <i class="fa-solid fa-chevron-right text-white/80 group-hover:text-white group-hover:translate-x-0.5 transition-transform text-xs ml-0.5"></i>
             </div>
         </button>
         @endif
@@ -385,16 +400,24 @@
     <!-- Modal for Takeover list -->
     <dialog id="modal_takeover_list" class="modal">
         <div class="modal-box w-11/12 max-w-2xl rounded-3xl p-6 md:p-8 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl">
-            <div class="flex justify-between items-center mb-6">
-                <h3 class="font-extrabold text-xl text-slate-800 dark:text-slate-100">Request Pengalihan Ticket</h3>
-                <button type="button" class="w-8 h-8 rounded-xl bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 shadow-sm border border-slate-200 dark:border-slate-700 transition-colors" onclick="document.getElementById('modal_takeover_list').close()">
+            <div class="flex justify-between items-center mb-6 pb-4 border-b border-slate-100 dark:border-slate-800">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-2xl flex items-center justify-center text-white shadow-sm shadow-orange-500/20 shrink-0" style="background: linear-gradient(135deg, #ea580c 0%, #f97316 100%) !important;">
+                        <i class="fa-solid fa-arrow-right-arrow-left text-sm"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-extrabold text-lg sm:text-xl text-slate-800 dark:text-slate-100 leading-tight">Request Pengalihan Ticket</h3>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Daftar tiket yang dialihkan kepada Anda &bull; Menunggu konfirmasi</p>
+                    </div>
+                </div>
+                <button type="button" class="w-8 h-8 rounded-xl bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 shadow-sm border border-slate-200 dark:border-slate-700 transition-colors cursor-pointer" onclick="document.getElementById('modal_takeover_list').close()">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
             
             <div class="flex flex-col gap-4 max-h-[65vh] overflow-y-auto custom-scrollbar p-1">
                 @foreach($pendingTakeovers as $rq)
-                <div class="bg-white dark:bg-slate-800/90 rounded-2xl p-6 border border-slate-200 dark:border-slate-700/80 shadow-sm flex flex-col relative">
+                <div class="bg-white dark:bg-slate-800/90 rounded-2xl p-6 border-2 border-orange-200/80 dark:border-orange-500/30 shadow-sm hover:border-orange-300 dark:hover:border-orange-500/60 transition-colors flex flex-col relative">
                     <div class="flex justify-between items-center mb-4">
                         <div class="flex items-center gap-2 flex-wrap">
                             <span class="bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 text-[11px] font-bold px-2.5 py-1.5 rounded-md">{{ $rq->ticket_number }}</span>
@@ -432,6 +455,30 @@
                         </div>
                     </div>
                     
+                    <!-- Alasan Pengalihan -->
+                    @php
+                        $takeoverObj = $rq->pendingTakeover ?? ($rq->takeovers ? $rq->takeovers->where('status', 'PENDING')->last() : null);
+                        $takeoverReason = $takeoverObj ? $takeoverObj->reason : null;
+                        $takeoverFromUser = $takeoverObj && $takeoverObj->fromUser ? $takeoverObj->fromUser->name : ($rq->user->name ?? null);
+                    @endphp
+                    <div class="mb-4 bg-orange-50/80 dark:bg-orange-950/40 rounded-2xl p-4 border border-orange-200/90 dark:border-orange-500/30 shadow-sm flex flex-col gap-1.5">
+                        <div class="flex items-center justify-between">
+                            <span class="text-[10px] font-black text-orange-700 dark:text-orange-400 uppercase tracking-wider flex items-center gap-1.5">
+                                <i class="fa-solid fa-comment-dots text-orange-500"></i> Alasan Pengalihan
+                            </span>
+                            @if($takeoverFromUser)
+                            <span class="text-[10px] font-bold text-slate-500 dark:text-slate-400">
+                                Diajukan oleh: <strong class="text-slate-700 dark:text-slate-200">{{ $takeoverFromUser }}</strong>
+                            </span>
+                            @endif
+                        </div>
+                        <div class="bg-white dark:bg-slate-800/90 p-3 rounded-xl border border-orange-200/60 dark:border-orange-500/20 shadow-inner">
+                            <p class="text-xs sm:text-sm font-semibold text-slate-800 dark:text-slate-100 italic leading-relaxed">
+                                "{{ $takeoverReason ?: 'Tidak ada alasan khusus yang dicantumkan.' }}"
+                            </p>
+                        </div>
+                    </div>
+
                     @if($rq->pending_advisor_at)
                     <div class="mb-5 bg-amber-50/50 dark:bg-amber-950/30 rounded-xl p-3.5 border border-amber-100 dark:border-amber-800/40 flex items-center gap-3">
                         <div class="w-8 h-8 rounded-full bg-white dark:bg-slate-800 flex items-center justify-center text-amber-500 shadow-sm shrink-0">

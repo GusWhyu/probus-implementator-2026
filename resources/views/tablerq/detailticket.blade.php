@@ -309,6 +309,29 @@
                                         Tiket ini sedang diajukan untuk dialihkan kepada <strong>{{ $datarq->pendingAdvisor->name ?? 'Advisor lain' }}</strong>. Diskusi dikunci sementara hingga disetujui atau batas waktu <strong>{{ $datarq->takeover_duration_text }}</strong> habis.
                                     @endif
                                 </p>
+                                @php
+                                    $detailTakeover = $datarq->pendingTakeover ?? ($ticketTakeovers ? $ticketTakeovers->where('status', 'PENDING')->first() : null);
+                                    $detailReason = $detailTakeover ? $detailTakeover->reason : null;
+                                    $detailFromUser = $detailTakeover && $detailTakeover->fromUser ? $detailTakeover->fromUser->name : ($datarq->user->name ?? null);
+                                @endphp
+                                @if($detailReason)
+                                <div class="mb-3.5 bg-white/95 rounded-xl p-3 border border-amber-200/90 text-xs shadow-sm">
+                                    <div class="flex items-center justify-between mb-1">
+                                        <span class="font-extrabold text-amber-900 text-[11px] uppercase tracking-wider flex items-center gap-1.5">
+                                            <i class="fa-solid fa-comment-dots text-amber-600"></i> Alasan Pengalihan:
+                                        </span>
+                                        @if($detailFromUser)
+                                        <span class="text-[10px] font-bold text-slate-500">
+                                            Diajukan oleh: <strong class="text-slate-700">{{ $detailFromUser }}</strong>
+                                        </span>
+                                        @endif
+                                    </div>
+                                    <p class="font-semibold text-slate-800 italic leading-relaxed bg-amber-50/60 p-2.5 rounded-lg border border-amber-100">
+                                        "{{ $detailReason }}"
+                                    </p>
+                                </div>
+                                @endif
+
                                 @if ($datarq->pending_advisor_id == $aid)
                                 <div class="flex gap-2">
                                     <form action="{{ route('ticket.takeover.reject', $datarq->id) }}" method="POST" class="inline">
