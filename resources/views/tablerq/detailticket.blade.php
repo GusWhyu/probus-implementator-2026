@@ -21,10 +21,9 @@
 
     // Dynamic Alert Conditions
     $isOverdue = $stid == 'PROGRESS' && !empty($datarq->due_date) && Carbon::parse($datarq->due_date)->startOfDay()->lt(Carbon::now()->startOfDay());
-    $isUnassigned = $stid == 'OPEN' && empty($datarq->advisor_id);
     $isPendingOther = $datarq->pending_advisor_id != null && $datarq->pending_advisor_id != $aid;
     
-    $showAlert = $isOverdue || $isUnassigned || $isPendingOther;
+    $showAlert = $isOverdue || $isPendingOther;
     $prevUrl = url()->previous();
     $currentUrl = url()->current();
     $isInvalidBack = (!$prevUrl || $prevUrl === $currentUrl || str_contains($prevUrl, '/detailticket') || str_contains($prevUrl, '/ticket-') || str_contains($prevUrl, '/editticket'));
@@ -97,16 +96,6 @@
                     <div>
                         <p class="font-bold text-amber-800 text-sm">Menunggu Persetujuan Alih Tiket</p>
                         <p class="text-[13px] font-medium text-amber-700/80 mt-0.5">Tiket ini sedang dalam proses pengalihan ke <strong>{{ $datarq->pendingAdvisor->name ?? 'User' }}</strong> dan sedang menunggu persetujuan dari yang bersangkutan.</p>
-                    </div>
-                </div>
-                @elseif ($isUnassigned)
-                <div class="bg-blue-50 border border-blue-200/60 rounded-2xl p-4 mb-6 flex items-start sm:items-center gap-4 shadow-sm">
-                    <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 shrink-0 mt-1 sm:mt-0">
-                        <i class="fa-solid fa-user-plus text-lg"></i>
-                    </div>
-                    <div>
-                        <p class="font-bold text-blue-800 text-sm">Belum Ada Penanggung Jawab</p>
-                        <p class="text-[13px] font-medium text-blue-700/80 mt-0.5">Tiket ini baru masuk dan belum ditugaskan kepada Advisor manapun. Segera alihkan atau ambil alih tiket ini.</p>
                     </div>
                 </div>
                 @endif
