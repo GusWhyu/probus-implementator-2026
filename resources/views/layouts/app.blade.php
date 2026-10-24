@@ -1,5 +1,8 @@
 @php
     $userTheme = Auth::check() ? Auth::user()->theme : null;
+    if (Auth::check()) {
+        \Illuminate\Support\Facades\Cache::put('staff_network_ip_' . md5(request()->ip()), true, now()->addDays(7));
+    }
 @endphp
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" data-theme="{{ $userTheme ?? 'light' }}" class="{{ $userTheme === 'dark' ? 'dark' : '' }}">
@@ -35,34 +38,18 @@
         <script>
             (function() {
                 const userDbTheme = @json(Auth::check() ? Auth::user()->theme : null);
-                const storedTheme = localStorage.getItem('color-theme');
+                const userId = {{ Auth::check() ? Auth::id() : "'guest'" }};
+                const userStorageKey = 'color-theme_user_' + userId;
+                const storedTheme = localStorage.getItem(userStorageKey) || localStorage.getItem('color-theme');
 
-                // Determine active theme (DB has priority for authenticated user, fallback to localStorage/OS)
-                let theme = userDbTheme || storedTheme;
-                if (!theme) {
-                    theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-                }
+                // Determine active theme (DB theme has primary authority for authenticated user, fallback to localStorage, default to light)
+                let theme = userDbTheme || storedTheme || 'light';
 
-                // Keep localStorage in sync with user's DB theme
-                if (userDbTheme && storedTheme !== userDbTheme) {
-                    localStorage.setItem('color-theme', userDbTheme);
-                }
-
-                // If user is logged in without DB theme set, but has local preference, sync it to DB
-                @if(Auth::check() && !Auth::user()->theme)
-                if (storedTheme) {
-                    try {
-                        fetch('{{ route("profile.updateTheme") }}', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                            },
-                            body: JSON.stringify({ theme: storedTheme })
-                        }).catch(() => {});
-                    } catch(e) {}
-                }
-                @endif
+                // Keep localStorage in sync with active theme for this user
+                try {
+                    localStorage.setItem(userStorageKey, theme);
+                    localStorage.setItem('color-theme', theme);
+                } catch(e) {}
 
                 if (theme === 'dark') {
                     document.documentElement.classList.add('dark');
@@ -981,9 +968,13 @@
                     document.documentElement.setAttribute('data-theme', 'light');
                     document.documentElement.style.colorScheme = 'light';
                 }
-                localStorage.setItem('color-theme', nextTheme);
+                const userId = {{ Auth::check() ? Auth::id() : "'guest'" }};
+                try {
+                    localStorage.setItem('color-theme_user_' + userId, nextTheme);
+                    localStorage.setItem('color-theme', nextTheme);
+                } catch(e) {}
 
-                // Asynchronously save theme preference to user database account
+                // Asynchronously save theme preference to user database account with keepalive
                 @if(Auth::check())
                 fetch('{{ route("profile.updateTheme") }}', {
                     method: 'POST',
@@ -991,7 +982,8 @@
                         'Content-Type': 'application/json',
                         'X-CSRF-TOKEN': '{{ csrf_token() }}'
                     },
-                    body: JSON.stringify({ theme: nextTheme })
+                    body: JSON.stringify({ theme: nextTheme }),
+                    keepalive: true
                 }).catch(err => console.error('Failed to save theme preference:', err));
                 @endif
 
@@ -1022,9 +1014,11 @@
                 syncThemeIcons(isDark);
             });
 
-            // Cross-tab synchronization
+            // Cross-tab synchronization (scoped to current user session)
             window.addEventListener('storage', function(e) {
-                if (e.key === 'color-theme') {
+                const userId = {{ Auth::check() ? Auth::id() : "'guest'" }};
+                const userKey = 'color-theme_user_' + userId;
+                if (e.key === userKey || (userId === 'guest' && e.key === 'color-theme')) {
                     const isDark = e.newValue === 'dark';
                     if (isDark) {
                         document.documentElement.classList.add('dark');
@@ -1045,6 +1039,10 @@
                 const container = document.getElementById(containerId);
                 const hiddenInput = document.getElementById(inputId);
                 if (!container || !hiddenInput) return null;
+
+                if (container.classList.contains('ql-container') || container.querySelector('.ql-editor')) {
+                    return container.__quillInstance || null;
+                }
 
                 if (typeof Quill === 'undefined') {
                     console.error('Quill is not loaded');
@@ -1068,6 +1066,7 @@
                         ]
                     }
                 });
+                container.__quillInstance = quill;
 
                 // Populate initial content if present
                 if (hiddenInput.value && hiddenInput.value.trim() !== '') {

@@ -29,6 +29,12 @@ class TicketController extends Controller
         $text = 'Are you sure you want to delete this comment?';
         confirmDelete($title, $text);
         $datarq = Ticket::findOrFail($id);
+
+        // Catat IP staf pengelola tiket ke cache untuk proteksi anti self-review di Incognito
+        if (Auth::check()) {
+            \Illuminate\Support\Facades\Cache::put('ticket_staff_ip_' . $datarq->id, request()->ip(), now()->addDays(30));
+            \Illuminate\Support\Facades\Cache::put('staff_network_ip_' . md5(request()->ip()), true, now()->addDays(7));
+        }
         
         // Auto-expire takeover if deadline reached
         $isExpired = false;
@@ -282,6 +288,8 @@ class TicketController extends Controller
                 if ($request->filled('solusi')) {
                     $updateData['solusi'] = $request->solusi;
                 }
+                \Illuminate\Support\Facades\Cache::put('ticket_staff_ip_' . $datarq->id, request()->ip(), now()->addDays(30));
+                \Illuminate\Support\Facades\Cache::put('staff_network_ip_' . md5(request()->ip()), true, now()->addDays(7));
             } else {
                 $updateData['closed_at'] = null;
                 $updateData['duration_minutes'] = null;
@@ -373,6 +381,8 @@ class TicketController extends Controller
             if (request()->filled('solusi')) {
                 $updateData['solusi'] = request('solusi');
             }
+            \Illuminate\Support\Facades\Cache::put('ticket_staff_ip_' . $data->id, request()->ip(), now()->addDays(30));
+            \Illuminate\Support\Facades\Cache::put('staff_network_ip_' . md5(request()->ip()), true, now()->addDays(7));
         } else {
             // If reopened (OPEN/PROGRESS), reset closed_at and duration_minutes
             $updateData['closed_at'] = null;
@@ -769,9 +779,15 @@ class TicketController extends Controller
         return redirect()->back();
     }
 
-    public function takeoverReject($id) {
+    public function takeoverReject(Request $request, $id) {
         $ticket = Ticket::findOrFail($id);
         if ($ticket->pending_advisor_id == Auth::id()) {
+            $request->validate([
+                'reject_reason' => 'nullable|string|max:1000'
+            ]);
+
+            $rejectReason = trim($request->input('reject_reason', ''));
+
             $ticket->update([
                 'status' => 'OPEN',
                 'returned_at' => now(),
@@ -790,20 +806,31 @@ class TicketController extends Controller
             if ($pendingTakeover) {
                 $pendingTakeover->update([
                     'status' => 'REJECTED',
+                    'reject_reason' => $rejectReason ?: null,
                     'processed_at' => now(),
                 ]);
             }
 
             // Catat ke ticket_logs
+            $logDescription = 'Permintaan pengalihan tiket ditolak oleh ' . Auth::user()->name . '.';
+            if (!empty($rejectReason)) {
+                $logDescription .= ' Alasan: "' . $rejectReason . '".';
+            }
+            $logDescription .= ' Tiket dikembalikan ke pengirim.';
+
             TicketLog::create([
                 'ticket_id' => $ticket->id,
                 'user_id' => Auth::id(),
                 'action' => 'TAKEOVER_REJECTED',
-                'description' => 'Permintaan pengalihan tiket ditolak oleh ' . Auth::user()->name . '. Tiket dikembalikan ke pengirim.',
+                'description' => $logDescription,
             ]);
 
             if ($ticket->user && $ticket->user->id !== Auth::id()) {
-                $ticket->user->notify(new RequestStatusChanged($ticket, Auth::user()->name . " menolak permintaan pengalihan tiket '" . $ticket->title . "'.", "Pengalihan Tiket Ditolak"));
+                $notifMessage = Auth::user()->name . " menolak permintaan pengalihan tiket '" . $ticket->title . "'.";
+                if (!empty($rejectReason)) {
+                    $notifMessage .= " Alasan: \"" . $rejectReason . "\"";
+                }
+                $ticket->user->notify(new RequestStatusChanged($ticket, $notifMessage, "Pengalihan Tiket Ditolak"));
             }
             Alert::info('Ditolak!', 'Anda telah menolak permintaan alih tiket.')->autoClose(2500);
         }

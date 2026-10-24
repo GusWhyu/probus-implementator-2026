@@ -492,10 +492,11 @@
                     @endif
 
                     <div class="grid grid-cols-2 gap-3 mt-auto">
-                        <form action="{{ route('ticket.takeover.reject', $rq->id) }}" method="POST" class="w-full">
-                            @csrf
-                            <button type="submit" class="w-full py-3 bg-white dark:bg-slate-700 text-slate-500 dark:text-slate-200 font-bold text-xs rounded-xl border border-slate-200 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-600 hover:text-slate-800 dark:hover:text-white transition-all shadow-sm uppercase tracking-widest cursor-pointer">Tolak</button>
-                        </form>
+                        <button type="button" 
+                            onclick="openRejectTakeoverModal('{{ route('ticket.takeover.reject', $rq->id) }}', '{{ $rq->ticket_number }}', '{{ addslashes($rq->title) }}')" 
+                            class="w-full py-3 bg-white dark:bg-slate-700 text-slate-500 hover:text-rose-600 dark:text-slate-200 dark:hover:text-rose-400 font-bold text-xs rounded-xl border border-slate-200 dark:border-slate-600 hover:border-rose-300 dark:hover:border-rose-500 hover:bg-rose-50/50 dark:hover:bg-rose-950/20 transition-all shadow-sm uppercase tracking-widest cursor-pointer">
+                            Tolak
+                        </button>
                         <form action="{{ route('ticket.takeover.accept', $rq->id) }}" method="POST" class="w-full">
                             @csrf
                             <button type="submit" class="w-full py-3 bg-blue-600 text-white font-bold text-xs rounded-xl hover:bg-blue-700 transition-all shadow-sm shadow-blue-500/30 uppercase tracking-widest cursor-pointer">Terima</button>
@@ -507,6 +508,8 @@
         </div>
         <form method="dialog" class="modal-backdrop bg-slate-900/60 backdrop-blur-sm"><button>close</button></form>
     </dialog>
+
+    @include('partials.modal_reject_takeover')
     
     <script>
         document.addEventListener('DOMContentLoaded', function() {

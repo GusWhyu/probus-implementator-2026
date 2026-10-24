@@ -87,37 +87,121 @@
             </div>
             @endif
 
+            <!-- Takeover Notification Banners -->
+            @php
+                $lastTakeover = $ticketTakeovers ? $ticketTakeovers->first() : null;
+                $isLatestTakeoverRejected = $lastTakeover && $lastTakeover->status === 'REJECTED' && !$isPendingTakeover;
+            @endphp
+
+            {{-- 1. Banner Notifikasi Pengalihan Ditolak (Dengan Tombol Close) --}}
+            @if ($isLatestTakeoverRejected)
+            <div id="rejected_takeover_banner_{{ $lastTakeover->id }}" class="bg-rose-50/90 dark:bg-rose-950/40 border border-rose-300/80 dark:border-rose-800/60 rounded-2xl p-3.5 sm:p-4 mb-4 sm:mb-5 shadow-xs relative transition-all duration-300">
+                <div class="flex items-start gap-3">
+                    <div class="w-8 h-8 sm:w-9 sm:h-9 bg-white dark:bg-slate-800 rounded-xl flex items-center justify-center text-rose-600 dark:text-rose-400 shrink-0 shadow-2xs border border-rose-200 dark:border-rose-800/60 text-sm mt-0.5">
+                        <i class="fa-solid fa-ban"></i>
+                    </div>
+                    <div class="flex-1 min-w-0 pr-7 sm:pr-8">
+                        <div class="flex items-center gap-2 flex-wrap mb-1">
+                            <h4 class="font-extrabold text-rose-950 dark:text-rose-100 text-xs sm:text-sm">
+                                Pengalihan Tiket Ditolak
+                            </h4>
+                            <span class="px-2 py-0.5 rounded-md text-[9px] sm:text-[10px] font-bold uppercase tracking-wider bg-rose-200/80 dark:bg-rose-900/80 text-rose-900 dark:text-rose-200 border border-rose-300/80 dark:border-rose-800">
+                                Ditolak
+                            </span>
+                            @if($lastTakeover->processed_at ?? $lastTakeover->updated_at)
+                            <span class="text-[10px] text-rose-700/80 dark:text-rose-400 font-medium ml-auto hidden sm:inline">
+                                {{ \Carbon\Carbon::parse($lastTakeover->processed_at ?? $lastTakeover->updated_at)->translatedFormat('d M Y, H:i') }}
+                            </span>
+                            @endif
+                        </div>
+
+                        <p class="text-[11px] sm:text-xs font-medium text-rose-900/90 dark:text-rose-200/90 leading-snug">
+                            Permintaan pengalihan tiket kepada <strong>{{ $lastTakeover->toUser ? $lastTakeover->toUser->name : 'Advisor' }}</strong> telah ditolak. Tiket dikembalikan kepada Anda.
+                        </p>
+
+                        <!-- Box Alasan Penolakan Compact -->
+                        <div class="mt-2 bg-white/80 dark:bg-slate-900/60 rounded-xl px-3 py-2 border border-rose-200/80 dark:border-rose-800/40 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-3">
+                            <div class="flex items-start sm:items-center gap-1.5 min-w-0">
+                                <span class="text-[10px] font-black text-rose-800 dark:text-rose-400 uppercase tracking-wider shrink-0 flex items-center gap-1">
+                                    <i class="fa-solid fa-comment-dots text-rose-500 text-[10px]"></i> Alasan:
+                                </span>
+                                <span class="font-medium text-slate-700 dark:text-slate-200 italic break-words sm:truncate">
+                                    "{{ $lastTakeover->reject_reason ?: 'Tidak ada alasan khusus yang dicantumkan.' }}"
+                                </span>
+                            </div>
+                            @if($lastTakeover->toUser)
+                            <span class="text-[10px] font-semibold text-slate-400 dark:text-slate-500 shrink-0 self-end sm:self-auto">
+                                Ditolak oleh: <strong class="text-slate-700 dark:text-slate-300 font-bold">{{ $lastTakeover->toUser->name }}</strong>
+                            </span>
+                            @endif
+                        </div>
+                    </div>
+
+                    <!-- Tombol Close -->
+                    <button type="button" 
+                        onclick="dismissRejectedBanner('{{ $lastTakeover->id }}')" 
+                        class="absolute right-3 top-3 w-7 h-7 rounded-lg bg-white/80 dark:bg-slate-800/80 hover:bg-rose-100 dark:hover:bg-rose-900/50 text-slate-400 hover:text-rose-600 dark:hover:text-rose-300 border border-rose-200/60 dark:border-rose-800/50 flex items-center justify-center transition-colors shrink-0 cursor-pointer shadow-2xs" 
+                        title="Tutup pemberitahuan">
+                        <i class="fa-solid fa-xmark text-xs"></i>
+                    </button>
+                </div>
+            </div>
+            <script>
+                (function() {
+                    const takeoverId = '{{ $lastTakeover->id }}';
+                    try {
+                        if (localStorage.getItem('dismissed_reject_takeover_' + takeoverId) === 'true') {
+                            const el = document.getElementById('rejected_takeover_banner_' + takeoverId);
+                            if (el) el.style.display = 'none';
+                        }
+                    } catch (e) {}
+                })();
+                function dismissRejectedBanner(id) {
+                    const el = document.getElementById('rejected_takeover_banner_' + id);
+                    if (el) {
+                        el.style.opacity = '0';
+                        el.style.transform = 'translateY(-6px)';
+                        setTimeout(() => el.remove(), 200);
+                    }
+                    try {
+                        localStorage.setItem('dismissed_reject_takeover_' + id, 'true');
+                    } catch (e) {}
+                }
+            </script>
+            @endif
+
+            {{-- 2. Banner Permintaan Alih Tiket (Waiting Approval) - Compact & Mobile Friendly --}}
             @if ($isPendingTakeover)
-            <div class="bg-amber-50 dark:bg-amber-950/30 border-2 border-amber-300 dark:border-amber-700/80 rounded-3xl p-5 mb-6 shadow-sm relative overflow-hidden">
-                <div class="flex items-start gap-4">
-                    <div class="w-11 h-11 bg-white dark:bg-slate-800 rounded-2xl flex items-center justify-center text-amber-600 dark:text-amber-400 shrink-0 shadow-sm border border-amber-200 dark:border-amber-700/60 mt-0.5">
-                        <i class="fa-solid fa-clock-rotate-left text-xl animate-spin" style="animation-duration: 4s;"></i>
+            <div class="bg-amber-50/90 dark:bg-amber-950/40 border border-amber-300/80 dark:border-amber-600/50 rounded-2xl p-3.5 sm:p-4 mb-4 sm:mb-5 shadow-xs relative">
+                <div class="flex items-start gap-3">
+                    <div class="w-8 h-8 sm:w-9 sm:h-9 bg-white dark:bg-slate-800 rounded-xl flex items-center justify-center text-amber-600 dark:text-amber-400 shrink-0 shadow-2xs border border-amber-200 dark:border-amber-700/60 text-sm mt-0.5">
+                        <i class="fa-solid fa-clock-rotate-left animate-spin" style="animation-duration: 4s;"></i>
                     </div>
                     <div class="flex-1 min-w-0">
-                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-1.5">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 sm:gap-2 mb-1">
                             <div class="flex items-center gap-2 flex-wrap">
-                                <h4 class="font-extrabold text-amber-900 dark:text-amber-100 text-base">
+                                <h4 class="font-extrabold text-amber-950 dark:text-amber-100 text-xs sm:text-sm">
                                     Permintaan Alih Tiket (Waiting Approval)
                                 </h4>
-                                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wide bg-amber-200/80 dark:bg-amber-900/80 text-amber-800 dark:text-amber-200 border border-amber-300 dark:border-amber-700">
+                                <span class="px-2 py-0.5 rounded-md text-[9px] sm:text-[10px] font-bold uppercase tracking-wider bg-amber-200/70 dark:bg-amber-900/60 text-amber-900 dark:text-amber-200 border border-amber-300 dark:border-amber-700">
                                     Waiting Approval
                                 </span>
                             </div>
                             @if($datarq->pending_advisor_at)
                             <div class="flex items-center gap-1.5 shrink-0 self-start sm:self-auto">
-                                <span class="inline-flex items-center gap-1.5 text-xs font-mono font-extrabold text-amber-900 dark:text-amber-200 bg-white dark:bg-slate-800 px-3 py-1 rounded-xl border border-amber-200 dark:border-amber-700 shadow-xs">
-                                    <i class="fa-regular fa-clock text-amber-600 dark:text-amber-400 text-xs"></i>
+                                <span class="inline-flex items-center gap-1.5 text-[11px] font-mono font-extrabold text-amber-900 dark:text-amber-200 bg-white dark:bg-slate-800 px-2.5 py-0.5 rounded-lg border border-amber-200 dark:border-amber-700 shadow-2xs">
+                                    <i class="fa-regular fa-clock text-amber-600 dark:text-amber-400 text-[11px]"></i>
                                     <span class="ticket-countdown" data-expire="{{ $datarq->takeover_expire_time ? $datarq->takeover_expire_time->toISOString() : '' }}">--:--</span>
                                 </span>
                             </div>
                             @endif
                         </div>
 
-                        <p class="text-[13px] font-medium text-amber-800/90 dark:text-amber-300/90 leading-relaxed">
+                        <p class="text-[11px] sm:text-xs font-medium text-amber-900/90 dark:text-amber-200/90 leading-snug">
                             @if ($datarq->pending_advisor_id == $aid)
-                                Seseorang meminta Anda untuk mengambil alih dan menyelesaikan tiket ini. Batas waktu konfirmasi adalah <strong>{{ $datarq->takeover_duration_text }}</strong> sebelum permintaan otomatis dibatalkan. Apakah Anda bersedia?
+                                Seseorang meminta Anda mengambil alih tiket ini. Batas waktu konfirmasi: <strong>{{ $datarq->takeover_duration_text }}</strong>.
                             @else
-                                Tiket ini sedang diajukan untuk dialihkan kepada <strong>{{ $datarq->pendingAdvisor->name ?? 'Advisor lain' }}</strong>. Diskusi dan pembaruan tiket dikunci sementara hingga disetujui atau batas waktu konfirmasi (<strong>{{ $datarq->takeover_duration_text }}</strong>) habis.
+                                Tiket sedang diajukan kepada <strong>{{ $datarq->pendingAdvisor->name ?? 'Advisor lain' }}</strong>. Diskusi dikunci sementara hingga disetujui atau batas waktu konfirmasi (<strong>{{ $datarq->takeover_duration_text }}</strong>) habis.
                             @endif
                         </p>
 
@@ -127,34 +211,33 @@
                             $detailFromUser = $detailTakeover && $detailTakeover->fromUser ? $detailTakeover->fromUser->name : ($datarq->user->name ?? null);
                         @endphp
                         @if($detailReason)
-                        <div class="mt-3.5 bg-white/90 dark:bg-slate-800/90 rounded-2xl p-3.5 border border-amber-200/90 dark:border-amber-700/60 shadow-xs">
-                            <div class="flex items-center justify-between mb-1">
-                                <span class="font-extrabold text-amber-900 dark:text-amber-300 text-[11px] uppercase tracking-wider flex items-center gap-1.5">
-                                    <i class="fa-solid fa-comment-dots text-amber-600 dark:text-amber-400"></i> Alasan Pengalihan:
+                        <div class="mt-2 bg-white/80 dark:bg-slate-900/60 rounded-xl px-3 py-2 border border-amber-200/80 dark:border-amber-800/40 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-3">
+                            <div class="flex items-start sm:items-center gap-1.5 min-w-0">
+                                <span class="text-[10px] font-black text-amber-800 dark:text-amber-400 uppercase tracking-wider shrink-0 flex items-center gap-1">
+                                    <i class="fa-solid fa-comment-dots text-amber-500 text-[10px]"></i> Alasan:
                                 </span>
-                                @if($detailFromUser)
-                                <span class="text-[10px] font-bold text-slate-500 dark:text-slate-400">
-                                    Diajukan oleh: <strong class="text-slate-700 dark:text-slate-200">{{ $detailFromUser }}</strong>
+                                <span class="font-medium text-slate-700 dark:text-slate-200 italic break-words sm:truncate">
+                                    "{{ $detailReason }}"
                                 </span>
-                                @endif
                             </div>
-                            <p class="font-semibold text-slate-800 dark:text-slate-100 italic leading-relaxed text-xs sm:text-sm">
-                                "{{ $detailReason }}"
-                            </p>
+                            @if($detailFromUser)
+                            <span class="text-[10px] font-semibold text-slate-400 dark:text-slate-500 shrink-0 self-end sm:self-auto">
+                                Diajukan oleh: <strong class="text-slate-700 dark:text-slate-300 font-bold">{{ $detailFromUser }}</strong>
+                            </span>
+                            @endif
                         </div>
                         @endif
 
                         @if ($datarq->pending_advisor_id == $aid)
-                        <div class="flex items-center gap-2.5 mt-3.5">
-                            <form action="{{ route('ticket.takeover.reject', $datarq->id) }}" method="POST" class="inline">
-                                @csrf
-                                <button type="submit" class="px-4 py-2 bg-white dark:bg-slate-800 text-rose-600 dark:text-rose-400 font-bold text-xs rounded-xl hover:bg-rose-50 dark:hover:bg-slate-700 transition-colors border border-rose-200 dark:border-rose-800/80 shadow-xs active:scale-95 cursor-pointer">
-                                    <i class="fa-solid fa-xmark mr-1"></i> Tolak
-                                </button>
-                            </form>
+                        <div class="flex items-center gap-2 mt-2.5 flex-wrap">
+                            <button type="button" 
+                                onclick="openRejectTakeoverModal('{{ route('ticket.takeover.reject', $datarq->id) }}', '{{ $datarq->ticket_number }}', '{{ addslashes($datarq->title) }}')"
+                                class="px-3.5 py-1.5 bg-white dark:bg-slate-800 text-rose-600 dark:text-rose-400 font-bold text-xs rounded-xl hover:bg-rose-50 dark:hover:bg-slate-700 transition-colors border border-rose-200 dark:border-rose-800/80 shadow-xs active:scale-95 cursor-pointer">
+                                <i class="fa-solid fa-xmark mr-1"></i> Tolak
+                            </button>
                             <form action="{{ route('ticket.takeover.accept', $datarq->id) }}" method="POST" class="inline">
                                 @csrf
-                                <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl transition-colors shadow-sm shadow-blue-500/20 active:scale-95 cursor-pointer">
+                                <button type="submit" class="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl transition-colors shadow-sm shadow-blue-500/20 active:scale-95 cursor-pointer">
                                     <i class="fa-solid fa-check mr-1"></i> Terima Pengalihan
                                 </button>
                             </form>
@@ -263,6 +346,57 @@
                         <!-- Review Pelanggan -->
                         @if ($datarq->status == 'CLOSED')
                         <div class="bg-blue-50/50 dark:bg-slate-900/60 rounded-3xl border border-blue-100 dark:border-slate-800 shadow-sm p-6 md:p-8 mt-6">
+                            @if ($datarq->survey)
+                            <div class="flex items-center justify-between flex-wrap gap-2 mb-4">
+                                <div class="flex items-center gap-2.5">
+                                    <div class="w-8 h-8 rounded-xl bg-amber-500/10 dark:bg-amber-500/20 text-amber-500 flex items-center justify-center">
+                                        <i class="fa-solid fa-star text-sm"></i>
+                                    </div>
+                                    <h3 class="text-base font-extrabold text-slate-800 dark:text-slate-100">Hasil Review Pelanggan</h3>
+                                </div>
+                                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 text-xs font-extrabold">
+                                    <i class="fa-solid fa-circle-check text-[10px]"></i> Sudah Dinilai Klien
+                                </span>
+                            </div>
+
+                            <div class="bg-white dark:bg-slate-950/70 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm space-y-3">
+                                <div class="flex items-center gap-2">
+                                    <div class="flex text-amber-400 text-base">
+                                        @for ($i = 1; $i <= 5; $i++)
+                                            @if ($i <= $datarq->survey->rating)
+                                                <i class="fa-solid fa-star"></i>
+                                            @else
+                                                <i class="fa-regular fa-star text-slate-300 dark:text-slate-600"></i>
+                                            @endif
+                                        @endfor
+                                    </div>
+                                    <span class="font-extrabold text-slate-800 dark:text-slate-200 text-sm">
+                                        {{ $datarq->survey->rating }}.0 / 5.0
+                                    </span>
+                                </div>
+                                @if ($datarq->survey->feedback)
+                                <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-900/60 p-3.5 rounded-xl border border-slate-100 dark:border-slate-800 italic">
+                                    "{{ $datarq->survey->feedback }}"
+                                </p>
+                                @endif
+                                <p class="text-[11px] text-slate-400 font-medium">
+                                    Diterima pada {{ \Carbon\Carbon::parse($datarq->survey->created_at)->translatedFormat('d F Y, H:i') }}
+                                </p>
+                            </div>
+                            @else
+                            @php
+                                $clientName = $datarq->client ? $datarq->client->nm_out : 'Bapak/Ibu';
+                                $reviewUrl = url('/review/' . $datarq->ticket_number);
+                                $waMessage = "Halo Tim *{$clientName}*,\n\n"
+                                           . "Pemberitahuan penyelesaian tiket dari *Tim Support Probus System*:\n\n"
+                                           . "📋 *No. Tiket:* #{$datarq->ticket_number}\n"
+                                           . "📌 *Judul Ticket:* {$datarq->title}\n"
+                                           . "✅ *Status:* Selesai (CLOSED)\n\n"
+                                           . "Untuk membantu kami terus meningkatkan kualitas pelayanan, mohon kesediaan Bapak/Ibu meluangkan waktu sejenak untuk memberikan ulasan & rating pelayanan kami melalui tautan berikut:\n"
+                                           . "👉 {$reviewUrl}\n\n"
+                                           . "Terima kasih atas kerja sama dan kepercayaannya kepada Probus System. 🙏";
+                                $waShareUrl = 'https://api.whatsapp.com/send?text=' . rawurlencode($waMessage);
+                            @endphp
                             <div class="flex items-center gap-2.5 mb-3">
                                 <div class="w-8 h-8 rounded-xl bg-amber-500/10 dark:bg-amber-500/20 text-amber-500 flex items-center justify-center">
                                     <i class="fa-solid fa-star text-sm"></i>
@@ -270,26 +404,27 @@
                                 <h3 class="text-base font-extrabold text-slate-800 dark:text-slate-100">Review Pelanggan</h3>
                             </div>
                             <p class="text-[13px] font-medium text-slate-500 dark:text-slate-400 mb-6 leading-relaxed">
-                                Tiket telah selesai. Bagikan link berikut kepada client untuk memberikan penilaian terhadap pelayanan CS.
+                                Tiket telah selesai. Bagikan link berikut kepada client agar mereka dapat memberikan ulasan dan penilaian terhadap kualitas penanganan tiket ini.
                             </p>
                             
-                            <div class="bg-white dark:bg-slate-950/70 rounded-2xl border border-slate-200 dark:border-slate-800 p-2 flex flex-col sm:flex-row items-center gap-3 shadow-sm">
+                            <div class="bg-white dark:bg-slate-950/70 rounded-2xl border border-slate-200 dark:border-slate-800 p-2.5 flex flex-col sm:flex-row items-center gap-3 shadow-sm">
                                 <div class="flex items-center gap-3 px-3 w-full sm:w-auto flex-1 overflow-hidden">
                                     <i class="fa-solid fa-link text-blue-500 dark:text-blue-400"></i>
-                                    <span class="text-[13px] font-medium text-blue-600 dark:text-blue-400 truncate font-mono" id="review-link">{{ url('/review/' . $datarq->ticket_number) }}</span>
+                                    <span class="text-[13px] font-medium text-blue-600 dark:text-blue-400 truncate font-mono" id="review-link">{{ $reviewUrl }}</span>
                                 </div>
                                 <div class="flex gap-2 w-full sm:w-auto shrink-0 mt-2 sm:mt-0">
-                                    <button type="button" onclick="navigator.clipboard.writeText('{{ url('/review/' . $datarq->ticket_number) }}'); alert('Link berhasil disalin!')" class="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 text-white font-bold text-xs rounded-xl hover:bg-blue-700 transition-all shadow-sm shadow-blue-500/20 active:scale-95 cursor-pointer">
+                                    <button type="button" onclick="navigator.clipboard.writeText('{{ $reviewUrl }}'); const btn = this; const orig = btn.innerHTML; btn.innerHTML = '<i class=\'fa-solid fa-check text-emerald-400\'></i> Disalin!'; setTimeout(() => btn.innerHTML = orig, 2000);" class="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 text-white font-bold text-xs rounded-xl hover:bg-blue-700 transition-all shadow-sm shadow-blue-500/20 active:scale-95 cursor-pointer">
                                         <i class="fa-regular fa-copy"></i> Salin Link
                                     </button>
-                                    <a href="{{ url('/review/' . $datarq->ticket_number) }}" target="_blank" class="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 font-bold text-xs rounded-xl hover:bg-blue-50 dark:hover:bg-slate-700 border border-blue-200 dark:border-slate-700 transition-all active:scale-95">
-                                        Buka Review
+                                    <a href="{{ $waShareUrl }}" target="_blank" class="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl transition-all shadow-sm shadow-emerald-600/20 active:scale-95 cursor-pointer">
+                                        <i class="fa-brands fa-whatsapp text-sm"></i> Kirim WhatsApp
                                     </a>
                                 </div>
                             </div>
                             <p class="text-[10px] font-bold text-blue-500 dark:text-blue-400 flex items-center gap-1.5 mt-4">
-                                <i class="fa-solid fa-circle-info"></i> Link ini akan kedaluwarsa dalam 1 hari. Review hanya bisa dilakukan 1 kali.
+                                <i class="fa-solid fa-circle-info"></i> Tautan ini khusus untuk klien. Review hanya bisa dilakukan 1 kali.
                             </p>
+                            @endif
                         </div>
                         @endif
 
@@ -875,6 +1010,8 @@
             }
         }
     </script>
+
+    @include('partials.modal_reject_takeover')
 
     <dialog id="forceAdvisorModal" class="modal">
         <div class="modal-box w-11/12 max-w-md rounded-3xl p-6 md:p-8 bg-white dark:bg-[#1e293b] border border-slate-100 dark:border-slate-700 shadow-2xl">
