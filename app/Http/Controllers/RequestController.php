@@ -479,6 +479,8 @@ class RequestController extends Controller
         }
 
         $tagId = $request->tag ?? (Auth::user()->tag_id ?? 1);
+        $creator = Auth::user();
+        $isCreatorAdminOrSpv = in_array($creator->usertype, ['admin', 'supervisor']);
 
         $data = \App\Models\Request::create([
             'judul' => $request->title,
@@ -491,10 +493,10 @@ class RequestController extends Controller
             'user_id' => Auth::id(),
             'status_id' => 2, // 2 = Open
             'outlet_id' => $outletId,
-            'approval_status' => 'approved',
-            'approved_by' => Auth::id(),
-            'approval_date' => now(),
-            'approval_note' => 'Otomatis disetujui (tidak memerlukan approval admin)',
+            'approval_status' => $isCreatorAdminOrSpv ? 'approved' : 'pending',
+            'approved_by' => $isCreatorAdminOrSpv ? Auth::id() : null,
+            'approval_date' => $isCreatorAdminOrSpv ? now() : null,
+            'approval_note' => $isCreatorAdminOrSpv ? ('Disetujui otomatis oleh ' . ucfirst($creator->usertype)) : null,
         ]);
         
         // Catat ke RequestLog
@@ -724,7 +726,7 @@ class RequestController extends Controller
     }
 
     public function approveRequest($id){
-        if (Auth::user()->usertype !== 'admin') {
+        if (!in_array(Auth::user()->usertype, ['admin', 'supervisor'])) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -752,7 +754,7 @@ class RequestController extends Controller
     }
 
     public function rejectRequest(Request $request, $id){
-        if (Auth::user()->usertype !== 'admin') {
+        if (!in_array(Auth::user()->usertype, ['admin', 'supervisor'])) {
             abort(403, 'Unauthorized action.');
         }
 

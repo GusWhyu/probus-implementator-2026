@@ -132,7 +132,7 @@
                         @endif
                         
                         <!-- Approval Info Details -->
-                        @if ($datarq->approval_status == 'approved' || $datarq->approval_status == 'rejected')
+                        @if ($datarq->approval_status == 'approved' || $datarq->approval_status == 'rejected' || $isPendingApproval)
                         <div class="mt-8 border-t border-slate-100 pt-8">
                             @if ($datarq->approval_status == 'approved')
                             <div class="bg-emerald-50 border border-emerald-100 text-emerald-800 p-5 rounded-2xl flex items-start gap-4">
@@ -141,7 +141,7 @@
                                 </div>
                                 <div>
                                     <p class="font-extrabold text-sm text-emerald-900">Request Disetujui</p>
-                                    <p class="text-xs font-medium text-emerald-700 mt-1">Oleh: {{ $datarq->approver->name ?? 'Admin' }} — {{ $datarq->approval_date ? Carbon::parse($datarq->approval_date)->translatedFormat('l, d M Y - H:i') : '' }}</p>
+                                    <p class="text-xs font-medium text-emerald-700 mt-1">Oleh: {{ $datarq->approver->name ?? 'Admin / SPV' }} — {{ $datarq->approval_date ? Carbon::parse($datarq->approval_date)->translatedFormat('l, d M Y - H:i') : '' }}</p>
                                 </div>
                             </div>
                             @elseif ($datarq->approval_status == 'rejected')
@@ -151,13 +151,29 @@
                                 </div>
                                 <div class="flex-1">
                                     <p class="font-extrabold text-sm text-rose-900">Request Ditolak</p>
-                                    <p class="text-xs font-medium text-rose-700 mt-1 mb-3">Oleh: {{ $datarq->approver->name ?? 'Admin' }} — {{ $datarq->approval_date ? Carbon::parse($datarq->approval_date)->translatedFormat('l, d M Y - H:i') : '' }}</p>
+                                    <p class="text-xs font-medium text-rose-700 mt-1 mb-3">Oleh: {{ $datarq->approver->name ?? 'Admin / SPV' }} — {{ $datarq->approval_date ? Carbon::parse($datarq->approval_date)->translatedFormat('l, d M Y - H:i') : '' }}</p>
                                     @if ($datarq->approval_note)
                                     <div class="bg-white/60 border border-rose-100 rounded-xl p-3 text-xs font-medium text-rose-800 shadow-sm">
                                         <span class="font-bold text-rose-900 block mb-1">Alasan Penolakan:</span>
                                         {{ $datarq->approval_note }}
                                     </div>
                                     @endif
+                                </div>
+                            </div>
+                            @elseif ($isPendingApproval)
+                            <div class="bg-amber-50 border border-amber-200 text-amber-800 p-5 rounded-2xl flex items-start gap-4">
+                                <div class="w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center text-amber-600 shrink-0 shadow-sm">
+                                    <i class="fa-solid fa-clock text-xl"></i>
+                                </div>
+                                <div>
+                                    <p class="font-extrabold text-sm text-amber-900">Menunggu Persetujuan (Approval)</p>
+                                    <p class="text-xs font-medium text-amber-700 mt-1">
+                                        @if ($isAdminOrSpv)
+                                            Request ini diajukan oleh {{ $datarq->user->name ?? 'Staf' }} dan memerlukan persetujuan Supervisor / Admin sebelum dapat diproses.
+                                        @else
+                                            Request Anda sedang menunggu peninjauan dan persetujuan dari Supervisor / Admin.
+                                        @endif
+                                    </p>
                                 </div>
                             </div>
                             @endif
@@ -425,7 +441,23 @@
                                     <div class="w-full flex items-center justify-center bg-rose-50 text-rose-700 border border-rose-200 py-3 rounded-xl font-bold text-xs gap-1.5">
                                         <i class="fa-solid fa-ban"></i> Request Telah Ditolak
                                     </div>
+                                @elseif ($isPendingApproval)
+                                    @if ($isAdminOrSpv)
+                                        <!-- SPV / Admin: Menyetujui atau Menolak Request Staf -->
+                                        <button type="button" onclick="approve_modal.showModal()" class="w-full flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white py-3.5 rounded-xl font-bold text-sm shadow-md shadow-blue-500/20 transition-all active:scale-95 gap-2 cursor-pointer">
+                                            <i class="fa-solid fa-check-double text-blue-200"></i> Approve Request
+                                        </button>
+                                        <button type="button" onclick="reject_modal.showModal()" class="w-full flex items-center justify-center bg-rose-50 text-rose-600 hover:bg-rose-500 hover:text-white border border-rose-200 py-2.5 rounded-xl font-bold text-xs shadow-sm transition-all active:scale-95 gap-2 cursor-pointer mt-1">
+                                            <i class="fa-solid fa-ban text-xs"></i> Tolak Request
+                                        </button>
+                                    @else
+                                        <!-- User / Staf: Menunggu Persetujuan SPV/Admin -->
+                                        <button disabled class="w-full flex items-center justify-center bg-amber-50 text-amber-700 border border-amber-200 py-3.5 rounded-xl font-bold text-sm transition-all cursor-not-allowed gap-2">
+                                            <i class="fa-solid fa-clock"></i> Menunggu Approval Admin
+                                        </button>
+                                    @endif
                                 @else
+                                    <!-- Request Sudah Disetujui (Approved) / Dibuat langsung oleh SPV/Admin -->
                                     @if ($canManage)
                                         <a href="/updatestatus/{{ $datarq->id }}/3" class="w-full flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white py-3.5 rounded-xl font-bold text-sm shadow-md shadow-blue-500/20 transition-all active:scale-95 gap-2">
                                             <i class="fa-solid fa-gears text-blue-200"></i> Proses Request
@@ -435,7 +467,7 @@
                                             <i class="fa-solid fa-gears"></i> Proses Request
                                         </button>
                                     @endif
-                                    @if ($ust === 'admin')
+                                    @if ($isAdminOrSpv)
                                         <button type="button" onclick="reject_modal.showModal()" class="w-full flex items-center justify-center bg-rose-50 text-rose-600 hover:bg-rose-500 hover:text-white border border-rose-200 py-2 rounded-xl font-bold text-xs shadow-sm transition-all active:scale-95 gap-2 mt-1 cursor-pointer">
                                             <i class="fa-solid fa-ban text-xs"></i> Tolak Request
                                         </button>
@@ -519,7 +551,7 @@
         </div>
     </div>
 
-    @if (Auth::user()->usertype === 'admin' && in_array($datarq->status_id, [1, 2]))
+    @if ($isAdminOrSpv && in_array($datarq->status_id, [1, 2]))
     <dialog id="approve_modal" class="modal">
         <div class="modal-box rounded-3xl max-w-md bg-white p-8">
             <form method="dialog"><button class="btn btn-sm btn-circle btn-ghost absolute right-4 top-4 text-slate-400">✕</button></form>

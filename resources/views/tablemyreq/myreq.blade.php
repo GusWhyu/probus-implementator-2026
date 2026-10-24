@@ -158,6 +158,11 @@
                                 <i class="fa-solid fa-circle-xmark text-xs"></i>
                                 <span>Rejected by {{ $item->approver->name ?? 'Administrator' }}</span>
                             </div>
+                            @elseif ($item->approval_status == 'pending')
+                            <div class="mt-3 -mx-5 -mb-5 bg-amber-500 text-white px-4 py-1.5 flex items-center gap-1.5 text-[11px] font-bold">
+                                <i class="fa-solid fa-clock text-xs"></i>
+                                <span>Menunggu Approval</span>
+                            </div>
                             @endif
                         </a>
                         @empty
