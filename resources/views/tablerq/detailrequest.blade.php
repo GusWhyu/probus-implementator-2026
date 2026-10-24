@@ -435,6 +435,11 @@
                                         <i class="fa-solid fa-laptop-medical text-sm"></i> Update System
                                     </button>
                                 @endif
+                                @if ($isAdminOrSpv)
+                                    <button type="button" onclick="document.getElementById('convertToTicketModal').showModal()" class="w-full flex items-center justify-center bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 hover:bg-amber-500 hover:text-white dark:hover:bg-amber-600 border border-amber-200 dark:border-amber-800/80 py-2.5 rounded-xl font-bold text-xs shadow-xs transition-all active:scale-95 gap-2 cursor-pointer mt-1">
+                                        <i class="fa-solid fa-ticket text-xs"></i> Alihkan ke Tiket
+                                    </button>
+                                @endif
                             @else
                                 <!-- STATUS OPEN (1 atau 2) -->
                                 @if ($datarq->approval_status === 'rejected')
@@ -447,9 +452,14 @@
                                         <button type="button" onclick="approve_modal.showModal()" class="w-full flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white py-3.5 rounded-xl font-bold text-sm shadow-md shadow-blue-500/20 transition-all active:scale-95 gap-2 cursor-pointer">
                                             <i class="fa-solid fa-check-double text-blue-200"></i> Approve Request
                                         </button>
-                                        <button type="button" onclick="reject_modal.showModal()" class="w-full flex items-center justify-center bg-rose-50 text-rose-600 hover:bg-rose-500 hover:text-white border border-rose-200 py-2.5 rounded-xl font-bold text-xs shadow-sm transition-all active:scale-95 gap-2 cursor-pointer mt-1">
-                                            <i class="fa-solid fa-ban text-xs"></i> Tolak Request
-                                        </button>
+                                        <div class="grid grid-cols-2 gap-2 mt-1">
+                                            <button type="button" onclick="reject_modal.showModal()" class="w-full flex items-center justify-center bg-rose-50 text-rose-600 hover:bg-rose-500 hover:text-white border border-rose-200 py-2.5 rounded-xl font-bold text-xs shadow-sm transition-all active:scale-95 gap-1.5 cursor-pointer">
+                                                <i class="fa-solid fa-ban text-xs"></i> Tolak Request
+                                            </button>
+                                            <button type="button" onclick="document.getElementById('convertToTicketModal').showModal()" class="w-full flex items-center justify-center bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 hover:bg-amber-500 hover:text-white border border-amber-200 dark:border-amber-800/80 py-2.5 rounded-xl font-bold text-xs shadow-sm transition-all active:scale-95 gap-1.5 cursor-pointer">
+                                                <i class="fa-solid fa-ticket text-xs"></i> Alihkan ke Tiket
+                                            </button>
+                                        </div>
                                     @else
                                         <!-- User / Staf: Menunggu Persetujuan SPV/Admin -->
                                         <button disabled class="w-full flex items-center justify-center bg-amber-50 text-amber-700 border border-amber-200 py-3.5 rounded-xl font-bold text-sm transition-all cursor-not-allowed gap-2">
@@ -468,9 +478,14 @@
                                         </button>
                                     @endif
                                     @if ($isAdminOrSpv)
-                                        <button type="button" onclick="reject_modal.showModal()" class="w-full flex items-center justify-center bg-rose-50 text-rose-600 hover:bg-rose-500 hover:text-white border border-rose-200 py-2 rounded-xl font-bold text-xs shadow-sm transition-all active:scale-95 gap-2 mt-1 cursor-pointer">
-                                            <i class="fa-solid fa-ban text-xs"></i> Tolak Request
-                                        </button>
+                                        <div class="grid grid-cols-2 gap-2 mt-1">
+                                            <button type="button" onclick="reject_modal.showModal()" class="w-full flex items-center justify-center bg-rose-50 text-rose-600 hover:bg-rose-500 hover:text-white border border-rose-200 py-2.5 rounded-xl font-bold text-xs shadow-sm transition-all active:scale-95 gap-1.5 cursor-pointer">
+                                                <i class="fa-solid fa-ban text-xs"></i> Tolak Request
+                                            </button>
+                                            <button type="button" onclick="document.getElementById('convertToTicketModal').showModal()" class="w-full flex items-center justify-center bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 hover:bg-amber-500 hover:text-white border border-amber-200 dark:border-amber-800/80 py-2.5 rounded-xl font-bold text-xs shadow-sm transition-all active:scale-95 gap-1.5 cursor-pointer">
+                                                <i class="fa-solid fa-ticket text-xs"></i> Alihkan ke Tiket
+                                            </button>
+                                        </div>
                                     @endif
                                 @endif
                             @endif
@@ -587,6 +602,165 @@
                 <div class="flex gap-4 justify-center">
                     <button type="button" onclick="reject_modal.close()" class="px-6 py-3 w-1/2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-sm transition-colors text-center">Batal</button>
                     <button type="submit" class="px-6 py-3 w-1/2 bg-rose-500 hover:bg-rose-600 text-white font-bold rounded-xl text-sm transition-colors shadow-md shadow-rose-500/20 text-center">Tolak Request</button>
+                </div>
+            </form>
+        </div>
+        <form method="dialog" class="modal-backdrop bg-slate-900/60 backdrop-blur-sm"><button>close</button></form>
+    </dialog>
+    @endif
+
+    @if ($isAdminOrSpv && $stid != 4)
+    <dialog id="convertToTicketModal" class="modal">
+        <div class="modal-box w-11/12 max-w-lg rounded-3xl p-6 md:p-8 bg-white dark:bg-[#1e293b] border border-slate-100 dark:border-slate-700 shadow-2xl relative">
+            <form action="{{ route('request.convert_to_ticket', $datarq->id) }}" method="POST" onsubmit="const btn = this.querySelector('button[type=submit]'); btn.disabled = true; btn.innerHTML = '<i class=\'fa-solid fa-spinner fa-spin mr-1\'></i> Mengalihkan...';">
+                @csrf
+                
+                <!-- Header Modal -->
+                <div class="flex items-start justify-between mb-5">
+                    <div class="flex items-center gap-3">
+                        <div class="w-12 h-12 rounded-2xl bg-amber-50 dark:bg-amber-950/50 text-amber-500 dark:text-amber-400 flex items-center justify-center border border-amber-100 dark:border-amber-800/60 shrink-0 text-xl shadow-xs">
+                            <i class="fa-solid fa-ticket"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-extrabold text-lg text-slate-800 dark:text-slate-100">Alihkan Request Menjadi Tiket</h3>
+                            <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Konfirmasi pengalihan request ke antrean tiket bantuan</p>
+                        </div>
+                    </div>
+                    <button type="button" class="w-8 h-8 rounded-xl bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-slate-400 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-100 dark:border-slate-700 transition-colors cursor-pointer" onclick="document.getElementById('convertToTicketModal').close()">
+                        <i class="fa-solid fa-xmark text-sm"></i>
+                    </button>
+                </div>
+
+                <!-- Disclaimer Card -->
+                <div class="bg-amber-50/80 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-700/60 rounded-2xl p-4 mb-5 flex items-start gap-3">
+                    <i class="fa-solid fa-circle-exclamation text-amber-600 dark:text-amber-400 text-base mt-0.5 shrink-0"></i>
+                    <div class="text-xs text-amber-900 dark:text-amber-200 leading-relaxed font-medium">
+                        <span class="font-black text-amber-700 dark:text-amber-400 uppercase tracking-wide block mb-1">PERHATIAN</span>
+                        Pastikan Anda yakin untuk mengalihkan request ini menjadi tiket. Request ini akan dihapus dari daftar request dan dipindahkan ke antrean tiket bantuan.
+                    </div>
+                </div>
+
+                <!-- Ringkasan Request yang Dialihkan -->
+                <div class="bg-slate-50 dark:bg-slate-900/60 rounded-2xl p-4 border border-slate-200/70 dark:border-slate-700/80 mb-5 space-y-2.5">
+                    <div class="flex items-center justify-between text-xs">
+                        <span class="text-slate-500 dark:text-slate-400 font-medium">ID Request:</span>
+                        <span class="font-bold text-blue-600 dark:text-blue-400 font-mono">RQ-{{ $datarq->id }}</span>
+                    </div>
+                    <div class="flex items-start justify-between text-xs gap-3">
+                        <span class="text-slate-500 dark:text-slate-400 font-medium shrink-0">Judul Request:</span>
+                        <span class="font-bold text-slate-800 dark:text-slate-200 text-right line-clamp-2">{{ $datarq->judul }}</span>
+                    </div>
+                    <div class="flex items-center justify-between text-xs">
+                        <span class="text-slate-500 dark:text-slate-400 font-medium">Client / Outlet:</span>
+                        <span class="font-bold text-slate-800 dark:text-slate-200">{{ $datarq->outlet ? $datarq->outlet->nm_out : '-' }}</span>
+                    </div>
+                    <div class="flex items-center justify-between text-xs">
+                        <span class="text-slate-500 dark:text-slate-400 font-medium">System:</span>
+                        <span class="font-bold text-slate-800 dark:text-slate-200">{{ $datarq->kategori ? $datarq->kategori->name : 'PRESTO' }}</span>
+                    </div>
+                </div>
+
+                <!-- Form Pilihan Pengalihan Tiket -->
+                <div class="space-y-4 mb-6">
+                    <!-- Petugas Penangan Tiket -->
+                    <div>
+                        <label class="flex items-center gap-1.5 text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                            <i class="fa-solid fa-user-gear text-blue-500 dark:text-blue-400 text-xs"></i>
+                            <span>Petugas Penangan Tiket <span class="text-rose-500">*</span></span>
+                        </label>
+                        <div class="relative">
+                            <select name="assigned_user_id" required class="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 p-3 pl-4 pr-10 outline-none font-bold appearance-none shadow-sm cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                                @php
+                                    $userList = isset($assignableUsers) ? $assignableUsers : \App\Models\User::whereIn('usertype', ['admin', 'supervisor', 'user'])->orderBy('name')->get();
+                                @endphp
+                                @foreach($userList as $u)
+                                    <option value="{{ $u->id }}" {{ ($datarq->user_id == $u->id || Auth::id() == $u->id) ? 'selected' : '' }}>
+                                        {{ $u->name }} ({{ ucfirst($u->usertype) }})
+                                    </option>
+                                @endforeach
+                            </select>
+                            <i class="fa-solid fa-chevron-down absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-[10px] pointer-events-none"></i>
+                        </div>
+                        <p class="text-[10px] text-slate-400 dark:text-slate-500 mt-1">Pilih petugas yang akan menangani dan mengerjakan tiket ini.</p>
+                    </div>
+
+                    <!-- Modul Sistem -->
+                    <div>
+                        <label class="flex items-center gap-1.5 text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                            <i class="fa-solid fa-cubes text-blue-500 dark:text-blue-400 text-xs"></i>
+                            <span>Modul Sistem</span>
+                        </label>
+                        <div class="relative">
+                            <select name="module_system_id" class="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 p-3 pl-4 pr-10 outline-none font-bold appearance-none shadow-sm cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                                <option value="">-- Pilih Modul (Opsional) --</option>
+                                @php
+                                    $modList = isset($moduleSystems) ? $moduleSystems : \App\Models\ModuleSystem::orderBy('name')->get();
+                                @endphp
+                                @foreach($modList as $ms)
+                                    <option value="{{ $ms->id }}" {{ (strtolower($datarq->module ?? '') == strtolower($ms->name)) ? 'selected' : '' }}>
+                                        {{ $ms->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            <i class="fa-solid fa-chevron-down absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-[10px] pointer-events-none"></i>
+                        </div>
+                    </div>
+
+                    <!-- Tipe Penanganan & Target Selesai -->
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="flex items-center gap-1.5 text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                                <i class="fa-solid fa-screwdriver-wrench text-blue-500 dark:text-blue-400 text-xs"></i>
+                                <span>Tipe Penanganan <span class="text-rose-500">*</span></span>
+                            </label>
+                            <div class="relative">
+                                <select name="tipe_penanganan" required class="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 p-3 pl-3.5 pr-8 outline-none font-bold appearance-none shadow-sm cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                                    <option value="Office" {{ ($datarq->tipe_penanganan ?? 'Office') == 'Office' ? 'selected' : '' }}>Office</option>
+                                    <option value="On Site" {{ ($datarq->tipe_penanganan ?? '') == 'On Site' ? 'selected' : '' }}>On Site</option>
+                                    <option value="Piket" {{ ($datarq->tipe_penanganan ?? '') == 'Piket' ? 'selected' : '' }}>Piket</option>
+                                </select>
+                                <i class="fa-solid fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-[10px] pointer-events-none"></i>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="flex items-center gap-1.5 text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                                <i class="fa-regular fa-calendar-check text-blue-500 dark:text-blue-400 text-xs"></i>
+                                <span>Due Date <span class="text-rose-500">*</span></span>
+                            </label>
+                            <input type="date" name="due_date" value="{{ $datarq->end_date ? \Carbon\Carbon::parse($datarq->end_date)->format('Y-m-d') : \Carbon\Carbon::now()->addDays(2)->format('Y-m-d') }}" min="{{ date('Y-m-d') }}" required class="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 p-3 outline-none font-semibold shadow-sm cursor-pointer">
+                        </div>
+                    </div>
+
+                    <!-- Advisor (Opsional) -->
+                    <div>
+                        <label class="flex items-center justify-between text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                            <span class="flex items-center gap-1.5">
+                                <i class="fa-solid fa-headset text-blue-500 dark:text-blue-400 text-xs"></i>
+                                <span>Advisor Tiket</span>
+                            </span>
+                            <span class="text-[10px] font-semibold text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-md">Opsional</span>
+                        </label>
+                        <div class="relative">
+                            <select name="advisor_id" class="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 p-3 pl-4 pr-10 outline-none font-bold appearance-none shadow-sm cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                                <option value="">-- Tanpa Advisor (Opsional) --</option>
+                                @foreach($userList as $u)
+                                    <option value="{{ $u->id }}">{{ $u->name }}</option>
+                                @endforeach
+                            </select>
+                            <i class="fa-solid fa-chevron-down absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-[10px] pointer-events-none"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Modal Action Buttons -->
+                <div class="grid grid-cols-2 gap-3">
+                    <button type="button" class="py-3 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold text-xs rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-800 dark:hover:text-slate-100 transition-all shadow-sm cursor-pointer" onclick="document.getElementById('convertToTicketModal').close()">
+                        Batal
+                    </button>
+                    <button type="submit" class="py-3 bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs rounded-xl transition-all shadow-sm shadow-amber-500/30 flex items-center justify-center gap-2 cursor-pointer active:scale-95">
+                        <i class="fa-solid fa-ticket"></i> Ya, Alihkan ke Tiket
+                    </button>
                 </div>
             </form>
         </div>

@@ -12,8 +12,11 @@ use App\Models\DataImage;
 use App\Models\UpdateSystem;
 use App\Models\User;
 use App\Models\ModuleSystem;
+use App\Models\Ticket;
+use App\Models\TicketLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use RealRashid\SweetAlert\Facades\Alert;
 use App\Notifications\RequestStatusChanged;
 
@@ -347,8 +350,10 @@ class RequestController extends Controller
         }
 
         $returnUrl = session('detailrequest_return_url_' . $id, session('detailrequest_return_url', route('myreq')));
+        $moduleSystems = ModuleSystem::orderBy('name')->get();
+        $assignableUsers = User::whereIn('usertype', ['admin', 'supervisor', 'user'])->orderBy('name')->get();
 
-        return view('tablerq.detailrequest', compact('datarq', 'dataimg','komentar','dataus','reqlog', 'closedLog', 'returnUrl'));
+        return view('tablerq.detailrequest', compact('datarq', 'dataimg','komentar','dataus','reqlog', 'closedLog', 'returnUrl', 'moduleSystems', 'assignableUsers'));
     }
 
     public function mrq(){
@@ -789,5 +794,114 @@ class RequestController extends Controller
 
         Alert::success('Request Rejected!');
         return redirect()->back();
+    }
+
+    public function convertToTicket(Request $request, $id) {
+        $user = Auth::user();
+        $isAdminOrSpv = in_array($user->usertype, ['admin', 'supervisor']);
+
+        if (!$isAdminOrSpv) {
+            Alert::error('Akses Ditolak', 'Hanya level Supervisor atau Admin yang berhak mengalihkan request menjadi tiket.');
+            return redirect()->back();
+        }
+
+        $req = \App\Models\Request::findOrFail($id);
+
+        if ($req->status_id == 4) {
+            Alert::error('Gagal', 'Request yang sudah berstatus CLOSED tidak dapat dialihkan menjadi tiket.');
+            return redirect()->back();
+        }
+
+        $request->validate([
+            'assigned_user_id' => 'required|exists:users,id',
+            'tipe_penanganan' => 'required|in:On Site,Office,Piket',
+            'due_date' => 'required|date',
+            'module_system_id' => 'nullable|exists:module_systems,id',
+            'advisor_id' => 'nullable|exists:users,id',
+        ]);
+
+        DB::beginTransaction();
+        try {
+            // 1. Generate nomor tiket baru
+            $latestTicket = Ticket::latest('id')->first();
+            $nextId = $latestTicket ? $latestTicket->id + 1 : 1;
+            $ticketNumber = 'TCK-' . date('Ym') . '-' . str_pad($nextId, 4, '0', STR_PAD_LEFT);
+
+            // 2. Deskripsi dengan catatan pengalihan dari request
+            $descriptionWithNote = '<p><span style="color: #2563eb; font-weight: bold;">[Dialihkan dari Request RQ-' . $req->id . ']</span></p>' . ($req->deskripsi ?? '');
+
+            // 3. Tentukan System / Kategori
+            $systemName = $req->kategori ? $req->kategori->name : 'PRESTO';
+
+            // 4. Tentukan module_system_id
+            $moduleSystemId = $request->module_system_id;
+            if (!$moduleSystemId && !empty($req->module)) {
+                $ms = ModuleSystem::where('name', $req->module)->first();
+                if ($ms) $moduleSystemId = $ms->id;
+            }
+
+            // 5. Buat data Ticket baru
+            $newTicket = Ticket::create([
+                'ticket_number' => $ticketNumber,
+                'title' => $req->judul,
+                'description' => $descriptionWithNote,
+                'system' => $systemName,
+                'module_system_id' => $moduleSystemId,
+                'client_id' => $req->outlet_id,
+                'user_id' => $request->assigned_user_id,
+                'advisor_id' => $request->advisor_id,
+                'tipe_penanganan' => $request->tipe_penanganan,
+                'due_date' => $request->due_date,
+                'status' => 'OPEN',
+                'link_id' => \Illuminate\Support\Str::random(10),
+                'handle_at' => null,
+            ]);
+
+            // 6. Alihkan lampiran gambar ke tiket baru
+            DataImage::where('request_id', $req->id)->update([
+                'ticket_id' => $newTicket->id,
+                'request_id' => null,
+            ]);
+
+            // 7. Alihkan diskusi / komentar ke tiket baru
+            Komentar::where('request_id', $req->id)->update([
+                'ticket_id' => $newTicket->id,
+                'request_id' => null,
+            ]);
+
+            // 8. Catat log pembentukan tiket di TicketLog
+            TicketLog::create([
+                'ticket_id' => $newTicket->id,
+                'user_id' => $user->id,
+                'action' => 'CREATED',
+                'description' => 'Tiket #' . $ticketNumber . ' dibuat dari pengalihan Request RQ-' . $req->id . ' oleh ' . $user->name . ' dengan status OPEN.',
+            ]);
+
+            if ($newTicket->advisor_id) {
+                $advisor = User::find($newTicket->advisor_id);
+                TicketLog::create([
+                    'ticket_id' => $newTicket->id,
+                    'user_id' => $user->id,
+                    'action' => 'ASSIGNED',
+                    'description' => 'Advisor tiket ditugaskan kepada ' . ($advisor ? $advisor->name : '#' . $newTicket->advisor_id) . ' oleh ' . $user->name . '.',
+                ]);
+            }
+
+            // 9. Bersihkan relasi request lama dan hapus data request
+            RequestLog::where('request_id', $req->id)->delete();
+            UpdateSystem::where('request_id', $req->id)->delete();
+            $reqId = $req->id;
+            $req->delete();
+
+            DB::commit();
+
+            Alert::success('Berhasil Dialihkan!', "Request RQ-{$reqId} telah berhasil dialihkan menjadi Tiket #{$ticketNumber}.")->autoClose(3500);
+            return redirect()->route('detailticket', ['id' => $newTicket->id]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Alert::error('Gagal Mengalihkan', 'Terjadi kesalahan saat mengalihkan request: ' . $e->getMessage());
+            return redirect()->back();
+        }
     }
 }

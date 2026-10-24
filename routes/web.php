@@ -71,6 +71,7 @@ Route::delete('/deletekomen/{id}',[RequestController::class, 'deletekomen'])->mi
 Route::delete('/deletereq/{id}',[RequestController::class, 'delete'])->middleware(['auth'])->name('deletereq');
 Route::post('/request/{id}/approve', [RequestController::class, 'approveRequest'])->middleware(['auth'])->name('request.approve');
 Route::post('/request/{id}/reject', [RequestController::class, 'rejectRequest'])->middleware(['auth'])->name('request.reject');
+Route::post('/request/{id}/convert-to-ticket', [RequestController::class, 'convertToTicket'])->middleware(['auth'])->name('request.convert_to_ticket');
 
 // New Ticketing System Routes
 Route::get('/detailticket/{id}',[TicketController::class, 'detailticket'])->middleware(['auth'])->name('detailticket');
