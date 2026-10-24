@@ -467,6 +467,7 @@
                         $isAdminOrSpv = ($ust == 'admin' || $ust == 'supervisor');
                         $canSeeActions = ($isAdminOrSpv || $isOwner) && $datarq->pending_advisor_id == null;
                         $isAdvisorOnly = ($datarq->advisor_id == $aid && $datarq->user_id != $aid && !$isAdminOrSpv);
+                        $canProcessTicket = (!$isAdminOrSpv || $isOwner);
                     @endphp
                     @if($isAdvisorOnly)
                     <div class="bg-blue-50/70 rounded-3xl border border-blue-200/80 p-5 shadow-sm mb-6">
@@ -489,8 +490,8 @@
                         <h3 class="text-[11px] font-extrabold text-slate-800 dark:text-slate-200 uppercase tracking-wider mb-4 text-center">Tindakan Tiket</h3>
                         
                         <div class="grid grid-cols-1 gap-3">
-                            <!-- Button 1 (Blue) - Proses Tiket / Selesaikan (Hanya untuk petugas/pembuat tiket non-admin/spv) -->
-                            @if (!$isAdminOrSpv)
+                            <!-- Button 1 (Blue) - Proses Tiket / Selesaikan (Untuk pemilik tiket atau petugas non-admin/spv) -->
+                            @if ($canProcessTicket)
                                 @if ($stid != 'CLOSED')
                                     @if ($datarq->status == 'OPEN')
                                         <a href="/ticket-updatestatus/{{ $datarq->id }}/PROGRESS" class="w-full flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white py-3.5 rounded-xl font-bold text-sm shadow-md shadow-blue-500/20 transition-all active:scale-95 gap-2">
@@ -518,7 +519,7 @@
                                 </div>
                             @endif
 
-                            <div class="grid grid-cols-2 gap-3 {{ !$isAdminOrSpv ? 'mt-1' : '' }}">
+                            <div class="grid grid-cols-2 gap-3 {{ $canProcessTicket ? 'mt-1' : '' }}">
                                 <!-- Button 2 (Orange) - Alihkan/Ambil Alih -->
                                 @if ($stid != 'CLOSED')
                                     <button type="button" onclick="takeOverModal.showModal()" class="w-full flex flex-col items-center justify-center bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 hover:bg-amber-500 hover:text-white dark:hover:bg-amber-600 dark:hover:text-white border border-amber-200 dark:border-amber-800/80 py-3 rounded-xl font-bold text-xs shadow-sm transition-all active:scale-95 gap-1 text-center cursor-pointer">
