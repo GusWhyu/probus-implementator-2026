@@ -658,10 +658,10 @@
                 <!-- Select Box -->
                 <div class="mb-6" id="select-advisor-container">
                     <p class="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest mb-2.5">Detail Alihkan</p>
-                    <p class="text-[11px] font-bold text-slate-700 mb-2">Pilih User Baru</p>
+                    <p class="text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-2">Pilih User Baru</p>
                     <div class="relative group">
                         <i class="fa-regular fa-user absolute left-4 top-1/2 -translate-y-1/2 text-blue-500 text-sm"></i>
-                        <select id="target_advisor_id" name="target_advisor_id" class="w-full bg-white border border-slate-200 text-slate-800 text-xs rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 p-3.5 pl-10 outline-none font-bold appearance-none shadow-sm cursor-pointer hover:bg-slate-50 transition-colors" required>
+                        <select id="target_advisor_id" name="target_advisor_id" class="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 p-3.5 pl-10 outline-none font-bold appearance-none shadow-sm cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/80 transition-colors" required>
                             <option value="" disabled selected>Pilih user...</option>
                             @php
                                 $currentUser = Auth::user();
@@ -708,10 +708,11 @@
                     @endif
                 </div>
 
-                <!-- Waiting Duration Setting -->
+                @if (!in_array($ust, ['admin', 'supervisor']))
+                <!-- Waiting Duration Setting (Khusus level staff/user) -->
                 <div class="mb-5" id="waiting-duration-container">
                     <div class="flex items-center justify-between mb-2">
-                        <label class="text-[11px] font-bold text-slate-700">Batas Waktu Menunggu</label>
+                        <label class="text-[11px] font-bold text-slate-700 dark:text-slate-300">Batas Waktu Menunggu</label>
                         <span class="text-[10px] font-medium text-slate-400">Hitung mundur otomatis</span>
                     </div>
 
@@ -719,50 +720,61 @@
                     <div class="grid grid-cols-6 gap-2 mb-2">
                         <label class="col-span-2 cursor-pointer">
                             <input type="radio" name="waiting_duration_preset" value="15" class="peer hidden">
-                            <div class="py-2.5 text-center text-xs font-bold rounded-xl border border-slate-200 peer-checked:bg-blue-50 peer-checked:border-blue-500 peer-checked:text-blue-600 transition-all hover:bg-slate-50">
+                            <div class="py-2.5 text-center text-xs font-bold rounded-xl border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 peer-checked:bg-blue-50 dark:peer-checked:bg-blue-950/60 peer-checked:border-blue-500 dark:peer-checked:border-blue-500 peer-checked:text-blue-600 dark:peer-checked:text-blue-400 transition-all hover:bg-slate-50 dark:hover:bg-slate-800">
                                 15 Menit
                             </div>
                         </label>
                         <label class="col-span-2 cursor-pointer">
                             <input type="radio" name="waiting_duration_preset" value="30" class="peer hidden">
-                            <div class="py-2.5 text-center text-xs font-bold rounded-xl border border-slate-200 peer-checked:bg-blue-50 peer-checked:border-blue-500 peer-checked:text-blue-600 transition-all hover:bg-slate-50">
+                            <div class="py-2.5 text-center text-xs font-bold rounded-xl border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 peer-checked:bg-blue-50 dark:peer-checked:bg-blue-950/60 peer-checked:border-blue-500 dark:peer-checked:border-blue-500 peer-checked:text-blue-600 dark:peer-checked:text-blue-400 transition-all hover:bg-slate-50 dark:hover:bg-slate-800">
                                 30 Menit
                             </div>
                         </label>
                         <label class="col-span-2 cursor-pointer">
                             <input type="radio" name="waiting_duration_preset" value="60" class="peer hidden" checked>
-                            <div class="py-2.5 text-center text-xs font-bold rounded-xl border border-slate-200 peer-checked:bg-blue-50 peer-checked:border-blue-500 peer-checked:text-blue-600 transition-all hover:bg-slate-50">
+                            <div class="py-2.5 text-center text-xs font-bold rounded-xl border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 peer-checked:bg-blue-50 dark:peer-checked:bg-blue-950/60 peer-checked:border-blue-500 dark:peer-checked:border-blue-500 peer-checked:text-blue-600 dark:peer-checked:text-blue-400 transition-all hover:bg-slate-50 dark:hover:bg-slate-800">
                                 1 Jam
                             </div>
                         </label>
                         <label class="col-span-3 cursor-pointer">
                             <input type="radio" name="waiting_duration_preset" value="120" class="peer hidden">
-                            <div class="py-2.5 text-center text-xs font-bold rounded-xl border border-slate-200 peer-checked:bg-blue-50 peer-checked:border-blue-500 peer-checked:text-blue-600 transition-all hover:bg-slate-50">
+                            <div class="py-2.5 text-center text-xs font-bold rounded-xl border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 peer-checked:bg-blue-50 dark:peer-checked:bg-blue-950/60 peer-checked:border-blue-500 dark:peer-checked:border-blue-500 peer-checked:text-blue-600 dark:peer-checked:text-blue-400 transition-all hover:bg-slate-50 dark:hover:bg-slate-800">
                                 2 Jam
                             </div>
                         </label>
                         <label class="col-span-3 cursor-pointer">
                             <input type="radio" name="waiting_duration_preset" value="180" class="peer hidden">
-                            <div class="py-2.5 text-center text-xs font-bold rounded-xl border border-slate-200 peer-checked:bg-blue-50 peer-checked:border-blue-500 peer-checked:text-blue-600 transition-all hover:bg-slate-50">
+                            <div class="py-2.5 text-center text-xs font-bold rounded-xl border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 peer-checked:bg-blue-50 dark:peer-checked:bg-blue-950/60 peer-checked:border-blue-500 dark:peer-checked:border-blue-500 peer-checked:text-blue-600 dark:peer-checked:text-blue-400 transition-all hover:bg-slate-50 dark:hover:bg-slate-800">
                                 3 Jam
                             </div>
                         </label>
                     </div>
                 </div>
+                @else
+                <!-- Info untuk Supervisor / Admin: Pengalihan Langsung -->
+                <div class="mb-5 p-3.5 rounded-2xl bg-blue-50/80 dark:bg-blue-950/40 border border-blue-200/80 dark:border-blue-900/60 flex items-start gap-2.5 shadow-xs">
+                    <div class="w-6 h-6 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0 mt-0.5">
+                        <i class="fa-solid fa-bolt text-xs"></i>
+                    </div>
+                    <p class="text-[11px] text-blue-800 dark:text-blue-300 font-medium leading-relaxed">
+                        Pengalihan oleh <strong>{{ ucfirst($ust) }}</strong> langsung masuk ke user tujuan tanpa memerlukan batas waktu persetujuan.
+                    </p>
+                </div>
+                @endif
 
                 <!-- Reason Input (Optional) -->
                 <div class="mb-5">
-                    <label class="text-[11px] font-bold text-slate-700 block mb-2">Alasan Pengalihan (Opsional)</label>
-                    <textarea name="reason" rows="2" placeholder="Tuliskan alasan pengalihan tiket ini jika ada..." class="w-full bg-white border border-slate-200 text-slate-800 text-xs rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 p-3 outline-none font-medium resize-none shadow-sm"></textarea>
+                    <label class="text-[11px] font-bold text-slate-700 dark:text-slate-300 block mb-2">Alasan Pengalihan (Opsional)</label>
+                    <textarea name="reason" rows="2" placeholder="Tuliskan alasan pengalihan tiket ini jika ada..." class="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 p-3 outline-none font-medium resize-none shadow-sm"></textarea>
                 </div>
 
-                <p class="text-[10px] text-slate-500 mb-6 leading-relaxed font-medium">
+                <p class="text-[10px] text-slate-500 dark:text-slate-400 mb-6 leading-relaxed font-medium">
                     Pastikan data sudah benar sebelum melakukan konfirmasi. Tindakan ini akan mengubah kepemilikan/User dari tiket ini dan mencatat riwayat perubahan.
                 </p>
 
                 <div class="grid grid-cols-2 gap-3">
-                    <button type="button" class="py-3 bg-white text-slate-600 font-bold text-xs rounded-xl border border-slate-200 hover:bg-slate-50 hover:text-slate-800 transition-all shadow-sm" onclick="takeOverModal.close()">Batal</button>
-                    <button type="submit" class="py-3 bg-blue-600 text-white font-bold text-xs rounded-xl hover:bg-blue-700 transition-all shadow-sm shadow-blue-500/30">Konfirmasi</button>
+                    <button type="button" class="py-3 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold text-xs rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all shadow-sm cursor-pointer" onclick="takeOverModal.close()">Batal</button>
+                    <button type="submit" class="py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl transition-all shadow-sm shadow-blue-500/30 cursor-pointer">Konfirmasi</button>
                 </div>
             </form>
         </div>
@@ -778,14 +790,14 @@
             const targetSelect = document.getElementById('target_advisor_id');
 
             if (tab === 'alihkan') {
-                if (alihkanBtn) alihkanBtn.className = "flex-1 py-2 text-xs font-bold rounded-lg bg-blue-50 text-blue-600 shadow-sm border border-blue-100 transition-all text-center";
-                if (ambilAlihBtn) ambilAlihBtn.className = "flex-1 py-2 text-xs font-bold rounded-lg text-slate-500 hover:text-slate-700 transition-all text-center";
+                if (alihkanBtn) alihkanBtn.className = "flex-1 py-2 text-xs font-bold rounded-lg bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 shadow-sm border border-blue-100 dark:border-blue-800/80 transition-all text-center";
+                if (ambilAlihBtn) ambilAlihBtn.className = "flex-1 py-2 text-xs font-bold rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-all text-center";
                 if (selectContainer) selectContainer.style.display = "block";
                 if (waitingContainer) waitingContainer.style.display = "block";
                 if (targetSelect) targetSelect.value = "";
             } else {
-                if (ambilAlihBtn) ambilAlihBtn.className = "flex-1 py-2 text-xs font-bold rounded-lg bg-blue-50 text-blue-600 shadow-sm border border-blue-100 transition-all text-center";
-                if (alihkanBtn) alihkanBtn.className = "flex-1 py-2 text-xs font-bold rounded-lg text-slate-500 hover:text-slate-700 transition-all text-center";
+                if (ambilAlihBtn) ambilAlihBtn.className = "flex-1 py-2 text-xs font-bold rounded-lg bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 shadow-sm border border-blue-100 dark:border-blue-800/80 transition-all text-center";
+                if (alihkanBtn) alihkanBtn.className = "flex-1 py-2 text-xs font-bold rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-all text-center";
                 if (selectContainer) selectContainer.style.display = "none";
                 if (waitingContainer) waitingContainer.style.display = "none";
                 
