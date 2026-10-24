@@ -671,13 +671,25 @@
                         <div class="relative">
                             <select name="assigned_user_id" required class="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 p-3 pl-4 pr-10 outline-none font-bold appearance-none shadow-sm cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
                                 @php
-                                    $userList = isset($assignableUsers) ? $assignableUsers : \App\Models\User::whereIn('usertype', ['admin', 'supervisor', 'user'])->orderBy('name')->get();
+                                    $userList = isset($assignableUsers) 
+                                        ? $assignableUsers 
+                                        : \App\Models\User::whereIn('usertype', ['admin', 'supervisor', 'user'])->where('id', '!=', Auth::id())->orderBy('name')->get();
+                                    $defaultAssigneeId = ($datarq->user_id && $datarq->user_id != Auth::id() && $userList->contains('id', $datarq->user_id)) 
+                                        ? $datarq->user_id 
+                                        : null;
                                 @endphp
-                                @foreach($userList as $u)
-                                    <option value="{{ $u->id }}" {{ ($datarq->user_id == $u->id || Auth::id() == $u->id) ? 'selected' : '' }}>
-                                        {{ $u->name }} ({{ ucfirst($u->usertype) }})
-                                    </option>
-                                @endforeach
+                                @if($userList->isEmpty())
+                                    <option value="" disabled selected>Tidak ada petugas lain yang tersedia</option>
+                                @else
+                                    <option value="" disabled {{ is_null($defaultAssigneeId) ? 'selected' : '' }}>-- Pilih Petugas Penangan --</option>
+                                    @foreach($userList as $u)
+                                        @if($u->id != Auth::id())
+                                            <option value="{{ $u->id }}" {{ $defaultAssigneeId == $u->id ? 'selected' : '' }}>
+                                                {{ $u->name }} ({{ ucfirst($u->usertype) }})
+                                            </option>
+                                        @endif
+                                    @endforeach
+                                @endif
                             </select>
                             <i class="fa-solid fa-chevron-down absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-[10px] pointer-events-none"></i>
                         </div>
@@ -745,7 +757,9 @@
                             <select name="advisor_id" class="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 p-3 pl-4 pr-10 outline-none font-bold appearance-none shadow-sm cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
                                 <option value="">-- Tanpa Advisor (Opsional) --</option>
                                 @foreach($userList as $u)
-                                    <option value="{{ $u->id }}">{{ $u->name }}</option>
+                                    @if($u->id != Auth::id())
+                                        <option value="{{ $u->id }}">{{ $u->name }} ({{ ucfirst($u->usertype) }})</option>
+                                    @endif
                                 @endforeach
                             </select>
                             <i class="fa-solid fa-chevron-down absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-[10px] pointer-events-none"></i>
