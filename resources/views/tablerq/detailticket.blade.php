@@ -465,52 +465,47 @@
                     @endif
                     @if($canSeeActions)
                     <!-- Action Buttons -->
-                    <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6">
-                        <h3 class="text-[11px] font-extrabold text-slate-800 uppercase tracking-wider mb-4 text-center">Tindakan Tiket</h3>
+                    <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm p-6">
+                        <h3 class="text-[11px] font-extrabold text-slate-800 dark:text-slate-200 uppercase tracking-wider mb-4 text-center">Tindakan Tiket</h3>
                         
                         <div class="grid grid-cols-1 gap-3">
-                            <!-- Button 1 (Blue) - Proses Tiket / Selesaikan -->
-                            @if ($stid != 'CLOSED')
-                                @if ($datarq->status == 'OPEN')
-                                    <a href="/ticket-updatestatus/{{ $datarq->id }}/PROGRESS" class="w-full flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white py-3.5 rounded-xl font-bold text-sm shadow-md shadow-blue-500/20 transition-all active:scale-95 gap-2">
-                                        <i class="fa-solid fa-gears text-blue-200"></i> Proses Tiket
-                                    </a>
-                                @else
-                                    @if(is_null($datarq->advisor_id))
-                                        <button type="button" onclick="document.getElementById('forceAdvisorModal').showModal()" class="w-full flex items-center justify-center bg-emerald-500 hover:bg-emerald-600 text-white py-3.5 rounded-xl font-bold text-sm shadow-md shadow-emerald-500/20 transition-all active:scale-95 gap-2">
-                                            <i class="fa-solid fa-check text-emerald-100"></i> Selesaikan Tiket
-                                        </button>
-                                    @else
-                                        <button type="button" onclick="document.getElementById('confirmCloseModal').showModal()" class="w-full flex items-center justify-center bg-emerald-500 hover:bg-emerald-600 text-white py-3.5 rounded-xl font-bold text-sm shadow-md shadow-emerald-500/20 transition-all active:scale-95 gap-2">
-                                            <i class="fa-solid fa-check text-emerald-100"></i> Selesaikan Tiket
-                                        </button>
-                                    @endif
-                                @endif
-                            @else
-                                @if ($isAdminOrSpv)
-                                    <div class="flex flex-col gap-2">
-                                        <div class="w-full flex items-center justify-center bg-emerald-50 text-emerald-700 border border-emerald-200 py-3 rounded-xl font-bold text-xs gap-1.5">
-                                            <i class="fa-solid fa-circle-check"></i> Status Tiket: CLOSED
-                                        </div>
-                                        <a href="/ticket-updatestatus/{{ $datarq->id }}/PROGRESS" onclick="return confirm('Apakah Anda yakin ingin membuka kembali tiket ini (Reopen) ke status PROGRESS?')" class="w-full flex items-center justify-center bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 py-2.5 rounded-xl font-bold text-xs transition-all active:scale-95 gap-1.5 shadow-sm">
-                                            <i class="fa-solid fa-rotate-left"></i> Buka Kembali Tiket (Reopen)
+                            <!-- Button 1 (Blue) - Proses Tiket / Selesaikan (Hanya untuk petugas/pembuat tiket non-admin/spv) -->
+                            @if (!$isAdminOrSpv)
+                                @if ($stid != 'CLOSED')
+                                    @if ($datarq->status == 'OPEN')
+                                        <a href="/ticket-updatestatus/{{ $datarq->id }}/PROGRESS" class="w-full flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white py-3.5 rounded-xl font-bold text-sm shadow-md shadow-blue-500/20 transition-all active:scale-95 gap-2">
+                                            <i class="fa-solid fa-gears text-blue-200"></i> Proses Tiket
                                         </a>
-                                    </div>
+                                    @else
+                                        @if(is_null($datarq->advisor_id))
+                                            <button type="button" onclick="document.getElementById('forceAdvisorModal').showModal()" class="w-full flex items-center justify-center bg-emerald-500 hover:bg-emerald-600 text-white py-3.5 rounded-xl font-bold text-sm shadow-md shadow-emerald-500/20 transition-all active:scale-95 gap-2">
+                                                <i class="fa-solid fa-check text-emerald-100"></i> Selesaikan Tiket
+                                            </button>
+                                        @else
+                                            <button type="button" onclick="document.getElementById('confirmCloseModal').showModal()" class="w-full flex items-center justify-center bg-emerald-500 hover:bg-emerald-600 text-white py-3.5 rounded-xl font-bold text-sm shadow-md shadow-emerald-500/20 transition-all active:scale-95 gap-2">
+                                                <i class="fa-solid fa-check text-emerald-100"></i> Selesaikan Tiket
+                                            </button>
+                                        @endif
+                                    @endif
                                 @else
-                                    <button disabled class="w-full flex items-center justify-center bg-slate-100 text-slate-400 py-3.5 rounded-xl font-bold text-sm transition-all cursor-not-allowed gap-2">
+                                    <button disabled class="w-full flex items-center justify-center bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 py-3.5 rounded-xl font-bold text-sm transition-all cursor-not-allowed gap-2">
                                         <i class="fa-solid fa-check-circle"></i> Tiket Selesai
                                     </button>
                                 @endif
+                            @elseif ($stid == 'CLOSED')
+                                <div class="w-full flex items-center justify-center bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/80 py-3 rounded-xl font-bold text-xs gap-1.5">
+                                    <i class="fa-solid fa-circle-check"></i> Status Tiket: CLOSED
+                                </div>
                             @endif
 
-                            <div class="grid grid-cols-2 gap-3 mt-1">
+                            <div class="grid grid-cols-2 gap-3 {{ !$isAdminOrSpv ? 'mt-1' : '' }}">
                                 <!-- Button 2 (Orange) - Alihkan/Ambil Alih -->
                                 @if ($stid != 'CLOSED')
-                                    <button type="button" onclick="takeOverModal.showModal()" class="w-full flex flex-col items-center justify-center bg-amber-50 text-amber-600 hover:bg-amber-500 hover:text-white border border-amber-200 py-3 rounded-xl font-bold text-xs shadow-sm transition-all active:scale-95 gap-1 text-center">
+                                    <button type="button" onclick="takeOverModal.showModal()" class="w-full flex flex-col items-center justify-center bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 hover:bg-amber-500 hover:text-white dark:hover:bg-amber-600 dark:hover:text-white border border-amber-200 dark:border-amber-800/80 py-3 rounded-xl font-bold text-xs shadow-sm transition-all active:scale-95 gap-1 text-center cursor-pointer">
                                         <i class="fa-solid fa-right-left text-sm"></i> {{ ($ust == 'admin' || $ust == 'supervisor') ? 'Alihkan/Ambil' : 'Alihkan' }}
                                     </button>
                                 @else
-                                    <button disabled type="button" class="w-full flex flex-col items-center justify-center bg-slate-50 text-slate-400 border border-slate-200 py-3 rounded-xl font-bold text-xs transition-all cursor-not-allowed gap-1 text-center">
+                                    <button disabled type="button" class="w-full flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-800/60 text-slate-400 dark:text-slate-500 border border-slate-200 dark:border-slate-700 py-3 rounded-xl font-bold text-xs transition-all cursor-not-allowed gap-1 text-center">
                                         <i class="fa-solid fa-right-left text-sm"></i> {{ ($ust == 'admin' || $ust == 'supervisor') ? 'Alihkan/Ambil' : 'Alihkan' }}
                                     </button>
                                 @endif
@@ -520,11 +515,11 @@
                                     $canConvertToRequest = ($stid != 'CLOSED') && ($isOwner || $isAdminOrSpv);
                                 @endphp
                                 @if ($canConvertToRequest)
-                                    <button type="button" onclick="document.getElementById('convertToRequestModal').showModal()" class="w-full flex flex-col items-center justify-center bg-emerald-50 text-emerald-600 hover:bg-emerald-500 hover:text-white border border-emerald-200 py-3 rounded-xl font-bold text-xs shadow-sm transition-all active:scale-95 gap-1 text-center cursor-pointer">
+                                    <button type="button" onclick="document.getElementById('convertToRequestModal').showModal()" class="w-full flex flex-col items-center justify-center bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500 hover:text-white dark:hover:bg-emerald-600 dark:hover:text-white border border-emerald-200 dark:border-emerald-800/80 py-3 rounded-xl font-bold text-xs shadow-sm transition-all active:scale-95 gap-1 text-center cursor-pointer">
                                         <i class="fa-solid fa-laptop-medical text-sm"></i> Buat Request
                                     </button>
                                 @else
-                                    <button disabled type="button" class="w-full flex flex-col items-center justify-center bg-slate-50 text-slate-400 border border-slate-200 py-3 rounded-xl font-bold text-xs transition-all cursor-not-allowed gap-1 text-center" title="{{ $stid == 'CLOSED' ? 'Tiket sudah selesai' : 'Hanya pembuat tiket atau admin/supervisor yang dapat mengalihkan tiket menjadi request' }}">
+                                    <button disabled type="button" class="w-full flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-800/60 text-slate-400 dark:text-slate-500 border border-slate-200 dark:border-slate-700 py-3 rounded-xl font-bold text-xs transition-all cursor-not-allowed gap-1 text-center" title="{{ $stid == 'CLOSED' ? 'Tiket sudah selesai' : 'Hanya pembuat tiket atau admin/supervisor yang dapat mengalihkan tiket menjadi request' }}">
                                         <i class="fa-solid fa-laptop-medical text-sm"></i> Buat Request
                                     </button>
                                 @endif

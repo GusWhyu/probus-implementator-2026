@@ -338,8 +338,20 @@ class TicketController extends Controller
         // Authorization check: Advisor tidak dapat memproses atau mengubah status tiket di-advice
         $user = Auth::user();
         if ($data->user_id != $user->id && !in_array($user->usertype, ['admin', 'supervisor'])) {
-            Alert::error('Akses Ditolak', 'Advisor tidak memiliki wewenang untuk memproses atau mengubah status tiket ini. Hanya pembuat tiket atau supervisor yang berhak.');
+            Alert::error('Akses Ditolak', 'Advisor tidak memiliki wewenang untuk memproses atau mengubah status tiket ini. Hanya pembuat tiket yang berhak.');
             return redirect()->back();
+        }
+
+        // SPV / Admin tidak memproses (OPEN -> PROGRESS) atau menyelesaikan tiket (PROGRESS -> CLOSED) secara langsung
+        if (in_array($user->usertype, ['admin', 'supervisor']) && $data->user_id != $user->id) {
+            if ($data->status == 'OPEN' && $stid == 'PROGRESS') {
+                Alert::error('Akses Ditolak', 'Admin atau Supervisor tidak memproses tiket secara langsung. Silakan alihkan tiket kepada petugas atau arahkan ke request.');
+                return redirect()->back();
+            }
+            if ($stid == 'CLOSED') {
+                Alert::error('Akses Ditolak', 'Penyelesaian tiket hanya dapat dilakukan oleh petugas yang menangani tiket.');
+                return redirect()->back();
+            }
         }
 
         $updateData = ['status' => $stid];
