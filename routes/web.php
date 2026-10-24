@@ -79,7 +79,7 @@ Route::get('/editticket/{id}', [TicketController::class, 'editticket'])->middlew
 Route::post('/createticket',[TicketController::class, 'storeticket'])->middleware(['auth'])->name('storeticket');
 Route::post('/editticket/{id}', [TicketController::class, 'updateticket'])->middleware(['auth'])->name('updateticket');
 Route::get('/ticket-deleteimg/{img}', [TicketController::class, 'deleteimg'])->middleware(['auth'])->name('ticket.deleteimg');
-Route::get('/ticket-updatestatus/{id}/{stid}',[TicketController::class, 'updatestatus'])->middleware(['auth'])->name('ticket.updatestatus');
+Route::match(['get', 'post'], '/ticket-updatestatus/{id}/{stid}',[TicketController::class, 'updatestatus'])->middleware(['auth'])->name('ticket.updatestatus');
 Route::post('/ticket-updatestatus-with-advisor/{id}/{stid}',[TicketController::class, 'updatestatusWithAdvisor'])->middleware(['auth'])->name('ticket.updatestatus.advisor');
 Route::post('/ticket/{id}/diskusi', [TicketController::class, 'storeDiskusi'])->middleware(['auth'])->name('ticket.diskusi.store');
 Route::post('/ticket-komentar/{id}', [TicketController::class, 'komentar'])->middleware(['auth'])->name('ticket.komentar');

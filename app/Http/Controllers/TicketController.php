@@ -250,6 +250,7 @@ class TicketController extends Controller
             'advisor' => 'nullable',
             'due_date' => 'required|date',
             'status' => 'nullable|in:OPEN,PROGRESS,CLOSED',
+            'solusi' => 'nullable|string',
             'images' => 'array|max:6',
             'images.*' => 'image|mimes:jpg,jpeg,png|max:1024'
         ]);
@@ -265,6 +266,10 @@ class TicketController extends Controller
             'due_date' => $request->due_date,
         ];
 
+        if ($request->has('solusi')) {
+            $updateData['solusi'] = $request->solusi;
+        }
+
         // Status update by Supervisor or Admin
         if ($isAdminOrSupervisor && $request->filled('status') && $request->status !== $datarq->status) {
             $newStatus = $request->status;
@@ -274,6 +279,9 @@ class TicketController extends Controller
                 $updateData['closed_at'] = $closedAt;
                 $start = $datarq->handle_at ?: $datarq->created_at;
                 $updateData['duration_minutes'] = $start ? $closedAt->diffInMinutes(\Carbon\Carbon::parse($start)) : 0;
+                if ($request->filled('solusi')) {
+                    $updateData['solusi'] = $request->solusi;
+                }
             } else {
                 $updateData['closed_at'] = null;
                 $updateData['duration_minutes'] = null;
@@ -356,12 +364,15 @@ class TicketController extends Controller
 
         $updateData = ['status' => $stid];
         
-        // Record closed_at and duration_minutes when ticket is closed
+        // Record closed_at, duration_minutes, and solusi when ticket is closed
         if ($stid == 'CLOSED') {
             $closedAt = now();
             $updateData['closed_at'] = $closedAt;
             $start = $data->handle_at ?: $data->created_at;
             $updateData['duration_minutes'] = $start ? $closedAt->diffInMinutes(\Carbon\Carbon::parse($start)) : 0;
+            if (request()->filled('solusi')) {
+                $updateData['solusi'] = request('solusi');
+            }
         } else {
             // If reopened (OPEN/PROGRESS), reset closed_at and duration_minutes
             $updateData['closed_at'] = null;
@@ -377,11 +388,16 @@ class TicketController extends Controller
 
         $data->update($updateData);
 
+        $logDescription = 'Status tiket diubah menjadi ' . $stid . ' oleh ' . Auth::user()->name . '.';
+        if ($stid == 'CLOSED' && !empty($updateData['solusi'])) {
+            $logDescription .= ' Solusi: ' . \Illuminate\Support\Str::limit($updateData['solusi'], 100);
+        }
+
         TicketLog::create([
             'ticket_id' => $data->id,
             'user_id' => Auth::id(),
             'action' => $stid == 'CLOSED' ? 'CLOSED' : 'STATUS_CHANGED',
-            'description' => 'Status tiket diubah menjadi ' . $stid . ' oleh ' . Auth::user()->name . '.',
+            'description' => $logDescription,
         ]);
         
         // Map string status to old status_id for backward compatibility in RequestLog
@@ -408,7 +424,8 @@ class TicketController extends Controller
 
     public function updatestatusWithAdvisor(Request $request, $id, $stid){
         $request->validate([
-            'advisor_id' => 'nullable|exists:users,id'
+            'advisor_id' => 'nullable|exists:users,id',
+            'solusi' => 'nullable|string'
         ]);
 
         $data = Ticket::findOrFail($id);

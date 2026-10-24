@@ -119,6 +119,12 @@
                                     </select>
                                 </div>
                                 @endif
+
+                                <div class="md:col-span-2">
+                                    <label class="block text-[11px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Keterangan Solusi Kendala</label>
+                                    <textarea name="solusi" rows="3" class="w-full bg-slate-50/50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-sm font-semibold rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 block p-3.5 transition-all outline-none" placeholder="Tuliskan keterangan tindakan atau solusi yang dilakukan untuk mengatasi kendala ini...">{{ old('solusi', $datarq->solusi) }}</textarea>
+                                    <p class="text-[10px] text-slate-400 dark:text-slate-500 mt-1.5">Isi keterangan solusi atau tindakan yang telah dilakukan untuk menyelesaikan kendala tiket.</p>
+                                </div>
                             </div>
                         </div>
                     </div>

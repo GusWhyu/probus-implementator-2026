@@ -202,6 +202,26 @@
                         </div>
                         @endif
                         
+                        <!-- Keterangan Solusi Kendala (Jika CLOSED atau sudah ada solusi) -->
+                        @if ($datarq->status == 'CLOSED' || !empty($datarq->solusi))
+                        <div class="mt-8 border-t border-slate-100 dark:border-slate-800/80 pt-6">
+                            <div class="bg-emerald-50/70 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/60 rounded-2xl p-5 shadow-xs">
+                                <div class="flex items-center gap-2.5 mb-2.5">
+                                    <div class="w-8 h-8 rounded-xl bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+                                        <i class="fa-solid fa-lightbulb text-sm"></i>
+                                    </div>
+                                    <div>
+                                        <h3 class="text-xs font-extrabold text-emerald-950 dark:text-emerald-200 uppercase tracking-wider">Keterangan Solusi Kendala</h3>
+                                        <p class="text-[10px] text-emerald-700 dark:text-emerald-400 font-medium">Tindakan atau solusi yang dilakukan untuk menyelesaikan kendala</p>
+                                    </div>
+                                </div>
+                                <div class="text-slate-700 dark:text-slate-300 text-xs sm:text-sm font-medium leading-relaxed bg-white/80 dark:bg-slate-900/80 border border-emerald-100 dark:border-emerald-900/50 rounded-xl p-4 whitespace-pre-line">
+                                    {{ $datarq->solusi ?: 'Tidak ada keterangan solusi tertulis.' }}
+                                </div>
+                            </div>
+                        </div>
+                        @endif
+
                         <!-- Review Pelanggan -->
                         @if ($datarq->status == 'CLOSED')
                         <div class="bg-blue-50/50 dark:bg-slate-900/60 rounded-3xl border border-blue-100 dark:border-slate-800 shadow-sm p-6 md:p-8 mt-6">
@@ -842,6 +862,13 @@
                     </p>
                 </div>
 
+                <div class="mb-5">
+                    <label class="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-2">
+                        Keterangan Solusi Kendala <span class="text-rose-500">*</span>
+                    </label>
+                    <textarea name="solusi" rows="3" required class="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 p-3.5 outline-none font-medium shadow-xs transition-colors" placeholder="Tuliskan keterangan tindakan atau solusi yang dilakukan untuk mengatasi kendala ini...">{{ old('solusi', $datarq->solusi) }}</textarea>
+                </div>
+
                 <div class="grid grid-cols-2 gap-3">
                     <button type="button" class="py-3 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold text-xs rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-800 dark:hover:text-slate-100 transition-all shadow-sm" onclick="document.getElementById('forceAdvisorModal').close()">Batal</button>
                     <button type="submit" class="py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs rounded-xl transition-all shadow-sm shadow-emerald-500/30">Lanjutkan & Selesai</button>
@@ -852,22 +879,37 @@
     </dialog>
 
     <dialog id="confirmCloseModal" class="modal">
-        <div class="modal-box w-11/12 max-w-sm rounded-3xl p-6 md:p-8 bg-white dark:bg-[#1e293b] text-center border border-slate-100 dark:border-slate-700 shadow-2xl">
-            <div class="w-20 h-20 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-500 dark:text-emerald-400 rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm border-4 border-emerald-100/50 dark:border-emerald-800/50">
-                <i class="fa-solid fa-circle-check text-4xl"></i>
-            </div>
-            
-            <h3 class="font-extrabold text-xl text-slate-800 dark:text-slate-100 mb-2">Selesaikan Tiket?</h3>
-            <p class="text-[13px] text-slate-500 dark:text-slate-400 font-medium mb-8 leading-relaxed px-2">
-                Apakah Anda yakin ingin menyelesaikan tiket ini? Status tiket akan berubah menjadi Selesai.
-            </p>
-            
-            <div class="flex gap-3">
-                <button type="button" class="flex-1 py-3 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold text-sm rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-800 dark:hover:text-slate-100 transition-all shadow-sm" onclick="document.getElementById('confirmCloseModal').close()">Batal</button>
-                <a href="/ticket-updatestatus/{{ $datarq->id }}/CLOSED" class="flex-1 py-3 bg-emerald-500 text-white font-bold text-sm rounded-xl hover:bg-emerald-600 transition-all shadow-sm shadow-emerald-500/30 flex items-center justify-center">
-                    Ya, Selesaikan
-                </a>
-            </div>
+        <div class="modal-box w-11/12 max-w-md rounded-3xl p-6 md:p-8 bg-white dark:bg-[#1e293b] border border-slate-100 dark:border-slate-700 shadow-2xl">
+            <form action="{{ url('/ticket-updatestatus/'.$datarq->id.'/CLOSED') }}" method="POST">
+                @csrf
+                <!-- Header -->
+                <div class="flex justify-between items-start mb-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-500 dark:text-emerald-400 flex items-center justify-center shrink-0">
+                            <i class="fa-solid fa-circle-check text-xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-extrabold text-[17px] text-slate-800 dark:text-slate-100 mb-0.5">Selesaikan Tiket</h3>
+                            <p class="text-[11px] text-slate-500 dark:text-slate-400 font-medium">Ubah status tiket menjadi Selesai (CLOSED)</p>
+                        </div>
+                    </div>
+                    <button type="button" class="w-8 h-8 rounded-xl bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-100 dark:border-slate-700 transition-colors cursor-pointer" onclick="document.getElementById('confirmCloseModal').close()">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+
+                <div class="mb-5">
+                    <label class="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-2">
+                        Keterangan Solusi Kendala <span class="text-rose-500">*</span>
+                    </label>
+                    <textarea name="solusi" rows="3" required class="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 p-3.5 outline-none font-medium shadow-xs transition-colors" placeholder="Tuliskan keterangan tindakan atau solusi yang dilakukan untuk mengatasi kendala ini...">{{ old('solusi', $datarq->solusi) }}</textarea>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <button type="button" class="py-3 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold text-xs rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-800 dark:hover:text-slate-100 transition-all shadow-sm" onclick="document.getElementById('confirmCloseModal').close()">Batal</button>
+                    <button type="submit" class="py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs rounded-xl transition-all shadow-sm shadow-emerald-500/30">Ya, Selesaikan Tiket</button>
+                </div>
+            </form>
         </div>
         <form method="dialog" class="modal-backdrop bg-slate-900/60 backdrop-blur-sm"><button>close</button></form>
     </dialog>
