@@ -339,16 +339,31 @@
                                         $hasTickets = ($md['total_ticket'] > 0);
                                     @endphp
                                     <tr x-show="!onlyHandled || {{ $hasTickets ? 'true' : 'false' }}"
-                                        class="transition-colors {{ $hasTickets ? 'bg-blue-50/20 dark:bg-blue-950/15 hover:bg-blue-50/40 dark:hover:bg-blue-950/30' : 'opacity-40 hover:opacity-100 hover:bg-slate-50/50 dark:hover:bg-slate-800/40' }}">
+                                        @if($hasTickets)
+                                        @click="$dispatch('open-module-modal', { id: {{ $md['id'] }}, name: '{{ addslashes($md['name']) }}', total: {{ (int)$md['total_ticket'] }} })"
+                                        class="transition-all cursor-pointer group bg-blue-50/20 dark:bg-blue-950/20 hover:bg-blue-100/60 dark:hover:bg-blue-900/40"
+                                        title="Klik modul untuk melihat riwayat {{ $md['total_ticket'] }} tiket & download format Excel/PDF"
+                                        @else
+                                        class="transition-colors opacity-40 hover:opacity-100 hover:bg-slate-50/50 dark:hover:bg-slate-700/40"
+                                        @endif>
                                         
                                         <td class="py-3 px-3.5 font-bold {{ $hasTickets ? 'text-slate-800 dark:text-slate-100' : 'text-slate-500 dark:text-slate-400' }}">
-                                            <div class="flex items-center gap-2">
+                                            <div class="flex items-center gap-2.5">
                                                 @if($hasTickets)
-                                                <span class="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0"></span>
+                                                <span class="w-2 h-2 rounded-full bg-blue-500 shrink-0 group-hover:scale-125 transition-transform animate-pulse"></span>
+                                                <div class="flex flex-col">
+                                                    <button type="button" class="text-left font-black text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 flex items-center gap-1.5 group-hover:underline cursor-pointer">
+                                                        <span class="text-sm font-extrabold">{{ $md['name'] }}</span>
+                                                        <i class="fa-solid fa-arrow-up-right-from-square text-[10px] text-blue-500"></i>
+                                                    </button>
+                                                    <span class="text-[10px] font-semibold text-slate-400 dark:text-slate-500 group-hover:text-blue-500 flex items-center gap-1 mt-0.5">
+                                                        <i class="fa-solid fa-file-arrow-down text-[9px]"></i> Klik untuk riwayat & unduh
+                                                    </span>
+                                                </div>
                                                 @else
                                                 <span class="w-1.5 h-1.5 rounded-full bg-slate-300 dark:bg-slate-600 shrink-0"></span>
-                                                @endif
                                                 <span>{{ $md['name'] }}</span>
+                                                @endif
                                             </div>
                                         </td>
                                         
@@ -358,9 +373,14 @@
                                         
                                         <td class="py-3 px-3 text-center">
                                             @if($hasTickets)
-                                            <span class="inline-flex items-center justify-center px-2.5 py-1 rounded-lg text-xs font-black bg-blue-100 dark:bg-blue-900/60 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800/60 shadow-2xs">
-                                                {{ $md['total_ticket'] }} Tiket
-                                            </span>
+                                            <button type="button" 
+                                                @click.stop="$dispatch('open-module-modal', { id: {{ $md['id'] }}, name: '{{ addslashes($md['name']) }}', total: {{ (int)$md['total_ticket'] }} })"
+                                                class="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black bg-blue-600 hover:bg-blue-700 text-white shadow-xs hover:shadow-md transition-all hover:scale-105 cursor-pointer"
+                                                title="Klik untuk membuka popup riwayat tiket & download Excel/PDF">
+                                                <i class="fa-solid fa-list-check text-[10px]"></i>
+                                                <span>{{ $md['total_ticket'] }} Tiket</span>
+                                                <i class="fa-solid fa-chevron-right text-[9px] opacity-75"></i>
+                                            </button>
                                             @else
                                             <span class="text-xs text-slate-400 dark:text-slate-500 font-medium">0</span>
                                             @endif
