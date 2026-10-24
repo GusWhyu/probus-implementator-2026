@@ -111,6 +111,22 @@
             <!-- Form Penilaian -->
             <form action="{{ route('review.store', $ticket->ticket_number) }}" method="POST" id="reviewForm" onsubmit="return validateRating(event)">
                 @csrf
+
+                @if(config('app.env') === 'local' && request()->boolean('test_as_client'))
+                <input type="hidden" name="test_as_client" value="1">
+                <div class="mb-5 bg-amber-50 border border-amber-200/80 rounded-2xl p-3 flex items-center justify-between text-amber-900 shadow-sm">
+                    <div class="flex items-center gap-2">
+                        <span class="w-7 h-7 rounded-lg bg-amber-200/70 flex items-center justify-center text-amber-700 text-xs">
+                            <i class="fa-solid fa-flask"></i>
+                        </span>
+                        <div>
+                            <p class="text-xs font-bold leading-tight">Simulasi Mode Klien (Dev Testing)</p>
+                            <p class="text-[11px] text-amber-700 font-medium">Bypass proteksi staf aktif untuk keperluan testing lokal.</p>
+                        </div>
+                    </div>
+                    <span class="text-[10px] font-mono font-bold bg-amber-200/80 text-amber-800 px-2 py-0.5 rounded-md">LOCAL</span>
+                </div>
+                @endif
                 
                 <!-- Rating Title Banner -->
                 <div class="text-center mb-6">
