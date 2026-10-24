@@ -70,6 +70,9 @@
                         $fromTicketNumber = $matches[1];
                     }
                 }
+
+                $cleanDeskripsi = preg_replace('/<p[^>]*>\s*(?:<span[^>]*>)?\s*\[Dialihkan dari (?:Request|Tiket)[^\]]*\]\s*(?:<\/span>)?\s*<\/p>\s*/iu', '', $datarq->deskripsi ?? '');
+                $cleanDeskripsi = preg_replace('/\[Dialihkan dari (?:Request|Tiket)[^\]]*\]\s*/iu', '', $cleanDeskripsi);
             @endphp
 
             <!-- Alert Banner: Khusus ditampilkan untuk Request hasil pengalihan dari Tiket -->
@@ -106,7 +109,7 @@
                         <div>
                             <h3 class="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider mb-3">Deskripsi Masalah</h3>
                             <div class="text-slate-700 text-sm font-medium leading-relaxed prose max-w-none prose-p:my-2 prose-headings:text-slate-800">
-                                {!! $datarq->deskripsi !!}
+                                {!! $cleanDeskripsi !!}
                             </div>
                         </div>
                         

@@ -165,6 +165,44 @@
             </div>
             @endif
 
+            @php
+                $fromRequestNumber = $datarq->origin_request_number ?? null;
+                if (!$fromRequestNumber && !empty($datarq->description) && preg_match('/\[Dialihkan dari Request\s*#?([A-Za-z0-9\-]+)\]/i', $datarq->description, $matches)) {
+                    $fromRequestNumber = $matches[1];
+                }
+                if (!$fromRequestNumber) {
+                    $transferLog = \App\Models\TicketLog::where('ticket_id', $datarq->id)
+                        ->where('description', 'like', '%Dialihkan dari Request%')
+                        ->first();
+                    if ($transferLog && preg_match('/RQ-\d+/i', $transferLog->description, $matches)) {
+                        $fromRequestNumber = $matches[0];
+                    }
+                }
+
+                $cleanDescription = preg_replace('/<p[^>]*>\s*(?:<span[^>]*>)?\s*\[Dialihkan dari (?:Request|Tiket)[^\]]*\]\s*(?:<\/span>)?\s*<\/p>\s*/iu', '', $datarq->description ?? '');
+                $cleanDescription = preg_replace('/\[Dialihkan dari (?:Request|Tiket)[^\]]*\]\s*/iu', '', $cleanDescription);
+            @endphp
+
+            <!-- Alert Banner: Khusus ditampilkan untuk Tiket hasil pengalihan dari Request -->
+            @if($fromRequestNumber)
+            <div class="bg-blue-50/90 dark:bg-blue-950/40 border border-blue-200/80 dark:border-blue-800/60 rounded-2xl p-4 mb-6 flex items-start sm:items-center gap-4 shadow-xs">
+                <div class="w-10 h-10 bg-blue-100 dark:bg-blue-900/60 rounded-2xl flex items-center justify-center text-blue-600 dark:text-blue-400 shrink-0 mt-0.5 sm:mt-0 shadow-xs">
+                    <i class="fa-solid fa-arrows-rotate text-lg"></i>
+                </div>
+                <div class="flex-1">
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <p class="font-extrabold text-blue-950 dark:text-blue-100 text-sm">Informasi Pengalihan</p>
+                        <span class="text-[10px] font-bold font-mono bg-blue-200/80 dark:bg-blue-900/80 text-blue-900 dark:text-blue-200 px-2 py-0.5 rounded-lg border border-blue-300 dark:border-blue-700">
+                            #{{ $fromRequestNumber }}
+                        </span>
+                    </div>
+                    <p class="text-[13px] font-medium text-blue-800/90 dark:text-blue-200/90 mt-0.5 leading-relaxed">
+                        Tiket ini merupakan <strong>request yang dialihkan menjadi tiket bantuan</strong>@if($fromRequestNumber) (Request Asal: <strong>#{{ $fromRequestNumber }}</strong>)@endif.
+                    </p>
+                </div>
+            </div>
+            @endif
+
             <div class="flex flex-col lg:flex-row gap-6 items-start">
                 
                 <!-- Left Content -->
@@ -177,7 +215,7 @@
                         <div>
                             <h3 class="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider mb-3">Deskripsi Masalah</h3>
                             <div class="text-slate-700 text-sm font-medium leading-relaxed prose max-w-none prose-p:my-2 prose-headings:text-slate-800">
-                                {!! $datarq->description !!}
+                                {!! $cleanDescription !!}
                             </div>
                         </div>
                         

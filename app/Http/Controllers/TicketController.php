@@ -922,13 +922,14 @@ class TicketController extends Controller
             $startDate = now()->toDateString();
             $endDate = $request->end_date ?: ($ticket->due_date ? \Carbon\Carbon::parse($ticket->due_date)->toDateString() : now()->addDays(7)->toDateString());
 
-            // Deskripsi dengan catatan tiket asal
-            $descriptionWithNote = '<p><span style="color: #2563eb; font-weight: bold;">[Dialihkan dari Tiket #' . $ticket->ticket_number . ']</span></p>' . ($ticket->description ?? '');
+            // Deskripsi tetap bersih tanpa disisipi teks pengalihan (catatan pengalihan disimpan di approval_note)
+            $cleanDeskripsi = preg_replace('/<p[^>]*>\s*(?:<span[^>]*>)?\s*\[Dialihkan dari (?:Request|Tiket)[^\]]*\]\s*(?:<\/span>)?\s*<\/p>\s*/iu', '', $ticket->description ?? '');
+            $cleanDeskripsi = preg_replace('/\[Dialihkan dari (?:Request|Tiket)[^\]]*\]\s*/iu', '', $cleanDeskripsi);
 
             // Buat data Request baru
             $newRequest = \App\Models\Request::create([
                 'judul' => $ticket->title,
-                'deskripsi' => $descriptionWithNote,
+                'deskripsi' => $cleanDeskripsi,
                 'start_date' => $startDate,
                 'end_date' => $endDate,
                 'kategori_id' => $kategoriId,

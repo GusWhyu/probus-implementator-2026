@@ -841,8 +841,9 @@ class RequestController extends Controller
             $nextId = $latestTicket ? $latestTicket->id + 1 : 1;
             $ticketNumber = 'TCK-' . date('Ym') . '-' . str_pad($nextId, 4, '0', STR_PAD_LEFT);
 
-            // 2. Deskripsi dengan catatan pengalihan dari request
-            $descriptionWithNote = '<p><span style="color: #2563eb; font-weight: bold;">[Dialihkan dari Request RQ-' . $req->id . ']</span></p>' . ($req->deskripsi ?? '');
+            // 2. Deskripsi tetap bersih tanpa disisipi teks pengalihan
+            $cleanDescription = preg_replace('/<p[^>]*>\s*(?:<span[^>]*>)?\s*\[Dialihkan dari (?:Request|Tiket)[^\]]*\]\s*(?:<\/span>)?\s*<\/p>\s*/iu', '', $req->deskripsi ?? '');
+            $cleanDescription = preg_replace('/\[Dialihkan dari (?:Request|Tiket)[^\]]*\]\s*/iu', '', $cleanDescription);
 
             // 3. Tentukan System / Kategori ID (kolom 'system' pada tickets bertipe bigint merujuk ke id tabel kategori)
             $systemId = $req->kategori_id;
@@ -864,8 +865,9 @@ class RequestController extends Controller
             // 5. Buat data Ticket baru
             $newTicket = Ticket::create([
                 'ticket_number' => $ticketNumber,
+                'origin_request_number' => 'RQ-' . $req->id,
                 'title' => $req->judul,
-                'description' => $descriptionWithNote,
+                'description' => $cleanDescription,
                 'system' => $systemId,
                 'module_system_id' => $moduleSystemId,
                 'client_id' => $req->outlet_id,
