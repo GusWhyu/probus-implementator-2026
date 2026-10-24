@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Ticket;
 use App\Models\TicketSurvey;
+use Illuminate\Support\Facades\Auth;
 
 class ReviewController extends Controller
 {
@@ -15,6 +16,14 @@ class ReviewController extends Controller
         // Cek apakah tiket sudah ditutup
         if ($ticket->status != 'CLOSED') {
             abort(404, 'Review tidak ditemukan atau tiket belum selesai.');
+        }
+
+        // Cek apakah user yang sedang login adalah pembuat tiket atau advisor yang menangani
+        if (Auth::check()) {
+            $currentUserId = Auth::id();
+            if ($currentUserId == $ticket->user_id || ($ticket->advisor_id && $currentUserId == $ticket->advisor_id)) {
+                return view('review.forbidden', compact('ticket'));
+            }
         }
 
         // Cek apakah sudah pernah direview
@@ -32,6 +41,14 @@ class ReviewController extends Controller
 
         if ($ticket->status != 'CLOSED') {
             abort(404);
+        }
+
+        // Cek apakah user yang sedang login adalah pembuat tiket atau advisor yang menangani
+        if (Auth::check()) {
+            $currentUserId = Auth::id();
+            if ($currentUserId == $ticket->user_id || ($ticket->advisor_id && $currentUserId == $ticket->advisor_id)) {
+                return view('review.forbidden', compact('ticket'));
+            }
         }
 
         $request->validate([

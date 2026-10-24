@@ -205,6 +205,57 @@
                         <!-- Review Pelanggan -->
                         @if ($datarq->status == 'CLOSED')
                         <div class="bg-blue-50/50 dark:bg-slate-900/60 rounded-3xl border border-blue-100 dark:border-slate-800 shadow-sm p-6 md:p-8 mt-6">
+                            @if ($datarq->survey)
+                            <div class="flex items-center justify-between flex-wrap gap-2 mb-4">
+                                <div class="flex items-center gap-2.5">
+                                    <div class="w-8 h-8 rounded-xl bg-amber-500/10 dark:bg-amber-500/20 text-amber-500 flex items-center justify-center">
+                                        <i class="fa-solid fa-star text-sm"></i>
+                                    </div>
+                                    <h3 class="text-base font-extrabold text-slate-800 dark:text-slate-100">Hasil Review Pelanggan</h3>
+                                </div>
+                                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 text-xs font-extrabold">
+                                    <i class="fa-solid fa-circle-check text-[10px]"></i> Sudah Dinilai Klien
+                                </span>
+                            </div>
+
+                            <div class="bg-white dark:bg-slate-950/70 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm space-y-3">
+                                <div class="flex items-center gap-2">
+                                    <div class="flex text-amber-400 text-base">
+                                        @for ($i = 1; $i <= 5; $i++)
+                                            @if ($i <= $datarq->survey->rating)
+                                                <i class="fa-solid fa-star"></i>
+                                            @else
+                                                <i class="fa-regular fa-star text-slate-300 dark:text-slate-600"></i>
+                                            @endif
+                                        @endfor
+                                    </div>
+                                    <span class="font-extrabold text-slate-800 dark:text-slate-200 text-sm">
+                                        {{ $datarq->survey->rating }}.0 / 5.0
+                                    </span>
+                                </div>
+                                @if ($datarq->survey->feedback)
+                                <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-900/60 p-3.5 rounded-xl border border-slate-100 dark:border-slate-800 italic">
+                                    "{{ $datarq->survey->feedback }}"
+                                </p>
+                                @endif
+                                <p class="text-[11px] text-slate-400 font-medium">
+                                    Diterima pada {{ \Carbon\Carbon::parse($datarq->survey->created_at)->translatedFormat('d F Y, H:i') }}
+                                </p>
+                            </div>
+                            @else
+                            @php
+                                $clientName = $datarq->client ? $datarq->client->nm_out : 'Bapak/Ibu';
+                                $reviewUrl = url('/review/' . $datarq->ticket_number);
+                                $waMessage = "Halo Tim *{$clientName}*,\n\n"
+                                           . "Pemberitahuan penyelesaian tiket dari *Tim Support Probus System*:\n\n"
+                                           . "📋 *No. Tiket:* #{$datarq->ticket_number}\n"
+                                           . "📌 *Perihal:* {$datarq->title}\n"
+                                           . "✅ *Status:* Selesai (CLOSED)\n\n"
+                                           . "Untuk membantu kami terus meningkatkan kualitas pelayanan, mohon kesediaan Bapak/Ibu meluangkan waktu sejenak (1 menit) untuk memberikan ulasan & rating pelayanan kami melalui tautan berikut:\n"
+                                           . "👉 {$reviewUrl}\n\n"
+                                           . "Terima kasih atas kerja sama dan kepercayaannya kepada Probus System. 🙏";
+                                $waShareUrl = 'https://api.whatsapp.com/send?text=' . rawurlencode($waMessage);
+                            @endphp
                             <div class="flex items-center gap-2.5 mb-3">
                                 <div class="w-8 h-8 rounded-xl bg-amber-500/10 dark:bg-amber-500/20 text-amber-500 flex items-center justify-center">
                                     <i class="fa-solid fa-star text-sm"></i>
@@ -212,26 +263,27 @@
                                 <h3 class="text-base font-extrabold text-slate-800 dark:text-slate-100">Review Pelanggan</h3>
                             </div>
                             <p class="text-[13px] font-medium text-slate-500 dark:text-slate-400 mb-6 leading-relaxed">
-                                Tiket telah selesai. Bagikan link berikut kepada client untuk memberikan penilaian terhadap pelayanan CS.
+                                Tiket telah selesai. Bagikan link berikut kepada client agar mereka dapat memberikan ulasan dan penilaian terhadap kualitas penanganan tiket ini.
                             </p>
                             
-                            <div class="bg-white dark:bg-slate-950/70 rounded-2xl border border-slate-200 dark:border-slate-800 p-2 flex flex-col sm:flex-row items-center gap-3 shadow-sm">
+                            <div class="bg-white dark:bg-slate-950/70 rounded-2xl border border-slate-200 dark:border-slate-800 p-2.5 flex flex-col sm:flex-row items-center gap-3 shadow-sm">
                                 <div class="flex items-center gap-3 px-3 w-full sm:w-auto flex-1 overflow-hidden">
                                     <i class="fa-solid fa-link text-blue-500 dark:text-blue-400"></i>
-                                    <span class="text-[13px] font-medium text-blue-600 dark:text-blue-400 truncate font-mono" id="review-link">{{ url('/review/' . $datarq->ticket_number) }}</span>
+                                    <span class="text-[13px] font-medium text-blue-600 dark:text-blue-400 truncate font-mono" id="review-link">{{ $reviewUrl }}</span>
                                 </div>
                                 <div class="flex gap-2 w-full sm:w-auto shrink-0 mt-2 sm:mt-0">
-                                    <button type="button" onclick="navigator.clipboard.writeText('{{ url('/review/' . $datarq->ticket_number) }}'); alert('Link berhasil disalin!')" class="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 text-white font-bold text-xs rounded-xl hover:bg-blue-700 transition-all shadow-sm shadow-blue-500/20 active:scale-95 cursor-pointer">
+                                    <button type="button" onclick="navigator.clipboard.writeText('{{ $reviewUrl }}'); const btn = this; const orig = btn.innerHTML; btn.innerHTML = '<i class=\'fa-solid fa-check text-emerald-400\'></i> Disalin!'; setTimeout(() => btn.innerHTML = orig, 2000);" class="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 text-white font-bold text-xs rounded-xl hover:bg-blue-700 transition-all shadow-sm shadow-blue-500/20 active:scale-95 cursor-pointer">
                                         <i class="fa-regular fa-copy"></i> Salin Link
                                     </button>
-                                    <a href="{{ url('/review/' . $datarq->ticket_number) }}" target="_blank" class="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 font-bold text-xs rounded-xl hover:bg-blue-50 dark:hover:bg-slate-700 border border-blue-200 dark:border-slate-700 transition-all active:scale-95">
-                                        Buka Review
+                                    <a href="{{ $waShareUrl }}" target="_blank" class="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl transition-all shadow-sm shadow-emerald-600/20 active:scale-95 cursor-pointer">
+                                        <i class="fa-brands fa-whatsapp text-sm"></i> Kirim WhatsApp
                                     </a>
                                 </div>
                             </div>
                             <p class="text-[10px] font-bold text-blue-500 dark:text-blue-400 flex items-center gap-1.5 mt-4">
-                                <i class="fa-solid fa-circle-info"></i> Link ini akan kedaluwarsa dalam 1 hari. Review hanya bisa dilakukan 1 kali.
+                                <i class="fa-solid fa-circle-info"></i> Tautan ini khusus untuk klien. Review hanya bisa dilakukan 1 kali.
                             </p>
+                            @endif
                         </div>
                         @endif
 
