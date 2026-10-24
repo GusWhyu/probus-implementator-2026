@@ -919,9 +919,9 @@ class TicketController extends Controller
                 'user_id' => $ticket->user_id, // Tetap pembuat tiket agar muncul di history pengajuannya
                 'status_id' => 2, // 2 = Open
                 'outlet_id' => $ticket->client_id,
-                'approval_status' => $isAdminOrSpv ? 'approved' : 'pending',
-                'approved_by' => $isAdminOrSpv ? $user->id : null,
-                'approval_date' => $isAdminOrSpv ? now() : null,
+                'approval_status' => 'approved',
+                'approved_by' => $user->id,
+                'approval_date' => now(),
                 'approval_note' => 'Dialihkan dari Tiket #' . $ticket->ticket_number,
                 'module' => $ticket->moduleSystem ? $ticket->moduleSystem->name : null,
                 'tipe_penanganan' => $ticket->tipe_penanganan,

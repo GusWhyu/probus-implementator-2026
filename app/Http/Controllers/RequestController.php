@@ -491,7 +491,10 @@ class RequestController extends Controller
             'user_id' => Auth::id(),
             'status_id' => 2, // 2 = Open
             'outlet_id' => $outletId,
-            'approval_status' => 'pending',
+            'approval_status' => 'approved',
+            'approved_by' => Auth::id(),
+            'approval_date' => now(),
+            'approval_note' => 'Otomatis disetujui (tidak memerlukan approval admin)',
         ]);
         
         // Catat ke RequestLog

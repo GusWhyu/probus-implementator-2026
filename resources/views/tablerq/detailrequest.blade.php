@@ -421,16 +421,11 @@
                                 @endif
                             @else
                                 <!-- STATUS OPEN (1 atau 2) -->
-                                @if ($ust === 'admin' && $isPendingApproval)
-                                    <!-- Admin: Approval belum dilakukan -->
-                                    <button type="button" onclick="approve_modal.showModal()" class="w-full flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white py-3.5 rounded-xl font-bold text-sm shadow-md shadow-blue-500/20 transition-all active:scale-95 gap-2">
-                                        <i class="fa-solid fa-check-double text-blue-200"></i> Approve Request
-                                    </button>
-                                    <button type="button" onclick="reject_modal.showModal()" class="w-full flex items-center justify-center bg-rose-50 text-rose-600 hover:bg-rose-500 hover:text-white border border-rose-200 py-3 rounded-xl font-bold text-xs shadow-sm transition-all active:scale-95 gap-2">
-                                        <i class="fa-solid fa-ban text-sm"></i> Tolak Request
-                                    </button>
-                                @elseif (!$isPendingApproval || $datarq->approval_status === 'approved')
-                                    <!-- Sudah Diapprove: Tombol PROSES REQUEST aktif! -->
+                                @if ($datarq->approval_status === 'rejected')
+                                    <div class="w-full flex items-center justify-center bg-rose-50 text-rose-700 border border-rose-200 py-3 rounded-xl font-bold text-xs gap-1.5">
+                                        <i class="fa-solid fa-ban"></i> Request Telah Ditolak
+                                    </div>
+                                @else
                                     @if ($canManage)
                                         <a href="/updatestatus/{{ $datarq->id }}/3" class="w-full flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white py-3.5 rounded-xl font-bold text-sm shadow-md shadow-blue-500/20 transition-all active:scale-95 gap-2">
                                             <i class="fa-solid fa-gears text-blue-200"></i> Proses Request
@@ -440,11 +435,11 @@
                                             <i class="fa-solid fa-gears"></i> Proses Request
                                         </button>
                                     @endif
-                                @else
-                                    <!-- Non-Admin ketika belum diapprove -->
-                                    <button disabled class="w-full flex items-center justify-center bg-amber-50 text-amber-700 border border-amber-200 py-3.5 rounded-xl font-bold text-sm transition-all cursor-not-allowed gap-2">
-                                        <i class="fa-solid fa-clock"></i> Menunggu Approval Admin
-                                    </button>
+                                    @if ($ust === 'admin')
+                                        <button type="button" onclick="reject_modal.showModal()" class="w-full flex items-center justify-center bg-rose-50 text-rose-600 hover:bg-rose-500 hover:text-white border border-rose-200 py-2 rounded-xl font-bold text-xs shadow-sm transition-all active:scale-95 gap-2 mt-1 cursor-pointer">
+                                            <i class="fa-solid fa-ban text-xs"></i> Tolak Request
+                                        </button>
+                                    @endif
                                 @endif
                             @endif
                         </div>
