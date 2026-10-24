@@ -34,13 +34,27 @@
             </div>
 
             <h2 class="font-extrabold text-2xl text-slate-900 mb-2 tracking-tight">Akses Dibatasi</h2>
+            
+            @php
+                $isCreator = Auth::id() == $ticket->user_id;
+                $isAdvisor = $ticket->advisor_id && Auth::id() == $ticket->advisor_id;
+            @endphp
+
+            @if ($isCreator || $isAdvisor)
             <p class="text-xs font-bold text-amber-600 bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-xl mb-4">
                 Petugas / Pembuat Tiket Tidak Dapat Mengisi Review Sendiri
             </p>
-
             <p class="text-sm font-medium text-slate-500 leading-relaxed max-w-sm mb-6">
-                Anda sedang login sebagai <b class="text-slate-800">{{ Auth::user()->name }}</b> (staf penangan tiket ini). Untuk menjaga objektivitas penilaian, survey ini <span class="font-bold text-slate-700">hanya dapat diisi oleh pihak klien</span>.
+                Anda sedang login sebagai <b class="text-slate-800">{{ Auth::user()->name }}</b> (staf penangan tiket ini). Untuk menjaga integritas dan objektivitas data, survey ini <span class="font-bold text-slate-700">hanya dapat diisi oleh pihak klien ({{ $ticket->client->nm_out ?? 'Pelanggan' }})</span>.
             </p>
+            @else
+            <p class="text-xs font-bold text-amber-600 bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-xl mb-4">
+                Akses Khusus Klien (Staf Internal Tidak Dapat Mengisi)
+            </p>
+            <p class="text-sm font-medium text-slate-500 leading-relaxed max-w-sm mb-6">
+                Anda sedang login sebagai akun staf internal Probus (<b class="text-slate-800">{{ Auth::user()->name }}</b>). Survey kepuasan pelayanan ini <span class="font-bold text-slate-700">khusus untuk diisi oleh pihak klien ({{ $ticket->client->nm_out ?? 'Pelanggan' }})</span>.
+            </p>
+            @endif
 
             <div class="w-full space-y-2.5">
                 <a href="{{ url('/detailticket/' . $ticket->id) }}" class="w-full bg-blue-600 hover:bg-blue-700 active:scale-[0.98] text-white font-extrabold text-sm py-3.5 rounded-2xl shadow-lg shadow-blue-500/25 transition-all flex items-center justify-center gap-2 cursor-pointer">

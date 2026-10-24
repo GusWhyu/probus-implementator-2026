@@ -18,12 +18,9 @@ class ReviewController extends Controller
             abort(404, 'Review tidak ditemukan atau tiket belum selesai.');
         }
 
-        // Cek apakah user yang sedang login adalah pembuat tiket atau advisor yang menangani
+        // Cek apakah ada user yang sedang login di sistem Probus (Staf internal tidak dapat mengisi survey pelanggan)
         if (Auth::check()) {
-            $currentUserId = Auth::id();
-            if ($currentUserId == $ticket->user_id || ($ticket->advisor_id && $currentUserId == $ticket->advisor_id)) {
-                return view('review.forbidden', compact('ticket'));
-            }
+            return view('review.forbidden', compact('ticket'));
         }
 
         // Cek apakah sudah pernah direview
@@ -43,12 +40,9 @@ class ReviewController extends Controller
             abort(404);
         }
 
-        // Cek apakah user yang sedang login adalah pembuat tiket atau advisor yang menangani
+        // Cek apakah ada user yang sedang login di sistem Probus (Staf internal tidak dapat mengisi survey pelanggan)
         if (Auth::check()) {
-            $currentUserId = Auth::id();
-            if ($currentUserId == $ticket->user_id || ($ticket->advisor_id && $currentUserId == $ticket->advisor_id)) {
-                return view('review.forbidden', compact('ticket'));
-            }
+            return view('review.forbidden', compact('ticket'));
         }
 
         $request->validate([
