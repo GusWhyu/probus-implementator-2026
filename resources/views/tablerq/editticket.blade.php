@@ -243,17 +243,19 @@
     </style>
     
     <script>
-        if (typeof window.setupEnhancedEditor === 'function') {
-            window.setupEnhancedEditor('editor-container', 'body', 'Tuliskan deskripsi lengkap tiket di sini...');
-        } else {
-            document.addEventListener('DOMContentLoaded', function() {
-                if (typeof window.setupEnhancedEditor === 'function') {
-                    window.setupEnhancedEditor('editor-container', 'body', 'Tuliskan deskripsi lengkap tiket di sini...');
-                }
-            });
+        function initTicketEditor() {
+            if (typeof window.setupEnhancedEditor === 'function') {
+                window.setupEnhancedEditor('editor-container', 'body', 'Tuliskan deskripsi lengkap tiket di sini...');
+            }
         }
 
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initTicketEditor);
+        } else {
+            initTicketEditor();
+        }
 
+        document.addEventListener('DOMContentLoaded', function() {
             // Initialize Tom Select for Client searchable dropdown
             try {
                 if (typeof TomSelect !== 'undefined') {

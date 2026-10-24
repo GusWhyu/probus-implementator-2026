@@ -1037,6 +1037,10 @@
                 const hiddenInput = document.getElementById(inputId);
                 if (!container || !hiddenInput) return null;
 
+                if (container.classList.contains('ql-container') || container.querySelector('.ql-editor')) {
+                    return container.__quillInstance || null;
+                }
+
                 if (typeof Quill === 'undefined') {
                     console.error('Quill is not loaded');
                     return null;
@@ -1059,6 +1063,7 @@
                         ]
                     }
                 });
+                container.__quillInstance = quill;
 
                 // Populate initial content if present
                 if (hiddenInput.value && hiddenInput.value.trim() !== '') {
