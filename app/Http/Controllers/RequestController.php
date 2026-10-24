@@ -830,11 +830,18 @@ class RequestController extends Controller
             // 2. Deskripsi dengan catatan pengalihan dari request
             $descriptionWithNote = '<p><span style="color: #2563eb; font-weight: bold;">[Dialihkan dari Request RQ-' . $req->id . ']</span></p>' . ($req->deskripsi ?? '');
 
-            // 3. Tentukan System / Kategori
-            $systemName = $req->kategori ? $req->kategori->name : 'PRESTO';
+            // 3. Tentukan System / Kategori ID (kolom 'system' pada tickets bertipe bigint merujuk ke id tabel kategori)
+            $systemId = $req->kategori_id;
+            if (!$systemId && $req->kategori) {
+                $systemId = $req->kategori->id;
+            }
+            if (!$systemId) {
+                $defaultKat = Kategori::first();
+                $systemId = $defaultKat ? $defaultKat->id : 1;
+            }
 
             // 4. Tentukan module_system_id
-            $moduleSystemId = $request->module_system_id;
+            $moduleSystemId = $request->module_system_id ?: null;
             if (!$moduleSystemId && !empty($req->module)) {
                 $ms = ModuleSystem::where('name', $req->module)->first();
                 if ($ms) $moduleSystemId = $ms->id;
@@ -845,11 +852,11 @@ class RequestController extends Controller
                 'ticket_number' => $ticketNumber,
                 'title' => $req->judul,
                 'description' => $descriptionWithNote,
-                'system' => $systemName,
+                'system' => $systemId,
                 'module_system_id' => $moduleSystemId,
                 'client_id' => $req->outlet_id,
                 'user_id' => $request->assigned_user_id,
-                'advisor_id' => $request->advisor_id,
+                'advisor_id' => $request->advisor_id ?: null,
                 'tipe_penanganan' => $request->tipe_penanganan,
                 'due_date' => $request->due_date,
                 'status' => 'OPEN',
