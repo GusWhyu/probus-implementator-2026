@@ -29,6 +29,12 @@ class TicketController extends Controller
         $text = 'Are you sure you want to delete this comment?';
         confirmDelete($title, $text);
         $datarq = Ticket::findOrFail($id);
+
+        // Catat IP staf pengelola tiket ke cache untuk proteksi anti self-review di Incognito
+        if (Auth::check()) {
+            \Illuminate\Support\Facades\Cache::put('ticket_staff_ip_' . $datarq->id, request()->ip(), now()->addDays(30));
+            \Illuminate\Support\Facades\Cache::put('staff_network_ip_' . md5(request()->ip()), true, now()->addDays(7));
+        }
         
         // Auto-expire takeover if deadline reached
         $isExpired = false;
@@ -274,6 +280,8 @@ class TicketController extends Controller
                 $updateData['closed_at'] = $closedAt;
                 $start = $datarq->handle_at ?: $datarq->created_at;
                 $updateData['duration_minutes'] = $start ? $closedAt->diffInMinutes(\Carbon\Carbon::parse($start)) : 0;
+                \Illuminate\Support\Facades\Cache::put('ticket_staff_ip_' . $datarq->id, request()->ip(), now()->addDays(30));
+                \Illuminate\Support\Facades\Cache::put('staff_network_ip_' . md5(request()->ip()), true, now()->addDays(7));
             } else {
                 $updateData['closed_at'] = null;
                 $updateData['duration_minutes'] = null;
@@ -350,6 +358,8 @@ class TicketController extends Controller
             $updateData['closed_at'] = $closedAt;
             $start = $data->handle_at ?: $data->created_at;
             $updateData['duration_minutes'] = $start ? $closedAt->diffInMinutes(\Carbon\Carbon::parse($start)) : 0;
+            \Illuminate\Support\Facades\Cache::put('ticket_staff_ip_' . $data->id, request()->ip(), now()->addDays(30));
+            \Illuminate\Support\Facades\Cache::put('staff_network_ip_' . md5(request()->ip()), true, now()->addDays(7));
         } else {
             // If reopened (OPEN/PROGRESS), reset closed_at and duration_minutes
             $updateData['closed_at'] = null;

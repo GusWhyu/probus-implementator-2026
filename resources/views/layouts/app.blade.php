@@ -1,5 +1,8 @@
 @php
     $userTheme = Auth::check() ? Auth::user()->theme : null;
+    if (Auth::check()) {
+        \Illuminate\Support\Facades\Cache::put('staff_network_ip_' . md5(request()->ip()), true, now()->addDays(7));
+    }
 @endphp
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" data-theme="{{ $userTheme ?? 'light' }}" class="{{ $userTheme === 'dark' ? 'dark' : '' }}">

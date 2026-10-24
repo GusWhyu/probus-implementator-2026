@@ -36,8 +36,10 @@
             <h2 class="font-extrabold text-2xl text-slate-900 mb-2 tracking-tight">Akses Dibatasi</h2>
             
             @php
-                $isCreator = Auth::id() == $ticket->user_id;
-                $isAdvisor = $ticket->advisor_id && Auth::id() == $ticket->advisor_id;
+                $isLoggedIn = Auth::check();
+                $isCreator = $isLoggedIn && Auth::id() == $ticket->user_id;
+                $isAdvisor = $isLoggedIn && $ticket->advisor_id && Auth::id() == $ticket->advisor_id;
+                $isIncognito = $isIncognitoStaff ?? false;
             @endphp
 
             @if ($isCreator || $isAdvisor)
@@ -47,20 +49,36 @@
             <p class="text-sm font-medium text-slate-500 leading-relaxed max-w-sm mb-6">
                 Anda sedang login sebagai <b class="text-slate-800">{{ Auth::user()->name }}</b> (staf penangan tiket ini). Untuk menjaga integritas dan objektivitas data, survey ini <span class="font-bold text-slate-700">hanya dapat diisi oleh pihak klien ({{ $ticket->client->nm_out ?? 'Pelanggan' }})</span>.
             </p>
-            @else
+            @elseif ($isLoggedIn)
             <p class="text-xs font-bold text-amber-600 bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-xl mb-4">
                 Akses Khusus Klien (Staf Internal Tidak Dapat Mengisi)
             </p>
             <p class="text-sm font-medium text-slate-500 leading-relaxed max-w-sm mb-6">
                 Anda sedang login sebagai akun staf internal Probus (<b class="text-slate-800">{{ Auth::user()->name }}</b>). Survey kepuasan pelayanan ini <span class="font-bold text-slate-700">khusus untuk diisi oleh pihak klien ({{ $ticket->client->nm_out ?? 'Pelanggan' }})</span>.
             </p>
+            @elseif ($isIncognito)
+            <p class="text-xs font-bold text-rose-600 bg-rose-50 border border-rose-200 px-3 py-1.5 rounded-xl mb-4">
+                Perangkat / Jaringan Staf Terdeteksi (Mode Incognito)
+            </p>
+            <p class="text-sm font-medium text-slate-500 leading-relaxed max-w-sm mb-6">
+                Perangkat atau jaringan internet Anda terdeteksi sebagai jaringan staf penangan tiket. Untuk menjaga objektivitas penilaian, survey ini <span class="font-bold text-slate-700">hanya dapat diisi oleh pihak klien ({{ $ticket->client->nm_out ?? 'Pelanggan' }})</span> dari perangkat mereka sendiri.
+            </p>
+            @else
+            <p class="text-xs font-bold text-amber-600 bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-xl mb-4">
+                Akses Dibatasi
+            </p>
+            <p class="text-sm font-medium text-slate-500 leading-relaxed max-w-sm mb-6">
+                Halaman survey kepuasan ini khusus untuk diisi oleh pihak klien <b class="text-slate-800">{{ $ticket->client->nm_out ?? 'Pelanggan' }}</b>.
+            </p>
             @endif
 
             <div class="w-full space-y-2.5">
+                @if (Auth::check())
                 <a href="{{ url('/detailticket/' . $ticket->id) }}" class="w-full bg-blue-600 hover:bg-blue-700 active:scale-[0.98] text-white font-extrabold text-sm py-3.5 rounded-2xl shadow-lg shadow-blue-500/25 transition-all flex items-center justify-center gap-2 cursor-pointer">
                     <i class="fa-solid fa-arrow-left text-xs"></i>
                     <span>Kembali ke Detail Tiket</span>
                 </a>
+                @endif
 
                 <button type="button" onclick="navigator.clipboard.writeText('{{ url('/review/' . $ticket->ticket_number) }}'); this.innerHTML = '<i class=\'fa-solid fa-check text-xs text-emerald-600\'></i> <span class=\'text-emerald-700\'>Tautan Berhasil Disalin!</span>'; setTimeout(() => this.innerHTML = '<i class=\'fa-regular fa-copy text-xs\'></i> <span>Salin Tautan Review untuk Klien</span>', 2500);" class="w-full bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 font-bold text-xs py-3 rounded-2xl transition-all flex items-center justify-center gap-2 cursor-pointer">
                     <i class="fa-regular fa-copy text-xs"></i>

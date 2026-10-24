@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Ticket;
 use App\Models\TicketSurvey;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 
 class ReviewController extends Controller
 {
@@ -18,9 +19,19 @@ class ReviewController extends Controller
             abort(404, 'Review tidak ditemukan atau tiket belum selesai.');
         }
 
-        // Cek apakah ada user yang sedang login di sistem Probus (Staf internal tidak dapat mengisi survey pelanggan)
+        // 1. Cek apakah ada user yang sedang login di sistem Probus (Staf internal tidak dapat mengisi survey pelanggan)
         if (Auth::check()) {
             return view('review.forbidden', compact('ticket'));
+        }
+
+        // 2. Proteksi Incognito / Guest: Deteksi apakah IP pengakses sama dengan staf penangan tiket / jaringan kantor staf
+        $clientIp = request()->ip();
+        $staffIp = Cache::get('ticket_staff_ip_' . $ticket->id);
+        $isStaffNetwork = Cache::has('staff_network_ip_' . md5($clientIp));
+
+        if (($staffIp && $staffIp === $clientIp) || $isStaffNetwork) {
+            $isIncognitoStaff = true;
+            return view('review.forbidden', compact('ticket', 'isIncognitoStaff'));
         }
 
         // Cek apakah sudah pernah direview
@@ -40,9 +51,19 @@ class ReviewController extends Controller
             abort(404);
         }
 
-        // Cek apakah ada user yang sedang login di sistem Probus (Staf internal tidak dapat mengisi survey pelanggan)
+        // 1. Cek apakah ada user yang sedang login di sistem Probus (Staf internal tidak dapat mengisi survey pelanggan)
         if (Auth::check()) {
             return view('review.forbidden', compact('ticket'));
+        }
+
+        // 2. Proteksi Incognito / Guest: Deteksi apakah IP pengakses sama dengan staf penangan tiket / jaringan kantor staf
+        $clientIp = $request->ip();
+        $staffIp = Cache::get('ticket_staff_ip_' . $ticket->id);
+        $isStaffNetwork = Cache::has('staff_network_ip_' . md5($clientIp));
+
+        if (($staffIp && $staffIp === $clientIp) || $isStaffNetwork) {
+            $isIncognitoStaff = true;
+            return view('review.forbidden', compact('ticket', 'isIncognitoStaff'));
         }
 
         $request->validate([
