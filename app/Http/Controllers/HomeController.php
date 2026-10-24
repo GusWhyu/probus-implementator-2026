@@ -1857,6 +1857,229 @@ class HomeController extends Controller
         return $pdf->stream('Rapor_Kinerja_CS_' . str_replace(' ', '_', $user->name) . '_' . $periode->format('M_Y') . '.pdf');
     }
 
+    /**
+     * Mendapatkan daftar riwayat tiket untuk modul tertentu berdasarkan staff dan periode (JSON API).
+     */
+    public function getModuleTickets($id, $moduleId, Request $request) {
+        $user = User::findOrFail($id);
+        $currentUser = auth()->user();
+
+        if ($currentUser && $currentUser->usertype === 'supervisor' && $currentUser->departemen_id != $user->departemen_id) {
+            return response()->json(['error' => 'Anda hanya memiliki izin melihat tiket staf di departemen Anda.'], 403);
+        }
+        if ($currentUser && $currentUser->usertype === 'user' && $currentUser->id != $user->id) {
+            return response()->json(['error' => 'Anda hanya memiliki izin melihat tiket Anda sendiri.'], 403);
+        }
+
+        $module = ModuleSystem::findOrFail($moduleId);
+
+        $m = $request->query('month');
+        $y = $request->query('year');
+        if ($request->filled('period')) {
+            $parts = explode('-', $request->query('period'));
+            $y = isset($parts[0]) && is_numeric($parts[0]) ? (int)$parts[0] : (int)date('Y');
+            $m = isset($parts[1]) && is_numeric($parts[1]) ? (int)$parts[1] : (int)date('m');
+        }
+        if (!$m || !$y) {
+            $rapor = PerformanceReview::where('user_id', $id)->orderBy('periode', 'desc')->first();
+            if ($rapor) {
+                $m = (int)\Carbon\Carbon::parse($rapor->periode)->month;
+                $y = (int)\Carbon\Carbon::parse($rapor->periode)->year;
+            } else {
+                $m = (int)date('m');
+                $y = (int)date('Y');
+            }
+        }
+        $month = (int)$m;
+        $year = (int)$y;
+        $periodeCarbon = \Carbon\Carbon::createFromDate($year, $month, 1);
+
+        $tickets = Ticket::where('user_id', $id)
+            ->where('module_system_id', $moduleId)
+            ->whereMonth('created_at', $month)
+            ->whereYear('created_at', $year)
+            ->with(['client', 'user', 'advisor', 'moduleSystem', 'kategoriSystem'])
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        $ticketsData = $tickets->map(function($t) {
+            $clientName = $t->client->nm_out ?? $t->client->name ?? '-';
+            if (!empty($t->client->lokasi)) {
+                $clientName .= ' (' . $t->client->lokasi . ')';
+            }
+            return [
+                'id' => $t->id,
+                'ticket_number' => $t->ticket_number,
+                'title' => $t->title,
+                'description' => $t->description ? trim(strip_tags($t->description)) : null,
+                'solusi' => $t->solusi ? trim(strip_tags($t->solusi)) : null,
+                'client_name' => $clientName,
+                'tipe_penanganan' => $t->tipe_penanganan ?: '-',
+                'status' => strtoupper($t->status ?? 'OPEN'),
+                'duration_text' => $t->duration_text ?: '-',
+                'created_at_formatted' => $t->created_at ? \Carbon\Carbon::parse($t->created_at)->format('d/m/Y H:i') : '-',
+                'closed_at_formatted' => ($t->status === 'CLOSED' && $t->closed_at) ? \Carbon\Carbon::parse($t->closed_at)->format('d/m/Y H:i') : null,
+                'detail_url' => route('detailrequest', ['id' => $t->id]),
+            ];
+        });
+
+        $totalCount = $tickets->count();
+        $closedCount = $tickets->filter(function($t) { return strtoupper($t->status) === 'CLOSED'; })->count();
+        $progressCount = $tickets->filter(function($t) { return strtoupper($t->status) === 'PROGRESS'; })->count();
+        $openCount = $tickets->filter(function($t) { return strtoupper($t->status) === 'OPEN'; })->count();
+
+        return response()->json([
+            'success' => true,
+            'module' => [
+                'id' => $module->id,
+                'name' => $module->name,
+                'bobot' => $module->bobot,
+            ],
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'departemen' => $user->departemen->name ?? 'Operasional',
+            ],
+            'period' => [
+                'month' => $month,
+                'year' => $year,
+                'label' => $periodeCarbon->locale('id')->translatedFormat('F Y'),
+            ],
+            'summary' => [
+                'total' => $totalCount,
+                'closed' => $closedCount,
+                'progress' => $progressCount,
+                'open' => $openCount,
+            ],
+            'tickets' => $ticketsData,
+        ]);
+    }
+
+    /**
+     * Download format Excel (.xlsx) untuk riwayat tiket modul.
+     */
+    public function exportModuleTicketsExcel($id, $moduleId, Request $request) {
+        $user = User::findOrFail($id);
+        $currentUser = auth()->user();
+
+        if ($currentUser && $currentUser->usertype === 'supervisor' && $currentUser->departemen_id != $user->departemen_id) {
+            return redirect()->route('rapor', ['id' => $id])->with('error', 'Anda hanya memiliki izin melihat tiket staf di departemen Anda.');
+        }
+        if ($currentUser && $currentUser->usertype === 'user' && $currentUser->id != $user->id) {
+            return redirect()->route('dashboard')->with('error', 'Anda hanya memiliki izin melihat tiket Anda sendiri.');
+        }
+
+        $module = ModuleSystem::findOrFail($moduleId);
+
+        $m = $request->query('month');
+        $y = $request->query('year');
+        if ($request->filled('period')) {
+            $parts = explode('-', $request->query('period'));
+            $y = isset($parts[0]) && is_numeric($parts[0]) ? (int)$parts[0] : (int)date('Y');
+            $m = isset($parts[1]) && is_numeric($parts[1]) ? (int)$parts[1] : (int)date('m');
+        }
+        if (!$m || !$y) {
+            $rapor = PerformanceReview::where('user_id', $id)->orderBy('periode', 'desc')->first();
+            if ($rapor) {
+                $m = (int)\Carbon\Carbon::parse($rapor->periode)->month;
+                $y = (int)\Carbon\Carbon::parse($rapor->periode)->year;
+            } else {
+                $m = (int)date('m');
+                $y = (int)date('Y');
+            }
+        }
+        $month = (int)$m;
+        $year = (int)$y;
+        $periodeCarbon = \Carbon\Carbon::createFromDate($year, $month, 1);
+
+        $tickets = Ticket::where('user_id', $id)
+            ->where('module_system_id', $moduleId)
+            ->whereMonth('created_at', $month)
+            ->whereYear('created_at', $year)
+            ->with(['client', 'user', 'advisor', 'moduleSystem', 'kategoriSystem'])
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        $meta = [
+            'staff_name' => $user->name,
+            'module_name' => $module->name,
+            'period_label' => $periodeCarbon->locale('id')->translatedFormat('F Y'),
+            'printed_by' => auth()->user()->name ?? 'User',
+            'printed_at' => date('d/m/Y H:i') . ' WITA',
+        ];
+
+        $tempFile = \App\Services\TicketExcelService::createModuleTicketsXlsx($tickets, $meta);
+        $cleanStaff = preg_replace('/[^A-Za-z0-9_-]/', '_', $user->name);
+        $cleanModule = preg_replace('/[^A-Za-z0-9_-]/', '_', $module->name);
+        $filename = "Tiket_Modul_{$cleanModule}_{$cleanStaff}_{$periodeCarbon->format('M_Y')}.xlsx";
+
+        return response()->download($tempFile, $filename, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        ])->deleteFileAfterSend(true);
+    }
+
+    /**
+     * Download format PDF (.pdf) untuk riwayat tiket modul.
+     */
+    public function exportModuleTicketsPdf($id, $moduleId, Request $request) {
+        $user = User::findOrFail($id);
+        $currentUser = auth()->user();
+
+        if ($currentUser && $currentUser->usertype === 'supervisor' && $currentUser->departemen_id != $user->departemen_id) {
+            return redirect()->route('rapor', ['id' => $id])->with('error', 'Anda hanya memiliki izin melihat tiket staf di departemen Anda.');
+        }
+        if ($currentUser && $currentUser->usertype === 'user' && $currentUser->id != $user->id) {
+            return redirect()->route('dashboard')->with('error', 'Anda hanya memiliki izin melihat tiket Anda sendiri.');
+        }
+
+        $module = ModuleSystem::findOrFail($moduleId);
+
+        $m = $request->query('month');
+        $y = $request->query('year');
+        if ($request->filled('period')) {
+            $parts = explode('-', $request->query('period'));
+            $y = isset($parts[0]) && is_numeric($parts[0]) ? (int)$parts[0] : (int)date('Y');
+            $m = isset($parts[1]) && is_numeric($parts[1]) ? (int)$parts[1] : (int)date('m');
+        }
+        if (!$m || !$y) {
+            $rapor = PerformanceReview::where('user_id', $id)->orderBy('periode', 'desc')->first();
+            if ($rapor) {
+                $m = (int)\Carbon\Carbon::parse($rapor->periode)->month;
+                $y = (int)\Carbon\Carbon::parse($rapor->periode)->year;
+            } else {
+                $m = (int)date('m');
+                $y = (int)date('Y');
+            }
+        }
+        $month = (int)$m;
+        $year = (int)$y;
+        $periodeCarbon = \Carbon\Carbon::createFromDate($year, $month, 1);
+        $periodeText = $periodeCarbon->locale('id')->translatedFormat('F Y');
+
+        $tickets = Ticket::where('user_id', $id)
+            ->where('module_system_id', $moduleId)
+            ->whereMonth('created_at', $month)
+            ->whereYear('created_at', $year)
+            ->with(['client', 'user', 'advisor', 'moduleSystem', 'kategoriSystem'])
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('module_tickets_pdf', compact(
+            'user',
+            'module',
+            'tickets',
+            'month',
+            'year',
+            'periodeText'
+        ))->setPaper('a4', 'landscape');
+
+        $cleanStaff = preg_replace('/[^A-Za-z0-9_-]/', '_', $user->name);
+        $cleanModule = preg_replace('/[^A-Za-z0-9_-]/', '_', $module->name);
+        $filename = "Tiket_Modul_{$cleanModule}_{$cleanStaff}_{$periodeCarbon->format('M_Y')}.pdf";
+
+        return $pdf->stream($filename);
+    }
+
     public function riwayat($id){
         $user = User::findOrFail($id);
         $riwayat = PerformanceReview::where('user_id', $id)->orderBy('periode', 'desc')->get();
