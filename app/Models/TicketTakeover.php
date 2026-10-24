@@ -10,7 +10,7 @@ class TicketTakeover extends Model
     use HasFactory;
 
     protected $fillable = [
-        'ticket_id', 'from_user_id', 'to_user_id', 'reason', 'status', 'processed_at'
+        'ticket_id', 'from_user_id', 'to_user_id', 'reason', 'reject_reason', 'status', 'processed_at'
     ];
 
     public function ticket()

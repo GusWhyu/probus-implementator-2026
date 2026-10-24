@@ -84,27 +84,6 @@
                     <i class="fa-regular fa-copy text-xs"></i>
                     <span>Salin Tautan Review untuk Klien</span>
                 </button>
-
-                @if (config('app.env') === 'local')
-                <div class="mt-4 p-3.5 bg-slate-50 border border-slate-200/90 rounded-2xl text-left text-xs text-slate-600 space-y-2">
-                    <div class="flex items-center gap-1.5 font-bold text-slate-800">
-                        <i class="fa-solid fa-laptop-code text-blue-600"></i>
-                        <span>Ingin Mengetes Form Review di Lokal?</span>
-                    </div>
-                    <p class="text-[11px] text-slate-500 leading-relaxed">
-                        Karena proteksi staf mendeteksi browser ini, gunakan salah satu cara berikut untuk mencoba:
-                    </p>
-                    <div class="space-y-1.5 pt-1">
-                        <a href="{{ request()->fullUrlWithQuery(['test_as_client' => 1]) }}" class="inline-flex items-center gap-1.5 text-[11px] font-bold text-blue-600 hover:text-blue-700 bg-blue-50/80 hover:bg-blue-100 border border-blue-200/70 px-2.5 py-1.5 rounded-lg transition-colors w-full justify-center">
-                            <i class="fa-solid fa-flask text-xs"></i>
-                            <span>Buka dengan Simulasi Klien (?test_as_client=1)</span>
-                        </a>
-                        <p class="text-[10px] text-slate-400 text-center">
-                            Atau buka link ini lewat browser HP di Wi-Fi yang sama.
-                        </p>
-                    </div>
-                </div>
-                @endif
             </div>
         </div>
     </div>
