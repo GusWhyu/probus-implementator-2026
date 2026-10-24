@@ -90,6 +90,7 @@
                                         <option value="" disabled selected>Pilih tipe...</option>
                                         <option value="On Site" {{ old('tipe_penanganan') == 'On Site' ? 'selected' : '' }}>On Site</option>
                                         <option value="Office" {{ old('tipe_penanganan') == 'Office' ? 'selected' : '' }}>Office</option>
+                                        <option value="Online" {{ in_array(old('tipe_penanganan'), ['Online', 'Remote', 'Remote / Online']) ? 'selected' : '' }}>Online</option>
                                         <option value="Piket" {{ old('tipe_penanganan') == 'Piket' ? 'selected' : '' }}>Piket</option>
                                     </select>
                                 </div>

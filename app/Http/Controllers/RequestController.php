@@ -826,7 +826,7 @@ class RequestController extends Controller
                 'exists:users,id',
                 \Illuminate\Validation\Rule::notIn([Auth::id()]),
             ],
-            'tipe_penanganan' => 'required|in:On Site,Office,Piket',
+            'tipe_penanganan' => 'required|in:On Site,Office,Piket,Online,Remote,Remote / Online',
             'due_date' => 'required|date',
             'module_system_id' => 'nullable|exists:module_systems,id',
             'advisor_id' => 'nullable|exists:users,id',

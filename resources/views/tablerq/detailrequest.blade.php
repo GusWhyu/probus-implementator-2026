@@ -380,6 +380,25 @@
                                 </div>
                             </div>
 
+                            @if (!empty($datarq->tipe_penanganan))
+                            <div class="flex items-start gap-4">
+                                @php
+                                    $reqTp = $datarq->tipe_penanganan;
+                                    $reqIsSite = $reqTp == 'On Site';
+                                    $reqIsPiket = $reqTp == 'Piket';
+                                    $reqIsOnline = in_array(strtolower($reqTp), ['online', 'remote', 'remote / online']);
+                                    $reqTpIcon = $reqIsSite ? 'fa-location-dot text-amber-500' : ($reqIsPiket ? 'fa-calendar-check text-emerald-500' : ($reqIsOnline ? 'fa-globe text-purple-500' : 'fa-building-user text-sky-500'));
+                                @endphp
+                                <div class="w-8 h-8 rounded-lg bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-400 shrink-0">
+                                    <i class="fa-solid {{ $reqTpIcon }} text-xs"></i>
+                                </div>
+                                <div>
+                                    <div class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-0.5">Tipe Penanganan</div>
+                                    <div class="font-bold text-slate-800 text-sm">{{ $reqTp }}</div>
+                                </div>
+                            </div>
+                            @endif
+
                             @if ($stid == 4 && $closedLog && $closedLog->user)
                             <div class="flex items-start gap-4">
                                 <div class="w-8 h-8 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-100 dark:border-emerald-800/60 flex items-center justify-center text-emerald-600 dark:text-emerald-400 shrink-0">
@@ -732,6 +751,7 @@
                                 <select name="tipe_penanganan" required class="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 p-3 pl-3.5 pr-8 outline-none font-bold appearance-none shadow-sm cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
                                     <option value="Office" {{ ($datarq->tipe_penanganan ?? 'Office') == 'Office' ? 'selected' : '' }}>Office</option>
                                     <option value="On Site" {{ ($datarq->tipe_penanganan ?? '') == 'On Site' ? 'selected' : '' }}>On Site</option>
+                                    <option value="Online" {{ in_array($datarq->tipe_penanganan ?? '', ['Online', 'Remote', 'Remote / Online']) ? 'selected' : '' }}>Online</option>
                                     <option value="Piket" {{ ($datarq->tipe_penanganan ?? '') == 'Piket' ? 'selected' : '' }}>Piket</option>
                                 </select>
                                 <i class="fa-solid fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-[10px] pointer-events-none"></i>

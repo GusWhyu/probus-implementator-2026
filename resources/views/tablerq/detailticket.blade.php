@@ -452,7 +452,17 @@
                             </div>
                             <div>
                                 <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wide mb-1.5">Tipe Penanganan</p>
-                                <p class="font-bold text-slate-800 text-sm">{{ $datarq->tipe_penanganan ?? 'Office' }}</p>
+                                @php
+                                    $tp = $datarq->tipe_penanganan ?? 'Office';
+                                    $isSite = $tp == 'On Site';
+                                    $isPiket = $tp == 'Piket';
+                                    $isOnline = in_array(strtolower($tp), ['online', 'remote', 'remote / online']);
+                                    $tpIcon = $isSite ? 'fa-location-dot text-amber-500' : ($isPiket ? 'fa-calendar-check text-emerald-500' : ($isOnline ? 'fa-globe text-purple-500' : 'fa-building-user text-sky-500'));
+                                @endphp
+                                <p class="font-bold text-slate-800 text-sm flex items-center gap-1.5">
+                                    <i class="fa-solid {{ $tpIcon }} text-xs"></i>
+                                    <span>{{ $tp }}</span>
+                                </p>
                             </div>
 
                             <!-- Row 3 -->

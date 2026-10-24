@@ -153,7 +153,7 @@ class TicketController extends Controller
             'tag' => 'required',
             'category' => 'required',
             'client' => 'required', // client from form is now client_id (moutlet)
-            'tipe_penanganan' => 'required|in:On Site,Office,Piket',
+            'tipe_penanganan' => 'required|in:On Site,Office,Piket,Online,Remote,Remote / Online',
             'advisor' => 'nullable', // advisor is optional
             'due_date' => 'required|date',
             'images' => 'array|max:6',
@@ -246,7 +246,7 @@ class TicketController extends Controller
             'tag' => 'required',
             'category' => 'required',
             'client' => 'required',
-            'tipe_penanganan' => 'required|in:On Site,Office,Piket',
+            'tipe_penanganan' => 'required|in:On Site,Office,Piket,Online,Remote,Remote / Online',
             'advisor' => 'nullable',
             'due_date' => 'required|date',
             'status' => 'nullable|in:OPEN,PROGRESS,CLOSED',
