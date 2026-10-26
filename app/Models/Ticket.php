@@ -160,6 +160,23 @@ class Ticket extends Model
             : $this->logs()->where('action', 'WAITING_CONFIRMATION')->latest('id')->first();
     }
 
+    public function getLatestResumeLogAttribute()
+    {
+        if (strtoupper($this->status ?? '') !== 'PROGRESS' || $this->is_waiting_confirmation) {
+            return null;
+        }
+
+        $latestLog = $this->relationLoaded('logs')
+            ? $this->logs->whereIn('action', ['WAITING_CONFIRMATION', 'RESUME_PROGRESS', 'CLOSED', 'STATUS_CHANGED'])->sortByDesc('id')->first()
+            : $this->logs()->whereIn('action', ['WAITING_CONFIRMATION', 'RESUME_PROGRESS', 'CLOSED', 'STATUS_CHANGED'])->latest('id')->first();
+
+        if ($latestLog && $latestLog->action === 'RESUME_PROGRESS') {
+            return $latestLog;
+        }
+
+        return null;
+    }
+
     public function user()
     {
         return $this->belongsTo(User::class, 'user_id');

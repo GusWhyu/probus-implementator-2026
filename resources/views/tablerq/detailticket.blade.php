@@ -97,6 +97,10 @@
 
             <!-- Banner Menunggu Konfirmasi Klien (Bisa Dihapus) -->
             @if ($datarq->is_waiting_confirmation)
+            @php
+                $waitingLog = $datarq->waiting_confirmation_log;
+                $waitingNote = $waitingLog ? $waitingLog->description : null;
+            @endphp
             <div class="bg-amber-50/90 dark:bg-amber-950/40 border border-amber-300/80 dark:border-amber-800/60 rounded-2xl p-4 sm:p-4.5 mb-6 shadow-xs flex items-center justify-between gap-4">
                 <div class="flex items-center gap-3.5 min-w-0">
                     <div class="w-10 h-10 rounded-xl bg-amber-100 dark:bg-amber-900/50 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0 border border-amber-200 dark:border-amber-800/60 shadow-2xs">
@@ -111,8 +115,12 @@
                                 ({{ $datarq->client->nm_out ?? 'Klien' }})
                             </span>
                         </div>
-                        <p class="text-xs text-amber-900/80 dark:text-amber-300/80 mt-0.5 truncate sm:whitespace-normal">
-                            Pengerjaan kendala telah selesai. Sedang menunggu konfirmasi pengujian dari pihak klien.
+                        <p class="text-xs text-amber-900/90 dark:text-amber-200/90 mt-0.5 leading-relaxed">
+                            @if ($waitingNote)
+                                <span class="font-bold text-amber-950 dark:text-amber-100">Catatan:</span> {{ $waitingNote }}
+                            @else
+                                Pengerjaan kendala telah selesai. Sedang menunggu konfirmasi pengujian dari pihak klien.
+                            @endif
                         </p>
                     </div>
                 </div>
@@ -367,6 +375,43 @@
                         </div>
                         @endif
                         
+                        <!-- Catatan Pengerjaan Kembali / Feedback Klien (Jika status PROGRESS dan ada log resume) -->
+                        @php
+                            $resumeLog = $datarq->latest_resume_log;
+                            $resumeDesc = $resumeLog ? $resumeLog->description : null;
+                            $isDefaultDesc = $resumeDesc && (
+                                str_starts_with($resumeDesc, 'Pengerjaan tiket dilanjutkan kembali oleh petugas.') ||
+                                str_starts_with($resumeDesc, 'Menunggu konfirmasi klien dihapus.')
+                            );
+                        @endphp
+                        @if ($resumeLog && !empty($resumeDesc) && !$isDefaultDesc)
+                        <div id="resume_notice_card" class="mt-6 border-t border-slate-100 dark:border-slate-800/80 pt-6">
+                            <div class="bg-blue-50/80 dark:bg-blue-950/40 border border-blue-200/90 dark:border-blue-800/60 rounded-2xl p-4 sm:p-5 shadow-xs flex items-start justify-between gap-3 relative transition-all">
+                                <div class="flex items-start gap-3 min-w-0">
+                                    <div class="w-8 h-8 rounded-xl bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0 border border-blue-200 dark:border-blue-800/60 shadow-2xs mt-0.5">
+                                        <i class="fa-solid fa-rotate-left text-xs"></i>
+                                    </div>
+                                    <div class="min-w-0">
+                                        <div class="flex items-center gap-2 flex-wrap">
+                                            <h4 class="text-xs font-extrabold text-blue-950 dark:text-blue-100 uppercase tracking-wider">
+                                                Catatan Pengerjaan Kembali
+                                            </h4>
+                                            <span class="text-[10px] text-blue-700/70 dark:text-blue-400 font-semibold">
+                                                ({{ $resumeLog->user->name ?? 'Petugas' }} • {{ $resumeLog->created_at->diffForHumans() }})
+                                            </span>
+                                        </div>
+                                        <div class="text-slate-800 dark:text-slate-200 text-xs sm:text-[13px] font-medium leading-relaxed bg-white/80 dark:bg-slate-900/80 border border-blue-100 dark:border-blue-900/50 rounded-xl p-3.5 mt-2.5 whitespace-pre-line shadow-2xs">
+                                            {{ $resumeDesc }}
+                                        </div>
+                                    </div>
+                                </div>
+                                <button type="button" onclick="document.getElementById('resume_notice_card').remove()" class="w-7 h-7 rounded-xl bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer shrink-0 border border-slate-200/60 dark:border-slate-700 shadow-2xs" title="Tutup catatan ini">
+                                    <i class="fa-solid fa-xmark text-xs"></i>
+                                </button>
+                            </div>
+                        </div>
+                        @endif
+
                         <!-- Keterangan Solusi Kendala (Jika CLOSED atau sudah ada solusi) -->
                         @if ($datarq->status == 'CLOSED' || !empty($datarq->solusi))
                         <div class="mt-8 border-t border-slate-100 dark:border-slate-800/80 pt-6">

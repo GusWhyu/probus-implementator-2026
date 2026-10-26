@@ -591,14 +591,15 @@ class TicketController extends Controller
             return redirect()->back();
         }
 
-        $resumeNotes = trim($request->input('resume_notes', 'Pengerjaan tiket dilanjutkan kembali oleh petugas.'));
+        $resumeNotes = trim($request->input('resume_notes', ''));
+        $desc = $resumeNotes ?: 'Pengerjaan tiket dilanjutkan kembali oleh petugas.';
 
         // Record to TicketLog (not posted to Komentar/Diskusi)
         TicketLog::create([
             'ticket_id' => $ticket->id,
             'user_id' => $user->id,
             'action' => 'RESUME_PROGRESS',
-            'description' => 'Pengerjaan tiket dilanjutkan kembali: ' . $resumeNotes,
+            'description' => $desc,
         ]);
 
         Alert::info('Informasi', 'Status menunggu konfirmasi telah dihapus. Pengerjaan aktif dilanjutkan.')->showConfirmButton('Tutup', '#3b82f6')->autoClose(2500);
