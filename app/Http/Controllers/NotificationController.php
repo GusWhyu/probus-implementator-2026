@@ -19,82 +19,31 @@ class NotificationController extends Controller
             return response()->json(['unread_count' => 0, 'notifications' => []], 401);
         }
 
-        $unreadNotifications = $user->unreadNotifications()->latest()->take(15)->get();
+        $rawUnread = $user->unreadNotifications()->latest()->take(30)->get();
+        $notifications = [];
+        $seenKeys = [];
 
-        $data = $unreadNotifications->map(function ($notif) {
-            $raw = $notif->data ?? [];
-            $message = $raw['message'] ?? '';
-            $title = $raw['title'] ?? 'Pembaruan Notifikasi';
-            $url = $raw['url'] ?? null;
-            $requestId = $raw['request_id'] ?? null;
-            $isTicket = $raw['is_ticket'] ?? null;
-
-            // Bersihkan pesan jika merupakan format lama yang mengandung JSON status atau judul kosong
-            if (strpos($message, '{"id":') !== false || strpos($message, "The status of your ticket") !== false) {
-                $statusName = 'Update';
-                if (preg_match('/"name":"([^"]+)"/', $message, $m)) {
-                    $statusName = $m[1];
-                } elseif (preg_match("/updated to '([^']+)'/", $message, $m)) {
-                    $statusName = $m[1];
-                }
-
-                $itemTitle = $raw['item_title'] ?? '';
-                if (empty($itemTitle) && $requestId) {
-                    $reqObj = RequestModel::find($requestId);
-                    if ($reqObj) {
-                        $itemTitle = $reqObj->judul;
-                        if (!$url) $url = url('/detailrequest/' . $requestId);
-                        $isTicket = false;
-                    } else {
-                        $tckObj = Ticket::find($requestId);
-                        if ($tckObj) {
-                            $itemTitle = $tckObj->title;
-                            if (!$url) $url = url('/detailticket/' . $requestId);
-                            $isTicket = true;
-                        }
-                    }
-                }
-
-                $typeLabel = $isTicket ? 'Tiket' : 'Request';
-                $formattedTitle = !empty($itemTitle) ? $itemTitle : "Item #{$requestId}";
-                $message = "Status {$typeLabel} '{$formattedTitle}' telah diperbarui menjadi '{$statusName}'.";
-                $title = "Pembaruan Status {$typeLabel}";
+        foreach ($rawUnread as $notif) {
+            $formatted = \App\Services\NotificationSyncService::formatNotification($notif, $user);
+            if (!$formatted || empty($formatted['is_relevant'])) {
+                continue;
             }
 
-            // Fallback URL jika belum terisi
-            if (!$url && $requestId) {
-                if ($isTicket) {
-                    $url = url('/detailticket/' . $requestId);
-                } else {
-                    $url = url('/detailrequest/' . $requestId);
-                }
+            $dedupKey = ($formatted['is_ticket'] ? 'ticket_' : 'request_') . ($formatted['request_id'] ?? $notif->id);
+            if (isset($seenKeys[$dedupKey])) {
+                continue;
             }
+            $seenKeys[$dedupKey] = true;
 
-            // Deteksi apakah notifikasi adalah tentang request/tiket yang telah selesai (Closed)
-            $isClosed = !empty($raw['is_closed']);
-            if (!$isClosed) {
-                $statusVal = strtolower((string)($raw['status'] ?? ''));
-                $statusIdVal = (int)($raw['status_id'] ?? 0);
-                if ($statusVal === 'closed' || $statusIdVal === 4 || strpos(strtolower($title), 'selesai') !== false || strpos(strtolower($message), 'closed') !== false || strpos(strtolower($message), 'selesai') !== false) {
-                    $isClosed = true;
-                }
+            $notifications[] = $formatted;
+            if (count($notifications) >= 10) {
+                break;
             }
-
-            return [
-                'id' => $notif->id,
-                'title' => $title,
-                'message' => $message,
-                'url' => $url,
-                'created_at_human' => $notif->created_at ? $notif->created_at->diffForHumans() : 'Baru saja',
-                'created_at_timestamp' => $notif->created_at ? $notif->created_at->timestamp : 0,
-                'is_ticket' => (bool)$isTicket,
-                'is_closed' => (bool)$isClosed,
-            ];
-        });
+        }
 
         return response()->json([
-            'unread_count' => $user->unreadNotifications()->count(),
-            'notifications' => $data,
+            'unread_count' => count($notifications),
+            'notifications' => $notifications,
         ]);
     }
 
@@ -133,6 +82,13 @@ class NotificationController extends Controller
     public function index()
     {
         $user = Auth::user();
+        if (!$user) {
+            return redirect()->route('login');
+        }
+
+        // Bersihkan notifikasi self-action dan notifikasi yang tidak relevan
+        \App\Services\NotificationSyncService::cleanupUserNotifications($user);
+
         $notifications = $user->notifications()->latest()->paginate(15);
         return view('notifications.index', compact('notifications'));
     }

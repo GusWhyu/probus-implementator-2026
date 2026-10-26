@@ -635,7 +635,7 @@ class RequestController extends Controller
                 'user_id' => Auth::id()
             ]);
             $creator = $rq->user;
-            if ($creator) {
+            if ($creator && $creator->id !== Auth::id()) {
                 $closerName = Auth::user() ? Auth::user()->name : 'Petugas';
                 $creator->notify(new RequestStatusChanged(
                     $rq,
@@ -644,6 +644,7 @@ class RequestController extends Controller
                 ));
             }
         }
+        \App\Services\NotificationSyncService::syncRequest($rq);
         $imagedata = [];
         if($request->hasfile('images')){
             foreach ($request->file('images') as $image) {
@@ -687,7 +688,7 @@ class RequestController extends Controller
             'user_id' => Auth::user()->id
         ]);
         $creator = $data->user;
-        if ($creator) {
+        if ($creator && $creator->id !== Auth::id()) {
             if ($stid == 4) {
                 $closerName = Auth::user() ? Auth::user()->name : 'Petugas';
                 $creator->notify(new RequestStatusChanged(
@@ -695,10 +696,11 @@ class RequestController extends Controller
                     "Request '{$data->judul}' telah diselesaikan dan ditutup oleh {$closerName}.",
                     "Request Selesai"
                 ));
-            } elseif ($creator->id !== Auth::id()) {
+            } else {
                 $creator->notify(new RequestStatusChanged($data));
             }
         }
+        \App\Services\NotificationSyncService::syncRequest($data);
         Alert::success('Status Changed!');
         return redirect()->back();
     }
