@@ -596,6 +596,7 @@ class RequestController extends Controller
             }
         }
 
+        $oldStatusId = $rq->status_id;
         $rq->update([
             'judul' => $request->title,
             'deskripsi' => $request->body,
@@ -607,6 +608,22 @@ class RequestController extends Controller
             'status_id' => $request->status,
             'outlet_id' => $outletId,
         ]);
+        if ($request->status == 4 && $oldStatusId != 4) {
+            RequestLog::create([
+                'request_id' => $id,
+                'status_id' => 4,
+                'user_id' => Auth::id()
+            ]);
+            $creator = $rq->user;
+            if ($creator) {
+                $closerName = Auth::user() ? Auth::user()->name : 'Petugas';
+                $creator->notify(new RequestStatusChanged(
+                    $rq,
+                    "Request '{$rq->judul}' telah diselesaikan dan ditutup oleh {$closerName}.",
+                    "Request Selesai"
+                ));
+            }
+        }
         $imagedata = [];
         if($request->hasfile('images')){
             foreach ($request->file('images') as $image) {
@@ -650,8 +667,17 @@ class RequestController extends Controller
             'user_id' => Auth::user()->id
         ]);
         $creator = $data->user;
-        if ($creator && $creator->id !== Auth::id()) {
-            $creator->notify(new RequestStatusChanged($data));
+        if ($creator) {
+            if ($stid == 4) {
+                $closerName = Auth::user() ? Auth::user()->name : 'Petugas';
+                $creator->notify(new RequestStatusChanged(
+                    $data,
+                    "Request '{$data->judul}' telah diselesaikan dan ditutup oleh {$closerName}.",
+                    "Request Selesai"
+                ));
+            } elseif ($creator->id !== Auth::id()) {
+                $creator->notify(new RequestStatusChanged($data));
+            }
         }
         Alert::success('Status Changed!');
         return redirect()->back();

@@ -69,17 +69,36 @@ class RequestStatusChanged extends Notification
         $typeLabel = $isTicket ? 'Tiket' : 'Request';
         $url = $isTicket ? url('/detailticket/' . $this->model->id) : url('/detailrequest/' . $this->model->id);
 
+        $isClosed = false;
+        if ($isTicket) {
+            $isClosed = (strtoupper((string)$statusName) === 'CLOSED' || strtoupper((string)($this->model->status ?? '')) === 'CLOSED');
+        } else {
+            $isClosed = ((int)($this->model->status_id ?? 0) === 4 || strtolower((string)$statusName) === 'closed');
+        }
+
+        if ($this->customTitle) {
+            $titleNotif = $this->customTitle;
+        } elseif ($isClosed) {
+            $titleNotif = $typeLabel . ' Selesai (CLOSED)';
+        } else {
+            $titleNotif = 'Pembaruan Status ' . $typeLabel;
+        }
+
         if ($this->customMessage) {
             $message = $this->customMessage;
+        } elseif ($isClosed) {
+            $message = "{$typeLabel} '{$title}' telah diselesaikan dan ditutup oleh {$updaterName}.";
         } else {
             $statusFormatted = ucfirst(strtolower($statusName));
             $message = "Status {$typeLabel} '{$title}' telah diperbarui menjadi '{$statusFormatted}'.";
         }
 
         return [
-            'title' => $this->customTitle ?? ('Pembaruan Status ' . $typeLabel),
+            'title' => $titleNotif,
             'item_title' => $title,
             'status' => $statusName,
+            'status_id' => $this->model->status_id ?? ($isClosed ? 4 : null),
+            'is_closed' => $isClosed,
             'message' => $message,
             'request_id' => $this->model->id ?? null,
             'is_ticket' => $isTicket,

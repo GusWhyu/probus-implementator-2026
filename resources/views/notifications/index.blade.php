@@ -69,8 +69,55 @@
                         if (!$url && $requestId) {
                             $url = $isTicket ? url('/detailticket/' . $requestId) : url('/detailrequest/' . $requestId);
                         }
+                        $isClosed = !empty($data['is_closed']);
+                        if (!$isClosed) {
+                            $statusVal = strtolower((string)($data['status'] ?? ''));
+                            $statusIdVal = (int)($data['status_id'] ?? 0);
+                            if ($statusVal === 'closed' || $statusIdVal === 4 || strpos(strtolower($title), 'selesai') !== false || strpos(strtolower($message), 'closed') !== false || strpos(strtolower($message), 'selesai') !== false) {
+                                $isClosed = true;
+                            }
+                        }
                     @endphp
 
+                    @if ($isClosed)
+                    <div class="p-5 flex items-start gap-4 transition-colors border-l-4 border-l-emerald-500 {{ $isUnread ? 'bg-emerald-50/50 dark:bg-emerald-950/30' : 'bg-emerald-50/20 dark:bg-emerald-950/10 hover:bg-emerald-50/40 dark:hover:bg-emerald-950/20' }}">
+                        <div class="w-10 h-10 rounded-xl bg-emerald-600 text-white shadow-md shadow-emerald-500/20 flex items-center justify-center shrink-0 mt-0.5">
+                            <i class="fa-solid fa-circle-check text-base"></i>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center justify-between gap-3 mb-1">
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <span class="px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider bg-emerald-200/80 text-emerald-900 dark:bg-emerald-900/80 dark:text-emerald-200 border border-emerald-300 dark:border-emerald-700/80 flex items-center gap-1 shadow-2xs">
+                                        <i class="fa-solid fa-check text-[9px]"></i> Selesai (Closed)
+                                    </span>
+                                    <h4 class="text-sm font-extrabold text-emerald-950 dark:text-emerald-200">
+                                        {{ $title }}
+                                    </h4>
+                                </div>
+                                <span class="text-xs text-emerald-700/80 dark:text-emerald-400 font-semibold flex items-center gap-1 shrink-0">
+                                    <i class="fa-regular fa-clock text-[10px]"></i>
+                                    {{ $notification->created_at->diffForHumans() }}
+                                </span>
+                            </div>
+                            <p class="text-sm text-slate-700 dark:text-slate-300 font-medium leading-relaxed mb-3">
+                                {{ $message }}
+                            </p>
+                            <div class="flex items-center gap-3">
+                                @if($url)
+                                    <a href="{{ $url }}" class="inline-flex items-center gap-1.5 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 px-3.5 py-1.5 rounded-lg transition-colors shadow-sm shadow-emerald-600/20">
+                                        <span>Lihat Detail {{ $isTicket ? 'Tiket' : 'Request' }}</span>
+                                        <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                                    </a>
+                                @endif
+                                @if($isUnread)
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-200 text-emerald-900 dark:bg-emerald-900/60 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700/60">
+                                        Baru
+                                    </span>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+                    @else
                     <div class="p-5 flex items-start gap-4 transition-colors {{ $isUnread ? 'bg-blue-50/30 dark:bg-blue-950/20' : 'hover:bg-slate-50/60 dark:hover:bg-slate-800/40' }}">
                         <div class="w-10 h-10 rounded-xl {{ $isUnread ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-transparent dark:border-slate-700/50' }} flex items-center justify-center shrink-0 mt-0.5">
                             <i class="fa-solid fa-bell text-sm"></i>
@@ -103,6 +150,7 @@
                             </div>
                         </div>
                     </div>
+                    @endif
                 @empty
                     <div class="py-16 px-6 text-center flex flex-col items-center">
                         <div class="w-20 h-20 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center text-slate-300 dark:text-slate-600 mb-4 shadow-inner">

@@ -421,8 +421,17 @@ class TicketController extends Controller
             'user_id' => Auth::user()->id
         ]);
         $creator = $data->user;
-        if ($creator && $creator->id !== Auth::id()) {
-            $creator->notify(new RequestStatusChanged($data));
+        if ($creator) {
+            if ($stid == 'CLOSED') {
+                $closerName = Auth::user() ? Auth::user()->name : 'Petugas';
+                $creator->notify(new RequestStatusChanged(
+                    $data,
+                    "Tiket #{$data->ticket_number} '{$data->title}' telah diselesaikan dan ditutup oleh {$closerName}.",
+                    "Tiket Selesai (CLOSED)"
+                ));
+            } elseif ($creator->id !== Auth::id()) {
+                $creator->notify(new RequestStatusChanged($data));
+            }
         }
         if ($data->advisor && $data->advisor_id !== Auth::id() && $data->advisor_id !== $data->user_id) {
             $data->advisor->notify(new RequestStatusChanged($data));
