@@ -19,15 +19,31 @@ class NotificationController extends Controller
             return response()->json(['unread_count' => 0, 'notifications' => []], 401);
         }
 
-        $unreadNotifications = $user->unreadNotifications()->latest()->take(15)->get();
+        $rawUnread = $user->unreadNotifications()->latest()->take(30)->get();
+        $notifications = [];
+        $seenKeys = [];
 
-        $data = $unreadNotifications->map(function ($notif) {
-            return \App\Services\NotificationSyncService::formatNotification($notif);
-        });
+        foreach ($rawUnread as $notif) {
+            $formatted = \App\Services\NotificationSyncService::formatNotification($notif, $user);
+            if (!$formatted || empty($formatted['is_relevant'])) {
+                continue;
+            }
+
+            $dedupKey = ($formatted['is_ticket'] ? 'ticket_' : 'request_') . ($formatted['request_id'] ?? $notif->id);
+            if (isset($seenKeys[$dedupKey])) {
+                continue;
+            }
+            $seenKeys[$dedupKey] = true;
+
+            $notifications[] = $formatted;
+            if (count($notifications) >= 10) {
+                break;
+            }
+        }
 
         return response()->json([
-            'unread_count' => $user->unreadNotifications()->count(),
-            'notifications' => $data,
+            'unread_count' => count($notifications),
+            'notifications' => $notifications,
         ]);
     }
 
@@ -66,6 +82,13 @@ class NotificationController extends Controller
     public function index()
     {
         $user = Auth::user();
+        if (!$user) {
+            return redirect()->route('login');
+        }
+
+        // Bersihkan notifikasi self-action dan notifikasi yang tidak relevan
+        \App\Services\NotificationSyncService::cleanupUserNotifications($user);
+
         $notifications = $user->notifications()->latest()->paginate(15);
         return view('notifications.index', compact('notifications'));
     }

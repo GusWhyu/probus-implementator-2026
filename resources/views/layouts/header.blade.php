@@ -1,10 +1,13 @@
 @php
     $currentUser = Auth::user();
-    $rawUnread = $currentUser ? $currentUser->unreadNotifications()->latest()->take(15)->get() : collect();
+    $rawUnread = $currentUser ? $currentUser->unreadNotifications()->latest()->take(30)->get() : collect();
     $seenItems = [];
     $unreadNotifications = collect();
     foreach ($rawUnread as $un) {
-        $formatted = \App\Services\NotificationSyncService::formatNotification($un);
+        $formatted = \App\Services\NotificationSyncService::formatNotification($un, $currentUser);
+        if (!$formatted || empty($formatted['is_relevant'])) {
+            continue;
+        }
         $rawPayload = is_array($un->data) ? $un->data : (json_decode($un->data, true) ?: []);
         $itemKey = (!empty($formatted['is_ticket']) ? 't_' : 'r_') . ($rawPayload['request_id'] ?? $un->id);
         if (isset($seenItems[$itemKey])) {
@@ -16,8 +19,11 @@
         $seenItems[$itemKey] = true;
         $un->formattedData = $formatted;
         $unreadNotifications->push($un);
+        if ($unreadNotifications->count() >= 10) {
+            break;
+        }
     }
-    $unreadCount = $currentUser ? $currentUser->unreadNotifications()->count() : 0;
+    $unreadCount = $unreadNotifications->count();
 @endphp
 <header class="h-16 bg-white/80 backdrop-blur-md border-b border-slate-200 flex items-center justify-between px-4 md:px-8 shrink-0 z-30 sticky top-0 w-full">
     <div class="flex items-center gap-3">

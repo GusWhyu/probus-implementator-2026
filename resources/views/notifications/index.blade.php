@@ -28,7 +28,10 @@
             <div class="bg-white dark:bg-slate-900 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden divide-y divide-slate-100 dark:divide-slate-800/60">
                 @forelse ($notifications as $notification)
                     @php
-                        $notifData = \App\Services\NotificationSyncService::formatNotification($notification);
+                        $notifData = \App\Services\NotificationSyncService::formatNotification($notification, Auth::user());
+                        if (!$notifData || empty($notifData['is_relevant'])) {
+                            continue;
+                        }
                         $isUnread = is_null($notification->read_at);
                         $title = $notifData['title'];
                         $message = $notifData['message'];

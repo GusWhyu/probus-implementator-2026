@@ -276,10 +276,12 @@ class TicketController extends Controller
             $updateData['solusi'] = $request->solusi;
         }
 
+        $statusChanged = false;
         // Status update by Supervisor or Admin
         if ($isAdminOrSupervisor && $request->filled('status') && $request->status !== $datarq->status) {
             $newStatus = $request->status;
             $updateData['status'] = $newStatus;
+            $statusChanged = true;
             if ($newStatus == 'CLOSED') {
                 $closedAt = now();
                 $updateData['closed_at'] = $closedAt;
@@ -310,6 +312,44 @@ class TicketController extends Controller
         }
 
         $datarq->update($updateData);
+
+        // Notifikasi ke pihak terkait lain (selain diri sendiri) jika status diubah
+        if ($statusChanged) {
+            $closerName = Auth::user() ? Auth::user()->name : 'Petugas';
+            $creator = $datarq->user;
+            if ($creator && $creator->id !== Auth::id()) {
+                if ($newStatus == 'CLOSED') {
+                    $creator->notify(new RequestStatusChanged(
+                        $datarq,
+                        "Tiket #{$datarq->ticket_number} '{$datarq->title}' telah diselesaikan dan ditutup oleh {$closerName}.",
+                        "Tiket Selesai (CLOSED)"
+                    ));
+                } else {
+                    $statusFormatted = ucfirst(strtolower($newStatus));
+                    $creator->notify(new RequestStatusChanged(
+                        $datarq,
+                        "Status Tiket #{$datarq->ticket_number} '{$datarq->title}' saat ini berstatus '{$statusFormatted}'.",
+                        "Pembaruan Status Tiket"
+                    ));
+                }
+            }
+            if ($datarq->advisor && $datarq->advisor_id !== Auth::id() && $datarq->advisor_id !== $datarq->user_id) {
+                if ($newStatus == 'CLOSED') {
+                    $datarq->advisor->notify(new RequestStatusChanged(
+                        $datarq,
+                        "Tiket #{$datarq->ticket_number} '{$datarq->title}' telah diselesaikan dan ditutup oleh {$closerName}.",
+                        "Tiket Selesai (CLOSED)"
+                    ));
+                } else {
+                    $statusFormatted = ucfirst(strtolower($newStatus));
+                    $datarq->advisor->notify(new RequestStatusChanged(
+                        $datarq,
+                        "Status Tiket #{$datarq->ticket_number} '{$datarq->title}' saat ini berstatus '{$statusFormatted}'.",
+                        "Pembaruan Status Tiket"
+                    ));
+                }
+            }
+        }
 
         // Sinkronisasi status notifikasi agar selaras dengan status terbaru tiket
         \App\Services\NotificationSyncService::syncTicket($datarq);
@@ -423,21 +463,29 @@ class TicketController extends Controller
             'status_id' => $logStatusId,
             'user_id' => Auth::user()->id
         ]);
+        $closerName = Auth::user() ? Auth::user()->name : 'Petugas';
         $creator = $data->user;
-        if ($creator) {
+        if ($creator && $creator->id !== Auth::id()) {
             if ($stid == 'CLOSED') {
-                $closerName = Auth::user() ? Auth::user()->name : 'Petugas';
                 $creator->notify(new RequestStatusChanged(
                     $data,
                     "Tiket #{$data->ticket_number} '{$data->title}' telah diselesaikan dan ditutup oleh {$closerName}.",
                     "Tiket Selesai (CLOSED)"
                 ));
-            } elseif ($creator->id !== Auth::id()) {
+            } else {
                 $creator->notify(new RequestStatusChanged($data));
             }
         }
         if ($data->advisor && $data->advisor_id !== Auth::id() && $data->advisor_id !== $data->user_id) {
-            $data->advisor->notify(new RequestStatusChanged($data));
+            if ($stid == 'CLOSED') {
+                $data->advisor->notify(new RequestStatusChanged(
+                    $data,
+                    "Tiket #{$data->ticket_number} '{$data->title}' telah diselesaikan dan ditutup oleh {$closerName}.",
+                    "Tiket Selesai (CLOSED)"
+                ));
+            } else {
+                $data->advisor->notify(new RequestStatusChanged($data));
+            }
         }
 
         // Sinkronisasi status notifikasi agar selaras dengan status terbaru tiket
