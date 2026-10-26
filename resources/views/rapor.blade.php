@@ -43,8 +43,8 @@
         <div class="max-w-7xl mx-auto w-full min-w-0">
             
             <!-- Top Bar -->
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4 w-full min-w-0">
-                <div class="min-w-0 w-full sm:w-auto">
+            <div class="flex flex-col lg:flex-row lg:items-center justify-between mb-6 gap-4 w-full min-w-0">
+                <div class="min-w-0">
                     <a href="{{ route('laporan', ['month' => $month, 'year' => $year, 'department_id' => $user->departemen_id]) }}" class="inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 mb-2 transition-colors">
                         <i class="fa-solid fa-chevron-left text-[10px]"></i> Kembali ke daftar
                     </a>
@@ -55,18 +55,18 @@
                             $userAvatar = $user->profile_image ? asset('storage/' . $user->profile_image) : asset($isFemale ? 'img/avatar-female.png' : 'img/avatar-default.png');
                         @endphp
                         <img src="{{ $userAvatar }}" alt="Avatar" class="w-12 h-12 sm:w-14 sm:h-14 rounded-full object-cover shrink-0 shadow-sm bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700" style="{{ $isFemale && !$user->profile_image ? 'object-position: top;' : '' }}">
-                        <div class="min-w-0 flex-1">
-                            <h1 class="text-xl sm:text-2xl font-extrabold text-slate-800 dark:text-slate-100 tracking-tight truncate">
+                        <div class="min-w-0">
+                            <h1 class="text-xl sm:text-2xl font-extrabold text-slate-800 dark:text-slate-100 tracking-tight">
                                 Rapor Kinerja Staff
                             </h1>
-                            <p class="text-xs sm:text-sm font-medium text-slate-500 dark:text-slate-400 truncate">
+                            <p class="text-xs sm:text-sm font-medium text-slate-500 dark:text-slate-400">
                                 <span class="capitalize">{{ $user->usertype ?? 'Staff' }}</span> &bull; Departemen {{ ucfirst($user->departemen->name ?? 'Operasional') }} - <span class="font-bold text-slate-700 dark:text-slate-200">{{ $user->name ?? 'Andi Pratama' }}</span>
                             </p>
                         </div>
                     </div>
                 </div>
                 
-                <div class="flex flex-col items-start sm:items-end gap-2.5 w-full sm:w-auto min-w-0">
+                <div class="flex flex-col items-start lg:items-end gap-2.5 w-full lg:w-auto shrink-0">
                     <div class="flex items-center gap-2 flex-wrap">
                         <span class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Periode Evaluasi</span>
                         <span class="inline-flex items-center gap-1 text-[11px] font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/50 px-2 py-0.5 rounded-md border border-blue-100 dark:border-blue-900/40">
@@ -75,8 +75,8 @@
                         </span>
                     </div>
 
-                    <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full sm:w-auto min-w-0">
-                        <form action="{{ route('rapor', ['id' => $user->id]) }}" method="GET" class="w-full sm:w-auto min-w-0">
+                    <div class="flex flex-wrap items-center gap-2.5 w-full sm:w-auto">
+                        <form action="{{ route('rapor', ['id' => $user->id]) }}" method="GET" class="w-full sm:w-auto">
                             <input type="hidden" name="period_type" value="{{ $periodType ?? '1m' }}">
 
                             {{-- Unified Compact Period Bar (Responsive: stacks on mobile, pill on desktop) --}}
@@ -101,8 +101,8 @@
                                 <div class="hidden sm:block h-4 w-px bg-slate-200 dark:bg-slate-700 mx-2 shrink-0"></div>
 
                                 {{-- Dropdown for selected interval --}}
-                                <div class="relative flex items-center justify-between sm:justify-start px-2.5 sm:px-0 sm:pr-2 w-full sm:w-auto min-w-0 bg-slate-100/60 dark:bg-slate-900/50 sm:bg-transparent dark:sm:bg-transparent rounded-xl sm:rounded-none py-1 sm:py-0 border border-slate-200/60 dark:border-slate-800/80 sm:border-0">
-                                    <div class="flex items-center gap-2 min-w-0 flex-1">
+                                <div class="relative flex sm:inline-flex items-center justify-between sm:justify-start px-2.5 sm:px-0 sm:pr-2 w-full sm:w-auto min-w-0 bg-slate-100/60 dark:bg-slate-900/50 sm:bg-transparent dark:sm:bg-transparent rounded-xl sm:rounded-none py-1 sm:py-0 border border-slate-200/60 dark:border-slate-800/80 sm:border-0">
+                                    <div class="flex items-center gap-1.5 min-w-0">
                                         <i class="fa-regular fa-calendar text-blue-500 dark:text-blue-400 text-xs ml-0.5 sm:ml-1 mr-1 pointer-events-none shrink-0"></i>
                                         @php
                                             $activeOptions = ($periodType === '3m') 

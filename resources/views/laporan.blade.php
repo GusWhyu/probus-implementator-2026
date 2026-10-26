@@ -51,8 +51,8 @@
                             <div class="hidden sm:block h-5 w-px bg-slate-200 dark:bg-slate-700 mx-2 shrink-0"></div>
 
                             {{-- Dropdown for active interval --}}
-                            <div class="relative flex items-center justify-between sm:justify-start px-2.5 sm:px-0 sm:pr-2 w-full sm:w-auto min-w-0 bg-slate-100/60 dark:bg-slate-900/50 sm:bg-transparent dark:sm:bg-transparent rounded-xl sm:rounded-none py-1 sm:py-0 border border-slate-200/60 dark:border-slate-800/80 sm:border-0">
-                                <div class="flex items-center gap-2 min-w-0 flex-1">
+                            <div class="relative flex sm:inline-flex items-center justify-between sm:justify-start px-2.5 sm:px-0 sm:pr-2 w-full sm:w-auto min-w-0 bg-slate-100/60 dark:bg-slate-900/50 sm:bg-transparent dark:sm:bg-transparent rounded-xl sm:rounded-none py-1 sm:py-0 border border-slate-200/60 dark:border-slate-800/80 sm:border-0">
+                                <div class="flex items-center gap-1.5 min-w-0">
                                     <i class="fa-regular fa-calendar text-blue-500 dark:text-blue-400 text-sm ml-0.5 sm:ml-1 mr-1 sm:mr-2 pointer-events-none shrink-0"></i>
                                     @php
                                         $activeOptions = ($periodType === '3m') 
