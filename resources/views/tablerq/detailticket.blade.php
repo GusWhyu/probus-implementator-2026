@@ -882,8 +882,8 @@
                                                 </button>
                                             @endif
 
-                                            <button type="button" onclick="document.getElementById('resumeProgressModal').showModal()" class="w-full flex items-center justify-center bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 py-2.5 rounded-xl font-bold text-xs transition-all active:scale-95 gap-1.5 cursor-pointer mt-0.5">
-                                                <i class="fa-solid fa-rotate-left text-blue-500"></i> Lanjut Kerjakan Kembali
+                                            <button type="button" onclick="document.getElementById('resumeProgressModal').showModal()" class="w-full flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-bold text-xs sm:text-sm shadow-md shadow-blue-500/25 transition-all active:scale-95 gap-2 cursor-pointer">
+                                                <i class="fa-solid fa-rotate-left text-blue-200"></i> Lanjut Kerjakan Kembali
                                             </button>
                                         @else
                                             {{-- Tiket progress normal --}}
