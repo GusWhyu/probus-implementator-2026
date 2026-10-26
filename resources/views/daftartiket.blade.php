@@ -301,15 +301,22 @@
                                                 $statusClass = 'bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-950/50 dark:text-emerald-400 dark:border-emerald-800';
                                             }
                                         @endphp
-                                        <div class="inline-flex items-center gap-1.5">
-                                            @if($rq->is_new && $rq->pending_advisor_id == null)
-                                            <span class="inline-flex items-center gap-1 bg-gradient-to-r from-emerald-500 to-teal-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded-full uppercase tracking-wider shadow-sm">
-                                                <span class="w-1 h-1 rounded-full bg-white animate-pulse"></span>NEW
+                                        <div class="flex flex-col items-center gap-1">
+                                            <div class="inline-flex items-center gap-1.5">
+                                                @if($rq->is_new && $rq->pending_advisor_id == null)
+                                                <span class="inline-flex items-center gap-1 bg-gradient-to-r from-emerald-500 to-teal-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded-full uppercase tracking-wider shadow-sm">
+                                                    <span class="w-1 h-1 rounded-full bg-white animate-pulse"></span>NEW
+                                                </span>
+                                                @endif
+                                                <span class="inline-flex items-center justify-center px-2.5 py-1 rounded-full text-[9px] font-extrabold uppercase tracking-wider border whitespace-nowrap {{ $statusClass }}">
+                                                    {{ $statusName }}
+                                                </span>
+                                            </div>
+                                            @if($rq->is_waiting_confirmation)
+                                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[8px] font-extrabold uppercase tracking-wider bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 border border-amber-300/80 dark:border-amber-700/60 shadow-2xs whitespace-nowrap">
+                                                <i class="fa-solid fa-hourglass-half text-[7px] text-amber-500"></i> MENUNGGU KLIEN
                                             </span>
                                             @endif
-                                            <span class="inline-flex items-center justify-center px-2.5 py-1 rounded-full text-[9px] font-extrabold uppercase tracking-wider border whitespace-nowrap {{ $statusClass }}">
-                                                {{ $statusName }}
-                                            </span>
                                         </div>
                                     @endif
                                 </td>

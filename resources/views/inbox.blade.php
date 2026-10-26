@@ -257,13 +257,20 @@
                                 @endif
                             </div>
                             @endif
-                            <div class="flex justify-between items-center mb-3">
+                            <div class="flex justify-between items-start mb-3 gap-2">
                                 <div class="flex items-center gap-1.5 flex-wrap">
                                     <span class="bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 text-xs font-mono font-bold px-2 py-1 rounded-md">{{ $rq->ticket_number }}</span>
                                     <span class="bg-slate-100 dark:bg-slate-700/60 text-slate-600 dark:text-slate-300 text-[10px] font-semibold px-2 py-1 rounded-md max-w-[90px] truncate" title="{{ $rq->kategoriSystem->name ?? '' }}">{{ $rq->kategoriSystem->name ?? '-' }}</span>
                                     <span class="bg-slate-100 dark:bg-slate-700/60 text-slate-600 dark:text-slate-300 text-[10px] font-semibold px-2 py-1 rounded-md max-w-[90px] truncate" title="{{ $rq->moduleSystem->name ?? '' }}">{{ $rq->moduleSystem->name ?? '-' }}</span>
                                 </div>
-                                <span class="bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider border border-amber-100 dark:border-amber-800/40 shrink-0">{{ $rq->status }}</span>
+                                <div class="flex flex-col items-end gap-1.5 shrink-0">
+                                    <span class="bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider border border-amber-100 dark:border-amber-800/40">{{ $rq->status }}</span>
+                                    @if($rq->is_waiting_confirmation)
+                                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wider bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 border border-amber-300/80 dark:border-amber-700/60 shadow-2xs whitespace-nowrap">
+                                        <i class="fa-solid fa-hourglass-half text-[8px] text-amber-500"></i> MENUNGGU KLIEN
+                                    </span>
+                                    @endif
+                                </div>
                             </div>
                             <h3 class="font-extrabold text-slate-800 dark:text-slate-100 text-base sm:text-lg mb-4 leading-snug line-clamp-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors" title="{{ $rq->title }}">{{ $rq->title }}</h3>
                             
