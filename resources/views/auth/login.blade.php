@@ -85,19 +85,19 @@
             <div class="w-full max-w-md my-auto py-4 sm:py-6 space-y-5 sm:space-y-6 relative z-10">
                 
                 <!-- Brand Header (Desktop & Mobile) -->
-                <div class="mb-5 sm:mb-7">
-                    <div class="flex items-center gap-3.5">
+                <div class="mb-6 sm:mb-8 text-center flex flex-col items-center">
+                    <div class="inline-flex items-center justify-center gap-3.5">
                         <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-br from-[#0052D4] via-[#4364F7] to-[#002B7A] flex items-center justify-center p-2.5 sm:p-3 shadow-lg shadow-blue-600/25 border border-blue-400/30 shrink-0">
                             <div class="w-full h-full rounded-xl bg-white flex items-center justify-center p-1.5 shadow-xs">
                                 <img src="{{ asset('img/logo.png') }}" alt="Probus Logo" class="w-full h-full object-contain">
                             </div>
                         </div>
-                        <div>
+                        <div class="text-left">
                             <div class="text-xs sm:text-sm font-black tracking-widest uppercase text-blue-600 leading-tight">PROBUS SYSTEM</div>
                             <div class="text-xl sm:text-2xl font-black text-slate-800 tracking-wider uppercase leading-tight mt-0.5">IMPLEMENTATOR</div>
                         </div>
                     </div>
-                    <p class="text-xs sm:text-sm text-slate-500 font-medium mt-3">Silakan masuk ke akun Probus Implementator Anda.</p>
+                    <p class="text-xs sm:text-sm text-slate-500 font-medium mt-3 text-center">Silakan masuk ke akun Probus Implementator Anda.</p>
                 </div>
                 
                 <!-- Feedback Notifications -->
