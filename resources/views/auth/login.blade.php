@@ -43,14 +43,11 @@
                 </svg>
             </div>
 
-            <!-- Brand Header -->
-            <div class="relative z-10 flex items-center gap-3.5">
-                <div class="w-12 h-12 rounded-2xl bg-white/15 backdrop-blur-md border border-white/25 flex items-center justify-center p-2.5 shadow-lg shadow-black/10">
-                    <img src="{{ asset('img/logo.png') }}" alt="Probus Logo" class="w-full h-full object-contain filter drop-shadow">
-                </div>
-                <div>
-                    <div class="text-xs font-extrabold tracking-widest uppercase text-sky-200 leading-tight">PROBUS SYSTEM</div>
-                    <div class="text-sm font-bold text-white tracking-wider uppercase leading-tight">IMPLEMENTATOR</div>
+            <!-- Top Tag Pill -->
+            <div class="relative z-10">
+                <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-xs font-semibold tracking-wide text-sky-200 shadow-sm">
+                    <span class="w-2 h-2 rounded-full bg-sky-400 animate-pulse"></span>
+                    <span>Request & Ticketing System</span>
                 </div>
             </div>
 
@@ -87,14 +84,20 @@
 
             <div class="w-full max-w-md my-auto py-4 sm:py-6 space-y-5 sm:space-y-6 relative z-10">
                 
-                <!-- Mobile Brand Header (Visible only on mobile/tablet portrait) -->
-                <div class="md:hidden flex flex-col items-center text-center mb-2 sm:mb-4">
-                    <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#0052D4] via-[#4364F7] to-[#002B7A] flex items-center justify-center p-2.5 shadow-lg shadow-blue-600/25 mb-3 border border-blue-400/30">
-                        <img src="{{ asset('img/logo.png') }}" alt="Probus Logo" class="w-full h-full object-contain filter drop-shadow">
+                <!-- Brand Header (Desktop & Mobile) -->
+                <div class="mb-6 sm:mb-8 text-center flex flex-col items-center">
+                    <div class="inline-flex items-center justify-center gap-3.5">
+                        <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-br from-[#0052D4] via-[#4364F7] to-[#002B7A] flex items-center justify-center p-2.5 sm:p-3 shadow-lg shadow-blue-600/25 border border-blue-400/30 shrink-0">
+                            <div class="w-full h-full rounded-xl bg-white flex items-center justify-center p-1.5 shadow-xs">
+                                <img src="{{ asset('img/logo.png') }}" alt="Probus Logo" class="w-full h-full object-contain">
+                            </div>
+                        </div>
+                        <div class="text-left">
+                            <div class="text-xs sm:text-sm font-black tracking-widest uppercase text-blue-600 leading-tight">PROBUS SYSTEM</div>
+                            <div class="text-xl sm:text-2xl font-black text-slate-800 tracking-wider uppercase leading-tight mt-0.5">IMPLEMENTATOR</div>
+                        </div>
                     </div>
-                    <div class="text-[11px] font-extrabold tracking-widest uppercase text-blue-600 leading-tight">PROBUS SYSTEM</div>
-                    <div class="text-lg sm:text-xl font-bold text-slate-800 tracking-wider uppercase leading-tight mt-0.5">IMPLEMENTATOR</div>
-                    <p class="text-xs text-slate-500 mt-1 max-w-xs">Sistem manajemen request & ticketing</p>
+                    <p class="text-xs sm:text-sm text-slate-500 font-medium mt-3 text-center">Silakan masuk ke akun Probus Implementator Anda.</p>
                 </div>
                 
                 <!-- Feedback Notifications -->

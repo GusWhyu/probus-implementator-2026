@@ -301,7 +301,7 @@
                                 <h3 class="text-sm font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
                                     <i class="fa-regular fa-envelope text-blue-500"></i> Rincian Penilaian per Modul
                                 </h3>
-                                <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Rumus: Skor = Bobot × Total Tiket</p>
+                                <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5"><span class="text-blue-600 dark:text-blue-400 font-bold inline-flex items-center gap-1 mr-1"><i class="fa-solid fa-arrow-pointer text-[10px]"></i> Klik modul untuk riwayat tiket & download Excel/PDF</span> &bull; Rumus: Skor = Bobot × Total Tiket</p>
                             </div>
 
                             <!-- Filter Toggle: Semua vs Hanya yang Ditangani -->
@@ -339,16 +339,31 @@
                                         $hasTickets = ($md['total_ticket'] > 0);
                                     @endphp
                                     <tr x-show="!onlyHandled || {{ $hasTickets ? 'true' : 'false' }}"
-                                        class="transition-colors {{ $hasTickets ? 'bg-blue-50/20 dark:bg-blue-950/15 hover:bg-blue-50/40 dark:hover:bg-blue-950/30' : 'opacity-40 hover:opacity-100 hover:bg-slate-50/50 dark:hover:bg-slate-800/40' }}">
+                                        @if($hasTickets)
+                                        @click="$dispatch('open-module-modal', { id: {{ $md['id'] }}, name: '{{ addslashes($md['name']) }}', total: {{ (int)$md['total_ticket'] }} })"
+                                        class="transition-all cursor-pointer group bg-blue-50/20 dark:bg-blue-950/20 hover:bg-blue-100/60 dark:hover:bg-blue-900/40"
+                                        title="Klik modul untuk melihat riwayat {{ $md['total_ticket'] }} tiket & download format Excel/PDF"
+                                        @else
+                                        class="transition-colors opacity-40 hover:opacity-100 hover:bg-slate-50/50 dark:hover:bg-slate-700/40"
+                                        @endif>
                                         
                                         <td class="py-3 px-3.5 font-bold {{ $hasTickets ? 'text-slate-800 dark:text-slate-100' : 'text-slate-500 dark:text-slate-400' }}">
-                                            <div class="flex items-center gap-2">
+                                            <div class="flex items-center gap-2.5">
                                                 @if($hasTickets)
-                                                <span class="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0"></span>
+                                                <span class="w-2 h-2 rounded-full bg-blue-500 shrink-0 group-hover:scale-125 transition-transform animate-pulse"></span>
+                                                <div class="flex flex-col">
+                                                    <button type="button" class="text-left font-black text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 flex items-center gap-1.5 group-hover:underline cursor-pointer">
+                                                        <span class="text-sm font-extrabold">{{ $md['name'] }}</span>
+                                                        <i class="fa-solid fa-arrow-up-right-from-square text-[10px] text-blue-500"></i>
+                                                    </button>
+                                                    <span class="text-[10px] font-semibold text-slate-400 dark:text-slate-500 group-hover:text-blue-500 flex items-center gap-1 mt-0.5">
+                                                        <i class="fa-solid fa-file-arrow-down text-[9px]"></i> Klik untuk riwayat & unduh
+                                                    </span>
+                                                </div>
                                                 @else
                                                 <span class="w-1.5 h-1.5 rounded-full bg-slate-300 dark:bg-slate-600 shrink-0"></span>
-                                                @endif
                                                 <span>{{ $md['name'] }}</span>
+                                                @endif
                                             </div>
                                         </td>
                                         
@@ -358,9 +373,14 @@
                                         
                                         <td class="py-3 px-3 text-center">
                                             @if($hasTickets)
-                                            <span class="inline-flex items-center justify-center px-2.5 py-1 rounded-lg text-xs font-black bg-blue-100 dark:bg-blue-900/60 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800/60 shadow-2xs">
-                                                {{ $md['total_ticket'] }} Tiket
-                                            </span>
+                                            <button type="button" 
+                                                @click.stop="$dispatch('open-module-modal', { id: {{ $md['id'] }}, name: '{{ addslashes($md['name']) }}', total: {{ (int)$md['total_ticket'] }} })"
+                                                class="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black bg-blue-600 hover:bg-blue-700 text-white shadow-xs hover:shadow-md transition-all hover:scale-105 cursor-pointer"
+                                                title="Klik untuk membuka popup riwayat tiket & download Excel/PDF">
+                                                <i class="fa-solid fa-list-check text-[10px]"></i>
+                                                <span>{{ $md['total_ticket'] }} Tiket</span>
+                                                <i class="fa-solid fa-chevron-right text-[9px] opacity-75"></i>
+                                            </button>
                                             @else
                                             <span class="text-xs text-slate-400 dark:text-slate-500 font-medium">0</span>
                                             @endif
@@ -516,4 +536,301 @@
 
         </div>
     </div>
+
+            <!-- Modal Riwayat Tiket Modul & Download Excel/PDF -->
+            <div x-data="{
+                isOpen: false,
+                isLoading: false,
+                moduleId: null,
+                moduleName: '',
+                periodLabel: '{{ \Carbon\Carbon::createFromDate($currentYear, $currentMonth, 1)->locale('id')->translatedFormat('F Y') }}',
+                summary: { total: 0, closed: 0, progress: 0, open: 0 },
+                tickets: [],
+                excelUrl: '',
+                pdfUrl: '',
+                open(id, name, total) {
+                    this.moduleId = id;
+                    this.moduleName = name;
+                    this.isOpen = true;
+                    this.isLoading = true;
+                    this.tickets = [];
+                    this.summary = { total: total || 0, closed: 0, progress: 0, open: 0 };
+                    
+                    let baseUrlExcel = '{{ route('rapor.module_tickets.excel', ['id' => $user->id, 'module_id' => '__MODULE_ID__']) }}';
+                    let baseUrlPdf = '{{ route('rapor.module_tickets.pdf', ['id' => $user->id, 'module_id' => '__MODULE_ID__']) }}';
+                    let baseUrlJson = '{{ route('rapor.module_tickets', ['id' => $user->id, 'module_id' => '__MODULE_ID__']) }}';
+                    
+                    this.excelUrl = baseUrlExcel.replace('__MODULE_ID__', id) + '?month={{ $currentMonth }}&year={{ $currentYear }}';
+                    this.pdfUrl = baseUrlPdf.replace('__MODULE_ID__', id) + '?month={{ $currentMonth }}&year={{ $currentYear }}';
+                    
+                    fetch(baseUrlJson.replace('__MODULE_ID__', id) + '?month={{ $currentMonth }}&year={{ $currentYear }}')
+                        .then(res => res.json())
+                        .then(data => {
+                            this.isLoading = false;
+                            if (data.success) {
+                                this.tickets = data.tickets || [];
+                                this.summary = data.summary || { total: 0, closed: 0, progress: 0, open: 0 };
+                                if (data.period && data.period.label) {
+                                    this.periodLabel = data.period.label;
+                                }
+                            }
+                        })
+                        .catch(err => {
+                            this.isLoading = false;
+                            console.error('Gagal mengambil riwayat tiket:', err);
+                        });
+                },
+                close() {
+                    this.isOpen = false;
+                }
+            }"
+            @open-module-modal.window="open($event.detail.id, $event.detail.name, $event.detail.total)"
+            x-cloak
+            x-show="isOpen"
+            class="fixed inset-0 z-50 overflow-y-auto"
+            aria-labelledby="modal-title" role="dialog" aria-modal="true">
+                <!-- Backdrop with blur -->
+                <div x-show="isOpen"
+                     x-transition:enter="ease-out duration-300"
+                     x-transition:enter-start="opacity-0"
+                     x-transition:enter-end="opacity-100"
+                     x-transition:leave="ease-in duration-200"
+                     x-transition:leave-start="opacity-100"
+                     x-transition:leave-end="opacity-0"
+                     @click="close()"
+                     class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs transition-opacity"></div>
+
+                <div class="flex min-h-full items-center justify-center p-3 sm:p-4 text-center">
+                    <div x-show="isOpen"
+                         x-transition:enter="ease-out duration-300"
+                         x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                         x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+                         x-transition:leave="ease-in duration-200"
+                         x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
+                         x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                         class="relative transform rounded-2xl bg-white dark:bg-slate-850 text-left shadow-2xl transition-all w-full max-w-5xl border border-slate-200 dark:border-slate-700/80 flex flex-col max-h-[92vh] overflow-hidden">
+                         
+                        <!-- Header Modal -->
+                        <div class="px-5 py-4 border-b border-slate-100 dark:border-slate-700/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-50/50 dark:bg-slate-800/40">
+                            <div class="flex items-center gap-3 min-w-0">
+                                <div class="w-10 h-10 rounded-xl bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
+                                    <i class="fa-solid fa-layer-group text-lg"></i>
+                                </div>
+                                <div class="min-w-0">
+                                    <div class="flex items-center gap-2 flex-wrap">
+                                        <h3 class="text-base sm:text-lg font-black text-slate-800 dark:text-slate-100 truncate">
+                                            Riwayat Tiket Modul: <span class="text-blue-600 dark:text-blue-400" x-text="moduleName"></span>
+                                        </h3>
+                                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800" x-text="periodLabel"></span>
+                                    </div>
+                                    <p class="text-xs text-slate-500 dark:text-slate-400 font-medium truncate mt-0.5">
+                                        Staff: <strong class="text-slate-700 dark:text-slate-200">{{ $user->name }}</strong> &bull; Total: <span x-text="summary.total"></span> Tiket
+                                    </p>
+                                </div>
+                            </div>
+
+                            <!-- Action Buttons: Download Excel & PDF + Close -->
+                            <div class="flex items-center gap-2 self-end sm:self-center shrink-0">
+                                <!-- Download Excel -->
+                                <a :href="excelUrl"
+                                   class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs hover:shadow transition-all cursor-pointer"
+                                   title="Download data riwayat tiket modul dalam format Excel (.xlsx)">
+                                    <i class="fa-solid fa-file-excel text-sm"></i>
+                                    <span>Download Excel</span>
+                                </a>
+
+                                <!-- Download PDF -->
+                                <a :href="pdfUrl" target="_blank"
+                                   class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-rose-600 hover:bg-rose-700 text-white shadow-xs hover:shadow transition-all cursor-pointer"
+                                   title="Download data riwayat tiket modul dalam format PDF (.pdf)">
+                                    <i class="fa-solid fa-file-pdf text-sm"></i>
+                                    <span>Download PDF</span>
+                                </a>
+
+                                <!-- Close Button -->
+                                <button @click="close()" type="button" class="w-8 h-8 rounded-xl flex items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-200/60 dark:hover:bg-slate-700/60 transition-colors ml-1 cursor-pointer">
+                                    <i class="fa-solid fa-xmark text-lg"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- KPI Pill Bar -->
+                        <div class="px-5 py-2.5 bg-slate-100/60 dark:bg-slate-800/80 border-b border-slate-100 dark:border-slate-700/80 flex items-center gap-2.5 flex-wrap text-xs font-bold">
+                            <span class="text-slate-500 dark:text-slate-400 text-[11px] uppercase tracking-wider font-extrabold mr-1">Status:</span>
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-600">
+                                <span class="w-2 h-2 rounded-full bg-slate-400"></span>
+                                Total: <span x-text="summary.total"></span>
+                            </span>
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60">
+                                <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                                Selesai (Closed): <span x-text="summary.closed"></span>
+                            </span>
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800/60">
+                                <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+                                Proses (Progress): <span x-text="summary.progress"></span>
+                            </span>
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800/60">
+                                <span class="w-2 h-2 rounded-full bg-blue-500"></span>
+                                Baru (Open): <span x-text="summary.open"></span>
+                            </span>
+                        </div>
+
+                        <!-- Body Content / Table -->
+                        <div class="p-5 overflow-y-auto custom-scrollbar flex-1">
+                            <!-- Loading State -->
+                            <div x-show="isLoading" class="py-12 flex flex-col items-center justify-center gap-3">
+                                <div class="w-8 h-8 border-3 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                                <p class="text-xs font-bold text-slate-500 dark:text-slate-400">Memuat riwayat pengerjaan tiket modul...</p>
+                            </div>
+
+                            <!-- Empty State -->
+                            <div x-show="!isLoading && tickets.length === 0" class="py-12 flex flex-col items-center justify-center text-center px-4">
+                                <div class="w-14 h-14 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 flex items-center justify-center mb-3">
+                                    <i class="fa-solid fa-inbox text-2xl"></i>
+                                </div>
+                                <h4 class="text-sm font-bold text-slate-700 dark:text-slate-200 mb-1">Tidak Ada Riwayat Tiket</h4>
+                                <p class="text-xs text-slate-400 max-w-sm">Belum ada tiket yang dikerjakan pada modul ini untuk periode yang dipilih.</p>
+                            </div>
+
+                            <!-- Tickets List Table -->
+                            <div x-show="!isLoading && tickets.length > 0" class="overflow-x-auto custom-scrollbar">
+                                <table class="w-full text-left border-collapse min-w-[720px]">
+                                    <thead>
+                                        <tr class="border-b border-slate-200 dark:border-slate-700 text-[11px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 bg-slate-50/70 dark:bg-slate-800/60">
+                                            <th class="py-2.5 px-3 text-center w-10">No</th>
+                                            <th class="py-2.5 px-3">No. Tiket & Outlet</th>
+                                            <th class="py-2.5 px-3">Tipe & Status</th>
+                                            <th class="py-2.5 px-3">Apa Yang Dikerjakan & Solusi</th>
+                                            <th class="py-2.5 px-3 text-center">Waktu & Durasi</th>
+                                            <th class="py-2.5 px-3 text-center w-16">Aksi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-slate-100 dark:divide-slate-800 text-xs">
+                                        <template x-for="(t, idx) in tickets" :key="t.id">
+                                            <tr class="hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition-colors align-top">
+                                                <!-- No -->
+                                                <td class="py-3 px-3 text-center font-bold text-slate-400" x-text="idx + 1"></td>
+                                                
+                                                <!-- Tiket & Client -->
+                                                <td class="py-3 px-3">
+                                                    <div class="font-mono font-bold text-slate-800 dark:text-slate-100 text-xs flex items-center gap-1.5">
+                                                        <i class="fa-solid fa-ticket text-blue-500 text-[11px]"></i>
+                                                        <span x-text="t.ticket_number"></span>
+                                                    </div>
+                                                    <div class="text-[11px] font-semibold text-slate-600 dark:text-slate-300 mt-1 flex items-center gap-1 truncate max-w-[200px]" :title="t.client_name">
+                                                        <i class="fa-solid fa-hotel text-slate-400 text-[10px]"></i>
+                                                        <span x-text="t.client_name"></span>
+                                                    </div>
+                                                </td>
+
+                                                <!-- Tipe & Status -->
+                                                <td class="py-3 px-3">
+                                                    <div class="flex flex-col gap-1.5 items-start">
+                                                        <!-- Status -->
+                                                        <template x-if="t.status === 'CLOSED'">
+                                                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-black bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60">
+                                                                <i class="fa-solid fa-circle-check text-[9px]"></i> CLOSED
+                                                            </span>
+                                                        </template>
+                                                        <template x-if="t.status === 'PROGRESS'">
+                                                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-black bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800/60">
+                                                                <i class="fa-solid fa-spinner fa-spin text-[9px]"></i> PROGRESS
+                                                            </span>
+                                                        </template>
+                                                        <template x-if="t.status === 'OPEN'">
+                                                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-black bg-blue-100 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800/60">
+                                                                <i class="fa-regular fa-clock text-[9px]"></i> OPEN
+                                                            </span>
+                                                        </template>
+
+                                                        <!-- Tipe Penanganan -->
+                                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold"
+                                                              :class="t.tipe_penanganan.toLowerCase() === 'online' ? 'bg-purple-100 dark:bg-purple-950/50 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800/50' : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-600'">
+                                                            <template x-if="t.tipe_penanganan.toLowerCase() === 'online'">
+                                                                <i class="fa-solid fa-globe text-[9px]"></i>
+                                                            </template>
+                                                            <template x-if="t.tipe_penanganan.toLowerCase() !== 'online'">
+                                                                <i class="fa-solid fa-hand-holding-hand text-[9px]"></i>
+                                                            </template>
+                                                            <span x-text="t.tipe_penanganan"></span>
+                                                        </span>
+                                                    </div>
+                                                </td>
+
+                                                <!-- Pekerjaan / Solusi -->
+                                                <td class="py-3 px-3">
+                                                    <!-- Judul Tiket -->
+                                                    <div class="font-bold text-slate-800 dark:text-slate-100 text-xs mb-1" x-text="t.title"></div>
+                                                    
+                                                    <!-- Deskripsi jika ada -->
+                                                    <template x-if="t.description">
+                                                        <p class="text-[11px] text-slate-500 dark:text-slate-400 mb-1.5 leading-relaxed line-clamp-2" :title="t.description" x-text="t.description"></p>
+                                                    </template>
+
+                                                    <!-- Solusi / Apa yang dikerjakan -->
+                                                    <template x-if="t.solusi">
+                                                        <div class="p-2 rounded-lg bg-emerald-50/80 dark:bg-emerald-950/30 border border-emerald-200/80 dark:border-emerald-800/40 text-emerald-800 dark:text-emerald-200 text-[11px] leading-relaxed">
+                                                            <div class="flex items-center gap-1 font-bold text-emerald-700 dark:text-emerald-300 text-[10px] mb-0.5">
+                                                                <i class="fa-solid fa-circle-check text-[9px]"></i>
+                                                                <span>Apa Yang Dikerjakan (Solusi):</span>
+                                                            </div>
+                                                            <div x-text="t.solusi"></div>
+                                                        </div>
+                                                    </template>
+                                                    <template x-if="!t.solusi">
+                                                        <div class="text-[10px] text-slate-400 italic">
+                                                            <template x-if="t.status === 'CLOSED'">
+                                                                <span>Telah diselesaikan (catatan solusi tidak dicantumkan)</span>
+                                                            </template>
+                                                            <template x-if="t.status !== 'CLOSED'">
+                                                                <span>Sedang dalam proses penanganan staf</span>
+                                                            </template>
+                                                        </div>
+                                                    </template>
+                                                </td>
+
+                                                <!-- Waktu & Durasi -->
+                                                <td class="py-3 px-3 text-center whitespace-nowrap">
+                                                    <div class="font-bold text-blue-600 dark:text-blue-400 text-xs" x-text="t.duration_text"></div>
+                                                    <div class="text-[10px] text-slate-400 mt-0.5 flex items-center justify-center gap-1">
+                                                        <i class="fa-regular fa-calendar-plus text-[9px]"></i>
+                                                        <span x-text="t.created_at_formatted"></span>
+                                                    </div>
+                                                    <template x-if="t.closed_at_formatted">
+                                                        <div class="text-[9.5px] text-emerald-600 dark:text-emerald-400 mt-0.5 flex items-center justify-center gap-1">
+                                                            <i class="fa-regular fa-calendar-check text-[9px]"></i>
+                                                            <span x-text="t.closed_at_formatted"></span>
+                                                        </div>
+                                                    </template>
+                                                </td>
+
+                                                <!-- Aksi Detail -->
+                                                <td class="py-3 px-3 text-center whitespace-nowrap">
+                                                    <a :href="t.detail_url" target="_blank"
+                                                       class="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-slate-100 hover:bg-blue-50 dark:bg-slate-700 dark:hover:bg-blue-950/60 text-slate-600 hover:text-blue-600 dark:text-slate-300 dark:hover:text-blue-400 border border-slate-200 dark:border-slate-600 transition-colors"
+                                                       title="Buka Detail Tiket">
+                                                        <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                        </template>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Footer Modal -->
+                        <div class="px-5 py-3 bg-slate-50 dark:bg-slate-800/60 border-t border-slate-100 dark:border-slate-700/80 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
+                            <div class="flex items-center gap-1.5">
+                                <i class="fa-solid fa-circle-info text-blue-500 text-[11px]"></i>
+                                <span>Klik <strong>Download Excel</strong> atau <strong>Download PDF</strong> untuk mengunduh rekap riwayat modul ini.</span>
+                            </div>
+                            <button @click="close()" type="button" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-white dark:bg-slate-700 hover:bg-slate-100 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-600 shadow-2xs transition-colors cursor-pointer">
+                                Tutup
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
 </x-app-layout>

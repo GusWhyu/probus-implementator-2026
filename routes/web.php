@@ -49,6 +49,9 @@ Route::get('/penilaian/{id}', [HomeController::class, 'penilaian'])->middleware(
 Route::post('/penilaian/{id}', [HomeController::class, 'storePenilaian'])->middleware(['auth'])->name('penilaian.store');
 Route::get('/rapor/{id}', [HomeController::class, 'rapor'])->middleware(['auth'])->name('rapor');
 Route::get('/rapor/{id}/download', [HomeController::class, 'downloadRapor'])->middleware(['auth'])->name('rapor.download');
+Route::get('/rapor/{id}/module-tickets/{module_id}', [HomeController::class, 'getModuleTickets'])->middleware(['auth'])->name('rapor.module_tickets');
+Route::get('/rapor/{id}/module-tickets/{module_id}/excel', [HomeController::class, 'exportModuleTicketsExcel'])->middleware(['auth'])->name('rapor.module_tickets.excel');
+Route::get('/rapor/{id}/module-tickets/{module_id}/pdf', [HomeController::class, 'exportModuleTicketsPdf'])->middleware(['auth'])->name('rapor.module_tickets.pdf');
 Route::get('/riwayat/{id}', [HomeController::class, 'riwayat'])->middleware(['auth'])->name('riwayat');
 // Request System Routes
 Route::get('/request-dashboard', [RequestController::class, 'dashboard'])->middleware(['auth'])->name('request.dashboard');

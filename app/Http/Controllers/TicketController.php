@@ -296,7 +296,7 @@ class TicketController extends Controller
             'due_date' => $request->due_date,
         ];
 
-        if ($request->has('solusi')) {
+        if ($request->has('solusi') && \Illuminate\Support\Facades\Schema::hasColumn('tickets', 'solusi')) {
             $updateData['solusi'] = $request->solusi;
         }
 
@@ -309,7 +309,7 @@ class TicketController extends Controller
                 $updateData['closed_at'] = $closedAt;
                 $start = $datarq->handle_at ?: $datarq->created_at;
                 $updateData['duration_minutes'] = $start ? $closedAt->diffInMinutes(\Carbon\Carbon::parse($start)) : 0;
-                if ($request->filled('solusi')) {
+                if ($request->filled('solusi') && \Illuminate\Support\Facades\Schema::hasColumn('tickets', 'solusi')) {
                     $updateData['solusi'] = $request->solusi;
                 }
                 \Illuminate\Support\Facades\Cache::put('ticket_staff_ip_' . $datarq->id, request()->ip(), now()->addDays(30));
@@ -402,7 +402,7 @@ class TicketController extends Controller
             $updateData['closed_at'] = $closedAt;
             $start = $data->handle_at ?: $data->created_at;
             $updateData['duration_minutes'] = $start ? $closedAt->diffInMinutes(\Carbon\Carbon::parse($start)) : 0;
-            if (request()->filled('solusi')) {
+            if (request()->filled('solusi') && \Illuminate\Support\Facades\Schema::hasColumn('tickets', 'solusi')) {
                 $updateData['solusi'] = request('solusi');
             }
             \Illuminate\Support\Facades\Cache::put('ticket_staff_ip_' . $data->id, request()->ip(), now()->addDays(30));

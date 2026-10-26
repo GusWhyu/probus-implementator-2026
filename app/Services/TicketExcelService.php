@@ -14,7 +14,71 @@ class TicketExcelService
      * @param array $meta
      * @return string Path file sementara .xlsx
      */
-    public static function createXlsx($tickets, array $meta = [])
+        /**
+     * Membuat file Excel .xlsx murni (OpenXML) khusus untuk riwayat pengerjaan tiket per modul.
+     * Menampilkan detail apa yang dikerjakan (solusi/pengerjaan) dan deskripsi masalah.
+     *
+     * @param \Illuminate\Support\Collection|\Illuminate\Database\Eloquent\Collection $tickets
+     * @param array $meta
+     * @return string Path file sementara .xlsx
+     */
+    public static function createModuleTicketsXlsx($tickets, array $meta = [])
+    {
+        $tempFile = tempnam(sys_get_temp_dir(), 'tck_mod_xlsx_');
+        $zip = new ZipArchive();
+        if ($zip->open($tempFile, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== true) {
+            throw new \Exception("Gagal membuat file arsip Excel sementara.");
+        }
+
+        // 1. [Content_Types].xml
+        $contentTypes = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
+  <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
+  <Default Extension="xml" ContentType="application/xml"/>
+  <Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>
+  <Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>
+  <Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>
+</Types>';
+        $zip->addFromString('[Content_Types].xml', $contentTypes);
+
+        // 2. _rels/.rels
+        $rels = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+  <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/>
+</Relationships>';
+        $zip->addFromString('_rels/.rels', $rels);
+
+        // 3. xl/_rels/workbook.xml.rels
+        $wbRels = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+  <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/>
+  <Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>
+</Relationships>';
+        $zip->addFromString('xl/_rels/workbook.xml.rels', $wbRels);
+
+        // 4. xl/workbook.xml
+        $sheetTitle = 'Tiket ' . (!empty($meta['module_name']) ? mb_substr($meta['module_name'], 0, 20) : 'Modul');
+        $workbook = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
+  <sheets>
+    <sheet name="' . self::xmlEscape($sheetTitle) . '" sheetId="1" r:id="rId1"/>
+  </sheets>
+</workbook>';
+        $zip->addFromString('xl/workbook.xml', $workbook);
+
+        // 5. xl/styles.xml
+        $styles = self::buildStylesXml();
+        $zip->addFromString('xl/styles.xml', $styles);
+
+        // 6. xl/worksheets/sheet1.xml
+        $sheetXml = self::buildModuleSheetXml($tickets, $meta);
+        $zip->addFromString('xl/worksheets/sheet1.xml', $sheetXml);
+
+        $zip->close();
+        return $tempFile;
+    }
+
+public static function createXlsx($tickets, array $meta = [])
     {
         $tempFile = tempnam(sys_get_temp_dir(), 'tck_xlsx_');
         $zip = new ZipArchive();
@@ -167,7 +231,7 @@ class TicketExcelService
       <bottom style="thin"><color rgb="FFFDE68A"/></bottom>
     </border>
   </borders>
-  <cellXfs count="20">
+  <cellXfs count="22">
     <!-- 0: Data Left (White) -->
     <xf numFmtId="0" fontId="0" fillId="0" borderId="1" xfId="0" applyBorder="1" applyAlignment="1"><alignment vertical="center"/></xf>
     <!-- 1: Data Center (White) -->
@@ -476,4 +540,209 @@ class TicketExcelService
 
         return $xml;
     }
+
+    /**
+     * Membangun sheet1.xml untuk riwayat tiket per modul dengan 12 kolom proporsional,
+     * menampilkan kendala/deskripsi dan apa yang dikerjakan (solusi).
+     */
+    private static function buildModuleSheetXml($tickets, array $meta = [])
+    {
+        $staffName = !empty($meta['staff_name']) ? $meta['staff_name'] : 'Staff';
+        $moduleName = !empty($meta['module_name']) ? $meta['module_name'] : 'Modul';
+        $periodLabel = !empty($meta['period_label']) ? $meta['period_label'] : date('F Y');
+        $printedAt = !empty($meta['printed_at']) ? $meta['printed_at'] : date('d/m/Y H:i') . ' WITA';
+        $printedBy = !empty($meta['printed_by']) ? $meta['printed_by'] : 'User';
+
+        $totalCount = $tickets->count();
+        $openCount = $tickets->filter(function($t) { return strtoupper($t->status) === 'OPEN'; })->count();
+        $progressCount = $tickets->filter(function($t) { return strtoupper($t->status) === 'PROGRESS'; })->count();
+        $closedCount = $tickets->filter(function($t) { return strtoupper($t->status) === 'CLOSED'; })->count();
+
+        // 12 Kolom
+        $cols = [
+            ['title' => 'No', 'width' => 6],
+            ['title' => 'No. Tiket', 'width' => 20],
+            ['title' => 'Judul Tiket', 'width' => 30],
+            ['title' => 'Kendala / Deskripsi', 'width' => 40],
+            ['title' => 'Apa Yang Dikerjakan (Solusi)', 'width' => 45],
+            ['title' => 'Client / Outlet', 'width' => 30],
+            ['title' => 'Staff Pelaksana', 'width' => 22],
+            ['title' => 'Tipe Penanganan', 'width' => 18],
+            ['title' => 'Status', 'width' => 15],
+            ['title' => 'Lama Pengerjaan', 'width' => 20],
+            ['title' => 'Waktu Masuk', 'width' => 20],
+            ['title' => 'Waktu Selesai', 'width' => 20],
+        ];
+
+        $xml = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' . "\n";
+        $xml .= '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">' . "\n";
+
+        // Freeze Panes pada baris 7 (Header tabel tetap terkunci saat scroll)
+        $xml .= '  <sheetViews>' . "\n";
+        $xml .= '    <sheetView tabSelected="1" workbookViewId="0">' . "\n";
+        $xml .= '      <pane ySplit="7" topLeftCell="A8" activePane="bottomLeft" state="frozen"/>' . "\n";
+        $xml .= '    </sheetView>' . "\n";
+        $xml .= '  </sheetViews>' . "\n";
+
+        // Lebar Kolom
+        $xml .= '  <cols>' . "\n";
+        foreach ($cols as $idx => $col) {
+            $colNum = $idx + 1;
+            $xml .= '    <col min="' . $colNum . '" max="' . $colNum . '" width="' . $col['width'] . '" customWidth="1"/>' . "\n";
+        }
+        $xml .= '  </cols>' . "\n";
+
+        $xml .= '  <sheetData>' . "\n";
+
+        // Row 1: Header Judul Laporan (Tinggi 36pt, Merged A1:L1)
+        $titleText = 'PROBUS SYSTEM - RIWAYAT PENGERJAAN TIKET MODUL: ' . mb_strtoupper($moduleName);
+        $xml .= '    <row r="1" ht="36" customHeight="1">' . "\n";
+        $xml .= '      <c r="A1" s="5" t="inlineStr"><is><t>' . self::xmlEscape($titleText) . '</t></is></c>' . "\n";
+        for ($colIdx = 2; $colIdx <= 12; $colIdx++) {
+            $colLetter = self::colLetter($colIdx);
+            $xml .= '      <c r="' . $colLetter . '1" s="5"/>' . "\n";
+        }
+        $xml .= '    </row>' . "\n";
+
+        // Row 2: Subtitle Info (Tinggi 22pt, Merged A2:L2)
+        $subInfo = "Staff: " . $staffName . "   •   Modul: " . $moduleName . "   •   Periode: " . $periodLabel . "   •   Dicetak Oleh: " . $printedBy . " (" . $printedAt . ")";
+        $xml .= '    <row r="2" ht="22" customHeight="1">' . "\n";
+        $xml .= '      <c r="A2" s="6" t="inlineStr"><is><t>' . self::xmlEscape($subInfo) . '</t></is></c>' . "\n";
+        for ($colIdx = 2; $colIdx <= 12; $colIdx++) {
+            $colLetter = self::colLetter($colIdx);
+            $xml .= '      <c r="' . $colLetter . '2" s="6"/>' . "\n";
+        }
+        $xml .= '    </row>' . "\n";
+
+        // Row 3: Blank
+        $xml .= '    <row r="3" ht="10" customHeight="1"/>' . "\n";
+
+        // Row 4: KPI Summary Cards - Label Row (Tinggi 18pt)
+        $xml .= '    <row r="4" ht="18" customHeight="1">' . "\n";
+        $xml .= '      <c r="A4" s="7" t="inlineStr"><is><t>TOTAL TIKET MODUL</t></is></c>' . "\n";
+        $xml .= '      <c r="B4" s="7"/>' . "\n";
+        $xml .= '      <c r="C4" s="7"/>' . "\n";
+        $xml .= '      <c r="D4" s="13" t="inlineStr"><is><t>TIKET SELESAI (CLOSED)</t></is></c>' . "\n";
+        $xml .= '      <c r="E4" s="13"/>' . "\n";
+        $xml .= '      <c r="F4" s="13"/>' . "\n";
+        $xml .= '      <c r="G4" s="11" t="inlineStr"><is><t>DALAM PROSES (PROGRESS)</t></is></c>' . "\n";
+        $xml .= '      <c r="H4" s="11"/>' . "\n";
+        $xml .= '      <c r="I4" s="11"/>' . "\n";
+        $xml .= '      <c r="J4" s="9" t="inlineStr"><is><t>TIKET BARU (OPEN)</t></is></c>' . "\n";
+        $xml .= '      <c r="K4" s="9"/>' . "\n";
+        $xml .= '      <c r="L4" s="9"/>' . "\n";
+        $xml .= '    </row>' . "\n";
+
+        // Row 5: KPI Summary Cards - Value Row (Tinggi 28pt)
+        $xml .= '    <row r="5" ht="28" customHeight="1">' . "\n";
+        $xml .= '      <c r="A5" s="8"><v>' . $totalCount . '</v></c>' . "\n";
+        $xml .= '      <c r="B5" s="8"/>' . "\n";
+        $xml .= '      <c r="C5" s="8"/>' . "\n";
+        $xml .= '      <c r="D5" s="14"><v>' . $closedCount . '</v></c>' . "\n";
+        $xml .= '      <c r="E5" s="14"/>' . "\n";
+        $xml .= '      <c r="F5" s="14"/>' . "\n";
+        $xml .= '      <c r="G5" s="12"><v>' . $progressCount . '</v></c>' . "\n";
+        $xml .= '      <c r="H5" s="12"/>' . "\n";
+        $xml .= '      <c r="I5" s="12"/>' . "\n";
+        $xml .= '      <c r="J5" s="10"><v>' . $openCount . '</v></c>' . "\n";
+        $xml .= '      <c r="K5" s="10"/>' . "\n";
+        $xml .= '      <c r="L5" s="10"/>' . "\n";
+        $xml .= '    </row>' . "\n";
+
+        // Row 6: Blank separator
+        $xml .= '    <row r="6" ht="12" customHeight="1"/>' . "\n";
+
+        // Row 7: Main Table Headers (Tinggi 32pt)
+        $headerRow = 7;
+        $xml .= '    <row r="' . $headerRow . '" ht="32" customHeight="1">' . "\n";
+        foreach ($cols as $idx => $col) {
+            $colLetter = self::colLetter($idx + 1);
+            $xml .= '      <c r="' . $colLetter . $headerRow . '" s="4" t="inlineStr"><is><t>' . self::xmlEscape($col['title']) . '</t></is></c>' . "\n";
+        }
+        $xml .= '    </row>' . "\n";
+
+        // Rows 8+: Data Rows
+        $currentRow = $headerRow + 1;
+        $no = 1;
+
+        foreach ($tickets as $t) {
+            $isZebra = ($no % 2 === 0);
+            $sText = $isZebra ? 2 : 0;
+            $sWrap = $isZebra ? 21 : 20;
+            $sCenter = $isZebra ? 3 : 1;
+            $sTck = $isZebra ? 19 : 18;
+
+            $status = strtoupper($t->status ?? 'OPEN');
+            $sStatus = 15; // OPEN
+            if ($status === 'PROGRESS') {
+                $sStatus = 16;
+            } elseif ($status === 'CLOSED') {
+                $sStatus = 17;
+            }
+
+            $prop = $t->client->nm_out ?? $t->client->name ?? '-';
+            if (!empty($t->client->lokasi)) {
+                $prop .= ' (' . $t->client->lokasi . ')';
+            }
+
+            $staff = $t->user->name ?? $staffName;
+            $tipe = $t->tipe_penanganan ?: '-';
+            $duration = $t->duration_text ?: '-';
+            $insertTime = $t->created_at ? Carbon::parse($t->created_at)->format('d/m/Y H:i') : '-';
+            $endingTime = ($status === 'CLOSED' && $t->closed_at) ? Carbon::parse($t->closed_at)->format('d/m/Y H:i') : '-';
+            $solusi = $t->solusi ? trim(strip_tags($t->solusi)) : '-';
+            $deskripsi = $t->description ? trim(strip_tags($t->description)) : '-';
+
+            $xml .= '    <row r="' . $currentRow . '" ht="32" customHeight="1">' . "\n";
+            // A: No
+            $xml .= '      <c r="A' . $currentRow . '" s="' . $sCenter . '"><v>' . $no . '</v></c>' . "\n";
+            // B: No. Tiket
+            $xml .= '      <c r="B' . $currentRow . '" s="' . $sTck . '" t="inlineStr"><is><t>' . self::xmlEscape($t->ticket_number) . '</t></is></c>' . "\n";
+            // C: Judul Tiket
+            $xml .= '      <c r="C' . $currentRow . '" s="' . $sWrap . '" t="inlineStr"><is><t>' . self::xmlEscape($t->title) . '</t></is></c>' . "\n";
+            // D: Kendala / Deskripsi
+            $xml .= '      <c r="D' . $currentRow . '" s="' . $sWrap . '" t="inlineStr"><is><t>' . self::xmlEscape($deskripsi) . '</t></is></c>' . "\n";
+            // E: Apa Yang Dikerjakan (Solusi)
+            $xml .= '      <c r="E' . $currentRow . '" s="' . $sWrap . '" t="inlineStr"><is><t>' . self::xmlEscape($solusi) . '</t></is></c>' . "\n";
+            // F: Client / Outlet
+            $xml .= '      <c r="F' . $currentRow . '" s="' . $sText . '" t="inlineStr"><is><t>' . self::xmlEscape($prop) . '</t></is></c>' . "\n";
+            // G: Staff Pelaksana
+            $xml .= '      <c r="G' . $currentRow . '" s="' . $sText . '" t="inlineStr"><is><t>' . self::xmlEscape($staff) . '</t></is></c>' . "\n";
+            // H: Tipe Penanganan
+            $xml .= '      <c r="H' . $currentRow . '" s="' . $sCenter . '" t="inlineStr"><is><t>' . self::xmlEscape($tipe) . '</t></is></c>' . "\n";
+            // I: Status
+            $xml .= '      <c r="I' . $currentRow . '" s="' . $sStatus . '" t="inlineStr"><is><t>' . self::xmlEscape($status) . '</t></is></c>' . "\n";
+            // J: Lama Pengerjaan
+            $xml .= '      <c r="J' . $currentRow . '" s="' . $sCenter . '" t="inlineStr"><is><t>' . self::xmlEscape($duration) . '</t></is></c>' . "\n";
+            // K: Waktu Masuk
+            $xml .= '      <c r="K' . $currentRow . '" s="' . $sCenter . '" t="inlineStr"><is><t>' . self::xmlEscape($insertTime) . '</t></is></c>' . "\n";
+            // L: Waktu Selesai
+            $xml .= '      <c r="L' . $currentRow . '" s="' . $sCenter . '" t="inlineStr"><is><t>' . self::xmlEscape($endingTime) . '</t></is></c>' . "\n";
+            $xml .= '    </row>' . "\n";
+
+            $currentRow++;
+            $no++;
+        }
+
+        $xml .= '  </sheetData>' . "\n";
+
+        // Merge cells untuk Judul (A1:L1), Subtitle (A2:L2), dan KPI Cards
+        $xml .= '  <mergeCells count="10">' . "\n";
+        $xml .= '    <mergeCell ref="A1:L1"/>' . "\n";
+        $xml .= '    <mergeCell ref="A2:L2"/>' . "\n";
+        $xml .= '    <mergeCell ref="A4:C4"/>' . "\n";
+        $xml .= '    <mergeCell ref="A5:C5"/>' . "\n";
+        $xml .= '    <mergeCell ref="D4:F4"/>' . "\n";
+        $xml .= '    <mergeCell ref="D5:F5"/>' . "\n";
+        $xml .= '    <mergeCell ref="G4:I4"/>' . "\n";
+        $xml .= '    <mergeCell ref="G5:I5"/>' . "\n";
+        $xml .= '    <mergeCell ref="J4:L4"/>' . "\n";
+        $xml .= '    <mergeCell ref="J5:L5"/>' . "\n";
+        $xml .= '  </mergeCells>' . "\n";
+
+        $xml .= '</worksheet>';
+
+        return $xml;
+    }
 }
+
