@@ -5,7 +5,7 @@
     <title>Penilaian Kinerja - {{ $user->name }}</title>
     <style>
         @page {
-            margin: 26px 36px 24px 36px;
+            margin: 26px 40px 24px 40px;
             size: a4 portrait;
         }
         * {
@@ -41,8 +41,7 @@
             display: table-footer-group;
         }
         .avoid-break {
-            page-break-inside: avoid !important;
-            break-inside: avoid !important;
+            page-break-inside: avoid;
         }
     </style>
 </head>
@@ -302,7 +301,7 @@
     {{-- ============================================================ --}}
     {{-- 5. PENILAIAN SOFT SKILL                                      --}}
     {{-- ============================================================ --}}
-    <div class="avoid-break" style="margin-bottom: 12px; border: 1.2px solid #004880; border-radius: 4px; overflow: hidden;">
+    <div class="avoid-break" style="margin-bottom: 12px; border: 1.2px solid #004880; border-radius: 4px; overflow: hidden; page-break-inside: avoid;">
         <div style="background-color: #004880; color: #ffffff; font-weight: bold; padding: 5.5px 10px; font-size: 11.5px; text-align: center; letter-spacing: 0.3px; border-bottom: 1.5px solid #93c5fd;">
             Penilaian Soft Skill
         </div>
@@ -381,7 +380,7 @@
     {{-- ============================================================ --}}
     {{-- 6. RINGKASAN AKTIVITAS TIKET STAFF & KOMPOSISI BOBOT         --}}
     {{-- ============================================================ --}}
-    <table class="avoid-break" style="width: 100%; border-collapse: collapse; margin-bottom: 12px;">
+    <table class="avoid-break" style="width: 100%; border-collapse: collapse; margin-bottom: 12px; page-break-inside: avoid;">
         <tr>
             {{-- Kiri: Ringkasan Aktivitas Tiket Staff --}}
             <td style="width: 49%; vertical-align: top; padding: 0;">
@@ -461,7 +460,7 @@
     {{-- ============================================================ --}}
     {{-- 7. CATATAN DARI PENILAI & SARAN UNTUK PERBAIKAN              --}}
     {{-- ============================================================ --}}
-    <table class="avoid-break" style="width: 100%; border-collapse: collapse; margin-bottom: 12px;">
+    <table class="avoid-break" style="width: 100%; border-collapse: collapse; margin-bottom: 12px; page-break-inside: avoid;">
         <tr>
             <td style="width: 49%; vertical-align: top; padding: 0;">
                 <div style="border: 1.2px solid #004880; border-radius: 4px; overflow: hidden; background: #ffffff;">
@@ -527,7 +526,7 @@
         }
     @endphp
 
-    <table class="avoid-break" style="width: 100%; border-collapse: collapse;">
+    <table class="avoid-break" style="width: 100%; border-collapse: collapse; page-break-inside: avoid;">
         <tr>
             {{-- Card 1: Nilai Tiket --}}
             <td style="width: 23.5%; vertical-align: top; padding: 0;">
