@@ -275,8 +275,8 @@ class StaffPerformanceExcelService
         $month = (int)($meta['month'] ?? date('m'));
         $year = (int)($meta['year'] ?? date('Y'));
         $periodDate = Carbon::createFromDate($year, $month, 1);
-        $periodLabel = $periodDate->locale('id')->translatedFormat('F Y');
-        $cutoffLabel = $periodDate->copy()->endOfMonth()->locale('id')->translatedFormat('d F Y');
+        $periodLabel = $meta['period_label'] ?? $periodDate->locale('id')->translatedFormat('F Y');
+        $cutoffLabel = $meta['cutoff_label'] ?? $periodDate->copy()->endOfMonth()->locale('id')->translatedFormat('d F Y');
         $deptName = $meta['departemen_name'] ?? 'Operasional';
         $printedBy = $meta['printed_by'] ?? 'User';
         $printedAt = $meta['printed_at'] ?? (date('d/m/Y H:i') . ' WITA');

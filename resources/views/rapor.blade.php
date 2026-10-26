@@ -71,29 +71,59 @@
                         <span class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Periode Evaluasi</span>
                         <span class="inline-flex items-center gap-1 text-[11px] font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/50 px-2 py-0.5 rounded-md border border-blue-100 dark:border-blue-900/40">
                             <i class="fa-solid fa-calendar-check text-[10px]"></i>
-                            Cut-off: <strong>{{ \Carbon\Carbon::createFromDate($year, $month, 1)->endOfMonth()->locale('id')->translatedFormat('d F Y') }}</strong>
+                            Cut-off: <strong>{{ $periodInfo['cutoff_label'] ?? \Carbon\Carbon::createFromDate($year, $month, 1)->endOfMonth()->locale('id')->translatedFormat('d F Y') }}</strong>
                         </span>
                     </div>
 
                     <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto min-w-0">
-                        <form action="{{ route('rapor', ['id' => $user->id]) }}" method="GET" class="relative w-full sm:w-64 min-w-0">
-                            <div class="relative bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-200 flex items-center hover:border-slate-300 dark:hover:border-slate-600 transition-colors focus-within:border-blue-500 focus-within:ring-4 focus-within:ring-blue-500/10">
-                                <i class="fa-regular fa-calendar text-blue-500 dark:text-blue-400 ml-3 pointer-events-none text-sm shrink-0"></i>
-                                <select name="period" onchange="this.form.submit()" class="bg-transparent border-0 text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-200 py-2 pl-2 pr-7 focus:ring-0 cursor-pointer appearance-none w-full truncate">
-                                    @for ($i = 0; $i < 12; $i++)
-                                        @php
-                                            $d = \Carbon\Carbon::now()->subMonths($i);
-                                            $optVal = $d->format('Y-m');
-                                            $currentSelected = sprintf('%04d-%02d', $year, $month);
-                                        @endphp
-                                        <option value="{{ $optVal }}" {{ $optVal === $currentSelected ? 'selected' : '' }} class="dark:bg-slate-800 dark:text-slate-200">
-                                            {{ $d->locale('id')->translatedFormat('F Y') }} {{ $i === 0 ? '(Bulan Berjalan)' : '' }}
-                                        </option>
-                                    @endfor
-                                </select>
-                                <i class="fa-solid fa-chevron-down absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-[10px] pointer-events-none"></i>
+                        <div class="flex flex-wrap items-center gap-2">
+                            {{-- Quick Switcher 1M / 3M / 6M --}}
+                            <div class="inline-flex p-0.5 bg-slate-100 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shrink-0 shadow-2xs">
+                                <a href="{{ route('rapor', ['id' => $user->id, 'period_type' => '1m']) }}" 
+                                   class="px-2.5 py-1 text-[11px] font-bold rounded-lg transition-all {{ ($periodType ?? '1m') === '1m' ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-xs' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-200' }}">
+                                    1 Bulan
+                                </a>
+                                <a href="{{ route('rapor', ['id' => $user->id, 'period_type' => '3m']) }}" 
+                                   class="px-2.5 py-1 text-[11px] font-bold rounded-lg transition-all {{ ($periodType ?? '1m') === '3m' ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-xs' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-200' }}">
+                                    3 Bulan
+                                </a>
+                                <a href="{{ route('rapor', ['id' => $user->id, 'period_type' => '6m']) }}" 
+                                   class="px-2.5 py-1 text-[11px] font-bold rounded-lg transition-all {{ ($periodType ?? '1m') === '6m' ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-xs' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-200' }}">
+                                    6 Bulan
+                                </a>
                             </div>
-                        </form>
+
+                            <form action="{{ route('rapor', ['id' => $user->id]) }}" method="GET" class="relative min-w-0">
+                                <div class="relative bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-200 flex items-center hover:border-slate-300 dark:hover:border-slate-600 transition-colors focus-within:border-blue-500 focus-within:ring-4 focus-within:ring-blue-500/10">
+                                    <i class="fa-regular fa-calendar text-blue-500 dark:text-blue-400 ml-3 pointer-events-none text-sm shrink-0"></i>
+                                    <input type="hidden" name="period_type" value="{{ $periodType ?? '1m' }}">
+                                    <select name="period" onchange="this.form.submit()" class="bg-transparent border-0 text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-200 py-2 pl-2 pr-7 focus:ring-0 cursor-pointer appearance-none w-full truncate">
+                                        <optgroup label="── Bulanan (1 Bulan) ──" class="font-bold text-slate-500 bg-slate-50 dark:bg-slate-900">
+                                            @foreach(($periodOptions['monthly'] ?? []) as $opt)
+                                                <option value="{{ $opt['value'] }}" {{ $opt['value'] === ($periodKey ?? '') ? 'selected' : '' }} class="dark:bg-slate-800 dark:text-slate-200">
+                                                    {{ $opt['label'] }}
+                                                </option>
+                                            @endforeach
+                                        </optgroup>
+                                        <optgroup label="── Triwulan (3 Bulan Sekali) ──" class="font-bold text-slate-500 bg-slate-50 dark:bg-slate-900">
+                                            @foreach(($periodOptions['quarterly'] ?? []) as $opt)
+                                                <option value="{{ $opt['value'] }}" {{ $opt['value'] === ($periodKey ?? '') ? 'selected' : '' }} class="dark:bg-slate-800 dark:text-slate-200">
+                                                    {{ $opt['label'] }}
+                                                </option>
+                                            @endforeach
+                                        </optgroup>
+                                        <optgroup label="── Semester (6 Bulan Sekali) ──" class="font-bold text-slate-500 bg-slate-50 dark:bg-slate-900">
+                                            @foreach(($periodOptions['semester'] ?? []) as $opt)
+                                                <option value="{{ $opt['value'] }}" {{ $opt['value'] === ($periodKey ?? '') ? 'selected' : '' }} class="dark:bg-slate-800 dark:text-slate-200">
+                                                    {{ $opt['label'] }}
+                                                </option>
+                                            @endforeach
+                                        </optgroup>
+                                    </select>
+                                    <i class="fa-solid fa-chevron-down absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-[10px] pointer-events-none"></i>
+                                </div>
+                            </form>
+                        </div>
 
                         <div class="flex items-center justify-between sm:justify-end gap-2 shrink-0">
                             @if($rapor)
@@ -105,14 +135,14 @@
                                 <span class="px-3 py-2 {{ $badgeClass }} font-extrabold text-xs rounded-xl border shadow-xs whitespace-nowrap">
                                     {{ $predikat }}
                                 </span>
-                                <a href="{{ route('rapor.download', ['id' => $user->id, 'month' => $month, 'year' => $year]) }}" target="_blank" class="w-9 h-9 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-blue-600 dark:hover:text-blue-400 flex items-center justify-center transition-all shadow-sm" title="Download PDF">
+                                <a href="{{ route('rapor.download', ['id' => $user->id, 'period' => $periodKey, 'period_type' => $periodType]) }}" target="_blank" class="w-9 h-9 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-blue-600 dark:hover:text-blue-400 flex items-center justify-center transition-all shadow-sm" title="Download PDF">
                                     <i class="fa-solid fa-download text-sm"></i>
                                 </a>
                             @else
                                 <span class="px-3 py-2 bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 font-bold text-xs rounded-xl border border-slate-200 dark:border-slate-700 shadow-xs whitespace-nowrap">
                                     Belum Dinilai
                                 </span>
-                                <a href="{{ route('penilaian', ['id' => $user->id, 'month' => $month, 'year' => $year]) }}" class="inline-flex items-center gap-1.5 px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-sm transition-colors whitespace-nowrap">
+                                <a href="{{ route('penilaian', ['id' => $user->id, 'period' => $periodKey, 'period_type' => $periodType]) }}" class="inline-flex items-center gap-1.5 px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-sm transition-colors whitespace-nowrap">
                                     <i class="fa-solid fa-star text-[11px]"></i> Beri Nilai
                                 </a>
                             @endif
@@ -132,7 +162,7 @@
                         <p class="text-xs text-amber-700 dark:text-amber-300">Kinerja Staff <strong>{{ $user->name }}</strong> untuk periode <strong>{{ \Carbon\Carbon::createFromDate($year, $month, 1)->locale('id')->translatedFormat('F Y') }}</strong> (Cut-off: {{ \Carbon\Carbon::createFromDate($year, $month, 1)->endOfMonth()->locale('id')->translatedFormat('d F Y') }}) belum dievaluasi.</p>
                     </div>
                 </div>
-                <a href="{{ route('penilaian', ['id' => $user->id, 'month' => $month, 'year' => $year]) }}" class="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition-colors shrink-0 shadow-sm self-start sm:self-auto">
+                <a href="{{ route('penilaian', ['id' => $user->id, 'period' => $periodKey, 'period_type' => $periodType]) }}" class="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition-colors shrink-0 shadow-sm self-start sm:self-auto">
                     <i class="fa-solid fa-star text-xs"></i> Input Penilaian Sekarang
                 </a>
             </div>
@@ -725,10 +755,10 @@
                     let baseUrlPdf = '{{ route('rapor.module_tickets.pdf', ['id' => $user->id, 'module_id' => '__MODULE_ID__']) }}';
                     let baseUrlJson = '{{ route('rapor.module_tickets', ['id' => $user->id, 'module_id' => '__MODULE_ID__']) }}';
                     
-                    this.excelUrl = baseUrlExcel.replace('__MODULE_ID__', id) + '?month={{ $month }}&year={{ $year }}';
-                    this.pdfUrl = baseUrlPdf.replace('__MODULE_ID__', id) + '?month={{ $month }}&year={{ $year }}';
+                    this.excelUrl = baseUrlExcel.replace('__MODULE_ID__', id) + '?period={{ $periodKey }}&period_type={{ $periodType }}&month={{ $month }}&year={{ $year }}';
+                    this.pdfUrl = baseUrlPdf.replace('__MODULE_ID__', id) + '?period={{ $periodKey }}&period_type={{ $periodType }}&month={{ $month }}&year={{ $year }}';
                     
-                    fetch(baseUrlJson.replace('__MODULE_ID__', id) + '?month={{ $month }}&year={{ $year }}')
+                    fetch(baseUrlJson.replace('__MODULE_ID__', id) + '?period={{ $periodKey }}&period_type={{ $periodType }}&month={{ $month }}&year={{ $year }}')
                         .then(res => res.json())
                         .then(data => {
                             this.isLoading = false;

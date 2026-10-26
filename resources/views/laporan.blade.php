@@ -12,34 +12,67 @@
                             <i class="fa-solid fa-building text-blue-500"></i> Departemen {{ ucfirst($currentDepartemen->name ?? 'Operasional') }}
                         </span>
                         <span class="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-2.5 py-0.5 rounded-lg shadow-xs">
-                            <i class="fa-regular fa-calendar-check text-blue-500"></i> Cut-off Akhir Bulan: {{ \Carbon\Carbon::createFromDate($year, $month, 1)->endOfMonth()->translatedFormat('d F Y') }}
+                            <i class="fa-regular fa-calendar-check text-blue-500"></i> Cut-off: {{ $periodInfo['cutoff_label'] ?? \Carbon\Carbon::createFromDate($year, $month, 1)->endOfMonth()->translatedFormat('d F Y') }}
                         </span>
                     </p>
                 </div>
                 <div class="flex flex-wrap items-center gap-3">
-                    <form action="{{ route('laporan') }}" method="GET" class="flex flex-wrap items-center gap-3">
+                    <form action="{{ route('laporan') }}" method="GET" class="flex flex-wrap items-center gap-2.5">
                         @if(request('search'))
                             <input type="hidden" name="search" value="{{ request('search') }}">
                         @endif
                         @if(request('status'))
                             <input type="hidden" name="status" value="{{ request('status') }}">
                         @endif
+                        @if(request('department_id'))
+                            <input type="hidden" name="department_id" value="{{ request('department_id') }}">
+                        @endif
 
+                        {{-- Quick Type Switcher (1 Bulan / 3 Bulan / 6 Bulan) --}}
+                        <div class="inline-flex p-1 bg-slate-100 dark:bg-slate-800 rounded-xl border border-slate-200/80 dark:border-slate-700 shadow-2xs">
+                            <a href="{{ route('laporan', array_merge(request()->except(['period', 'period_type', 'month', 'year']), ['period_type' => '1m'])) }}" 
+                               class="px-3 py-1.5 text-xs font-bold rounded-lg transition-all {{ ($periodType ?? '1m') === '1m' ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-xs' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-200' }}"
+                               title="Pilih Penilaian Bulanan (1 Bulan)">
+                                1 Bulan
+                            </a>
+                            <a href="{{ route('laporan', array_merge(request()->except(['period', 'period_type', 'month', 'year']), ['period_type' => '3m'])) }}" 
+                               class="px-3 py-1.5 text-xs font-bold rounded-lg transition-all {{ ($periodType ?? '1m') === '3m' ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-xs' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-200' }}"
+                               title="Pilih Penilaian Triwulan (3 Bulan Sekali)">
+                                3 Bulan
+                            </a>
+                            <a href="{{ route('laporan', array_merge(request()->except(['period', 'period_type', 'month', 'year']), ['period_type' => '6m'])) }}" 
+                               class="px-3 py-1.5 text-xs font-bold rounded-lg transition-all {{ ($periodType ?? '1m') === '6m' ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-xs' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-200' }}"
+                               title="Pilih Penilaian Semester (6 Bulan Sekali)">
+                                6 Bulan
+                            </a>
+                        </div>
 
-                        {{-- Period Picker --}}
+                        {{-- Period Picker Dropdown with Grouping --}}
                         <div class="relative bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm text-sm font-bold text-slate-700 dark:text-slate-200 flex items-center hover:border-slate-300 dark:hover:border-slate-600 transition-colors focus-within:border-blue-500 focus-within:ring-4 focus-within:ring-blue-500/10">
-                            <i class="fa-regular fa-calendar text-blue-500 ml-4 pointer-events-none text-base"></i>
+                            <i class="fa-regular fa-calendar text-blue-500 ml-3.5 pointer-events-none text-base"></i>
+                            <input type="hidden" name="period_type" value="{{ $periodType ?? '1m' }}">
                             <select name="period" onchange="this.form.submit()" class="bg-transparent border-0 text-sm font-bold text-slate-700 dark:text-slate-200 py-2.5 pl-2.5 pr-9 focus:ring-0 cursor-pointer appearance-none">
-                                @for ($i = 0; $i < 12; $i++)
-                                    @php
-                                        $d = \Carbon\Carbon::now()->subMonths($i);
-                                        $optVal = $d->format('Y-m');
-                                        $currentSelected = sprintf('%04d-%02d', $year, $month);
-                                    @endphp
-                                    <option value="{{ $optVal }}" {{ $optVal === $currentSelected ? 'selected' : '' }} class="dark:bg-slate-800 dark:text-slate-200">
-                                        {{ $d->locale('id')->translatedFormat('F Y') }} {{ $i === 0 ? '(Bulan Berjalan)' : '' }}
-                                    </option>
-                                @endfor
+                                <optgroup label="── Bulanan (1 Bulan) ──" class="font-bold text-slate-500 bg-slate-50 dark:bg-slate-900">
+                                    @foreach(($periodOptions['monthly'] ?? []) as $opt)
+                                        <option value="{{ $opt['value'] }}" {{ $opt['value'] === ($period ?? '') ? 'selected' : '' }} class="dark:bg-slate-800 dark:text-slate-200">
+                                            {{ $opt['label'] }}
+                                        </option>
+                                    @endforeach
+                                </optgroup>
+                                <optgroup label="── Triwulan (3 Bulan Sekali) ──" class="font-bold text-slate-500 bg-slate-50 dark:bg-slate-900">
+                                    @foreach(($periodOptions['quarterly'] ?? []) as $opt)
+                                        <option value="{{ $opt['value'] }}" {{ $opt['value'] === ($period ?? '') ? 'selected' : '' }} class="dark:bg-slate-800 dark:text-slate-200">
+                                            {{ $opt['label'] }}
+                                        </option>
+                                    @endforeach
+                                </optgroup>
+                                <optgroup label="── Semester (6 Bulan Sekali) ──" class="font-bold text-slate-500 bg-slate-50 dark:bg-slate-900">
+                                    @foreach(($periodOptions['semester'] ?? []) as $opt)
+                                        <option value="{{ $opt['value'] }}" {{ $opt['value'] === ($period ?? '') ? 'selected' : '' }} class="dark:bg-slate-800 dark:text-slate-200">
+                                            {{ $opt['label'] }}
+                                        </option>
+                                    @endforeach
+                                </optgroup>
                             </select>
                             <i class="fa-solid fa-chevron-down absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs pointer-events-none"></i>
                         </div>
@@ -445,8 +478,11 @@
             <!-- Filters, Search & Bulk Process Action Row (Poin 13) -->
             <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 mb-6">
                 <form action="{{ route('laporan') }}" method="GET" class="flex flex-col sm:flex-row gap-4 flex-1">
-                    <input type="hidden" name="period" value="{{ sprintf('%04d-%02d', $year, $month) }}">
-                    <input type="hidden" name="department_id" value="{{ $selectedDeptId }}">
+                    <input type="hidden" name="period" value="{{ $period }}">
+                    <input type="hidden" name="period_type" value="{{ $periodType }}">
+                    <input type="hidden" name="period" value="{{ $period }}">
+                                                <input type="hidden" name="period_type" value="{{ $periodType }}">
+                                                <input type="hidden" name="department_id" value="{{ $selectedDeptId }}">
                     <!-- Search -->
                     <div class="relative flex-1">
                         <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
@@ -466,7 +502,7 @@
                     </div>
 
                     @if(request('search') || request('status'))
-                    <a href="{{ route('laporan', ['period' => sprintf('%04d-%02d', $year, $month), 'department_id' => $selectedDeptId]) }}" class="px-4 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 border border-transparent dark:border-slate-700 rounded-xl text-sm font-bold flex items-center justify-center gap-1.5 transition-colors shadow-sm">
+                    <a href="{{ route('laporan', ['period' => $period, 'period_type' => $periodType, 'department_id' => $selectedDeptId]) }}" class="px-4 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 border border-transparent dark:border-slate-700 rounded-xl text-sm font-bold flex items-center justify-center gap-1.5 transition-colors shadow-sm">
                         <i class="fa-solid fa-rotate-left text-xs"></i> Reset
                     </a>
                     @endif
@@ -474,7 +510,7 @@
 
                 <div class="flex flex-wrap items-center gap-2.5">
                     <!-- Tombol Export Excel (Summary Kinerja Staff) -->
-                    <a href="{{ route('laporan.export_excel', ['period' => sprintf('%04d-%02d', $year, $month), 'department_id' => $selectedDeptId, 'status' => request('status'), 'search' => request('search')]) }}" 
+                    <a href="{{ route('laporan.export_excel', ['period' => $period, 'period_type' => $periodType, 'department_id' => $selectedDeptId, 'status' => request('status'), 'search' => request('search')]) }}" 
                        class="w-full sm:w-auto px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all shadow-md shadow-emerald-600/20 active:scale-95 cursor-pointer whitespace-nowrap"
                        title="Download Laporan Ringkasan Kinerja Staff ke format Excel (.xlsx)">
                         <i class="fa-solid fa-file-excel text-base text-emerald-100"></i>
@@ -497,8 +533,11 @@
                             @csrf
                             <input type="hidden" name="month" value="{{ $month }}">
                             <input type="hidden" name="year" value="{{ $year }}">
-                            <input type="hidden" name="period" value="{{ sprintf('%04d-%02d', $year, $month) }}">
-                            <input type="hidden" name="department_id" value="{{ $selectedDeptId }}">
+                            <input type="hidden" name="period" value="{{ $period }}">
+                    <input type="hidden" name="period_type" value="{{ $periodType }}">
+                            <input type="hidden" name="period" value="{{ $period }}">
+                                                <input type="hidden" name="period_type" value="{{ $periodType }}">
+                                                <input type="hidden" name="department_id" value="{{ $selectedDeptId }}">
                             <button type="button" id="btn-proses-semua" onclick="konfirmasiProsesSemua()" class="w-full sm:w-auto px-4 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all shadow-md shadow-blue-500/25 active:scale-95 cursor-pointer whitespace-nowrap" title="Hitung agregat tiket seluruh staff departemen ini sekaligus">
                                 <i class="fa-solid fa-bolt text-amber-300"></i>
                                 <span>Proses Semua Nilai</span>
@@ -673,13 +712,13 @@
                                 <td class="py-3.5 px-6 text-center whitespace-nowrap">
                                     <div class="flex items-center justify-center gap-2 whitespace-nowrap">
                                         @if($isFinal)
-                                            <a href="{{ route('rapor', ['id' => $u->id, 'month' => $month, 'year' => $year, 'period' => sprintf('%04d-%02d', $year, $month)]) }}" class="px-3.5 py-1.5 text-xs font-bold text-blue-600 dark:text-blue-300 bg-blue-50/80 dark:bg-blue-950/50 border border-blue-200/90 dark:border-blue-800/80 rounded-xl hover:bg-blue-100 dark:hover:bg-blue-900/60 transition-all shadow-2xs whitespace-nowrap">Lihat Rapor</a>
-                                            <a href="{{ route('penilaian', ['id' => $u->id, 'month' => $month, 'year' => $year]) }}" class="px-2.5 py-1.5 text-xs font-semibold text-slate-500 dark:text-slate-300 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700/70 transition-all shadow-2xs whitespace-nowrap" title="Edit Nilai">
+                                            <a href="{{ route('rapor', ['id' => $u->id, 'period' => $period, 'period_type' => $periodType]) }}" class="px-3.5 py-1.5 text-xs font-bold text-blue-600 dark:text-blue-300 bg-blue-50/80 dark:bg-blue-950/50 border border-blue-200/90 dark:border-blue-800/80 rounded-xl hover:bg-blue-100 dark:hover:bg-blue-900/60 transition-all shadow-2xs whitespace-nowrap">Lihat Rapor</a>
+                                            <a href="{{ route('penilaian', ['id' => $u->id, 'period' => $period, 'period_type' => $periodType]) }}" class="px-2.5 py-1.5 text-xs font-semibold text-slate-500 dark:text-slate-300 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700/70 transition-all shadow-2xs whitespace-nowrap" title="Edit Nilai">
                                                 <i class="fa-solid fa-pencil"></i>
                                             </a>
                                         @elseif($isDraft)
                                             <!-- Tombol Nilai untuk mengisi soft skill staff yang sudah di-sum (Proses hanya sekali) -->
-                                            <a href="{{ route('penilaian', ['id' => $u->id, 'month' => $month, 'year' => $year]) }}" class="px-4 py-1.5 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-sm shadow-blue-500/25 transition-all active:scale-95 flex items-center gap-1.5 cursor-pointer whitespace-nowrap" title="Lengkapi Evaluasi Soft Skill">
+                                            <a href="{{ route('penilaian', ['id' => $u->id, 'period' => $period, 'period_type' => $periodType]) }}" class="px-4 py-1.5 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-sm shadow-blue-500/25 transition-all active:scale-95 flex items-center gap-1.5 cursor-pointer whitespace-nowrap" title="Lengkapi Evaluasi Soft Skill">
                                                 <i class="fa-solid fa-star text-[10px]"></i> Nilai
                                             </a>
                                         @else
@@ -688,6 +727,8 @@
                                                 @csrf
                                                 <input type="hidden" name="month" value="{{ $month }}">
                                                 <input type="hidden" name="year" value="{{ $year }}">
+                                                <input type="hidden" name="period" value="{{ $period }}">
+                                                <input type="hidden" name="period_type" value="{{ $periodType }}">
                                                 <input type="hidden" name="department_id" value="{{ $selectedDeptId }}">
                                                 <button type="button" onclick="konfirmasiProsesNilai({{ $u->id }}, '{{ addslashes($u->name) }}')" class="px-3.5 py-1.5 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl shadow-sm shadow-indigo-500/25 transition-all active:scale-95 flex items-center gap-1.5 cursor-pointer whitespace-nowrap" title="Proses dan hitung agregat tiket staff">
                                                     <i class="fa-solid fa-calculator text-[10px]"></i> Proses Nilai

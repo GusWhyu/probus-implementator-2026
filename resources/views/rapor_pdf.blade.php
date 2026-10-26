@@ -151,7 +151,7 @@
     <div style="text-align: center; margin: 4px 0 8px 0; border-top: 1px dashed #cbd5e1; padding-top: 5px;">
         <div style="font-size: 14px; font-weight: bold; color: #004880; letter-spacing: 0.8px; text-transform: uppercase;">PENILAIAN KINERJA</div>
         <div style="font-size: 9.5px; color: #475569; margin-top: 1px;">
-            Periode: {{ $rapor ? \Carbon\Carbon::parse($rapor->periode)->translatedFormat('F Y') : \Carbon\Carbon::now()->translatedFormat('F Y') }}
+            Periode: {{ !empty($periodInfo['label']) ? $periodInfo['label'] : ($rapor ? \Carbon\Carbon::parse($rapor->periode)->translatedFormat('F Y') : \Carbon\Carbon::now()->translatedFormat('F Y')) }} (Cut-off: {{ !empty($periodInfo['cutoff_label']) ? $periodInfo['cutoff_label'] : \Carbon\Carbon::now()->endOfMonth()->translatedFormat('d F Y') }})
         </div>
     </div>
 
@@ -199,8 +199,8 @@
                     <td style="color: #0f172a; width: 22%; padding: 3px 6px;">Total</td>
                     <td style="text-align: center; color: #334155; width: 9%; padding: 3px 6px;">Bobot: {{ $modulesList->sum('bobot') }}</td>
                     <td style="text-align: center; color: #004880; width: 13%; padding: 3px 6px;">Jumlah: {{ $total_qty ?? ($savedDetails->sum('total_ticket')) }}</td>
-                    <td style="text-align: center; color: #334155; width: 21%; padding: 3px 6px;">{!! formatDurationPdf($rapor->lama_waktu ?: ($rapor->rata_rata_waktu ?: '-')) !!}</td>
-                    <td style="text-align: center; color: #334155; width: 21%; padding: 3px 6px;">{!! formatDurationPdf($rapor->rata_rata_waktu ?? '-') !!}</td>
+                    <td style="text-align: center; color: #334155; width: 21%; padding: 3px 6px;">{!! formatDurationPdf(($rapor && $rapor->lama_waktu) ? $rapor->lama_waktu : (($rapor && $rapor->rata_rata_waktu) ? $rapor->rata_rata_waktu : '-')) !!}</td>
+                    <td style="text-align: center; color: #334155; width: 21%; padding: 3px 6px;">{!! formatDurationPdf($rapor && $rapor->rata_rata_waktu ? $rapor->rata_rata_waktu : '-') !!}</td>
                     <td style="text-align: right; color: #004880; width: 14%; padding: 3px 6px;">Total: {{ number_format($raw_ticket_score ?? 0, 0, ',', '.') }} poin</td>
                 </tr>
             </tfoot>
@@ -333,7 +333,7 @@
                         </tr>
                         <tr>
                             <td style="color: #475569; padding: 2px 0;">Rata-rata respon</td>
-                            <td style="text-align: right; font-weight: bold; color: #0f172a;">{!! formatDurationPdf($rapor->rata_rata_waktu ?? '-', false) !!}</td>
+                            <td style="text-align: right; font-weight: bold; color: #0f172a;">{!! formatDurationPdf($rapor && $rapor->rata_rata_waktu ? $rapor->rata_rata_waktu : '-', false) !!}</td>
                         </tr>
                         <tr>
                             <td style="color: #475569; padding: 2px 0;">Modul terbanyak</td>
