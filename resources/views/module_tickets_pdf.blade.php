@@ -5,7 +5,7 @@
     <title>Laporan Tiket Modul {{ $module->name }} - {{ $user->name }}</title>
     <style>
         @page {
-            margin: 18px 22px 18px 22px;
+            margin: 22px 38px 22px 38px;
             size: a4 landscape;
         }
         * {
@@ -19,35 +19,45 @@
             font-size: 10px;
             line-height: 1.35;
             background-color: #ffffff;
+            width: 100%;
         }
         table {
             border-collapse: collapse;
             width: 100%;
+            table-layout: fixed;
         }
         .header-table {
             width: 100%;
-            margin-bottom: 12px;
+            table-layout: fixed;
+            margin-bottom: 14px;
             border-bottom: 2.5px solid #1e40af;
-            padding-bottom: 8px;
+            padding-bottom: 10px;
         }
         .meta-card {
             background-color: #f8fafc;
             border: 1.5px solid #94a3b8;
             border-radius: 6px;
             padding: 8px 12px;
-            margin-bottom: 12px;
+            width: 100%;
+        }
+        .meta-table {
+            width: 100%;
+            table-layout: fixed;
         }
         .meta-table td {
-            padding: 3px 6px;
+            padding: 3px 4px;
             font-size: 10px;
+            word-wrap: break-word;
         }
         .kpi-cell {
-            padding: 7px 8px;
+            padding: 7px 6px;
             border-radius: 6px;
             text-align: center;
+            width: 100%;
         }
         .data-table {
             width: 100%;
+            table-layout: fixed;
             border: 1.5px solid #475569;
             border-collapse: collapse;
             margin-bottom: 14px;
@@ -55,27 +65,31 @@
         .data-table th {
             background-color: #1e40af;
             color: #ffffff;
-            font-size: 9.5px;
+            font-size: 9px;
             font-weight: bold;
             text-align: center;
-            padding: 7px 5px;
+            padding: 7px 4px;
             border: 1px solid #1e3a8a;
             text-transform: uppercase;
             letter-spacing: 0.3px;
+            word-wrap: break-word;
+            overflow: hidden;
         }
         .data-table td {
-            padding: 7px 7px;
+            padding: 6px 6px;
             border: 1px solid #94a3b8;
             vertical-align: top;
             font-size: 9.5px;
             line-height: 1.35;
+            word-wrap: break-word;
+            overflow: hidden;
         }
         .data-table tr:nth-child(even) {
             background-color: #f8fafc;
         }
         .badge {
             display: inline-block;
-            padding: 2.5px 7px;
+            padding: 2.5px 6px;
             border-radius: 4px;
             font-weight: bold;
             font-size: 8px;
@@ -111,26 +125,25 @@
             background-color: #f0fdf4;
             border: 1px solid #86efac;
             border-left: 3.5px solid #16a34a;
-            padding: 5px 7px;
+            padding: 5px 6px;
             border-radius: 4px;
             color: #14532d;
             font-size: 9px;
             line-height: 1.35;
             margin-top: 3px;
+            word-wrap: break-word;
         }
         .deskripsi-box {
             color: #334155;
             font-size: 9px;
             line-height: 1.35;
             margin-top: 3px;
+            word-wrap: break-word;
         }
         .footer-table {
             width: 100%;
+            table-layout: fixed;
             margin-top: 12px;
-        }
-        .sign-box {
-            text-align: center;
-            width: 220px;
         }
     </style>
 </head>
@@ -150,7 +163,7 @@
     <table class="header-table">
         <tr>
             <td style="width: 50%; vertical-align: middle;">
-                <table style="width: auto;">
+                <table style="width: auto; table-layout: auto;">
                     <tr>
                         @if($probusLogoSrc)
                         <td style="padding-right: 12px; vertical-align: middle;">
@@ -174,10 +187,10 @@
     </table>
 
     <!-- Meta Information Cards -->
-    <table style="width: 100%; margin-bottom: 12px;">
+    <table style="width: 100%; table-layout: fixed; margin-bottom: 12px;">
         <tr>
             <!-- Info Staff -->
-            <td style="width: 48%; vertical-align: top; padding-right: 6px;">
+            <td style="width: 48%; vertical-align: top; padding-right: 8px;">
                 <div class="meta-card">
                     <table class="meta-table">
                         <tr>
@@ -200,28 +213,28 @@
             </td>
             
             <!-- KPI Summary Cards -->
-            <td style="width: 52%; vertical-align: top; padding-left: 6px;">
-                <table style="width: 100%;">
+            <td style="width: 52%; vertical-align: top; padding-left: 8px;">
+                <table style="width: 100%; table-layout: fixed;">
                     <tr>
-                        <td style="width: 25%; padding: 0 3px;">
+                        <td style="width: 25%; padding-right: 4px;">
                             <div class="kpi-cell" style="background-color: #f1f5f9; border: 1.5px solid #94a3b8;">
                                 <div style="font-size: 8px; font-weight: bold; color: #475569; text-transform: uppercase;">Total Tiket</div>
                                 <div style="font-size: 15px; font-weight: bold; color: #0f172a; margin-top: 2px;">{{ $totalCount }}</div>
                             </div>
                         </td>
-                        <td style="width: 25%; padding: 0 3px;">
+                        <td style="width: 25%; padding: 0 2px;">
                             <div class="kpi-cell" style="background-color: #dcfce7; border: 1.5px solid #86efac;">
                                 <div style="font-size: 8px; font-weight: bold; color: #15803d; text-transform: uppercase;">Selesai (Closed)</div>
                                 <div style="font-size: 15px; font-weight: bold; color: #15803d; margin-top: 2px;">{{ $closedCount }}</div>
                             </div>
                         </td>
-                        <td style="width: 25%; padding: 0 3px;">
+                        <td style="width: 25%; padding: 0 2px;">
                             <div class="kpi-cell" style="background-color: #fef3c7; border: 1.5px solid #fde68a;">
                                 <div style="font-size: 8px; font-weight: bold; color: #b45309; text-transform: uppercase;">Proses (Progress)</div>
                                 <div style="font-size: 15px; font-weight: bold; color: #b45309; margin-top: 2px;">{{ $progressCount }}</div>
                             </div>
                         </td>
-                        <td style="width: 25%; padding: 0 3px;">
+                        <td style="width: 25%; padding-left: 4px;">
                             <div class="kpi-cell" style="background-color: #dbeafe; border: 1.5px solid #bfdbfe;">
                                 <div style="font-size: 8px; font-weight: bold; color: #1d4ed8; text-transform: uppercase;">Baru (Open)</div>
                                 <div style="font-size: 15px; font-weight: bold; color: #1d4ed8; margin-top: 2px;">{{ $openCount }}</div>
@@ -233,7 +246,7 @@
         </tr>
     </table>
 
-    <!-- Tabel Rincian Tiket (Grid Jelas & Rapi) -->
+    <!-- Tabel Rincian Tiket (Grid Jelas, Rapi & Proporsional) -->
     <table class="data-table">
         <thead>
             <tr>
@@ -333,15 +346,15 @@
                 <div>Dicetak Oleh: <strong>{{ auth()->user()->name ?? 'User' }}</strong> pada {{ date('d/m/Y H:i') }} WITA.</div>
             </td>
             <td style="width: 45%; text-align: right; vertical-align: top;">
-                <table style="float: right; text-align: center;">
+                <table style="width: 100%; table-layout: fixed; text-align: center;">
                     <tr>
-                        <td class="sign-box" style="padding-right: 30px;">
+                        <td style="width: 50%; padding-right: 15px; padding-left: 10px; text-align: center;">
                             <div style="font-size: 9px; color: #475569;">Staff Pelaksana,</div>
                             <div style="height: 42px;"></div>
                             <div style="font-weight: bold; border-top: 1.5px solid #475569; padding-top: 3px; font-size: 10px; color: #0f172a;">{{ $user->name }}</div>
                             <div style="font-size: 8.5px; color: #64748b;">Staff {{ ucfirst($user->departemen->name ?? 'Operasional') }}</div>
                         </td>
-                        <td class="sign-box">
+                        <td style="width: 50%; padding-left: 15px; padding-right: 5px; text-align: center;">
                             <div style="font-size: 9px; color: #475569;">Mengetahui,</div>
                             <div style="height: 42px;"></div>
                             <div style="font-weight: bold; border-top: 1.5px solid #475569; padding-top: 3px; font-size: 10px; color: #0f172a;">Supervisor / Head Dept</div>
