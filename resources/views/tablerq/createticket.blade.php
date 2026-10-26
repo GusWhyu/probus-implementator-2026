@@ -113,20 +113,17 @@
                                 @php
                                     $minStartDate = \Carbon\Carbon::now()->subDays(7)->format('Y-m-d');
                                     $maxStartDate = \Carbon\Carbon::now()->format('Y-m-d');
-                                    $now = \Carbon\Carbon::now('Asia/Makassar');
-                                    $defaultDeadline = $now->format('Y-m-d H:i');
+                                    $currentStartDate = old('start_date', $maxStartDate);
+                                    $defaultDeadline = old('due_date', $maxStartDate);
                                 @endphp
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-3 items-center">
                                     <div>
                                         <span class="block text-[10px] font-bold text-slate-400 mb-1">Tanggal Mulai</span>
-                                        <input type="date" min="{{ $minStartDate }}" max="{{ $maxStartDate }}" class="w-full bg-slate-50/50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-sm font-semibold rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 block p-3.5 outline-none transition-all cursor-pointer" value="{{ old('start_date', $maxStartDate) }}" name="start_date" id="start-date-picker" required>
+                                        <input type="date" min="{{ $minStartDate }}" max="{{ $maxStartDate }}" class="w-full bg-slate-50/50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-sm font-semibold rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 block p-3.5 outline-none transition-all cursor-pointer" value="{{ $currentStartDate }}" name="start_date" id="start-date-picker" required>
                                     </div>
                                     <div>
                                         <span class="block text-[10px] font-bold text-slate-400 mb-1">Tenggat Waktu</span>
-                                        <div class="relative">
-                                            <input type="text" id="due-date-picker" name="due_date" value="{{ old('due_date', $defaultDeadline) }}" class="w-full bg-slate-50/50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-sm font-semibold rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 block p-3.5 transition-all outline-none pl-10 cursor-pointer" placeholder="Pilih tanggal dan waktu" required>
-                                            <i class="fa-regular fa-calendar-days absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
-                                        </div>
+                                        <input type="date" id="due-date-picker" min="{{ $currentStartDate }}" name="due_date" value="{{ $defaultDeadline }}" class="w-full bg-slate-50/50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-sm font-semibold rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 block p-3.5 outline-none transition-all cursor-pointer" required>
                                     </div>
                                 </div>
                             </div>
@@ -445,63 +442,31 @@
             });
         }
 
-        // Initialize Flatpickr for 24-hour format
+        // Date synchronization between start_date and due_date
         document.addEventListener('DOMContentLoaded', function() {
-            let duePickerInstance = null;
-            try {
-                if (typeof flatpickr !== 'undefined') {
-                    const startVal = document.getElementById('start-date-picker')?.value || new Date();
-                    duePickerInstance = flatpickr("#due-date-picker", {
-                        enableTime: true,
-                        dateFormat: "Y-m-d H:i",
-                        time_24hr: true,
-                        minDate: startVal,
-                        locale: "id",
-                        defaultHour: new Date().getHours(),
-                        defaultMinute: new Date().getMinutes(),
-                    });
-
-                    const startDateInput = document.getElementById('start-date-picker');
-                    if (startDateInput) {
-                        const updateDueFromStart = function() {
-                            let val = startDateInput.value;
-                            if (!val) return;
-                            if (startDateInput.min && val < startDateInput.min) {
-                                val = startDateInput.min;
-                                startDateInput.value = val;
-                            } else if (startDateInput.max && val > startDateInput.max) {
-                                val = startDateInput.max;
-                                startDateInput.value = val;
-                            }
-
-                            if (duePickerInstance && val) {
-                                // Set minimum date so tenggat cannot go backwards before ticket creation date
-                                duePickerInstance.set('minDate', val);
-
-                                // Preserve existing selected time or default to current time
-                                let timeStr = '';
-                                if (duePickerInstance.selectedDates && duePickerInstance.selectedDates.length > 0) {
-                                    const cur = duePickerInstance.selectedDates[0];
-                                    const h = String(cur.getHours()).padStart(2, '0');
-                                    const m = String(cur.getMinutes()).padStart(2, '0');
-                                    timeStr = `${h}:${m}`;
-                                } else {
-                                    const now = new Date();
-                                    const h = String(now.getHours()).padStart(2, '0');
-                                    const m = String(now.getMinutes()).padStart(2, '0');
-                                    timeStr = `${h}:${m}`;
-                                }
-
-                                // Automatically sync due_date to the newly selected start_date
-                                duePickerInstance.setDate(`${val} ${timeStr}`, true);
-                            }
-                        };
-
-                        startDateInput.addEventListener('change', updateDueFromStart);
-                        startDateInput.addEventListener('input', updateDueFromStart);
+            const startDateInput = document.getElementById('start-date-picker');
+            const dueDateInput = document.getElementById('due-date-picker');
+            if (startDateInput && dueDateInput) {
+                const updateDueFromStart = function() {
+                    let val = startDateInput.value;
+                    if (!val) return;
+                    if (startDateInput.min && val < startDateInput.min) {
+                        val = startDateInput.min;
+                        startDateInput.value = val;
+                    } else if (startDateInput.max && val > startDateInput.max) {
+                        val = startDateInput.max;
+                        startDateInput.value = val;
                     }
-                }
-            } catch (e) { console.error(e); }
+
+                    dueDateInput.min = val;
+                    if (!dueDateInput.value || dueDateInput.value < val) {
+                        dueDateInput.value = val;
+                    }
+                };
+
+                startDateInput.addEventListener('change', updateDueFromStart);
+                startDateInput.addEventListener('input', updateDueFromStart);
+            }
 
             // Initialize Tom Select for Client searchable dropdown
             try {
