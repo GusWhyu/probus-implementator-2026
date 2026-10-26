@@ -46,16 +46,14 @@
         <div class="p-5 sm:p-8">
             
             @php
-                $petugas = $ticket->advisor ?? $ticket->user;
-                $petugasName = $petugas ? $petugas->name : ($ticket->user->name ?? 'Tim Implementator');
-                $petugasRole = $petugas ? $petugas->usertype : ($ticket->user->usertype ?? 'user');
+                $petugas = $ticket->user;
+                $petugasName = $petugas ? $petugas->name : 'Tim Implementator';
+                $petugasRole = $petugas ? $petugas->usertype : 'user';
                 
                 $fallbackAvatar = 'https://ui-avatars.com/api/?name=' . urlencode($petugasName) . '&background=2563eb&color=fff&bold=true';
                 $petugasAvatar = null;
                 if ($petugas && !empty($petugas->profile_image)) {
                     $petugasAvatar = asset('storage/' . $petugas->profile_image);
-                } elseif ($ticket->user && !empty($ticket->user->profile_image)) {
-                    $petugasAvatar = asset('storage/' . $ticket->user->profile_image);
                 } elseif ($petugas && !empty($petugas->avatar_url)) {
                     $petugasAvatar = $petugas->avatar_url;
                 } else {
@@ -101,6 +99,11 @@
                         @if($ticket->client)
                         <span class="text-[11px] font-bold text-slate-500 bg-white px-2 py-0.5 rounded-lg border border-slate-200/60 truncate max-w-[200px]">
                             <i class="fa-regular fa-building text-[10px] text-slate-400 mr-1"></i>{{ $ticket->client->nm_out }}
+                        </span>
+                        @endif
+                        @if($ticket->advisor)
+                        <span class="text-[11px] font-semibold text-slate-500 bg-white px-2 py-0.5 rounded-lg border border-slate-200/60 truncate max-w-[200px]" title="Advisor Tiket">
+                            <i class="fa-solid fa-user-shield text-[10px] text-indigo-500 mr-1"></i>Advisor: {{ $ticket->advisor->name }}
                         </span>
                         @endif
                     </div>
