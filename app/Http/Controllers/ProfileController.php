@@ -161,6 +161,6 @@ class ProfileController extends Controller
         return response()->json([
             'success' => true,
             'theme' => $request->theme,
-        ]);
+        ])->cookie('theme', $request->theme, 525600, '/', null, false, false);
     }
 }

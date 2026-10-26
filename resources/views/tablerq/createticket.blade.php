@@ -81,7 +81,7 @@
                                 </div>
                             </div>
 
-                            <!-- Tipe Penanganan & Tenggat Waktu (Due Date) -->
+                            <!-- Tipe Penanganan & Advisor -->
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <!-- Tipe Penanganan -->
                                 <div>
@@ -95,21 +95,8 @@
                                     </select>
                                 </div>
 
-                                <!-- Due Date -->
-                                <div>
-                                    <label class="block text-[11px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Tenggat Waktu <span class="text-rose-500">*</span></label>
-                                    @php
-                                        $now = \Carbon\Carbon::now('Asia/Makassar');
-                                        $defaultDeadline = $now->copy()->addDay()->format('Y-m-d H:i');
-                                    @endphp
-                                    <div class="relative">
-                                        <input type="text" id="due-date-picker" name="due_date" value="{{ old('due_date', $defaultDeadline) }}" class="w-full bg-slate-50/50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-sm font-semibold rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 block p-3.5 transition-all outline-none pl-10 cursor-pointer" placeholder="Pilih tanggal dan waktu" required>
-                                        <i class="fa-regular fa-calendar-days absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
-                                    </div>
-                                </div>
-                                
                                 <!-- Advisor -->
-                                <div class="md:col-span-2">
+                                <div>
                                     <label class="block text-[11px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Advisor (Opsional)</label>
                                     <select name="advisor" class="w-full bg-slate-50/50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-sm font-semibold rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 block p-3.5 transition-all outline-none appearance-none cursor-pointer" style="background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2394a3b8%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E'); background-repeat: no-repeat; background-position: right 1rem top 50%; background-size: 0.65rem auto;">
                                         <option value="" selected>Pilih advisor (Opsional)...</option>
@@ -117,6 +104,30 @@
                                             <option value="{{ $u->id }}" {{ old('advisor') == $u->id ? 'selected' : '' }}>{{ $u->name }}</option>
                                         @endforeach
                                     </select>
+                                </div>
+                            </div>
+
+                            <!-- Periode Penanganan (Tanggal Mulai & Tenggat Waktu) -->
+                            <div>
+                                <label class="block text-[11px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Periode Penanganan <span class="text-rose-500">*</span></label>
+                                @php
+                                    $minStartDate = \Carbon\Carbon::now()->subDays(7)->format('Y-m-d');
+                                    $maxStartDate = \Carbon\Carbon::now()->format('Y-m-d');
+                                    $now = \Carbon\Carbon::now('Asia/Makassar');
+                                    $defaultDeadline = $now->format('Y-m-d H:i');
+                                @endphp
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 items-center">
+                                    <div>
+                                        <span class="block text-[10px] font-bold text-slate-400 mb-1">Tanggal Mulai</span>
+                                        <input type="date" min="{{ $minStartDate }}" max="{{ $maxStartDate }}" class="w-full bg-slate-50/50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-sm font-semibold rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 block p-3.5 outline-none transition-all cursor-pointer" value="{{ old('start_date', $maxStartDate) }}" name="start_date" id="start-date-picker" required>
+                                    </div>
+                                    <div>
+                                        <span class="block text-[10px] font-bold text-slate-400 mb-1">Tenggat Waktu</span>
+                                        <div class="relative">
+                                            <input type="text" id="due-date-picker" name="due_date" value="{{ old('due_date', $defaultDeadline) }}" class="w-full bg-slate-50/50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-sm font-semibold rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 block p-3.5 transition-all outline-none pl-10 cursor-pointer" placeholder="Pilih tanggal dan waktu" required>
+                                            <i class="fa-regular fa-calendar-days absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -436,17 +447,59 @@
 
         // Initialize Flatpickr for 24-hour format
         document.addEventListener('DOMContentLoaded', function() {
+            let duePickerInstance = null;
             try {
                 if (typeof flatpickr !== 'undefined') {
-                    flatpickr("#due-date-picker", {
+                    const startVal = document.getElementById('start-date-picker')?.value || new Date();
+                    duePickerInstance = flatpickr("#due-date-picker", {
                         enableTime: true,
                         dateFormat: "Y-m-d H:i",
                         time_24hr: true,
-                        minDate: new Date(), // This automatically prevents selecting a time in the past for today
+                        minDate: startVal,
                         locale: "id",
                         defaultHour: new Date().getHours(),
                         defaultMinute: new Date().getMinutes(),
                     });
+
+                    const startDateInput = document.getElementById('start-date-picker');
+                    if (startDateInput) {
+                        const updateDueFromStart = function() {
+                            let val = startDateInput.value;
+                            if (!val) return;
+                            if (startDateInput.min && val < startDateInput.min) {
+                                val = startDateInput.min;
+                                startDateInput.value = val;
+                            } else if (startDateInput.max && val > startDateInput.max) {
+                                val = startDateInput.max;
+                                startDateInput.value = val;
+                            }
+
+                            if (duePickerInstance && val) {
+                                // Set minimum date so tenggat cannot go backwards before ticket creation date
+                                duePickerInstance.set('minDate', val);
+
+                                // Preserve existing selected time or default to current time
+                                let timeStr = '';
+                                if (duePickerInstance.selectedDates && duePickerInstance.selectedDates.length > 0) {
+                                    const cur = duePickerInstance.selectedDates[0];
+                                    const h = String(cur.getHours()).padStart(2, '0');
+                                    const m = String(cur.getMinutes()).padStart(2, '0');
+                                    timeStr = `${h}:${m}`;
+                                } else {
+                                    const now = new Date();
+                                    const h = String(now.getHours()).padStart(2, '0');
+                                    const m = String(now.getMinutes()).padStart(2, '0');
+                                    timeStr = `${h}:${m}`;
+                                }
+
+                                // Automatically sync due_date to the newly selected start_date
+                                duePickerInstance.setDate(`${val} ${timeStr}`, true);
+                            }
+                        };
+
+                        startDateInput.addEventListener('change', updateDueFromStart);
+                        startDateInput.addEventListener('input', updateDueFromStart);
+                    }
                 }
             } catch (e) { console.error(e); }
 

@@ -46,16 +46,15 @@
         <div class="p-5 sm:p-8">
             
             @php
-                $petugas = $ticket->advisor ?? $ticket->user;
-                $petugasName = $petugas ? $petugas->name : ($ticket->user->name ?? 'Tim Implementator');
-                $petugasRole = $petugas ? $petugas->usertype : ($ticket->user->usertype ?? 'user');
+                // Review selalu ditujukan kepada pembuat tiket (petugas utama penanganan), bukan advisor
+                $petugas = $ticket->user;
+                $petugasName = $petugas ? $petugas->name : 'Tim Implementator';
+                $petugasRole = $petugas ? $petugas->usertype : 'user';
                 
                 $fallbackAvatar = 'https://ui-avatars.com/api/?name=' . urlencode($petugasName) . '&background=2563eb&color=fff&bold=true';
                 $petugasAvatar = null;
                 if ($petugas && !empty($petugas->profile_image)) {
                     $petugasAvatar = asset('storage/' . $petugas->profile_image);
-                } elseif ($ticket->user && !empty($ticket->user->profile_image)) {
-                    $petugasAvatar = asset('storage/' . $ticket->user->profile_image);
                 } elseif ($petugas && !empty($petugas->avatar_url)) {
                     $petugasAvatar = $petugas->avatar_url;
                 } else {
@@ -65,8 +64,8 @@
 
             <!-- User Pembuat Tiket & Ticket Info Header Card -->
             <div class="bg-slate-50/80 border border-slate-200/70 rounded-2xl p-4 sm:p-5 mb-6 relative overflow-hidden transition-all hover:border-blue-200/80 hover:bg-slate-50">
-                <div class="flex items-center gap-3.5 mb-3.5 pb-3.5 border-b border-slate-200/60">
-                    <div class="relative shrink-0">
+                <div class="flex items-start gap-3.5 mb-3.5 pb-3.5 border-b border-slate-200/60">
+                    <div class="relative shrink-0 mt-0.5">
                         <div class="w-12 h-12 rounded-full overflow-hidden bg-blue-100 ring-2 ring-white shadow-sm">
                             <img src="{{ $petugasAvatar }}" 
                                  alt="{{ $petugasName }}" 
@@ -76,8 +75,8 @@
                         <span class="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-emerald-500 border-2 border-white rounded-full"></span>
                     </div>
                     <div class="flex-1 min-w-0">
-                        <div class="flex items-center justify-between gap-2">
-                            <h3 class="font-extrabold text-slate-900 text-sm sm:text-[15px] truncate">{{ $petugasName }}</h3>
+                        <div class="flex flex-wrap items-center gap-1.5 sm:gap-2 mb-1">
+                            <h3 class="font-extrabold text-slate-900 text-sm sm:text-[15px] leading-snug break-words">{{ $petugasName }}</h3>
                             <span class="bg-blue-50 text-blue-700 font-extrabold text-[10px] px-2 py-0.5 rounded-md border border-blue-200 shrink-0 capitalize">
                                 @if($petugasRole === 'admin')
                                     Admin
@@ -88,23 +87,24 @@
                                 @endif
                             </span>
                         </div>
-                        <p class="text-xs text-slate-500 font-medium truncate mt-0.5">Pembuat tiket & petugas penanganan Anda</p>
+                        <p class="text-xs text-slate-500 font-medium leading-normal break-words">Pembuat tiket &amp; petugas penanganan Anda</p>
                     </div>
                 </div>
 
-                <div class="space-y-1.5">
-                    <div class="flex items-center gap-2 flex-wrap">
-                        <span class="inline-flex items-center gap-1.5 font-mono text-xs font-bold text-blue-600 bg-blue-50/80 px-2.5 py-0.5 rounded-lg border border-blue-100">
+                <div class="space-y-2">
+                    <div class="flex flex-wrap items-center gap-2">
+                        <span class="inline-flex items-center gap-1.5 font-mono text-xs font-bold text-blue-600 bg-blue-50/90 px-2.5 py-1 rounded-lg border border-blue-100 shrink-0">
                             <i class="fa-solid fa-ticket text-[10px]"></i>
                             #{{ $ticket->ticket_number }}
                         </span>
                         @if($ticket->client)
-                        <span class="text-[11px] font-bold text-slate-500 bg-white px-2 py-0.5 rounded-lg border border-slate-200/60 truncate max-w-[200px]">
-                            <i class="fa-regular fa-building text-[10px] text-slate-400 mr-1"></i>{{ $ticket->client->nm_out }}
+                        <span class="inline-flex items-center gap-1.5 text-xs font-bold text-slate-600 bg-white px-2.5 py-1 rounded-lg border border-slate-200/80 shadow-xs break-words max-w-full">
+                            <i class="fa-regular fa-building text-[10px] text-slate-400 shrink-0"></i>
+                            <span class="break-words">{{ $ticket->client->nm_out }}</span>
                         </span>
                         @endif
                     </div>
-                    <h2 class="font-bold text-slate-800 text-sm leading-snug pt-0.5 line-clamp-2">{{ $ticket->title }}</h2>
+                    <h2 class="font-bold text-slate-800 text-sm sm:text-[15px] leading-snug pt-0.5 break-words">{{ $ticket->title }}</h2>
                 </div>
             </div>
 

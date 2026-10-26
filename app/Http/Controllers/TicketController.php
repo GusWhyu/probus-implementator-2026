@@ -153,6 +153,9 @@ class TicketController extends Controller
     }
 
     public function storeticket(Request $request){
+        $minDate = now()->subDays(7)->toDateString();
+        $maxDate = now()->toDateString();
+
         $request->validate([
             'title' => 'required|max:100',
             'body' => 'required',
@@ -161,9 +164,15 @@ class TicketController extends Controller
             'client' => 'required', // client from form is now client_id (moutlet)
             'tipe_penanganan' => 'required|in:On Site,Office,Piket,Online,Remote,Remote / Online',
             'advisor' => 'nullable', // advisor is optional
-            'due_date' => 'required|date',
+            'start_date' => ['required', 'date', 'after_or_equal:' . $minDate, 'before_or_equal:' . $maxDate],
+            'due_date' => 'required|date|after_or_equal:start_date',
             'images' => 'array|max:6',
             'images.*' => 'image|mimes:jpg,jpeg,png|max:1024'
+        ], [
+            'start_date.required' => 'Tanggal mulai wajib diisi.',
+            'start_date.after_or_equal' => 'Tanggal mulai maksimal 1 minggu sebelum hari tiket dibuat (' . \Carbon\Carbon::parse($minDate)->format('d/m/Y') . ').',
+            'start_date.before_or_equal' => 'Tanggal mulai tidak boleh lebih dari hari tiket dibuat (' . \Carbon\Carbon::parse($maxDate)->format('d/m/Y') . ').',
+            'due_date.after_or_equal' => 'Tenggat waktu tidak boleh lebih awal dari tanggal mulai.',
         ]);
 
         // Generate ticket number
@@ -181,6 +190,7 @@ class TicketController extends Controller
             'user_id' => Auth::id(), // creator is the logged in user
             'advisor_id' => $request->advisor,
             'tipe_penanganan' => $request->tipe_penanganan,
+            'start_date' => $request->start_date ?: $request->startdate,
             'due_date' => $request->due_date,
             'status' => 'OPEN',
             'link_id' => \Illuminate\Support\Str::random(10),
@@ -246,6 +256,13 @@ class TicketController extends Controller
             return redirect()->route('detailticket', ['id' => $id]);
         }
 
+        $baseDate = $datarq->created_at ? \Carbon\Carbon::parse($datarq->created_at) : now();
+        $minDate = $baseDate->copy()->subDays(7)->toDateString();
+        $maxDate = $baseDate->toDateString();
+        if ($datarq->start_date && \Carbon\Carbon::parse($datarq->start_date)->lt(\Carbon\Carbon::parse($minDate))) {
+            $minDate = \Carbon\Carbon::parse($datarq->start_date)->toDateString();
+        }
+
         $request->validate([
             'title' => 'required|max:100',
             'body' => 'required',
@@ -254,11 +271,17 @@ class TicketController extends Controller
             'client' => 'required',
             'tipe_penanganan' => 'required|in:On Site,Office,Piket,Online,Remote,Remote / Online',
             'advisor' => 'nullable',
-            'due_date' => 'required|date',
+            'start_date' => ['required', 'date', 'after_or_equal:' . $minDate, 'before_or_equal:' . $maxDate],
+            'due_date' => 'required|date|after_or_equal:start_date',
             'status' => 'nullable|in:OPEN,PROGRESS,CLOSED',
             'solusi' => 'nullable|string',
             'images' => 'array|max:6',
             'images.*' => 'image|mimes:jpg,jpeg,png|max:1024'
+        ], [
+            'start_date.required' => 'Tanggal mulai wajib diisi.',
+            'start_date.after_or_equal' => 'Tanggal mulai maksimal 1 minggu sebelum hari tiket dibuat (' . \Carbon\Carbon::parse($minDate)->format('d/m/Y') . ').',
+            'start_date.before_or_equal' => 'Tanggal mulai tidak boleh lebih dari hari tiket dibuat (' . \Carbon\Carbon::parse($maxDate)->format('d/m/Y') . ').',
+            'due_date.after_or_equal' => 'Tenggat waktu tidak boleh lebih awal dari tanggal mulai.',
         ]);
 
         $updateData = [
@@ -269,6 +292,7 @@ class TicketController extends Controller
             'client_id' => $request->client,
             'advisor_id' => $request->advisor,
             'tipe_penanganan' => $request->tipe_penanganan,
+            'start_date' => $request->start_date ?: $request->startdate,
             'due_date' => $request->due_date,
         ];
 
@@ -490,6 +514,108 @@ class TicketController extends Controller
                 ]
             ]);
         }
+
+        return redirect()->back();
+    }
+
+    public function setWaitingConfirmation(Request $request, $id)
+    {
+        $ticket = Ticket::findOrFail($id);
+        $user = Auth::user();
+
+        // Authorization check: only ticket creator or supervisor/admin
+        $isAdminOrSupervisor = in_array($user->usertype, ['admin', 'supervisor']);
+        if ($ticket->user_id != $user->id && !$isAdminOrSupervisor) {
+            Alert::error('Akses Ditolak', 'Hanya penanggung jawab tiket yang dapat menandai menunggu konfirmasi klien.');
+            return redirect()->back();
+        }
+
+        if (strtoupper($ticket->status) !== 'PROGRESS') {
+            Alert::error('Gagal', 'Tiket harus dalam status PROGRESS untuk meminta konfirmasi klien.');
+            return redirect()->back();
+        }
+
+        $request->validate([
+            'message' => 'nullable|string|max:1000',
+        ]);
+
+        $clientName = $ticket->client ? $ticket->client->nm_out : 'Bapak/Ibu Klien';
+        $customMessage = trim($request->input('message', ''));
+        if (empty($customMessage)) {
+            $customMessage = "Kendala terkait \"{$ticket->title}\" telah selesai kami tangani. Mohon kesediaan Bapak/Ibu untuk melakukan pengecekan dan pengujian kembali. Jika ada kendala lebih lanjut, silakan informasikan kepada kami. Terima kasih.";
+        }
+
+        $formattedBody = "[MENUNGGU KONFIRMASI KLIEN]\n\n" . $customMessage;
+
+        // 1. Post to Komentar
+        Komentar::create([
+            'ticket_id' => $ticket->id,
+            'request_id' => null,
+            'user_id' => $user->id,
+            'body' => $formattedBody,
+        ]);
+
+        // 2. Record to TicketLog
+        TicketLog::create([
+            'ticket_id' => $ticket->id,
+            'user_id' => $user->id,
+            'action' => 'WAITING_CONFIRMATION',
+            'description' => 'Pengerjaan kendala telah selesai. Menunggu konfirmasi pengetesan dari pihak klien (' . $clientName . ').',
+        ]);
+
+        // 3. Prepare WhatsApp Message
+        $waText = "Halo Tim *{$clientName}*,\n\n"
+                . "Pemberitahuan dari *Tim Support Probus System*:\n\n"
+                . "📋 *No. Tiket:* #{$ticket->ticket_number}\n"
+                . "📌 *Kendala:* {$ticket->title}\n"
+                . "⏳ *Status:* Selesai Dikerjakan (Menunggu Konfirmasi Klien)\n\n"
+                . "📝 *Keterangan:* {$customMessage}\n\n"
+                . "Mohon bantuannya untuk melakukan pengecekan kembali. Terima kasih atas kerja samanya. 🙏";
+
+        $waUrl = 'https://api.whatsapp.com/send?text=' . rawurlencode($waText);
+
+        if ($request->boolean('open_wa', true)) {
+            session()->flash('open_whatsapp_url', $waUrl);
+        }
+
+        Alert::success('Berhasil!', 'Permintaan konfirmasi klien telah dicatat di riwayat diskusi tiket.')->showConfirmButton('Tutup', '#3b82f6')->autoClose(3000);
+
+        return redirect()->back();
+    }
+
+    public function resumeProgress(Request $request, $id)
+    {
+        $ticket = Ticket::findOrFail($id);
+        $user = Auth::user();
+
+        $isAdminOrSupervisor = in_array($user->usertype, ['admin', 'supervisor']);
+        if ($ticket->user_id != $user->id && !$isAdminOrSupervisor) {
+            Alert::error('Akses Ditolak', 'Anda tidak memiliki hak untuk melanjutkan pengerjaan tiket ini.');
+            return redirect()->back();
+        }
+
+        if (strtoupper($ticket->status) !== 'PROGRESS') {
+            Alert::error('Gagal', 'Tiket tidak dalam status PROGRESS.');
+            return redirect()->back();
+        }
+
+        $resumeNotes = trim($request->input('resume_notes', 'Pengerjaan tiket dilanjutkan kembali oleh petugas.'));
+
+        Komentar::create([
+            'ticket_id' => $ticket->id,
+            'request_id' => null,
+            'user_id' => $user->id,
+            'body' => "[KEMBALI DIKERJAKAN]\n\n" . $resumeNotes,
+        ]);
+
+        TicketLog::create([
+            'ticket_id' => $ticket->id,
+            'user_id' => $user->id,
+            'action' => 'RESUME_PROGRESS',
+            'description' => 'Pengerjaan tiket dilanjutkan kembali: ' . $resumeNotes,
+        ]);
+
+        Alert::info('Informasi', 'Status tiket dikembalikan ke pengerjaan aktif.')->showConfirmButton('Tutup', '#3b82f6')->autoClose(2500);
 
         return redirect()->back();
     }
@@ -946,7 +1072,7 @@ class TicketController extends Controller
             }
 
             // Tentukan tanggal
-            $startDate = now()->toDateString();
+            $startDate = $ticket->start_date ? \Carbon\Carbon::parse($ticket->start_date)->toDateString() : now()->toDateString();
             $endDate = $request->end_date ?: ($ticket->due_date ? \Carbon\Carbon::parse($ticket->due_date)->toDateString() : now()->addDays(7)->toDateString());
 
             // Deskripsi tetap bersih tanpa disisipi teks pengalihan (catatan pengalihan disimpan di approval_note)

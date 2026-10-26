@@ -91,6 +91,8 @@ Route::post('/ticket/{id}/takeover/accept', [TicketController::class, 'takeoverA
 Route::post('/ticket/{id}/takeover/reject', [TicketController::class, 'takeoverReject'])->middleware(['auth'])->name('ticket.takeover.reject');
 Route::post('/ticket/{id}/takeover/cancel', [TicketController::class, 'takeoverCancel'])->middleware(['auth'])->name('ticket.takeover.cancel');
 Route::post('/ticket/{id}/convert-to-request', [TicketController::class, 'convertToRequest'])->middleware(['auth'])->name('ticket.convert_to_request');
+Route::post('/ticket/{id}/waiting-confirmation', [TicketController::class, 'setWaitingConfirmation'])->middleware(['auth'])->name('ticket.waiting_confirmation');
+Route::post('/ticket/{id}/resume-progress', [TicketController::class, 'resumeProgress'])->middleware(['auth'])->name('ticket.resume_progress');
 Route::post('/upload-editor-image', [TicketController::class, 'uploadEditorImage'])->middleware(['auth'])->name('editor.upload_image');
 
 //Route Update System

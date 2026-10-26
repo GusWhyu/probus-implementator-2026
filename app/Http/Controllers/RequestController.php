@@ -459,10 +459,13 @@ class RequestController extends Controller
     }
 
     public function store(Request $request){
+        $minDate = now()->subDays(7)->toDateString();
+        $maxDate = now()->toDateString();
+
         $request->validate([
             'title' => 'required|max:100',
             'body' => 'required',
-            'startdate' => 'required|date',
+            'startdate' => ['required', 'date', 'after_or_equal:' . $minDate, 'before_or_equal:' . $maxDate],
             'enddate' => 'required|date|after_or_equal:startdate',
             'category' => 'required', // System
             'module' => 'nullable', // Module
@@ -471,6 +474,11 @@ class RequestController extends Controller
             'outlet' => 'nullable',
             'images' => 'array|max:6',
             'images.*' => 'image|mimes:jpg,jpeg,png|max:1024'
+        ], [
+            'startdate.required' => 'Tanggal mulai wajib diisi.',
+            'startdate.after_or_equal' => 'Tanggal mulai maksimal 1 minggu sebelum hari request dibuat (' . \Carbon\Carbon::parse($minDate)->format('d/m/Y') . ').',
+            'startdate.before_or_equal' => 'Tanggal mulai tidak boleh lebih dari hari request dibuat (' . \Carbon\Carbon::parse($maxDate)->format('d/m/Y') . ').',
+            'enddate.after_or_equal' => 'Tanggal selesai tidak boleh lebih awal dari tanggal mulai.',
         ]);
 
         $outletId = $request->outlet ?? $request->client;
@@ -559,10 +567,17 @@ class RequestController extends Controller
             Alert::warning('Request Ditutup', 'Request ini telah berstatus Closed dan tidak dapat diedit lagi.');
             return redirect()->route('detailrequest', ['id' => $id]);
         }
+        $baseDate = $rq->created_at ? \Carbon\Carbon::parse($rq->created_at) : now();
+        $minDate = $baseDate->copy()->subDays(7)->toDateString();
+        $maxDate = $baseDate->toDateString();
+        if ($rq->start_date && \Carbon\Carbon::parse($rq->start_date)->lt(\Carbon\Carbon::parse($minDate))) {
+            $minDate = \Carbon\Carbon::parse($rq->start_date)->toDateString();
+        }
+
         $request->validate([
             'title' => 'required|max:255',
             'body' => 'required',
-            'startdate' => 'required|date',
+            'startdate' => ['required', 'date', 'after_or_equal:' . $minDate, 'before_or_equal:' . $maxDate],
             'enddate' => 'required|date|after_or_equal:startdate',
             'category' => 'required',
             'module' => 'nullable',
@@ -572,6 +587,11 @@ class RequestController extends Controller
             'tag' => 'required|exists:tag,id',
             'images' => 'array|max:6',
             'images.*' => 'image|mimes:jpg,jpeg,png|max:1024'
+        ], [
+            'startdate.required' => 'Tanggal mulai wajib diisi.',
+            'startdate.after_or_equal' => 'Tanggal mulai maksimal 1 minggu sebelum hari request dibuat (' . \Carbon\Carbon::parse($minDate)->format('d/m/Y') . ').',
+            'startdate.before_or_equal' => 'Tanggal mulai tidak boleh lebih dari hari request dibuat (' . \Carbon\Carbon::parse($maxDate)->format('d/m/Y') . ').',
+            'enddate.after_or_equal' => 'Tanggal selesai tidak boleh lebih awal dari tanggal mulai.',
         ]);
 
         $outletId = $request->outlet ?? $request->client ?? $rq->outlet_id;
@@ -874,6 +894,7 @@ class RequestController extends Controller
                 'user_id' => $request->assigned_user_id,
                 'advisor_id' => $request->advisor_id ?: null,
                 'tipe_penanganan' => $request->tipe_penanganan,
+                'start_date' => $req->start_date ?: now()->toDateString(),
                 'due_date' => $request->due_date,
                 'status' => 'OPEN',
                 'link_id' => \Illuminate\Support\Str::random(10),

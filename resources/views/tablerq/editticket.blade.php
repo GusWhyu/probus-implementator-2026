@@ -80,24 +80,16 @@
                                 <!-- Tipe Penanganan -->
                                 <div>
                                     <label class="block text-[11px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Tipe Penanganan <span class="text-rose-500">*</span></label>
-                                    <select name="tipe_penanganan" class="w-full bg-slate-50/50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-sm font-semibold rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 block p-3.5 transition-all outline-none appearance-none cursor-pointer" style="background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2394a3b8%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E'); background-repeat: no-repeat; background-position: right 1rem top 50%; background-size: 0.65rem auto;">
+                                    <select name="tipe_penanganan" class="w-full bg-slate-50/50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-sm font-semibold rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 block p-3.5 transition-all outline-none appearance-none cursor-pointer" style="background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2394a3b8%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E'); background-repeat: no-repeat; background-position: right 1rem top 50%; background-size: 0.65rem auto;" required>
                                         <option value="On Site" {{ old('tipe_penanganan', $datarq->tipe_penanganan) == 'On Site' ? 'selected' : '' }}>On Site</option>
                                         <option value="Office" {{ old('tipe_penanganan', $datarq->tipe_penanganan) == 'Office' ? 'selected' : '' }}>Office</option>
                                         <option value="Online" {{ in_array(old('tipe_penanganan', $datarq->tipe_penanganan), ['Online', 'Remote', 'Remote / Online']) ? 'selected' : '' }}>Online</option>
                                         <option value="Piket" {{ old('tipe_penanganan', $datarq->tipe_penanganan) == 'Piket' ? 'selected' : '' }}>Piket</option>
                                     </select>
                                 </div>
-
-                                <!-- Due Date -->
-                                <div>
-                                    <label class="block text-[11px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Tenggat Waktu <span class="text-rose-500">*</span></label>
-                                    <div class="relative">
-                                        <input type="date" id="due-date-picker" name="due_date" value="{{ old('due_date', \Carbon\Carbon::parse($datarq->due_date)->format('Y-m-d')) }}" class="w-full bg-slate-50/50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-sm font-semibold rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 block p-3.5 transition-all outline-none cursor-pointer" required>
-                                    </div>
-                                </div>
                                 
                                 <!-- Advisor -->
-                                <div class="md:col-span-2">
+                                <div>
                                     <label class="block text-[11px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Advisor (Opsional)</label>
                                     <select name="advisor" class="w-full bg-slate-50/50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-sm font-semibold rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 block p-3.5 transition-all outline-none appearance-none cursor-pointer" style="background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2394a3b8%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E'); background-repeat: no-repeat; background-position: right 1rem top 50%; background-size: 0.65rem auto;">
                                         <option value="" selected>Pilih advisor...</option>
@@ -105,6 +97,32 @@
                                             <option value="{{ $u->id }}" {{ old('advisor', $datarq->advisor_id) == $u->id ? 'selected' : '' }}>{{ $u->name }}</option>
                                         @endforeach
                                     </select>
+                                </div>
+
+                                <!-- Periode Penanganan (Tanggal Mulai & Tenggat Waktu) -->
+                                <div class="md:col-span-2">
+                                    <label class="block text-[11px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Periode Penanganan <span class="text-rose-500">*</span></label>
+                                    @php
+                                        $baseCreatedDate = $datarq->created_at ? \Carbon\Carbon::parse($datarq->created_at) : \Carbon\Carbon::now();
+                                        $sevenDaysBefore = $baseCreatedDate->copy()->subDays(7)->format('Y-m-d');
+                                        $existingStartDate = $datarq->start_date ? \Carbon\Carbon::parse($datarq->start_date)->format('Y-m-d') : null;
+                                        $minStartDate = $existingStartDate && $existingStartDate < $sevenDaysBefore ? $existingStartDate : $sevenDaysBefore;
+                                        $maxStartDate = $baseCreatedDate->format('Y-m-d');
+                                        $currentStartDate = old('start_date', $existingStartDate ?: $maxStartDate);
+                                        $currentDueDate = old('due_date', $datarq->due_date ? \Carbon\Carbon::parse($datarq->due_date)->format('Y-m-d') : '');
+                                    @endphp
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 items-center">
+                                        <div>
+                                            <span class="block text-[10px] font-bold text-slate-400 mb-1">Tanggal Mulai</span>
+                                            <input type="date" min="{{ $minStartDate }}" max="{{ $maxStartDate }}" class="w-full bg-slate-50/50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-sm font-semibold rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 block p-3.5 outline-none transition-all cursor-pointer" value="{{ $currentStartDate }}" name="start_date" id="start-date-picker" required>
+                                        </div>
+                                        <div>
+                                            <span class="block text-[10px] font-bold text-slate-400 mb-1">Tenggat Waktu</span>
+                                            <div class="relative">
+                                                <input type="date" id="due-date-picker" min="{{ $currentStartDate }}" name="due_date" value="{{ $currentDueDate }}" class="w-full bg-slate-50/50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-sm font-semibold rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 block p-3.5 transition-all outline-none cursor-pointer" required>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
 
                                 @if (in_array(Auth::user()->usertype, ['admin', 'supervisor']))
@@ -275,6 +293,29 @@
                     });
                 }
             } catch (e) { console.error("TomSelect error:", e); }
+
+            // Date synchronization
+            const startDateInput = document.getElementById('start-date-picker');
+            const dueDateInput = document.getElementById('due-date-picker');
+            if (startDateInput && dueDateInput) {
+                const updateDueFromStart = function() {
+                    let val = startDateInput.value;
+                    if (!val) return;
+                    if (startDateInput.min && val < startDateInput.min) {
+                        val = startDateInput.min;
+                        startDateInput.value = val;
+                    } else if (startDateInput.max && val > startDateInput.max) {
+                        val = startDateInput.max;
+                        startDateInput.value = val;
+                    }
+
+                    dueDateInput.min = val;
+                    dueDateInput.value = val;
+                };
+
+                startDateInput.addEventListener('change', updateDueFromStart);
+                startDateInput.addEventListener('input', updateDueFromStart);
+            }
         });
     </script>
     <style>

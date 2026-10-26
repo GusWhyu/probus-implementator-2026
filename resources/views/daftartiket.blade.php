@@ -424,10 +424,15 @@
                                     @endif
                                 </div>
                             @else
-                                <div class="flex items-center gap-1.5">
+                                <div class="flex items-center gap-1.5 flex-wrap justify-end">
                                     @if($rq->is_new)
                                     <span class="inline-flex items-center gap-1 bg-gradient-to-r from-emerald-500 to-teal-500 text-white text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider shadow-sm">
                                         <span class="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>NEW
+                                    </span>
+                                    @endif
+                                    @if($rq->is_waiting_confirmation)
+                                    <span class="text-[9px] font-extrabold px-2 py-0.5 rounded-full uppercase tracking-wider border bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300 border-amber-300 dark:border-amber-700 flex items-center gap-1 shadow-2xs">
+                                        <i class="fa-solid fa-hourglass-half text-[8px]"></i> Menunggu Klien
                                     </span>
                                     @endif
                                     <span class="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full uppercase tracking-wider border {{ $statusClass }}">

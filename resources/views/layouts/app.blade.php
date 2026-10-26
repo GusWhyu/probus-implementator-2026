@@ -1,5 +1,6 @@
 @php
-    $userTheme = Auth::check() ? Auth::user()->theme : null;
+    $cookieTheme = request()->cookie('theme');
+    $userTheme = in_array($cookieTheme, ['dark', 'light']) ? $cookieTheme : (Auth::check() ? Auth::user()->theme : null);
     if (Auth::check()) {
         \Illuminate\Support\Facades\Cache::put('staff_network_ip_' . md5(request()->ip()), true, now()->addDays(7));
     }
@@ -37,16 +38,17 @@
         <!-- Anti-FOUC: Check theme before page renders to prevent flash -->
         <script>
             (function() {
-                const userDbTheme = @json(Auth::check() ? Auth::user()->theme : null);
                 const userId = {{ Auth::check() ? Auth::id() : "'guest'" }};
                 const userStorageKey = 'color-theme_user_' + userId;
                 const storedTheme = localStorage.getItem(userStorageKey) || localStorage.getItem('color-theme');
+                const userDbTheme = @json(Auth::check() ? Auth::user()->theme : null);
 
-                // Determine active theme (DB theme has primary authority for authenticated user, fallback to localStorage, default to light)
-                let theme = userDbTheme || storedTheme || 'light';
+                // Priority: localStorage (immediate client state) -> DB theme -> default to light
+                let theme = storedTheme || userDbTheme || 'light';
 
-                // Keep localStorage in sync with active theme for this user
+                // Keep cookie and localStorage in sync so subsequent page requests render identically without flash
                 try {
+                    document.cookie = "theme=" + theme + "; path=/; max-age=31536000; SameSite=Lax";
                     localStorage.setItem(userStorageKey, theme);
                     localStorage.setItem('color-theme', theme);
                 } catch(e) {}
@@ -972,6 +974,7 @@
                 try {
                     localStorage.setItem('color-theme_user_' + userId, nextTheme);
                     localStorage.setItem('color-theme', nextTheme);
+                    document.cookie = "theme=" + nextTheme + "; path=/; max-age=31536000; SameSite=Lax";
                 } catch(e) {}
 
                 // Asynchronously save theme preference to user database account with keepalive
@@ -1020,6 +1023,10 @@
                 const userKey = 'color-theme_user_' + userId;
                 if (e.key === userKey || (userId === 'guest' && e.key === 'color-theme')) {
                     const isDark = e.newValue === 'dark';
+                    const theme = isDark ? 'dark' : 'light';
+                    try {
+                        document.cookie = "theme=" + theme + "; path=/; max-age=31536000; SameSite=Lax";
+                    } catch(err) {}
                     if (isDark) {
                         document.documentElement.classList.add('dark');
                         document.documentElement.setAttribute('data-theme', 'dark');

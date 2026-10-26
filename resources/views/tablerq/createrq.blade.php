@@ -93,17 +93,20 @@
                             <!-- Periode Penanganan -->
                             <div>
                                 <label class="block text-[11px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Periode Penanganan <span class="text-rose-500">*</span></label>
+                                @php
+                                    $minStartDate = \Carbon\Carbon::now()->subDays(7)->format('Y-m-d');
+                                    $maxStartDate = \Carbon\Carbon::now()->format('Y-m-d');
+                                    $currentStartDate = old('startdate', $maxStartDate);
+                                    $defaultEndDate = \Carbon\Carbon::now()->addDays(7)->format('Y-m-d');
+                                @endphp
                                 <div class="grid grid-cols-2 gap-3 items-center">
                                     <div>
                                         <span class="block text-[10px] font-bold text-slate-400 mb-1">Tanggal Mulai</span>
-                                        <input type="date" class="w-full bg-slate-50/50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-sm font-semibold rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 block p-3.5 outline-none transition-all cursor-pointer" value="{{ old('startdate', date('Y-m-d')) }}" name="startdate" required>
+                                        <input type="date" min="{{ $minStartDate }}" max="{{ $maxStartDate }}" class="w-full bg-slate-50/50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-sm font-semibold rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 block p-3.5 outline-none transition-all cursor-pointer" value="{{ $currentStartDate }}" name="startdate" id="start-date-picker" required>
                                     </div>
                                     <div>
                                         <span class="block text-[10px] font-bold text-slate-400 mb-1">Tanggal Selesai</span>
-                                        @php
-                                            $defaultEndDate = \Carbon\Carbon::now()->addDays(7)->format('Y-m-d');
-                                        @endphp
-                                        <input type="date" class="w-full bg-slate-50/50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-sm font-semibold rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 block p-3.5 outline-none transition-all cursor-pointer" value="{{ old('enddate', $defaultEndDate) }}" name="enddate" required>
+                                        <input type="date" min="{{ $currentStartDate }}" class="w-full bg-slate-50/50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-sm font-semibold rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 block p-3.5 outline-none transition-all cursor-pointer" value="{{ old('enddate', $defaultEndDate) }}" name="enddate" id="end-date-picker" required>
                                     </div>
                                 </div>
                             </div>
@@ -360,6 +363,29 @@
                         reader.readAsDataURL(file);
                     });
                 });
+            }
+
+            // Date synchronization
+            const startDateInput = document.getElementById('start-date-picker');
+            const endDateInput = document.getElementById('end-date-picker');
+            if (startDateInput && endDateInput) {
+                const updateEndFromStart = function() {
+                    let val = startDateInput.value;
+                    if (!val) return;
+                    if (startDateInput.min && val < startDateInput.min) {
+                        val = startDateInput.min;
+                        startDateInput.value = val;
+                    } else if (startDateInput.max && val > startDateInput.max) {
+                        val = startDateInput.max;
+                        startDateInput.value = val;
+                    }
+
+                    endDateInput.min = val;
+                    endDateInput.value = val;
+                };
+
+                startDateInput.addEventListener('change', updateEndFromStart);
+                startDateInput.addEventListener('input', updateEndFromStart);
             }
         });
 
