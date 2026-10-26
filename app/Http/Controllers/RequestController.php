@@ -920,7 +920,7 @@ class RequestController extends Controller
                 'user_id' => $request->assigned_user_id,
                 'advisor_id' => $request->advisor_id ?: null,
                 'tipe_penanganan' => $request->tipe_penanganan,
-                'start_date' => $req->start_date ?: now()->toDateString(),
+                'created_at' => $req->start_date ? \Carbon\Carbon::parse($req->start_date)->setTime(now()->hour, now()->minute, now()->second) : now(),
                 'due_date' => $request->due_date,
                 'status' => 'OPEN',
                 'link_id' => \Illuminate\Support\Str::random(10),

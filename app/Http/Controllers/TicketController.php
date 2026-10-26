@@ -180,6 +180,11 @@ class TicketController extends Controller
         $nextId = $latestTicket ? $latestTicket->id + 1 : 1;
         $ticketNumber = 'TCK-' . date('Ym') . '-' . str_pad($nextId, 4, '0', STR_PAD_LEFT);
 
+        $startDateVal = $request->start_date ?: $request->startdate;
+        $createdAt = $startDateVal 
+            ? \Carbon\Carbon::parse($startDateVal)->setTime(now()->hour, now()->minute, now()->second) 
+            : now();
+
         $data = Ticket::create([
             'ticket_number' => $ticketNumber,
             'title' => $request->title,
@@ -190,11 +195,11 @@ class TicketController extends Controller
             'user_id' => Auth::id(), // creator is the logged in user
             'advisor_id' => $request->advisor,
             'tipe_penanganan' => $request->tipe_penanganan,
-            'start_date' => $request->start_date ?: $request->startdate,
             'due_date' => $request->due_date,
             'status' => 'OPEN',
             'link_id' => \Illuminate\Support\Str::random(10),
             'handle_at' => null,
+            'created_at' => $createdAt,
         ]);
 
         TicketLog::create([
@@ -292,9 +297,14 @@ class TicketController extends Controller
             'client_id' => $request->client,
             'advisor_id' => $request->advisor,
             'tipe_penanganan' => $request->tipe_penanganan,
-            'start_date' => $request->start_date ?: $request->startdate,
             'due_date' => $request->due_date,
         ];
+
+        $startDateVal = $request->start_date ?: $request->startdate;
+        if ($startDateVal) {
+            $currentTime = $datarq->created_at ? \Carbon\Carbon::parse($datarq->created_at) : now();
+            $updateData['created_at'] = \Carbon\Carbon::parse($startDateVal)->setTime($currentTime->hour, $currentTime->minute, $currentTime->second);
+        }
 
         if ($request->has('solusi') && \Illuminate\Support\Facades\Schema::hasColumn('tickets', 'solusi')) {
             $updateData['solusi'] = $request->solusi;

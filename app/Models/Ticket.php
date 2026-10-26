@@ -12,12 +12,11 @@ class Ticket extends Model
 
     protected $fillable = [
         'ticket_number', 'origin_request_number', 'title', 'description', 'solusi', 'status', 'priority', 
-        'tipe_penanganan', 'start_date', 'user_id', 'client_id', 'advisor_id', 'pending_advisor_id', 'pending_advisor_at', 'takeover_duration_minutes', 'pending_advisor_expires_at', 'module_system_id', 
-        'system', 'due_date', 'closed_at', 'duration_minutes', 'returned_at', 'handle_at', 'link_id'
+        'tipe_penanganan', 'user_id', 'client_id', 'advisor_id', 'pending_advisor_id', 'pending_advisor_at', 'takeover_duration_minutes', 'pending_advisor_expires_at', 'module_system_id', 
+        'system', 'due_date', 'closed_at', 'duration_minutes', 'returned_at', 'handle_at', 'link_id', 'created_at'
     ];
 
     protected $casts = [
-        'start_date' => 'date',
         'returned_at' => 'datetime',
         'handle_at' => 'datetime',
         'pending_advisor_at' => 'datetime',
@@ -26,6 +25,11 @@ class Ticket extends Model
         'closed_at' => 'datetime',
         'duration_minutes' => 'integer',
     ];
+
+    public function getStartDateAttribute($value = null)
+    {
+        return $value ?: ($this->created_at ? $this->created_at->toDateString() : null);
+    }
 
     public function getDurationTextAttribute()
     {
