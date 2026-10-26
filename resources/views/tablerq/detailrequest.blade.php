@@ -459,13 +459,8 @@
                                 </p>
                                 @endif
                                 
-                                <div class="pt-2 border-t border-slate-100 dark:border-slate-800/80 mt-1 space-y-2">
-                                    <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider text-center">Bagikan Detail Request</p>
-                                    <button type="button" 
-                                        onclick="copyRequestDirectLink(this, '{{ url('/detailrequest/' . $datarq->id) }}')" 
-                                        class="w-full flex items-center justify-center bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700/60 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 py-2.5 rounded-xl font-bold text-xs shadow-xs transition-all active:scale-95 gap-2 cursor-pointer">
-                                        <i class="fa-regular fa-copy text-blue-500 dark:text-blue-400"></i> Salin Link Request
-                                    </button>
+                                <div class="pt-2 border-t border-slate-100 dark:border-slate-800/80 mt-1">
+                                    <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider text-center mb-2">Bagikan Detail Request</p>
                                     @php
                                         $outletName = $datarq->outlet ? $datarq->outlet->nm_out : 'Client';
                                         $shareText = "Halo, berikut detail request pengerjaan sistem di Probus System:\n\n"
