@@ -23,8 +23,6 @@
         }
         table {
             border-collapse: collapse;
-            width: 100%;
-            table-layout: fixed;
         }
         .data-table {
             width: 100%;
@@ -173,32 +171,32 @@
     </table>
 
     {{-- 2. PROFILE USER (Sama persis dengan rapor_pdf) --}}
-    <div style="margin-bottom: 7px; border: 1.2px solid #004880; border-radius: 5px; overflow: hidden; background: #ffffff;">
+    <div style="margin-bottom: 7px; border: 1.2px solid #004880; border-radius: 5px; overflow: hidden; background: #ffffff; font-family: 'Times New Roman', Times, 'DejaVu Serif', serif;">
         <table style="width: 100%; border-collapse: collapse;">
             <tr>
                 {{-- Panel Avatar di Kiri --}}
-                <td style="width: 78px; vertical-align: middle; text-align: center; background-color: #f8fafc; border-right: 1.2px solid #cbd5e1; padding: 7px 6px;">
+                <td style="width: 82px; vertical-align: middle; text-align: center; background-color: #f8fafc; border-right: 1.2px solid #cbd5e1; padding: 8px 6px;">
                     @if ($pdfAvatarSrc)
-                        <img src="{{ $pdfAvatarSrc }}" style="width: 54px; height: 54px; border-radius: 50%; object-fit: cover; border: 2.2px solid #004880; display: block; margin: 0 auto;" />
+                        <img src="{{ $pdfAvatarSrc }}" style="width: 62px; height: 62px; border-radius: 50%; object-fit: cover; border: 2.2px solid #004880; display: block; margin: 0 auto;" />
                     @else
-                        <div style="width: 54px; height: 54px; border-radius: 50%; background-color: #004880; text-align: center; line-height: 54px; color: #ffffff; font-weight: bold; font-size: 20px; margin: 0 auto;">
+                        <div style="width: 62px; height: 62px; border-radius: 50%; background-color: #004880; text-align: center; line-height: 62px; color: #ffffff; font-weight: bold; font-size: 24px; margin: 0 auto;">
                             {{ strtoupper(substr($user->name, 0, 1)) }}
                         </div>
                     @endif
                 </td>
 
                 {{-- Detail Informasi Staff --}}
-                <td style="vertical-align: middle; padding: 6px 14px; background-color: #ffffff;">
+                <td style="vertical-align: middle; padding: 7px 14px; background-color: #ffffff;">
                     {{-- Baris Atas: Nama Staff & Badge Status --}}
                     <table style="width: 100%; border-collapse: collapse;">
                         <tr>
                             <td style="vertical-align: middle;">
-                                <span style="font-size: 15px; font-weight: bold; color: #004880; letter-spacing: 0.3px;">
+                                <span style="font-size: 15.5px; font-weight: bold; color: #004880; letter-spacing: 0.3px; font-family: 'Times New Roman', Times, 'DejaVu Serif', serif;">
                                     {{ ucwords(strtolower($user->name)) }}
                                 </span>
                             </td>
                             <td style="text-align: right; vertical-align: middle;">
-                                <span style="background-color: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; padding: 2px 8px; border-radius: 10px; font-size: 8.5px; font-weight: bold; letter-spacing: 0.4px;">
+                                <span style="background-color: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; padding: 2px 8px; border-radius: 10px; font-size: 9px; font-weight: bold; letter-spacing: 0.4px;">
                                     STAFF AKTIF
                                 </span>
                             </td>
@@ -209,37 +207,37 @@
                     <div style="border-bottom: 1px solid #e2e8f0; margin: 4px 0 5px 0;"></div>
 
                     {{-- Grid 2 Kolom Simetris --}}
-                    <table style="width: 100%; border-collapse: collapse; font-size: 9.5px;">
+                    <table style="width: 100%; border-collapse: collapse; font-size: 10.5px; font-family: 'Times New Roman', Times, 'DejaVu Serif', serif;">
                         <tr>
-                            {{-- Kolom Kiri (42%) --}}
-                            <td style="width: 42%; vertical-align: top; padding: 0;">
-                                <table style="width: 100%; border-collapse: collapse; line-height: 1.5;">
+                            {{-- Kolom Kiri (48%) --}}
+                            <td style="width: 48%; vertical-align: top; padding: 0;">
+                                <table style="width: 100%; border-collapse: collapse; line-height: 1.55;">
                                     <tr>
-                                        <td style="color: #64748b; width: 75px; white-space: nowrap;">Jabatan</td>
+                                        <td style="color: #64748b; width: 78px; white-space: nowrap;">Jabatan</td>
                                         <td style="color: #94a3b8; width: 12px; text-align: center;">:</td>
                                         <td style="color: #0f172a; font-weight: bold;">{{ ucwords($user->usertype ?? 'Customer Support') }}</td>
                                     </tr>
                                     <tr>
-                                        <td style="color: #64748b; width: 75px; white-space: nowrap;">Departemen</td>
+                                        <td style="color: #64748b; width: 78px; white-space: nowrap;">Departemen</td>
                                         <td style="color: #94a3b8; width: 12px; text-align: center;">:</td>
                                         <td style="color: #0f172a; font-weight: bold;">{{ optional($user->departemen)->name ?? 'Customer Support' }}</td>
                                     </tr>
                                 </table>
                             </td>
 
-                            {{-- Spacer Tengah (3%) --}}
-                            <td style="width: 3%;"></td>
+                            {{-- Spacer Tengah (4%) --}}
+                            <td style="width: 4%;"></td>
 
-                            {{-- Kolom Kanan (55%) --}}
-                            <td style="width: 55%; vertical-align: top; padding: 0;">
-                                <table style="width: 100%; border-collapse: collapse; line-height: 1.5;">
+                            {{-- Kolom Kanan (48%) --}}
+                            <td style="width: 48%; vertical-align: top; padding: 0;">
+                                <table style="width: 100%; border-collapse: collapse; line-height: 1.55;">
                                     <tr>
-                                        <td style="color: #64748b; width: 75px; white-space: nowrap;">Email</td>
+                                        <td style="color: #64748b; width: 78px; white-space: nowrap;">Email</td>
                                         <td style="color: #94a3b8; width: 12px; text-align: center;">:</td>
                                         <td style="color: #004880; font-weight: bold;">{{ $user->email ?: '-' }}</td>
                                     </tr>
                                     <tr>
-                                        <td style="color: #64748b; width: 75px; white-space: nowrap;">Status Staff</td>
+                                        <td style="color: #64748b; width: 78px; white-space: nowrap;">Status Staff</td>
                                         <td style="color: #94a3b8; width: 12px; text-align: center;">:</td>
                                         <td style="color: #059669; font-weight: bold;">Aktif</td>
                                     </tr>
