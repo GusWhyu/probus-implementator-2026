@@ -45,6 +45,14 @@
                 </div>
                 
                 <div class="flex items-center gap-2">
+                    <button type="button" 
+                        onclick="copyTicketDirectLink(this, '{{ url('/detailticket/' . $datarq->id) }}')" 
+                        class="px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/60 text-slate-700 dark:text-slate-200 font-bold rounded-xl text-sm shadow-xs flex items-center justify-center gap-2 transition-all active:scale-95 cursor-pointer" 
+                        title="Salin tautan detail tiket ini untuk dibagikan">
+                        <i class="fa-regular fa-copy text-blue-500 dark:text-blue-400"></i>
+                        <span>Salin Link</span>
+                    </button>
+
                     @if (in_array($ust, ['admin', 'supervisor']) || ($rqid == $aid && $datarq->pending_advisor_id == null && $stid != 'CLOSED'))
                     <a href="/editticket/{{ $datarq->id }}" class="px-5 py-2.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold rounded-xl text-sm shadow-sm flex items-center justify-center gap-2 transition-all active:scale-95">
                         <i class="fa-solid fa-pen text-blue-500"></i> Edit Tiket
@@ -423,6 +431,50 @@
                                 </div>
                             </div>
                             <script>
+                                function copyTicketDirectLink(btn, directUrl, isIconOnly = false) {
+                                    const url = directUrl || (window.location.origin + '/detailticket/{{ $datarq->id }}');
+                                    const origHtml = btn.innerHTML;
+                                    
+                                    function onSuccess() {
+                                        if (isIconOnly) {
+                                            btn.innerHTML = '<i class="fa-solid fa-check text-[10px] text-emerald-500"></i>';
+                                        } else {
+                                            btn.innerHTML = '<i class="fa-solid fa-check text-emerald-500"></i> <span class="text-emerald-600 dark:text-emerald-400">Link Disalin!</span>';
+                                        }
+                                        btn.classList.add('border-emerald-400', 'dark:border-emerald-600');
+                                        setTimeout(() => {
+                                            btn.innerHTML = origHtml;
+                                            btn.classList.remove('border-emerald-400', 'dark:border-emerald-600');
+                                        }, 2000);
+                                    }
+
+                                    if (navigator.clipboard && navigator.clipboard.writeText) {
+                                        navigator.clipboard.writeText(url).then(onSuccess).catch(() => {
+                                            fallbackCopyTicket(url, onSuccess);
+                                        });
+                                    } else {
+                                        fallbackCopyTicket(url, onSuccess);
+                                    }
+                                }
+
+                                function fallbackCopyTicket(text, cb) {
+                                    const ta = document.createElement('textarea');
+                                    ta.value = text;
+                                    ta.style.position = 'fixed';
+                                    ta.style.left = '-9999px';
+                                    ta.style.top = '-9999px';
+                                    document.body.appendChild(ta);
+                                    ta.focus();
+                                    ta.select();
+                                    try {
+                                        document.execCommand('copy');
+                                        if (cb) cb();
+                                    } catch (e) {
+                                        prompt('Salin link berikut:', text);
+                                    }
+                                    document.body.removeChild(ta);
+                                }
+
                                 function copyWaTemplate(btn) {
                                     const el = document.getElementById('wa-template-text');
                                     const text = el ? el.value : '';
@@ -583,7 +635,15 @@
                         
                         <!-- Ticket ID & Status Header -->
                         <div class="flex items-center justify-between mb-8">
-                            <span class="text-blue-500 font-bold text-lg font-mono">{{ $datarq->ticket_number }}</span>
+                            <div class="flex items-center gap-2">
+                                <span class="text-blue-500 font-bold text-lg font-mono">{{ $datarq->ticket_number }}</span>
+                                <button type="button" 
+                                    onclick="copyTicketDirectLink(this, '{{ url('/detailticket/' . $datarq->id) }}', true)" 
+                                    class="w-6 h-6 rounded-lg bg-slate-100 hover:bg-blue-50 dark:bg-slate-800 dark:hover:bg-slate-700 border border-slate-200/80 dark:border-slate-700 flex items-center justify-center text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-all cursor-pointer" 
+                                    title="Salin tautan tiket">
+                                    <i class="fa-regular fa-copy text-[10px]"></i>
+                                </button>
+                            </div>
                             <div class="flex items-center gap-2">
                                 @if ($datarq->pending_advisor_id != null)
                                 <span class="px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-amber-100 text-amber-800 border border-amber-300 animate-pulse flex items-center gap-1.5">
