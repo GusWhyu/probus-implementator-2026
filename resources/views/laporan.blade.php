@@ -16,8 +16,8 @@
                         </span>
                     </p>
                 </div>
-                <div class="flex items-center">
-                    <form action="{{ route('laporan') }}" method="GET" class="inline-flex items-center">
+                <div class="flex items-center w-full lg:w-auto">
+                    <form action="{{ route('laporan') }}" method="GET" class="w-full lg:w-auto">
                         @if(request('search'))
                             <input type="hidden" name="search" value="{{ request('search') }}">
                         @endif
@@ -29,45 +29,47 @@
                         @endif
                         <input type="hidden" name="period_type" value="{{ $periodType ?? '1m' }}">
 
-                        {{-- Unified Compact Period Bar --}}
-                        <div class="period-capsule inline-flex items-center p-1 rounded-2xl border shadow-xs">
+                        {{-- Unified Compact Period Bar (Responsive: stacks seamlessly on mobile, pill on desktop) --}}
+                        <div class="period-capsule flex flex-col sm:inline-flex sm:flex-row sm:items-center p-1.5 sm:p-1 rounded-2xl border shadow-xs w-full sm:w-auto gap-1.5 sm:gap-0">
                             {{-- Interval Switcher (1 Bulan / 3 Bulan / 6 Bulan) --}}
-                            <div class="period-capsule-switcher inline-flex items-center p-0.5 rounded-xl border">
+                            <div class="period-capsule-switcher grid grid-cols-3 sm:inline-flex items-center p-0.5 rounded-xl border w-full sm:w-auto shrink-0">
                                 <a href="{{ route('laporan', array_merge(request()->except(['period', 'period_type', 'month', 'year']), ['period_type' => '1m'])) }}" 
-                                   class="px-3 py-1.5 text-xs font-bold rounded-lg transition-all whitespace-nowrap {{ ($periodType ?? '1m') === '1m' ? 'period-capsule-btn-active font-extrabold' : 'period-capsule-btn-inactive' }}">
+                                   class="px-2.5 sm:px-3 py-1.5 text-xs font-bold rounded-lg text-center transition-all whitespace-nowrap {{ ($periodType ?? '1m') === '1m' ? 'period-capsule-btn-active font-extrabold' : 'period-capsule-btn-inactive' }}">
                                     1 Bulan
                                 </a>
                                 <a href="{{ route('laporan', array_merge(request()->except(['period', 'period_type', 'month', 'year']), ['period_type' => '3m'])) }}" 
-                                   class="px-3 py-1.5 text-xs font-bold rounded-lg transition-all whitespace-nowrap {{ ($periodType ?? '1m') === '3m' ? 'period-capsule-btn-active font-extrabold' : 'period-capsule-btn-inactive' }}">
+                                   class="px-2.5 sm:px-3 py-1.5 text-xs font-bold rounded-lg text-center transition-all whitespace-nowrap {{ ($periodType ?? '1m') === '3m' ? 'period-capsule-btn-active font-extrabold' : 'period-capsule-btn-inactive' }}">
                                     3 Bulan
                                 </a>
                                 <a href="{{ route('laporan', array_merge(request()->except(['period', 'period_type', 'month', 'year']), ['period_type' => '6m'])) }}" 
-                                   class="px-3 py-1.5 text-xs font-bold rounded-lg transition-all whitespace-nowrap {{ ($periodType ?? '1m') === '6m' ? 'period-capsule-btn-active font-extrabold' : 'period-capsule-btn-inactive' }}">
+                                   class="px-2.5 sm:px-3 py-1.5 text-xs font-bold rounded-lg text-center transition-all whitespace-nowrap {{ ($periodType ?? '1m') === '6m' ? 'period-capsule-btn-active font-extrabold' : 'period-capsule-btn-inactive' }}">
                                     6 Bulan
                                 </a>
                             </div>
 
                             {{-- Divider --}}
-                            <div class="h-5 w-px bg-slate-200 dark:bg-slate-700 mx-2"></div>
+                            <div class="hidden sm:block h-5 w-px bg-slate-200 dark:bg-slate-700 mx-2 shrink-0"></div>
 
                             {{-- Dropdown for active interval --}}
-                            <div class="relative flex items-center pr-2">
-                                <i class="fa-regular fa-calendar text-blue-500 dark:text-blue-400 text-sm ml-1 mr-2 pointer-events-none shrink-0"></i>
-                                @php
-                                    $activeOptions = ($periodType === '3m') 
-                                        ? ($periodOptions['quarterly'] ?? []) 
-                                        : (($periodType === '6m') ? ($periodOptions['semester'] ?? []) : ($periodOptions['monthly'] ?? []));
-                                @endphp
-                                <select name="period" onchange="this.form.submit()" 
-                                    class="period-select-clean bg-transparent border-0 text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-200 py-1.5 pl-0 pr-6 focus:ring-0 cursor-pointer"
-                                    style="background: transparent !important; background-color: transparent !important; border: 0 !important; outline: none !important; -webkit-appearance: none !important; -moz-appearance: none !important; appearance: none !important;">
-                                    @foreach($activeOptions as $opt)
-                                        <option value="{{ $opt['value'] }}" {{ $opt['value'] === ($period ?? '') ? 'selected' : '' }} class="bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 py-1" style="background-color: #0f172a; color: #f8fafc;">
-                                            {{ $opt['label'] }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                                <i class="fa-solid fa-chevron-down absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 text-xs pointer-events-none"></i>
+                            <div class="relative flex items-center justify-between sm:justify-start px-2.5 sm:px-0 sm:pr-2 w-full sm:w-auto min-w-0 bg-slate-100/60 dark:bg-slate-900/50 sm:bg-transparent dark:sm:bg-transparent rounded-xl sm:rounded-none py-1 sm:py-0 border border-slate-200/60 dark:border-slate-800/80 sm:border-0">
+                                <div class="flex items-center gap-2 min-w-0 flex-1">
+                                    <i class="fa-regular fa-calendar text-blue-500 dark:text-blue-400 text-sm ml-0.5 sm:ml-1 mr-1 sm:mr-2 pointer-events-none shrink-0"></i>
+                                    @php
+                                        $activeOptions = ($periodType === '3m') 
+                                            ? ($periodOptions['quarterly'] ?? []) 
+                                            : (($periodType === '6m') ? ($periodOptions['semester'] ?? []) : ($periodOptions['monthly'] ?? []));
+                                    @endphp
+                                    <select name="period" onchange="this.form.submit()" 
+                                        class="period-select-clean bg-transparent border-0 text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-200 py-1 sm:py-1.5 pl-0 pr-6 focus:ring-0 cursor-pointer w-full sm:w-auto"
+                                        style="background: transparent !important; background-color: transparent !important; border: 0 !important; outline: none !important; -webkit-appearance: none !important; -moz-appearance: none !important; appearance: none !important;">
+                                        @foreach($activeOptions as $opt)
+                                            <option value="{{ $opt['value'] }}" {{ $opt['value'] === ($period ?? '') ? 'selected' : '' }} class="bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 py-1" style="background-color: #0f172a; color: #f8fafc;">
+                                                {{ $opt['label'] }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <i class="fa-solid fa-chevron-down absolute right-2.5 sm:right-2 top-1/2 -translate-y-1/2 text-slate-400 text-xs pointer-events-none"></i>
                             </div>
                         </div>
                     </form>
