@@ -47,7 +47,7 @@
             <div class="relative z-10">
                 <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-xs font-semibold tracking-wide text-sky-200 shadow-sm">
                     <span class="w-2 h-2 rounded-full bg-sky-400 animate-pulse"></span>
-                    <span>Helpdesk & Ticketing System</span>
+                    <span>Request & Ticketing System</span>
                 </div>
             </div>
 
