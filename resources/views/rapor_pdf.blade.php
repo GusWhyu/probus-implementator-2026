@@ -5,13 +5,11 @@
     <title>Penilaian Kinerja - {{ $user->name }}</title>
     <style>
         @page {
-            margin: 40px 0px 35px 0px;
+            margin: 45px 0px 40px 0px;
             size: a4 portrait;
         }
         * {
             box-sizing: border-box;
-            margin: 0;
-            padding: 0;
             font-family: 'Times New Roman', Times, 'DejaVu Serif', serif;
         }
         body {
