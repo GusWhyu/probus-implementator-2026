@@ -16,8 +16,8 @@
                         </span>
                     </p>
                 </div>
-                <div class="flex flex-wrap items-center gap-3">
-                    <form action="{{ route('laporan') }}" method="GET" class="flex flex-wrap items-center gap-2.5">
+                <div class="flex items-center">
+                    <form action="{{ route('laporan') }}" method="GET" class="inline-flex items-center">
                         @if(request('search'))
                             <input type="hidden" name="search" value="{{ request('search') }}">
                         @endif
@@ -27,54 +27,46 @@
                         @if(request('department_id'))
                             <input type="hidden" name="department_id" value="{{ request('department_id') }}">
                         @endif
+                        <input type="hidden" name="period_type" value="{{ $periodType ?? '1m' }}">
 
-                        {{-- Quick Type Switcher (1 Bulan / 3 Bulan / 6 Bulan) --}}
-                        <div class="inline-flex p-1 bg-slate-100 dark:bg-slate-800 rounded-xl border border-slate-200/80 dark:border-slate-700 shadow-2xs">
-                            <a href="{{ route('laporan', array_merge(request()->except(['period', 'period_type', 'month', 'year']), ['period_type' => '1m'])) }}" 
-                               class="px-3 py-1.5 text-xs font-bold rounded-lg transition-all {{ ($periodType ?? '1m') === '1m' ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-xs' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-200' }}"
-                               title="Pilih Penilaian Bulanan (1 Bulan)">
-                                1 Bulan
-                            </a>
-                            <a href="{{ route('laporan', array_merge(request()->except(['period', 'period_type', 'month', 'year']), ['period_type' => '3m'])) }}" 
-                               class="px-3 py-1.5 text-xs font-bold rounded-lg transition-all {{ ($periodType ?? '1m') === '3m' ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-xs' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-200' }}"
-                               title="Pilih Penilaian Triwulan (3 Bulan Sekali)">
-                                3 Bulan
-                            </a>
-                            <a href="{{ route('laporan', array_merge(request()->except(['period', 'period_type', 'month', 'year']), ['period_type' => '6m'])) }}" 
-                               class="px-3 py-1.5 text-xs font-bold rounded-lg transition-all {{ ($periodType ?? '1m') === '6m' ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-xs' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-200' }}"
-                               title="Pilih Penilaian Semester (6 Bulan Sekali)">
-                                6 Bulan
-                            </a>
-                        </div>
+                        {{-- Unified Compact Period Bar --}}
+                        <div class="inline-flex items-center bg-white dark:bg-slate-800 p-1 rounded-2xl border border-slate-200/90 dark:border-slate-700 shadow-xs">
+                            {{-- Interval Switcher (1 Bulan / 3 Bulan / 6 Bulan) --}}
+                            <div class="inline-flex items-center bg-slate-100 dark:bg-slate-900/80 p-0.5 rounded-xl border border-slate-200/60 dark:border-slate-800/80">
+                                <a href="{{ route('laporan', array_merge(request()->except(['period', 'period_type', 'month', 'year']), ['period_type' => '1m'])) }}" 
+                                   class="px-3 py-1.5 text-xs font-bold rounded-lg transition-all whitespace-nowrap {{ ($periodType ?? '1m') === '1m' ? 'bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 shadow-2xs font-extrabold' : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200' }}">
+                                    1 Bulan
+                                </a>
+                                <a href="{{ route('laporan', array_merge(request()->except(['period', 'period_type', 'month', 'year']), ['period_type' => '3m'])) }}" 
+                                   class="px-3 py-1.5 text-xs font-bold rounded-lg transition-all whitespace-nowrap {{ ($periodType ?? '1m') === '3m' ? 'bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 shadow-2xs font-extrabold' : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200' }}">
+                                    3 Bulan
+                                </a>
+                                <a href="{{ route('laporan', array_merge(request()->except(['period', 'period_type', 'month', 'year']), ['period_type' => '6m'])) }}" 
+                                   class="px-3 py-1.5 text-xs font-bold rounded-lg transition-all whitespace-nowrap {{ ($periodType ?? '1m') === '6m' ? 'bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 shadow-2xs font-extrabold' : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200' }}">
+                                    6 Bulan
+                                </a>
+                            </div>
 
-                        {{-- Period Picker Dropdown with Grouping --}}
-                        <div class="relative bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm text-sm font-bold text-slate-700 dark:text-slate-200 flex items-center hover:border-slate-300 dark:hover:border-slate-600 transition-colors focus-within:border-blue-500 focus-within:ring-4 focus-within:ring-blue-500/10">
-                            <i class="fa-regular fa-calendar text-blue-500 ml-3.5 pointer-events-none text-base"></i>
-                            <input type="hidden" name="period_type" value="{{ $periodType ?? '1m' }}">
-                            <select name="period" onchange="this.form.submit()" class="bg-transparent border-0 text-sm font-bold text-slate-700 dark:text-slate-200 py-2.5 pl-2.5 pr-9 focus:ring-0 cursor-pointer appearance-none">
-                                <optgroup label="── Bulanan (1 Bulan) ──" class="font-bold text-slate-500 bg-slate-50 dark:bg-slate-900">
-                                    @foreach(($periodOptions['monthly'] ?? []) as $opt)
-                                        <option value="{{ $opt['value'] }}" {{ $opt['value'] === ($period ?? '') ? 'selected' : '' }} class="dark:bg-slate-800 dark:text-slate-200">
+                            {{-- Divider --}}
+                            <div class="h-5 w-px bg-slate-200 dark:bg-slate-700 mx-2"></div>
+
+                            {{-- Dropdown for active interval --}}
+                            <div class="relative flex items-center pr-2">
+                                <i class="fa-regular fa-calendar text-blue-500 dark:text-blue-400 text-sm ml-1 mr-2 pointer-events-none shrink-0"></i>
+                                @php
+                                    $activeOptions = ($periodType === '3m') 
+                                        ? ($periodOptions['quarterly'] ?? []) 
+                                        : (($periodType === '6m') ? ($periodOptions['semester'] ?? []) : ($periodOptions['monthly'] ?? []));
+                                @endphp
+                                <select name="period" onchange="this.form.submit()" class="bg-transparent border-0 text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-200 py-1.5 pl-0 pr-6 focus:ring-0 cursor-pointer appearance-none">
+                                    @foreach($activeOptions as $opt)
+                                        <option value="{{ $opt['value'] }}" {{ $opt['value'] === ($period ?? '') ? 'selected' : '' }} class="bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 py-1">
                                             {{ $opt['label'] }}
                                         </option>
                                     @endforeach
-                                </optgroup>
-                                <optgroup label="── Triwulan (3 Bulan Sekali) ──" class="font-bold text-slate-500 bg-slate-50 dark:bg-slate-900">
-                                    @foreach(($periodOptions['quarterly'] ?? []) as $opt)
-                                        <option value="{{ $opt['value'] }}" {{ $opt['value'] === ($period ?? '') ? 'selected' : '' }} class="dark:bg-slate-800 dark:text-slate-200">
-                                            {{ $opt['label'] }}
-                                        </option>
-                                    @endforeach
-                                </optgroup>
-                                <optgroup label="── Semester (6 Bulan Sekali) ──" class="font-bold text-slate-500 bg-slate-50 dark:bg-slate-900">
-                                    @foreach(($periodOptions['semester'] ?? []) as $opt)
-                                        <option value="{{ $opt['value'] }}" {{ $opt['value'] === ($period ?? '') ? 'selected' : '' }} class="dark:bg-slate-800 dark:text-slate-200">
-                                            {{ $opt['label'] }}
-                                        </option>
-                                    @endforeach
-                                </optgroup>
-                            </select>
-                            <i class="fa-solid fa-chevron-down absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs pointer-events-none"></i>
+                                </select>
+                                <i class="fa-solid fa-chevron-down absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 text-xs pointer-events-none"></i>
+                            </div>
                         </div>
                     </form>
                 </div>

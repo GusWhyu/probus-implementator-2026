@@ -75,55 +75,50 @@
                         </span>
                     </div>
 
-                    <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto min-w-0">
-                        <div class="flex flex-wrap items-center gap-2">
-                            {{-- Quick Switcher 1M / 3M / 6M --}}
-                            <div class="inline-flex p-0.5 bg-slate-100 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shrink-0 shadow-2xs">
-                                <a href="{{ route('rapor', ['id' => $user->id, 'period_type' => '1m']) }}" 
-                                   class="px-2.5 py-1 text-[11px] font-bold rounded-lg transition-all {{ ($periodType ?? '1m') === '1m' ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-xs' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-200' }}">
-                                    1 Bulan
-                                </a>
-                                <a href="{{ route('rapor', ['id' => $user->id, 'period_type' => '3m']) }}" 
-                                   class="px-2.5 py-1 text-[11px] font-bold rounded-lg transition-all {{ ($periodType ?? '1m') === '3m' ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-xs' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-200' }}">
-                                    3 Bulan
-                                </a>
-                                <a href="{{ route('rapor', ['id' => $user->id, 'period_type' => '6m']) }}" 
-                                   class="px-2.5 py-1 text-[11px] font-bold rounded-lg transition-all {{ ($periodType ?? '1m') === '6m' ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-xs' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-200' }}">
-                                    6 Bulan
-                                </a>
-                            </div>
+                    <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full sm:w-auto min-w-0">
+                        <form action="{{ route('rapor', ['id' => $user->id]) }}" method="GET" class="inline-flex items-center min-w-0">
+                            <input type="hidden" name="period_type" value="{{ $periodType ?? '1m' }}">
 
-                            <form action="{{ route('rapor', ['id' => $user->id]) }}" method="GET" class="relative min-w-0">
-                                <div class="relative bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-200 flex items-center hover:border-slate-300 dark:hover:border-slate-600 transition-colors focus-within:border-blue-500 focus-within:ring-4 focus-within:ring-blue-500/10">
-                                    <i class="fa-regular fa-calendar text-blue-500 dark:text-blue-400 ml-3 pointer-events-none text-sm shrink-0"></i>
-                                    <input type="hidden" name="period_type" value="{{ $periodType ?? '1m' }}">
-                                    <select name="period" onchange="this.form.submit()" class="bg-transparent border-0 text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-200 py-2 pl-2 pr-7 focus:ring-0 cursor-pointer appearance-none w-full truncate">
-                                        <optgroup label="── Bulanan (1 Bulan) ──" class="font-bold text-slate-500 bg-slate-50 dark:bg-slate-900">
-                                            @foreach(($periodOptions['monthly'] ?? []) as $opt)
-                                                <option value="{{ $opt['value'] }}" {{ $opt['value'] === ($periodKey ?? '') ? 'selected' : '' }} class="dark:bg-slate-800 dark:text-slate-200">
-                                                    {{ $opt['label'] }}
-                                                </option>
-                                            @endforeach
-                                        </optgroup>
-                                        <optgroup label="── Triwulan (3 Bulan Sekali) ──" class="font-bold text-slate-500 bg-slate-50 dark:bg-slate-900">
-                                            @foreach(($periodOptions['quarterly'] ?? []) as $opt)
-                                                <option value="{{ $opt['value'] }}" {{ $opt['value'] === ($periodKey ?? '') ? 'selected' : '' }} class="dark:bg-slate-800 dark:text-slate-200">
-                                                    {{ $opt['label'] }}
-                                                </option>
-                                            @endforeach
-                                        </optgroup>
-                                        <optgroup label="── Semester (6 Bulan Sekali) ──" class="font-bold text-slate-500 bg-slate-50 dark:bg-slate-900">
-                                            @foreach(($periodOptions['semester'] ?? []) as $opt)
-                                                <option value="{{ $opt['value'] }}" {{ $opt['value'] === ($periodKey ?? '') ? 'selected' : '' }} class="dark:bg-slate-800 dark:text-slate-200">
-                                                    {{ $opt['label'] }}
-                                                </option>
-                                            @endforeach
-                                        </optgroup>
-                                    </select>
-                                    <i class="fa-solid fa-chevron-down absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-[10px] pointer-events-none"></i>
+                            {{-- Unified Compact Period Bar --}}
+                            <div class="inline-flex items-center bg-white dark:bg-slate-800 p-1 rounded-2xl border border-slate-200/90 dark:border-slate-700 shadow-xs max-w-full">
+                                {{-- Interval Switcher (1 Bulan / 3 Bulan / 6 Bulan) --}}
+                                <div class="inline-flex items-center bg-slate-100 dark:bg-slate-900/80 p-0.5 rounded-xl border border-slate-200/60 dark:border-slate-800/80 shrink-0">
+                                    <a href="{{ route('rapor', ['id' => $user->id, 'period_type' => '1m']) }}" 
+                                       class="px-2.5 py-1 text-[11px] font-bold rounded-lg transition-all whitespace-nowrap {{ ($periodType ?? '1m') === '1m' ? 'bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 shadow-2xs font-extrabold' : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200' }}">
+                                        1 Bulan
+                                    </a>
+                                    <a href="{{ route('rapor', ['id' => $user->id, 'period_type' => '3m']) }}" 
+                                       class="px-2.5 py-1 text-[11px] font-bold rounded-lg transition-all whitespace-nowrap {{ ($periodType ?? '1m') === '3m' ? 'bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 shadow-2xs font-extrabold' : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200' }}">
+                                        3 Bulan
+                                    </a>
+                                    <a href="{{ route('rapor', ['id' => $user->id, 'period_type' => '6m']) }}" 
+                                       class="px-2.5 py-1 text-[11px] font-bold rounded-lg transition-all whitespace-nowrap {{ ($periodType ?? '1m') === '6m' ? 'bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 shadow-2xs font-extrabold' : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200' }}">
+                                        6 Bulan
+                                    </a>
                                 </div>
-                            </form>
-                        </div>
+
+                                {{-- Divider --}}
+                                <div class="h-4 w-px bg-slate-200 dark:bg-slate-700 mx-2 shrink-0"></div>
+
+                                {{-- Dropdown for selected interval --}}
+                                <div class="relative flex items-center pr-2 min-w-0">
+                                    <i class="fa-regular fa-calendar text-blue-500 dark:text-blue-400 text-xs ml-1 mr-1.5 pointer-events-none shrink-0"></i>
+                                    @php
+                                        $activeOptions = ($periodType === '3m') 
+                                            ? ($periodOptions['quarterly'] ?? []) 
+                                            : (($periodType === '6m') ? ($periodOptions['semester'] ?? []) : ($periodOptions['monthly'] ?? []));
+                                    @endphp
+                                    <select name="period" onchange="this.form.submit()" class="bg-transparent border-0 text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-200 py-1 pl-0 pr-5 focus:ring-0 cursor-pointer appearance-none truncate max-w-[170px] sm:max-w-none">
+                                        @foreach($activeOptions as $opt)
+                                            <option value="{{ $opt['value'] }}" {{ $opt['value'] === ($periodKey ?? '') ? 'selected' : '' }} class="bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 py-1 font-semibold">
+                                                {{ $opt['label'] }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                    <i class="fa-solid fa-chevron-down absolute right-1.5 top-1/2 -translate-y-1/2 text-slate-400 text-[10px] pointer-events-none"></i>
+                                </div>
+                            </div>
+                        </form>
 
                         <div class="flex items-center justify-between sm:justify-end gap-2 shrink-0">
                             @if($rapor)
@@ -738,7 +733,7 @@
                 isLoading: false,
                 moduleId: null,
                 moduleName: '',
-                periodLabel: '{{ \Carbon\Carbon::createFromDate($year, $month, 1)->locale('id')->translatedFormat('F Y') }}',
+                periodLabel: '{{ $periodInfo['label'] ?? \Carbon\Carbon::createFromDate($year, $month, 1)->locale('id')->translatedFormat('F Y') }}',
                 summary: { total: 0, closed: 0, progress: 0, open: 0 },
                 tickets: [],
                 excelUrl: '',

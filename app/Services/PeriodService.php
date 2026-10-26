@@ -64,8 +64,8 @@ class PeriodService
 
             $periodKey = "{$y}-Q{$q}";
             $periodType = '3m';
-            $label = "Kuartal {$q} {$y} ({$monthNames[$q]})";
-            $shortLabel = "Q{$q} {$y}";
+            $label = "{$monthNames[$q]} {$y}";
+            $shortLabel = "{$monthNames[$q]} {$y}";
             $cutoffLabel = $endDate->locale('id')->translatedFormat('d F Y');
             $representativeMonth = $startMonth;
 
@@ -76,7 +76,7 @@ class PeriodService
                 'period_type' => $periodType,
                 'start_date' => $startDate,
                 'end_date' => $endDate,
-                'label' => $label . ($isCurrent ? ' (Kuartal Berjalan)' : ''),
+                'label' => $label . ($isCurrent ? ' (Berjalan)' : ''),
                 'raw_label' => $label,
                 'short_label' => $shortLabel,
                 'cutoff_label' => $cutoffLabel,
@@ -111,8 +111,8 @@ class PeriodService
 
             $periodKey = "{$y}-S{$s}";
             $periodType = '6m';
-            $label = "Semester {$s} {$y} ({$rangeName})";
-            $shortLabel = "Sem {$s} {$y}";
+            $label = "{$rangeName} {$y}";
+            $shortLabel = "{$rangeName} {$y}";
             $cutoffLabel = $endDate->locale('id')->translatedFormat('d F Y');
             $representativeMonth = $startMonth;
 
@@ -123,7 +123,7 @@ class PeriodService
                 'period_type' => $periodType,
                 'start_date' => $startDate,
                 'end_date' => $endDate,
-                'label' => $label . ($isCurrent ? ' (Semester Berjalan)' : ''),
+                'label' => $label . ($isCurrent ? ' (Berjalan)' : ''),
                 'raw_label' => $label,
                 'short_label' => $shortLabel,
                 'cutoff_label' => $cutoffLabel,
@@ -163,7 +163,7 @@ class PeriodService
             'period_type' => $periodType,
             'start_date' => $startDate,
             'end_date' => $endDate,
-            'label' => $label . ($isCurrent ? ' (Bulan Berjalan)' : ''),
+            'label' => $label . ($isCurrent ? ' (Berjalan)' : ''),
             'raw_label' => $label,
             'short_label' => $shortLabel,
             'cutoff_label' => $cutoffLabel,
@@ -194,16 +194,17 @@ class PeriodService
             $d = $now->copy()->subMonths($i);
             $val = $d->format('Y-m');
             $isCur = ($i === 0);
+            $rawLabel = $d->locale('id')->translatedFormat('F Y');
             $monthlyOptions[] = [
                 'value' => $val,
-                'label' => $d->locale('id')->translatedFormat('F Y') . ($isCur ? ' (Bulan Berjalan)' : ''),
-                'raw_label' => $d->locale('id')->translatedFormat('F Y'),
+                'label' => $rawLabel . ($isCur ? ' (Berjalan)' : ''),
+                'raw_label' => $rawLabel,
                 'type' => '1m',
                 'is_current' => $isCur,
             ];
         }
 
-        // 2. Triwulan (3 Bulan) - 8 Kuartal Terakhir
+        // 2. 3 Bulan (Okt - Des, dsb) - 8 Periode Terakhir
         $quarterlyOptions = [];
         $monthNames = [
             1 => 'Jan - Mar',
@@ -212,17 +213,17 @@ class PeriodService
             4 => 'Okt - Des',
         ];
 
-        // Generate mulai dari kuartal berjalan mundur 8 kuartal
+        // Generate mulai dari periode berjalan mundur 8 periode
         $qYear = $currentYear;
         $qQuarter = $currentQuarter;
         for ($k = 0; $k < 8; $k++) {
             $val = "{$qYear}-Q{$qQuarter}";
             $isCur = ($k === 0);
-            $lbl = "Kuartal {$qQuarter} {$qYear} ({$monthNames[$qQuarter]})";
+            $rawLabel = "{$monthNames[$qQuarter]} {$qYear}";
             $quarterlyOptions[] = [
                 'value' => $val,
-                'label' => $lbl . ($isCur ? ' (Triwulan Berjalan)' : ''),
-                'raw_label' => $lbl,
+                'label' => $rawLabel . ($isCur ? ' (Berjalan)' : ''),
+                'raw_label' => $rawLabel,
                 'type' => '3m',
                 'is_current' => $isCur,
             ];
@@ -234,7 +235,7 @@ class PeriodService
             }
         }
 
-        // 3. Semester (6 Bulan) - 6 Semester Terakhir
+        // 3. 6 Bulan (Jan - Jun, Jul - Des) - 6 Periode Terakhir
         $semesterOptions = [];
         $sYear = $currentYear;
         $sSem = $currentSemester;
@@ -242,11 +243,11 @@ class PeriodService
             $val = "{$sYear}-S{$sSem}";
             $isCur = ($s === 0);
             $rangeText = $sSem === 1 ? 'Jan - Jun' : 'Jul - Des';
-            $lbl = "Semester {$sSem} {$sYear} ({$rangeText})";
+            $rawLabel = "{$rangeText} {$sYear}";
             $semesterOptions[] = [
                 'value' => $val,
-                'label' => $lbl . ($isCur ? ' (Semester Berjalan)' : ''),
-                'raw_label' => $lbl,
+                'label' => $rawLabel . ($isCur ? ' (Berjalan)' : ''),
+                'raw_label' => $rawLabel,
                 'type' => '6m',
                 'is_current' => $isCur,
             ];
@@ -275,7 +276,14 @@ class PeriodService
         $chartHistory = [];
 
         if ($type === '3m') {
-            // Mundur 4 kuartal
+            $monthNames = [
+                1 => 'Jan - Mar',
+                2 => 'Apr - Jun',
+                3 => 'Jul - Sep',
+                4 => 'Okt - Des',
+            ];
+
+            // Mundur 4 periode 3-bulan
             $startYear = $periodInfo['year'];
             $startQ = $periodInfo['quarter'] ?: 4;
 
@@ -289,7 +297,7 @@ class PeriodService
                 }
                 $steps[] = [
                     'key' => "{$curY}-Q{$curQ}",
-                    'label' => "Q{$curQ} {$curY}",
+                    'label' => "{$monthNames[$curQ]} {$curY}",
                     'is_current' => ($k === 0),
                     'year' => $curY,
                     'quarter' => $curQ
@@ -305,7 +313,7 @@ class PeriodService
                 $chartHistory[] = self::formatHistoryItem($st['label'], $st['is_current'], $revItem);
             }
         } elseif ($type === '6m') {
-            // Mundur 4 semester
+            // Mundur 4 periode 6-bulan
             $startYear = $periodInfo['year'];
             $startS = $periodInfo['semester'] ?: 2;
 
@@ -317,9 +325,10 @@ class PeriodService
                     $curS += 2;
                     $curY -= 1;
                 }
+                $rangeText = $curS === 1 ? 'Jan - Jun' : 'Jul - Des';
                 $steps[] = [
                     'key' => "{$curY}-S{$curS}",
-                    'label' => "Sem {$curS} {$curY}",
+                    'label' => "{$rangeText} {$curY}",
                     'is_current' => ($k === 0),
                     'year' => $curY,
                     'semester' => $curS
