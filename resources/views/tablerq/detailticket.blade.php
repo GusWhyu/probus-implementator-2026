@@ -413,14 +413,47 @@
                                     <span class="text-[13px] font-medium text-blue-600 dark:text-blue-400 truncate font-mono" id="review-link">{{ $reviewUrl }}</span>
                                 </div>
                                 <div class="flex gap-2 w-full sm:w-auto shrink-0 mt-2 sm:mt-0">
-                                    <button type="button" onclick="navigator.clipboard.writeText('{{ $reviewUrl }}'); const btn = this; const orig = btn.innerHTML; btn.innerHTML = '<i class=\'fa-solid fa-check text-emerald-400\'></i> Disalin!'; setTimeout(() => btn.innerHTML = orig, 2000);" class="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 text-white font-bold text-xs rounded-xl hover:bg-blue-700 transition-all shadow-sm shadow-blue-500/20 active:scale-95 cursor-pointer">
-                                        <i class="fa-regular fa-copy"></i> Salin Link
+                                    <textarea id="wa-template-text" class="hidden" style="display:none;" aria-hidden="true">{{ $waMessage }}</textarea>
+                                    <button type="button" onclick="copyWaTemplate(this)" class="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 text-white font-bold text-xs rounded-xl hover:bg-blue-700 transition-all shadow-sm shadow-blue-500/20 active:scale-95 cursor-pointer" title="Salin template chat lengkap">
+                                        <i class="fa-regular fa-copy"></i> Salin
                                     </button>
                                     <a href="{{ $waShareUrl }}" target="_blank" class="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl transition-all shadow-sm shadow-emerald-600/20 active:scale-95 cursor-pointer">
                                         <i class="fa-brands fa-whatsapp text-sm"></i> Kirim WhatsApp
                                     </a>
                                 </div>
                             </div>
+                            <script>
+                                function copyWaTemplate(btn) {
+                                    const el = document.getElementById('wa-template-text');
+                                    const text = el ? el.value : '';
+                                    const setCopied = () => {
+                                        const orig = btn.innerHTML;
+                                        btn.innerHTML = '<i class="fa-solid fa-check text-emerald-400"></i> Disalin!';
+                                        setTimeout(() => { btn.innerHTML = orig; }, 2000);
+                                    };
+                                    if (navigator.clipboard && navigator.clipboard.writeText) {
+                                        navigator.clipboard.writeText(text).then(setCopied).catch(() => {
+                                            fallbackCopyWa(text, setCopied);
+                                        });
+                                    } else {
+                                        fallbackCopyWa(text, setCopied);
+                                    }
+                                }
+                                function fallbackCopyWa(text, cb) {
+                                    const ta = document.createElement('textarea');
+                                    ta.value = text;
+                                    ta.style.position = 'fixed';
+                                    ta.style.left = '-9999px';
+                                    document.body.appendChild(ta);
+                                    ta.focus();
+                                    ta.select();
+                                    try {
+                                        document.execCommand('copy');
+                                        if (cb) cb();
+                                    } catch (e) {}
+                                    document.body.removeChild(ta);
+                                }
+                            </script>
                             <p class="text-[10px] font-bold text-blue-500 dark:text-blue-400 flex items-center gap-1.5 mt-4">
                                 <i class="fa-solid fa-circle-info"></i> Tautan ini khusus untuk klien. Review hanya bisa dilakukan 1 kali.
                             </p>
