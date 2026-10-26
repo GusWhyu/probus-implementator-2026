@@ -172,48 +172,78 @@
         </tr>
     </table>
 
-    {{-- 2. PROFILE USER (Sama dengan rapor_pdf, elegan & rapi) --}}
+    {{-- 2. PROFILE USER (Sama persis dengan rapor_pdf) --}}
     <div style="margin-bottom: 7px; border: 1.2px solid #004880; border-radius: 5px; overflow: hidden; background: #ffffff;">
         <table style="width: 100%; border-collapse: collapse;">
             <tr>
-                <td style="width: 62px; vertical-align: middle; text-align: center; background-color: #f8fafc; border-right: 1.2px solid #cbd5e1; padding: 5px 4px;">
+                {{-- Panel Avatar di Kiri --}}
+                <td style="width: 78px; vertical-align: middle; text-align: center; background-color: #f8fafc; border-right: 1.2px solid #cbd5e1; padding: 7px 6px;">
                     @if ($pdfAvatarSrc)
-                        <img src="{{ $pdfAvatarSrc }}" style="width: 46px; height: 46px; border-radius: 50%; object-fit: cover; border: 2px solid #004880; display: block; margin: 0 auto;" />
+                        <img src="{{ $pdfAvatarSrc }}" style="width: 54px; height: 54px; border-radius: 50%; object-fit: cover; border: 2.2px solid #004880; display: block; margin: 0 auto;" />
                     @else
-                        <div style="width: 46px; height: 46px; border-radius: 50%; background-color: #004880; text-align: center; line-height: 46px; color: #ffffff; font-weight: bold; font-size: 18px; margin: 0 auto;">
+                        <div style="width: 54px; height: 54px; border-radius: 50%; background-color: #004880; text-align: center; line-height: 54px; color: #ffffff; font-weight: bold; font-size: 20px; margin: 0 auto;">
                             {{ strtoupper(substr($user->name, 0, 1)) }}
                         </div>
                     @endif
                 </td>
 
-                <td style="vertical-align: middle; padding: 5px 12px; background-color: #ffffff;">
+                {{-- Detail Informasi Staff --}}
+                <td style="vertical-align: middle; padding: 6px 14px; background-color: #ffffff;">
+                    {{-- Baris Atas: Nama Staff & Badge Status --}}
                     <table style="width: 100%; border-collapse: collapse;">
                         <tr>
                             <td style="vertical-align: middle;">
-                                <span style="font-size: 13.5px; font-weight: bold; color: #004880; letter-spacing: 0.3px;">
+                                <span style="font-size: 15px; font-weight: bold; color: #004880; letter-spacing: 0.3px;">
                                     {{ ucwords(strtolower($user->name)) }}
                                 </span>
                             </td>
                             <td style="text-align: right; vertical-align: middle;">
-                                <span style="background-color: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; padding: 1.5px 7px; border-radius: 10px; font-size: 8px; font-weight: bold; letter-spacing: 0.4px;">
+                                <span style="background-color: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; padding: 2px 8px; border-radius: 10px; font-size: 8.5px; font-weight: bold; letter-spacing: 0.4px;">
                                     STAFF AKTIF
                                 </span>
                             </td>
                         </tr>
                     </table>
 
-                    <div style="border-bottom: 1px solid #e2e8f0; margin: 3px 0 4px 0;"></div>
+                    {{-- Garis Pembatas Halus --}}
+                    <div style="border-bottom: 1px solid #e2e8f0; margin: 4px 0 5px 0;"></div>
 
-                    <table style="width: 100%; border-collapse: collapse; font-size: 9px;">
+                    {{-- Grid 2 Kolom Simetris --}}
+                    <table style="width: 100%; border-collapse: collapse; font-size: 9.5px;">
                         <tr>
-                            <td style="width: 33%; vertical-align: top; padding: 0;">
-                                <span style="color: #64748b;">Jabatan:</span> <strong style="color: #0f172a;">{{ ucwords($user->usertype ?? 'Customer Support') }}</strong>
+                            {{-- Kolom Kiri (42%) --}}
+                            <td style="width: 42%; vertical-align: top; padding: 0;">
+                                <table style="width: 100%; border-collapse: collapse; line-height: 1.5;">
+                                    <tr>
+                                        <td style="color: #64748b; width: 75px; white-space: nowrap;">Jabatan</td>
+                                        <td style="color: #94a3b8; width: 12px; text-align: center;">:</td>
+                                        <td style="color: #0f172a; font-weight: bold;">{{ ucwords($user->usertype ?? 'Customer Support') }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="color: #64748b; width: 75px; white-space: nowrap;">Departemen</td>
+                                        <td style="color: #94a3b8; width: 12px; text-align: center;">:</td>
+                                        <td style="color: #0f172a; font-weight: bold;">{{ optional($user->departemen)->name ?? 'Customer Support' }}</td>
+                                    </tr>
+                                </table>
                             </td>
-                            <td style="width: 33%; vertical-align: top; padding: 0;">
-                                <span style="color: #64748b;">Departemen:</span> <strong style="color: #0f172a;">{{ optional($user->departemen)->name ?? 'Customer Support' }}</strong>
-                            </td>
-                            <td style="width: 34%; vertical-align: top; padding: 0;">
-                                <span style="color: #64748b;">Email:</span> <strong style="color: #004880;">{{ $user->email ?: '-' }}</strong>
+
+                            {{-- Spacer Tengah (3%) --}}
+                            <td style="width: 3%;"></td>
+
+                            {{-- Kolom Kanan (55%) --}}
+                            <td style="width: 55%; vertical-align: top; padding: 0;">
+                                <table style="width: 100%; border-collapse: collapse; line-height: 1.5;">
+                                    <tr>
+                                        <td style="color: #64748b; width: 75px; white-space: nowrap;">Email</td>
+                                        <td style="color: #94a3b8; width: 12px; text-align: center;">:</td>
+                                        <td style="color: #004880; font-weight: bold;">{{ $user->email ?: '-' }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="color: #64748b; width: 75px; white-space: nowrap;">Status Staff</td>
+                                        <td style="color: #94a3b8; width: 12px; text-align: center;">:</td>
+                                        <td style="color: #059669; font-weight: bold;">Aktif</td>
+                                    </tr>
+                                </table>
                             </td>
                         </tr>
                     </table>
@@ -363,30 +393,15 @@
         </tbody>
     </table>
 
-    <!-- Signatures & Footer -->
-    <table class="footer-table" style="width: 100%; table-layout: fixed; margin-top: 8px;">
+    <!-- Footer Note (Tanpa Tanda Tangan) -->
+    <table style="width: 100%; table-layout: fixed; margin-top: 10px; border-top: 1px solid #cbd5e1; padding-top: 5px;">
         <tr>
-            <td style="width: 55%; vertical-align: top; font-size: 8px; color: #64748b;">
-                <div>Dokumen ini dicetak secara otomatis oleh Probus Helpdesk Management System.</div>
-                <div>Dicetak Oleh: <strong>{{ auth()->user()->name ?? 'User' }}</strong> pada {{ date('d/m/Y H:i') }} WITA.</div>
+            <td style="font-size: 8px; color: #64748b; vertical-align: middle;">
+                Dokumen ini dicetak secara otomatis oleh Probus Helpdesk Management System.
+                Dicetak Oleh: <strong>{{ auth()->user()->name ?? 'User' }}</strong> pada {{ date('d/m/Y H:i') }} WITA.
             </td>
-            <td style="width: 45%; text-align: right; vertical-align: top;">
-                <table style="width: 100%; table-layout: fixed; text-align: center;">
-                    <tr>
-                        <td style="width: 50%; padding-right: 15px; padding-left: 10px; text-align: center;">
-                            <div style="font-size: 8.5px; color: #475569;">Staff Pelaksana,</div>
-                            <div style="height: 30px;"></div>
-                            <div style="font-weight: bold; border-top: 1.5px solid #475569; padding-top: 3px; font-size: 9.5px; color: #0f172a;">{{ $user->name }}</div>
-                            <div style="font-size: 8px; color: #64748b;">Staff {{ ucfirst($user->departemen->name ?? 'Operasional') }}</div>
-                        </td>
-                        <td style="width: 50%; padding-left: 15px; padding-right: 5px; text-align: center;">
-                            <div style="font-size: 8.5px; color: #475569;">Mengetahui,</div>
-                            <div style="height: 30px;"></div>
-                            <div style="font-weight: bold; border-top: 1.5px solid #475569; padding-top: 3px; font-size: 9.5px; color: #0f172a;">Supervisor / Head Dept</div>
-                            <div style="font-size: 8px; color: #64748b;">Probus System</div>
-                        </td>
-                    </tr>
-                </table>
+            <td style="font-size: 8px; color: #94a3b8; text-align: right; vertical-align: middle;">
+                Probus System Indonesia &bull; IT Helpdesk Support
             </td>
         </tr>
     </table>

@@ -588,6 +588,36 @@
             </td>
         </tr>
     </table>
+
+    {{-- ============================================================ --}}
+    {{-- 9. TANDA TANGAN (Staff Pelaksana & Supervisor)              --}}
+    {{-- ============================================================ --}}
+    <table style="width: 100%; table-layout: fixed; margin-top: 18px; border-collapse: collapse;">
+        <tr>
+            <td style="width: 50%; vertical-align: top; font-size: 8.5px; color: #64748b; line-height: 1.4;">
+                <div>Dokumen ini dicetak secara otomatis oleh Probus Helpdesk Management System.</div>
+                <div>Dicetak Oleh: <strong>{{ auth()->user()->name ?? 'User' }}</strong> pada {{ date('d/m/Y H:i') }} WITA.</div>
+            </td>
+            <td style="width: 50%; text-align: right; vertical-align: top;">
+                <table style="width: 100%; table-layout: fixed; text-align: center; border-collapse: collapse;">
+                    <tr>
+                        <td style="width: 50%; padding-right: 12px; padding-left: 8px; text-align: center; vertical-align: top;">
+                            <div style="font-size: 9.5px; color: #475569;">Staff Pelaksana,</div>
+                            <div style="height: 38px;"></div>
+                            <div style="font-weight: bold; border-top: 1.5px solid #475569; padding-top: 3px; font-size: 10.5px; color: #0f172a;">{{ $user->name }}</div>
+                            <div style="font-size: 9px; color: #64748b;">Staff {{ ucfirst($user->departemen->name ?? 'Operasional') }}</div>
+                        </td>
+                        <td style="width: 50%; padding-left: 12px; padding-right: 8px; text-align: center; vertical-align: top;">
+                            <div style="font-size: 9.5px; color: #475569;">Mengetahui,</div>
+                            <div style="height: 38px;"></div>
+                            <div style="font-weight: bold; border-top: 1.5px solid #475569; padding-top: 3px; font-size: 10.5px; color: #0f172a;">Supervisor / Head Dept</div>
+                            <div style="font-size: 9px; color: #64748b;">Probus System</div>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
     </div>
 </body>
 </html>
