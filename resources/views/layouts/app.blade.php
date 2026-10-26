@@ -379,6 +379,19 @@
             select.period-select-clean::-ms-expand {
                 display: none !important;
             }
+            /* Options styling for Light and Dark modes */
+            select option,
+            select.period-select-clean option {
+                background-color: #ffffff !important;
+                color: #0f172a !important;
+            }
+            html.dark select option,
+            html[data-theme="dark"] select option,
+            html.dark select.period-select-clean option,
+            html[data-theme="dark"] select.period-select-clean option {
+                background-color: #1e293b !important;
+                color: #f8fafc !important;
+            }
             html.dark input::placeholder,
             html.dark textarea::placeholder {
                 color: #64748b !important;

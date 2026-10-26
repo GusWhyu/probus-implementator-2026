@@ -60,10 +60,9 @@
                                             : (($periodType === '6m') ? ($periodOptions['semester'] ?? []) : ($periodOptions['monthly'] ?? []));
                                     @endphp
                                     <select name="period" onchange="this.form.submit()" 
-                                        class="period-select-clean bg-transparent border-0 text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-200 py-1 sm:py-1.5 pl-0 pr-6 focus:ring-0 cursor-pointer w-full sm:w-auto"
-                                        style="background: transparent !important; background-color: transparent !important; border: 0 !important; outline: none !important; -webkit-appearance: none !important; -moz-appearance: none !important; appearance: none !important;">
+                                        class="period-select-clean bg-transparent border-0 text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-100 py-1 sm:py-1.5 pl-0 pr-6 focus:ring-0 cursor-pointer w-full sm:w-auto">
                                         @foreach($activeOptions as $opt)
-                                            <option value="{{ $opt['value'] }}" {{ $opt['value'] === ($period ?? '') ? 'selected' : '' }} class="bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 py-1" style="background-color: #0f172a; color: #f8fafc;">
+                                            <option value="{{ $opt['value'] }}" {{ $opt['value'] === ($period ?? '') ? 'selected' : '' }} class="bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 py-1.5 font-semibold">
                                                 {{ $opt['label'] }}
                                             </option>
                                         @endforeach
