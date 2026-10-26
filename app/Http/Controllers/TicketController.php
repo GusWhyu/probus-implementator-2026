@@ -558,46 +558,19 @@ class TicketController extends Controller
             'message' => 'nullable|string|max:1000',
         ]);
 
-        $clientName = $ticket->client ? $ticket->client->nm_out : 'Bapak/Ibu Klien';
+        $clientName = $ticket->client ? $ticket->client->nm_out : 'Klien';
         $customMessage = trim($request->input('message', ''));
-        if (empty($customMessage)) {
-            $customMessage = "Kendala terkait \"{$ticket->title}\" telah selesai kami tangani. Mohon kesediaan Bapak/Ibu untuk melakukan pengecekan dan pengujian kembali. Jika ada kendala lebih lanjut, silakan informasikan kepada kami. Terima kasih.";
-        }
+        $logDesc = $customMessage ?: ('Pengerjaan kendala telah selesai. Menunggu konfirmasi pengetesan dari pihak klien (' . $clientName . ').');
 
-        $formattedBody = "[MENUNGGU KONFIRMASI KLIEN]\n\n" . $customMessage;
-
-        // 1. Post to Komentar
-        Komentar::create([
-            'ticket_id' => $ticket->id,
-            'request_id' => null,
-            'user_id' => $user->id,
-            'body' => $formattedBody,
-        ]);
-
-        // 2. Record to TicketLog
+        // Record to TicketLog (not posted to Komentar/Diskusi)
         TicketLog::create([
             'ticket_id' => $ticket->id,
             'user_id' => $user->id,
             'action' => 'WAITING_CONFIRMATION',
-            'description' => 'Pengerjaan kendala telah selesai. Menunggu konfirmasi pengetesan dari pihak klien (' . $clientName . ').',
+            'description' => $logDesc,
         ]);
 
-        // 3. Prepare WhatsApp Message
-        $waText = "Halo Tim *{$clientName}*,\n\n"
-                . "Pemberitahuan dari *Tim Support Probus System*:\n\n"
-                . "📋 *No. Tiket:* #{$ticket->ticket_number}\n"
-                . "📌 *Kendala:* {$ticket->title}\n"
-                . "⏳ *Status:* Selesai Dikerjakan (Menunggu Konfirmasi Klien)\n\n"
-                . "📝 *Keterangan:* {$customMessage}\n\n"
-                . "Mohon bantuannya untuk melakukan pengecekan kembali. Terima kasih atas kerja samanya. 🙏";
-
-        $waUrl = 'https://api.whatsapp.com/send?text=' . rawurlencode($waText);
-
-        if ($request->boolean('open_wa', true)) {
-            session()->flash('open_whatsapp_url', $waUrl);
-        }
-
-        Alert::success('Berhasil!', 'Permintaan konfirmasi klien telah dicatat di riwayat diskusi tiket.')->showConfirmButton('Tutup', '#3b82f6')->autoClose(3000);
+        Alert::success('Berhasil!', 'Tiket ditandai Menunggu Konfirmasi Klien.')->showConfirmButton('Tutup', '#3b82f6')->autoClose(2500);
 
         return redirect()->back();
     }
@@ -620,13 +593,7 @@ class TicketController extends Controller
 
         $resumeNotes = trim($request->input('resume_notes', 'Pengerjaan tiket dilanjutkan kembali oleh petugas.'));
 
-        Komentar::create([
-            'ticket_id' => $ticket->id,
-            'request_id' => null,
-            'user_id' => $user->id,
-            'body' => "[KEMBALI DIKERJAKAN]\n\n" . $resumeNotes,
-        ]);
-
+        // Record to TicketLog (not posted to Komentar/Diskusi)
         TicketLog::create([
             'ticket_id' => $ticket->id,
             'user_id' => $user->id,
@@ -634,7 +601,7 @@ class TicketController extends Controller
             'description' => 'Pengerjaan tiket dilanjutkan kembali: ' . $resumeNotes,
         ]);
 
-        Alert::info('Informasi', 'Status tiket dikembalikan ke pengerjaan aktif.')->showConfirmButton('Tutup', '#3b82f6')->autoClose(2500);
+        Alert::info('Informasi', 'Status menunggu konfirmasi telah dihapus. Pengerjaan aktif dilanjutkan.')->showConfirmButton('Tutup', '#3b82f6')->autoClose(2500);
 
         return redirect()->back();
     }

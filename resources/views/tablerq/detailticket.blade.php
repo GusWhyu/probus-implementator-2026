@@ -95,6 +95,41 @@
             </div>
             @endif
 
+            <!-- Banner Menunggu Konfirmasi Klien (Bisa Dihapus) -->
+            @if ($datarq->is_waiting_confirmation)
+            <div class="bg-amber-50/90 dark:bg-amber-950/40 border border-amber-300/80 dark:border-amber-800/60 rounded-2xl p-4 sm:p-4.5 mb-6 shadow-xs flex items-center justify-between gap-4">
+                <div class="flex items-center gap-3.5 min-w-0">
+                    <div class="w-10 h-10 rounded-xl bg-amber-100 dark:bg-amber-900/50 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0 border border-amber-200 dark:border-amber-800/60 shadow-2xs">
+                        <i class="fa-solid fa-hourglass-half text-base"></i>
+                    </div>
+                    <div class="min-w-0">
+                        <div class="flex items-center gap-2">
+                            <h4 class="font-extrabold text-amber-950 dark:text-amber-100 text-xs sm:text-sm">
+                                Menunggu Konfirmasi Klien
+                            </h4>
+                            <span class="text-[10px] text-amber-700/70 dark:text-amber-400 font-semibold">
+                                ({{ $datarq->client->nm_out ?? 'Klien' }})
+                            </span>
+                        </div>
+                        <p class="text-xs text-amber-900/80 dark:text-amber-300/80 mt-0.5 truncate sm:whitespace-normal">
+                            Pengerjaan kendala telah selesai. Sedang menunggu konfirmasi pengujian dari pihak klien.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Tombol Hapus status menunggu konfirmasi -->
+                <div class="flex items-center gap-2 shrink-0">
+                    <form action="{{ route('ticket.resume_progress', $datarq->id) }}" method="POST" onsubmit="return confirm('Hapus status menunggu konfirmasi dan lanjutkan pengerjaan tiket?');">
+                        @csrf
+                        <input type="hidden" name="resume_notes" value="Menunggu konfirmasi klien dihapus. Pengerjaan aktif dilanjutkan.">
+                        <button type="submit" class="px-3 py-2 bg-white dark:bg-slate-800 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-slate-600 hover:text-rose-600 dark:text-slate-300 dark:hover:text-rose-400 rounded-xl text-xs font-bold transition-all border border-slate-200 dark:border-slate-700 hover:border-rose-300 dark:hover:border-rose-800 flex items-center gap-1.5 shadow-2xs cursor-pointer" title="Hapus status menunggu konfirmasi">
+                            <i class="fa-solid fa-trash-can text-xs text-rose-500"></i>
+                            <span class="hidden sm:inline">Hapus</span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+            @endif
 
             <!-- Takeover Notification Banners -->
             @php
@@ -562,47 +597,6 @@
                         <div id="diskusi-messages-container" class="p-6 md:px-8 flex-1 overflow-y-auto space-y-6 custom-scrollbar bg-slate-50/30">
                             @if (count($komentar) >= 1)
                                 @foreach ($komentar as $komen)
-                                @php
-                                    $isKomenWaiting = str_contains($komen->body ?? $komen->message ?? '', '[MENUNGGU KONFIRMASI KLIEN]');
-                                    $isKomenResume = str_contains($komen->body ?? $komen->message ?? '', '[KEMBALI DIKERJAKAN]');
-                                @endphp
-
-                                @if($isKomenWaiting)
-                                    <!-- Specialized Card: Menunggu Konfirmasi Klien (Compact timeline log) -->
-                                    <div class="w-full bg-amber-50/70 dark:bg-amber-950/30 border border-amber-200/80 dark:border-amber-800/50 rounded-xl p-3 text-xs shadow-2xs">
-                                        <div class="flex items-center justify-between gap-2 mb-1.5">
-                                            <div class="flex items-center gap-1.5">
-                                                <i class="fa-solid fa-hourglass-half text-amber-500 text-xs"></i>
-                                                <span class="font-bold text-amber-900 dark:text-amber-200">Permintaan Konfirmasi Klien</span>
-                                                <span class="text-[10px] text-amber-700/70 dark:text-amber-400">({{ $komen->user->name ?? 'Petugas' }})</span>
-                                            </div>
-                                            <div class="flex items-center gap-2">
-                                                <span class="text-[10px] text-slate-400">{{ $komen->created_at->diffForHumans() }}</span>
-                                                @if ($komen->user_id == $aid && $stid != 'CLOSED')
-                                                <a data-confirm-delete="true" href="/deletekomen/{{ $komen->id }}" class="text-[10px] font-bold text-slate-400 hover:text-rose-500 transition-colors" title="Hapus"><i class="fa-solid fa-trash-can"></i></a>
-                                                @endif
-                                            </div>
-                                        </div>
-                                        <p class="text-xs text-slate-700 dark:text-slate-300 leading-relaxed bg-white/60 dark:bg-slate-900/50 p-2.5 rounded-lg border border-amber-100 dark:border-amber-900/30">
-                                            {{ trim(str_replace('[MENUNGGU KONFIRMASI KLIEN]', '', $komen->body ?? $komen->message)) }}
-                                        </p>
-                                    </div>
-                                @elseif($isKomenResume)
-                                    <!-- Specialized Card: Lanjut Dikerjakan -->
-                                    <div class="w-full bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-xs text-slate-600 dark:text-slate-300 flex items-center justify-between gap-2">
-                                        <div class="flex items-center gap-2">
-                                            <i class="fa-solid fa-rotate-left text-blue-500"></i>
-                                            <span class="font-bold text-slate-700 dark:text-slate-200">Pengerjaan Dilanjutkan:</span>
-                                            <span>{{ trim(str_replace('[KEMBALI DIKERJAKAN]', '', $komen->body ?? $komen->message)) }}</span>
-                                        </div>
-                                        <div class="flex items-center gap-3">
-                                            <span class="text-[10px] text-slate-400">{{ $komen->created_at->diffForHumans() }}</span>
-                                            @if ($komen->user_id == $aid && $stid != 'CLOSED')
-                                            <a data-confirm-delete="true" href="/deletekomen/{{ $komen->id }}" class="text-[10px] font-bold text-slate-400 hover:text-rose-500 transition-colors"><i class="fa-solid fa-trash-can"></i></a>
-                                            @endif
-                                        </div>
-                                    </div>
-                                @else
                                 <div class="flex gap-4 {{ $komen->user_id == $aid ? 'flex-row-reverse' : '' }}">
                                     <!-- Avatar -->
                                     <div class="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center text-slate-500 font-bold shrink-0 overflow-hidden shadow-sm border border-white">
@@ -621,7 +615,6 @@
                                         @endif
                                     </div>
                                 </div>
-                                @endif
                                 @endforeach
                             @else
                                 <div id="diskusi-empty-state" class="text-center py-12 flex flex-col items-center">
@@ -690,19 +683,13 @@
                                         <span class="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>NEW
                                     </span>
                                     @endif
-                                    @if ($datarq->is_waiting_confirmation)
-                                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-amber-500 text-white shadow-2xs flex items-center gap-1">
-                                        <i class="fa-solid fa-hourglass-half text-[9px]"></i> MENUNGGU KLIEN
-                                    </span>
-                                    @else
                                     <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider {{ $bg }}">
                                         {{ $datarq->status }}
                                     </span>
-                                    @endif
                                 </div>
                             </div>
 
-                            <!-- Bottom row: Ticket Number with Copy Button -->
+                            <!-- Bottom row: Ticket Number with Copy Button & Sub-Status Badge -->
                             <div class="flex items-center justify-between gap-2 flex-wrap">
                                 <div class="flex items-center gap-1.5">
                                     <span class="text-blue-600 dark:text-blue-400 font-black text-base sm:text-lg font-mono tracking-tight whitespace-nowrap">
@@ -715,6 +702,11 @@
                                         <i class="fa-regular fa-copy text-[10px]"></i>
                                     </button>
                                 </div>
+                                @if ($datarq->is_waiting_confirmation)
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 border border-amber-300/80 dark:border-amber-700/60 shadow-2xs whitespace-nowrap">
+                                    <i class="fa-solid fa-hourglass-half text-[9px]"></i> MENUNGGU KLIEN
+                                </span>
+                                @endif
                             </div>
                         </div>
                         
@@ -835,30 +827,6 @@
                                     @else
                                         @if ($datarq->is_waiting_confirmation)
                                             {{-- Tiket sedang menunggu konfirmasi klien --}}
-                                            @php
-                                                $clientName = $datarq->client ? $datarq->client->nm_out : 'Bapak/Ibu';
-                                                $waDirectMsg = "Halo Tim *{$clientName}*,\n\n"
-                                                             . "Pemberitahuan dari *Tim Support Probus System*:\n\n"
-                                                             . "📋 *No. Tiket:* #{$datarq->ticket_number}\n"
-                                                             . "📌 *Kendala:* {$datarq->title}\n"
-                                                             . "⏳ *Status:* Selesai Dikerjakan (Menunggu Konfirmasi Klien)\n\n"
-                                                             . "Mohon kesediaannya untuk melakukan pengecekan kembali. Terima kasih atas kerja samanya. 🙏";
-                                                $waDirectUrl = 'https://api.whatsapp.com/send?text=' . rawurlencode($waDirectMsg);
-                                            @endphp
-                                            <div class="bg-amber-50/80 dark:bg-amber-950/40 border border-amber-200/90 dark:border-amber-800/60 rounded-xl p-3 mb-1">
-                                                <div class="flex items-center justify-between gap-2 mb-1">
-                                                    <span class="text-[11px] font-bold text-amber-900 dark:text-amber-200 flex items-center gap-1.5">
-                                                        <i class="fa-solid fa-hourglass-half text-amber-500"></i> Menunggu Respon Klien
-                                                    </span>
-                                                    <a href="{{ $waDirectUrl }}" target="_blank" class="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-[10px] font-bold transition-all flex items-center gap-1 shadow-2xs cursor-pointer active:scale-95">
-                                                        <i class="fa-brands fa-whatsapp text-xs"></i> WhatsApp
-                                                    </a>
-                                                </div>
-                                                <p class="text-[10.5px] text-amber-800/80 dark:text-amber-300/80 leading-snug">
-                                                    Pekerjaan telah dikirimkan ke <strong>{{ $datarq->client->nm_out ?? 'klien' }}</strong> untuk diuji.
-                                                </p>
-                                            </div>
-
                                             @if(is_null($datarq->advisor_id))
                                                 <button type="button" onclick="document.getElementById('forceAdvisorModal').showModal()" class="w-full flex items-center justify-center bg-emerald-600 hover:bg-emerald-700 text-white py-3.5 rounded-xl font-bold text-sm shadow-md shadow-emerald-500/25 transition-all active:scale-95 gap-2 cursor-pointer">
                                                     <i class="fa-solid fa-circle-check text-emerald-200"></i> Klien Sudah OK (Selesaikan)
@@ -1315,32 +1283,25 @@
                     </button>
                 </div>
 
-                <div class="mb-4 text-xs text-slate-600 dark:text-slate-300 leading-relaxed bg-amber-50/60 dark:bg-amber-950/30 border border-amber-200/60 dark:border-amber-800/40 rounded-xl p-3 flex items-start gap-2.5">
+                <div class="mb-5 text-xs text-slate-600 dark:text-slate-300 leading-relaxed bg-amber-50/70 dark:bg-amber-950/30 border border-amber-200/70 dark:border-amber-800/50 rounded-2xl p-4 flex items-start gap-3">
                     <i class="fa-solid fa-circle-info text-amber-500 mt-0.5 shrink-0 text-sm"></i>
-                    <span>Tandai bahwa perbaikan teknis telah selesai dan kirim pemberitahuan ke <strong>{{ $datarq->client->nm_out ?? 'klien' }}</strong> untuk melakukan pengujian.</span>
+                    <div>
+                        <p class="font-bold text-amber-900 dark:text-amber-200 mb-0.5">Penandaan Selesai Dikerjakan</p>
+                        <p>Tandai bahwa perbaikan teknis telah selesai dan sedang menunggu konfirmasi pengujian dari pihak <strong>{{ $datarq->client->nm_out ?? 'klien' }}</strong>. Informasi status ini akan ditampilkan di bagian atas tiket dan dapat dihapus kembali.</p>
+                    </div>
                 </div>
 
-                <div class="mb-4">
+                <div class="mb-5">
                     <label class="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1.5">
-                        Pesan Konfirmasi ke Klien (Tercatat di Diskusi)
+                        Catatan Tambahan (Opsional)
                     </label>
-                    @php
-                        $defaultClientMsg = "Kendala terkait \"{$datarq->title}\" telah selesai kami tangani. Mohon kesediaan Bapak/Ibu untuk melakukan pengecekan dan pengujian kembali. Jika ada kendala lebih lanjut, silakan informasikan kepada kami. Terima kasih.";
-                    @endphp
-                    <textarea name="message" rows="4" class="w-full bg-slate-50/50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs rounded-xl focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 p-3.5 outline-none font-medium leading-relaxed shadow-2xs transition-colors">{{ $defaultClientMsg }}</textarea>
-                </div>
-
-                <div class="mb-6 flex items-center gap-2">
-                    <input type="checkbox" id="open_wa_checkbox" name="open_wa" value="1" checked class="checkbox checkbox-sm checkbox-warning rounded-md">
-                    <label for="open_wa_checkbox" class="text-xs font-semibold text-slate-700 dark:text-slate-300 cursor-pointer select-none">
-                        Buka WhatsApp otomatis dengan teks ini setelah dikirim
-                    </label>
+                    <textarea name="message" rows="3" class="w-full bg-slate-50/50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs rounded-xl focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 p-3.5 outline-none font-medium leading-relaxed shadow-2xs transition-colors" placeholder="Tuliskan catatan perbaikan jika ada..."></textarea>
                 </div>
 
                 <div class="grid grid-cols-2 gap-3">
                     <button type="button" class="py-3 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold text-xs rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-800 dark:hover:text-slate-100 transition-all shadow-sm cursor-pointer" onclick="document.getElementById('waitingConfirmationModal').close()">Batal</button>
                     <button type="submit" class="py-3 bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs rounded-xl transition-all shadow-sm shadow-amber-500/30 flex items-center justify-center gap-1.5 cursor-pointer">
-                        <i class="fa-solid fa-paper-plane text-xs"></i> Kirim Konfirmasi
+                        <i class="fa-solid fa-hourglass-half text-xs"></i> Tandai Menunggu Klien
                     </button>
                 </div>
             </form>
