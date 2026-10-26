@@ -5,7 +5,7 @@
     <title>Laporan Tiket {{ ($module->id ?? '') === 'all' ? 'Keseluruhan' : 'Modul ' . $module->name }} - {{ $user->name }}</title>
     <style>
         @page {
-            margin: 42px 44px 38px 44px;
+            margin: 26px 44px 24px 44px;
             size: a4 landscape;
         }
         * {
@@ -14,7 +14,7 @@
         }
         body {
             color: #0f172a;
-            font-size: 10px;
+            font-size: 9.5px;
             line-height: 1.35;
             background-color: #ffffff;
             margin: 0;
@@ -26,49 +26,20 @@
             width: 100%;
             table-layout: fixed;
         }
-        .header-table {
-            width: 100%;
-            table-layout: fixed;
-            margin-bottom: 14px;
-            border-bottom: 2.5px solid #1e40af;
-            padding-bottom: 10px;
-        }
-        .meta-card {
-            background-color: #f8fafc;
-            border: 1.5px solid #94a3b8;
-            border-radius: 6px;
-            padding: 8px 12px;
-            width: 100%;
-        }
-        .meta-table {
-            width: 100%;
-            table-layout: fixed;
-        }
-        .meta-table td {
-            padding: 3px 4px;
-            font-size: 10px;
-            word-wrap: break-word;
-        }
-        .kpi-cell {
-            padding: 10px 4px 9px 4px;
-            border-radius: 6px;
-            text-align: center;
-            width: 100%;
-        }
         .data-table {
             width: 100%;
             table-layout: fixed;
             border: 1.5px solid #475569;
             border-collapse: collapse;
-            margin-bottom: 14px;
+            margin-bottom: 6px;
         }
         .data-table th {
             background-color: #1e40af;
             color: #ffffff;
-            font-size: 9px;
+            font-size: 8.5px;
             font-weight: bold;
             text-align: center;
-            padding: 7px 4px;
+            padding: 5.5px 4px;
             border: 1px solid #1e3a8a;
             text-transform: uppercase;
             letter-spacing: 0.3px;
@@ -76,11 +47,11 @@
             overflow: hidden;
         }
         .data-table td {
-            padding: 6px 6px;
+            padding: 4px 5px;
             border: 1px solid #94a3b8;
             vertical-align: top;
-            font-size: 9.5px;
-            line-height: 1.35;
+            font-size: 9px;
+            line-height: 1.3;
             word-wrap: break-word;
             overflow: hidden;
         }
@@ -89,7 +60,7 @@
         }
         .badge {
             display: inline-block;
-            padding: 2.5px 6px;
+            padding: 2px 5px;
             border-radius: 4px;
             font-weight: bold;
             font-size: 8px;
@@ -125,25 +96,25 @@
             background-color: #f0fdf4;
             border: 1px solid #86efac;
             border-left: 3.5px solid #16a34a;
-            padding: 5px 6px;
+            padding: 4px 6px;
             border-radius: 4px;
             color: #14532d;
             font-size: 9px;
-            line-height: 1.35;
-            margin-top: 3px;
+            line-height: 1.3;
+            margin-top: 2px;
             word-wrap: break-word;
         }
         .deskripsi-box {
             color: #334155;
-            font-size: 9px;
-            line-height: 1.35;
-            margin-top: 3px;
+            font-size: 8.5px;
+            line-height: 1.3;
+            margin-top: 2px;
             word-wrap: break-word;
         }
         .footer-table {
             width: 100%;
             table-layout: fixed;
-            margin-top: 12px;
+            margin-top: 6px;
         }
     </style>
 </head>
@@ -153,100 +124,144 @@
         $logoPath = public_path('img/logo.png');
         $probusLogoSrc = file_exists($logoPath) ? 'data:image/png;base64,' . base64_encode(file_get_contents($logoPath)) : null;
 
+        // Avatar User
+        $pdfAvatarSrc = null;
+        if (!empty($user->profile_image)) {
+            $pPath = public_path('storage/' . $user->profile_image);
+            if (file_exists($pPath)) {
+                $ext = strtolower(pathinfo($pPath, PATHINFO_EXTENSION));
+                $mime = ($ext === 'jpg' || $ext === 'jpeg') ? 'image/jpeg' : (($ext === 'png') ? 'image/png' : 'image/jpeg');
+                $pdfAvatarSrc = 'data:' . $mime . ';base64,' . base64_encode(file_get_contents($pPath));
+            } else {
+                $sPath = storage_path('app/public/' . $user->profile_image);
+                if (file_exists($sPath)) {
+                    $ext = strtolower(pathinfo($sPath, PATHINFO_EXTENSION));
+                    $mime = ($ext === 'jpg' || $ext === 'jpeg') ? 'image/jpeg' : (($ext === 'png') ? 'image/png' : 'image/jpeg');
+                    $pdfAvatarSrc = 'data:' . $mime . ';base64,' . base64_encode(file_get_contents($sPath));
+                }
+            }
+        }
+        if (!$pdfAvatarSrc) {
+            $isFemale = in_array(strtolower(trim($user->name ?? '')), ['dyah kusuma', 'dewi', 'siti rahma', 'dewi anggraini', 'rina wulandari', 'ayu lestari']);
+            $defaultPath = public_path($isFemale ? 'img/avatar-female.png' : 'img/avatar-default.png');
+            if (file_exists($defaultPath)) {
+                $pdfAvatarSrc = 'data:image/png;base64,' . base64_encode(file_get_contents($defaultPath));
+            }
+        }
+
         $totalCount = $tickets->count();
         $closedCount = $tickets->filter(function($t) { return strtoupper($t->status) === 'CLOSED'; })->count();
         $progressCount = $tickets->filter(function($t) { return strtoupper($t->status) === 'PROGRESS'; })->count();
         $openCount = $tickets->filter(function($t) { return strtoupper($t->status) === 'OPEN'; })->count();
     @endphp
 
-    <!-- Header Dokumen -->
-    <table class="header-table">
+    {{-- 1. KOP PERUSAHAAN (Sama persis dengan rapor_pdf) --}}
+    <table style="width: 100%; border-bottom: 2px solid #004880; padding-bottom: 6px; margin-bottom: 8px;">
         <tr>
-            <td style="width: 50%; vertical-align: middle;">
-                <table style="width: auto; table-layout: auto;">
-                    <tr>
-                        @if($probusLogoSrc)
-                        <td style="padding-right: 12px; vertical-align: middle;">
-                            <img src="{{ $probusLogoSrc }}" style="height: 42px;" alt="Logo Probus">
-                        </td>
-                        @endif
-                        <td style="vertical-align: middle;">
-                            <div style="font-size: 15px; font-weight: bold; color: #1e40af; letter-spacing: 0.5px;">PROBUS SYSTEM INDONESIA</div>
-                            <div style="font-size: 9px; color: #64748b; font-weight: 500;">Hospitality Property Management System & IT Helpdesk Support</div>
-                        </td>
-                    </tr>
-                </table>
+            <td style="width: 45%; vertical-align: top;">
+                @if ($probusLogoSrc)
+                    <img src="{{ $probusLogoSrc }}" style="width: 54px; height: 54px; object-fit: contain; display: block;" />
+                @endif
             </td>
-            <td style="width: 50%; text-align: right; vertical-align: middle;">
-                <div style="font-size: 14px; font-weight: bold; color: #0f172a; text-transform: uppercase;">
-                    {{ ($module->id ?? '') === 'all' ? 'LAPORAN RIWAYAT TIKET KESELURUHAN' : 'LAPORAN RIWAYAT TIKET PER MODUL' }}
-                </div>
-                <div style="font-size: 10.5px; font-weight: bold; color: #1e40af; margin-top: 2px;">
-                    MODUL: {{ strtoupper($module->name) }}
-                    @if(!empty($module->bobot) && $module->bobot !== '-')
-                        <span style="font-size: 9px; color: #64748b; font-weight: normal;">(Bobot: {{ $module->bobot }})</span>
-                    @endif
-                </div>
+            <td style="width: 55%; vertical-align: top; text-align: right; line-height: 1.35; font-family: 'Times New Roman', Times, 'DejaVu Serif', serif;">
+                <div style="font-size: 14.5px; font-weight: bold; color: #0f172a; letter-spacing: 0.5px;">CV. MITRA SOLUSI MANDIRI</div>
+                <div style="font-size: 9px; color: #334155; margin-top: 1px;">JL PB. SUDIRMAN, PERTOKOAN SUDIRMAN AGUNG BLOK C NO. 51</div>
+                <div style="font-size: 9px; color: #334155;">DENPASAR &bull; 0361 -241 689</div>
+                <div style="font-size: 9px; color: #004880; font-weight: bold;">support@probussystem.com</div>
             </td>
         </tr>
     </table>
 
-    <!-- Meta Information Cards -->
-    <table style="width: 100%; table-layout: fixed; margin-bottom: 12px;">
-        <tr>
-            <!-- Info Staff -->
-            <td style="width: 48%; vertical-align: top; padding-right: 8px;">
-                <div class="meta-card">
-                    <table class="meta-table">
+    {{-- 2. PROFILE USER (Sama dengan rapor_pdf, elegan & rapi) --}}
+    <div style="margin-bottom: 7px; border: 1.2px solid #004880; border-radius: 5px; overflow: hidden; background: #ffffff;">
+        <table style="width: 100%; border-collapse: collapse;">
+            <tr>
+                <td style="width: 62px; vertical-align: middle; text-align: center; background-color: #f8fafc; border-right: 1.2px solid #cbd5e1; padding: 5px 4px;">
+                    @if ($pdfAvatarSrc)
+                        <img src="{{ $pdfAvatarSrc }}" style="width: 46px; height: 46px; border-radius: 50%; object-fit: cover; border: 2px solid #004880; display: block; margin: 0 auto;" />
+                    @else
+                        <div style="width: 46px; height: 46px; border-radius: 50%; background-color: #004880; text-align: center; line-height: 46px; color: #ffffff; font-weight: bold; font-size: 18px; margin: 0 auto;">
+                            {{ strtoupper(substr($user->name, 0, 1)) }}
+                        </div>
+                    @endif
+                </td>
+
+                <td style="vertical-align: middle; padding: 5px 12px; background-color: #ffffff;">
+                    <table style="width: 100%; border-collapse: collapse;">
                         <tr>
-                            <td style="width: 110px; color: #475569; font-weight: bold;">Nama Staff</td>
-                            <td style="width: 8px;">:</td>
-                            <td style="font-weight: bold; color: #0f172a;">{{ $user->name }}</td>
-                        </tr>
-                        <tr>
-                            <td style="color: #475569; font-weight: bold;">Departemen</td>
-                            <td>:</td>
-                            <td>{{ ucfirst($user->departemen->name ?? 'Operasional') }} &bull; <span style="text-transform: capitalize;">{{ $user->usertype ?? 'Staff' }}</span></td>
-                        </tr>
-                        <tr>
-                            <td style="color: #475569; font-weight: bold;">Periode Evaluasi</td>
-                            <td>:</td>
-                            <td style="font-weight: bold; color: #1e40af;">{{ $periodeText }}</td>
+                            <td style="vertical-align: middle;">
+                                <span style="font-size: 13.5px; font-weight: bold; color: #004880; letter-spacing: 0.3px;">
+                                    {{ ucwords(strtolower($user->name)) }}
+                                </span>
+                            </td>
+                            <td style="text-align: right; vertical-align: middle;">
+                                <span style="background-color: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; padding: 1.5px 7px; border-radius: 10px; font-size: 8px; font-weight: bold; letter-spacing: 0.4px;">
+                                    STAFF AKTIF
+                                </span>
+                            </td>
                         </tr>
                     </table>
+
+                    <div style="border-bottom: 1px solid #e2e8f0; margin: 3px 0 4px 0;"></div>
+
+                    <table style="width: 100%; border-collapse: collapse; font-size: 9px;">
+                        <tr>
+                            <td style="width: 33%; vertical-align: top; padding: 0;">
+                                <span style="color: #64748b;">Jabatan:</span> <strong style="color: #0f172a;">{{ ucwords($user->usertype ?? 'Customer Support') }}</strong>
+                            </td>
+                            <td style="width: 33%; vertical-align: top; padding: 0;">
+                                <span style="color: #64748b;">Departemen:</span> <strong style="color: #0f172a;">{{ optional($user->departemen)->name ?? 'Customer Support' }}</strong>
+                            </td>
+                            <td style="width: 34%; vertical-align: top; padding: 0;">
+                                <span style="color: #64748b;">Email:</span> <strong style="color: #004880;">{{ $user->email ?: '-' }}</strong>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    {{-- 3. JUDUL DI TENGAH: RIWAYAT TIKET & PERIODE (Di Bawah Profile User) --}}
+    <div style="text-align: center; margin: 2px 0 7px 0; border-top: 1px dashed #cbd5e1; padding-top: 4px;">
+        <div style="font-size: 13px; font-weight: bold; color: #004880; letter-spacing: 0.8px; text-transform: uppercase;">
+            {{ ($module->id ?? '') === 'all' ? 'LAPORAN RIWAYAT TIKET KESELURUHAN' : 'LAPORAN RIWAYAT TIKET PER MODUL' }}
+        </div>
+        <div style="font-size: 9.5px; color: #475569; margin-top: 1.5px;">
+            MODUL: <strong style="color: #004880;">{{ strtoupper($module->name) }}</strong>
+            @if(!empty($module->bobot) && $module->bobot !== '-')
+                <span style="color: #64748b; font-weight: normal;">(Bobot: {{ $module->bobot }})</span>
+            @endif
+            &bull; Periode: <strong style="color: #0f172a;">{{ $periodeText }}</strong>
+        </div>
+    </div>
+
+    {{-- 4. KPI SUMMARY CARDS (Proporsional, Elegan, Lebar & Tidak Mepet) --}}
+    <table style="width: 100%; table-layout: fixed; border-collapse: separate; border-spacing: 9px 0; margin-bottom: 8px;">
+        <tr>
+            <td style="width: 25%; padding: 0;">
+                <div style="background-color: #f5f3ff; border: 1.5px solid #c4b5fd; border-radius: 6px; padding: 5px 8px; text-align: center;">
+                    <div style="font-size: 8px; font-weight: bold; color: #6b21a8; text-transform: uppercase; letter-spacing: 0.4px;">TOTAL TICKETS</div>
+                    <div style="font-size: 16px; font-weight: bold; color: #6b21a8; margin-top: 1px; line-height: 1.1;">{{ $totalCount }}</div>
                 </div>
             </td>
-            
-            <!-- KPI Summary Cards -->
-            <td style="width: 52%; vertical-align: top; padding-left: 8px;">
-                <table style="width: 100%; table-layout: fixed; border-collapse: separate; border-spacing: 6px 0;">
-                    <tr>
-                        <td style="width: 25%; padding: 0;">
-                            <div class="kpi-cell" style="background-color: #f5f3ff; border: 1.5px solid #c4b5fd;">
-                                <div style="font-size: 8px; font-weight: bold; color: #6b21a8; text-transform: uppercase; letter-spacing: 0.3px;">TOTAL TICKETS</div>
-                                <div style="font-size: 16px; font-weight: bold; color: #6b21a8; margin-top: 2px;">{{ $totalCount }}</div>
-                            </div>
-                        </td>
-                        <td style="width: 25%; padding: 0;">
-                            <div class="kpi-cell" style="background-color: #ecfdf5; border: 1.5px solid #6ee7b7;">
-                                <div style="font-size: 8px; font-weight: bold; color: #047857; text-transform: uppercase; letter-spacing: 0.3px;">CLOSED</div>
-                                <div style="font-size: 16px; font-weight: bold; color: #047857; margin-top: 2px;">{{ $closedCount }}</div>
-                            </div>
-                        </td>
-                        <td style="width: 25%; padding: 0;">
-                            <div class="kpi-cell" style="background-color: #fffbeb; border: 1.5px solid #fcd34d;">
-                                <div style="font-size: 8px; font-weight: bold; color: #b45309; text-transform: uppercase; letter-spacing: 0.3px;">PROGRESS</div>
-                                <div style="font-size: 16px; font-weight: bold; color: #b45309; margin-top: 2px;">{{ $progressCount }}</div>
-                            </div>
-                        </td>
-                        <td style="width: 25%; padding: 0;">
-                            <div class="kpi-cell" style="background-color: #eff6ff; border: 1.5px solid #93c5fd;">
-                                <div style="font-size: 8px; font-weight: bold; color: #1d4ed8; text-transform: uppercase; letter-spacing: 0.3px;">OPEN</div>
-                                <div style="font-size: 16px; font-weight: bold; color: #1d4ed8; margin-top: 2px;">{{ $openCount }}</div>
-                            </div>
-                        </td>
-                    </tr>
-                </table>
+            <td style="width: 25%; padding: 0;">
+                <div style="background-color: #ecfdf5; border: 1.5px solid #6ee7b7; border-radius: 6px; padding: 5px 8px; text-align: center;">
+                    <div style="font-size: 8px; font-weight: bold; color: #047857; text-transform: uppercase; letter-spacing: 0.4px;">CLOSED</div>
+                    <div style="font-size: 16px; font-weight: bold; color: #047857; margin-top: 1px; line-height: 1.1;">{{ $closedCount }}</div>
+                </div>
+            </td>
+            <td style="width: 25%; padding: 0;">
+                <div style="background-color: #fffbeb; border: 1.5px solid #fcd34d; border-radius: 6px; padding: 5px 8px; text-align: center;">
+                    <div style="font-size: 8px; font-weight: bold; color: #b45309; text-transform: uppercase; letter-spacing: 0.4px;">PROGRESS</div>
+                    <div style="font-size: 16px; font-weight: bold; color: #b45309; margin-top: 1px; line-height: 1.1;">{{ $progressCount }}</div>
+                </div>
+            </td>
+            <td style="width: 25%; padding: 0;">
+                <div style="background-color: #eff6ff; border: 1.5px solid #93c5fd; border-radius: 6px; padding: 5px 8px; text-align: center;">
+                    <div style="font-size: 8px; font-weight: bold; color: #1d4ed8; text-transform: uppercase; letter-spacing: 0.4px;">OPEN</div>
+                    <div style="font-size: 16px; font-weight: bold; color: #1d4ed8; margin-top: 1px; line-height: 1.1;">{{ $openCount }}</div>
+                </div>
             </td>
         </tr>
     </table>
@@ -349,9 +364,9 @@
     </table>
 
     <!-- Signatures & Footer -->
-    <table class="footer-table">
+    <table class="footer-table" style="width: 100%; table-layout: fixed; margin-top: 8px;">
         <tr>
-            <td style="width: 55%; vertical-align: top; font-size: 8.5px; color: #64748b;">
+            <td style="width: 55%; vertical-align: top; font-size: 8px; color: #64748b;">
                 <div>Dokumen ini dicetak secara otomatis oleh Probus Helpdesk Management System.</div>
                 <div>Dicetak Oleh: <strong>{{ auth()->user()->name ?? 'User' }}</strong> pada {{ date('d/m/Y H:i') }} WITA.</div>
             </td>
@@ -359,16 +374,16 @@
                 <table style="width: 100%; table-layout: fixed; text-align: center;">
                     <tr>
                         <td style="width: 50%; padding-right: 15px; padding-left: 10px; text-align: center;">
-                            <div style="font-size: 9px; color: #475569;">Staff Pelaksana,</div>
-                            <div style="height: 42px;"></div>
-                            <div style="font-weight: bold; border-top: 1.5px solid #475569; padding-top: 3px; font-size: 10px; color: #0f172a;">{{ $user->name }}</div>
-                            <div style="font-size: 8.5px; color: #64748b;">Staff {{ ucfirst($user->departemen->name ?? 'Operasional') }}</div>
+                            <div style="font-size: 8.5px; color: #475569;">Staff Pelaksana,</div>
+                            <div style="height: 30px;"></div>
+                            <div style="font-weight: bold; border-top: 1.5px solid #475569; padding-top: 3px; font-size: 9.5px; color: #0f172a;">{{ $user->name }}</div>
+                            <div style="font-size: 8px; color: #64748b;">Staff {{ ucfirst($user->departemen->name ?? 'Operasional') }}</div>
                         </td>
                         <td style="width: 50%; padding-left: 15px; padding-right: 5px; text-align: center;">
-                            <div style="font-size: 9px; color: #475569;">Mengetahui,</div>
-                            <div style="height: 42px;"></div>
-                            <div style="font-weight: bold; border-top: 1.5px solid #475569; padding-top: 3px; font-size: 10px; color: #0f172a;">Supervisor / Head Dept</div>
-                            <div style="font-size: 8.5px; color: #64748b;">Probus System</div>
+                            <div style="font-size: 8.5px; color: #475569;">Mengetahui,</div>
+                            <div style="height: 30px;"></div>
+                            <div style="font-weight: bold; border-top: 1.5px solid #475569; padding-top: 3px; font-size: 9.5px; color: #0f172a;">Supervisor / Head Dept</div>
+                            <div style="font-size: 8px; color: #64748b;">Probus System</div>
                         </td>
                     </tr>
                 </table>
