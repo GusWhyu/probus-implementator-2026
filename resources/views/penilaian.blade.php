@@ -694,21 +694,21 @@
                         <!-- KPI Pill Bar -->
                         <div class="px-5 py-2.5 bg-slate-100/60 dark:bg-slate-800/80 border-b border-slate-100 dark:border-slate-700/80 flex items-center gap-2.5 flex-wrap text-xs font-bold">
                             <span class="text-slate-500 dark:text-slate-400 text-[11px] uppercase tracking-wider font-extrabold mr-1">Status:</span>
-                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-600">
-                                <span class="w-2 h-2 rounded-full bg-slate-400"></span>
-                                Total: <span x-text="summary.total"></span>
+                            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-purple-50 dark:bg-purple-950/50 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800/60 shadow-2xs">
+                                <span class="w-2 h-2 rounded-full bg-purple-500"></span>
+                                Total Tickets: <span class="font-black" x-text="summary.total"></span>
                             </span>
-                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60">
+                            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60 shadow-2xs">
                                 <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-                                Selesai (Closed): <span x-text="summary.closed"></span>
+                                Closed: <span class="font-black" x-text="summary.closed"></span>
                             </span>
-                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800/60">
+                            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800/60 shadow-2xs">
                                 <span class="w-2 h-2 rounded-full bg-amber-500"></span>
-                                Proses (Progress): <span x-text="summary.progress"></span>
+                                Progress: <span class="font-black" x-text="summary.progress"></span>
                             </span>
-                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800/60">
+                            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-blue-50 dark:bg-blue-950/50 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800/60 shadow-2xs">
                                 <span class="w-2 h-2 rounded-full bg-blue-500"></span>
-                                Baru (Open): <span x-text="summary.open"></span>
+                                Open: <span class="font-black" x-text="summary.open"></span>
                             </span>
                         </div>
 

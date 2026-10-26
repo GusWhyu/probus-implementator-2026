@@ -5,13 +5,11 @@
     <title>Laporan Tiket {{ ($module->id ?? '') === 'all' ? 'Keseluruhan' : 'Modul ' . $module->name }} - {{ $user->name }}</title>
     <style>
         @page {
-            margin: 22px 38px 22px 38px;
+            margin: 42px 44px 38px 44px;
             size: a4 landscape;
         }
         * {
             box-sizing: border-box;
-            margin: 0;
-            padding: 0;
             font-family: 'DejaVu Sans', Arial, Helvetica, sans-serif;
         }
         body {
@@ -19,6 +17,8 @@
             font-size: 10px;
             line-height: 1.35;
             background-color: #ffffff;
+            margin: 0;
+            padding: 0;
             width: 100%;
         }
         table {
@@ -50,7 +50,7 @@
             word-wrap: break-word;
         }
         .kpi-cell {
-            padding: 7px 6px;
+            padding: 10px 4px 9px 4px;
             border-radius: 6px;
             text-align: center;
             width: 100%;
@@ -219,30 +219,30 @@
             
             <!-- KPI Summary Cards -->
             <td style="width: 52%; vertical-align: top; padding-left: 8px;">
-                <table style="width: 100%; table-layout: fixed;">
+                <table style="width: 100%; table-layout: fixed; border-collapse: separate; border-spacing: 6px 0;">
                     <tr>
-                        <td style="width: 25%; padding-right: 4px;">
-                            <div class="kpi-cell" style="background-color: #f1f5f9; border: 1.5px solid #94a3b8;">
-                                <div style="font-size: 8px; font-weight: bold; color: #475569; text-transform: uppercase;">Total Tiket</div>
-                                <div style="font-size: 15px; font-weight: bold; color: #0f172a; margin-top: 2px;">{{ $totalCount }}</div>
+                        <td style="width: 25%; padding: 0;">
+                            <div class="kpi-cell" style="background-color: #f5f3ff; border: 1.5px solid #c4b5fd;">
+                                <div style="font-size: 8px; font-weight: bold; color: #6b21a8; text-transform: uppercase; letter-spacing: 0.3px;">TOTAL TICKETS</div>
+                                <div style="font-size: 16px; font-weight: bold; color: #6b21a8; margin-top: 2px;">{{ $totalCount }}</div>
                             </div>
                         </td>
-                        <td style="width: 25%; padding: 0 2px;">
-                            <div class="kpi-cell" style="background-color: #dcfce7; border: 1.5px solid #86efac;">
-                                <div style="font-size: 8px; font-weight: bold; color: #15803d; text-transform: uppercase;">Selesai (Closed)</div>
-                                <div style="font-size: 15px; font-weight: bold; color: #15803d; margin-top: 2px;">{{ $closedCount }}</div>
+                        <td style="width: 25%; padding: 0;">
+                            <div class="kpi-cell" style="background-color: #ecfdf5; border: 1.5px solid #6ee7b7;">
+                                <div style="font-size: 8px; font-weight: bold; color: #047857; text-transform: uppercase; letter-spacing: 0.3px;">CLOSED</div>
+                                <div style="font-size: 16px; font-weight: bold; color: #047857; margin-top: 2px;">{{ $closedCount }}</div>
                             </div>
                         </td>
-                        <td style="width: 25%; padding: 0 2px;">
-                            <div class="kpi-cell" style="background-color: #fef3c7; border: 1.5px solid #fde68a;">
-                                <div style="font-size: 8px; font-weight: bold; color: #b45309; text-transform: uppercase;">Proses (Progress)</div>
-                                <div style="font-size: 15px; font-weight: bold; color: #b45309; margin-top: 2px;">{{ $progressCount }}</div>
+                        <td style="width: 25%; padding: 0;">
+                            <div class="kpi-cell" style="background-color: #fffbeb; border: 1.5px solid #fcd34d;">
+                                <div style="font-size: 8px; font-weight: bold; color: #b45309; text-transform: uppercase; letter-spacing: 0.3px;">PROGRESS</div>
+                                <div style="font-size: 16px; font-weight: bold; color: #b45309; margin-top: 2px;">{{ $progressCount }}</div>
                             </div>
                         </td>
-                        <td style="width: 25%; padding-left: 4px;">
-                            <div class="kpi-cell" style="background-color: #dbeafe; border: 1.5px solid #bfdbfe;">
-                                <div style="font-size: 8px; font-weight: bold; color: #1d4ed8; text-transform: uppercase;">Baru (Open)</div>
-                                <div style="font-size: 15px; font-weight: bold; color: #1d4ed8; margin-top: 2px;">{{ $openCount }}</div>
+                        <td style="width: 25%; padding: 0;">
+                            <div class="kpi-cell" style="background-color: #eff6ff; border: 1.5px solid #93c5fd;">
+                                <div style="font-size: 8px; font-weight: bold; color: #1d4ed8; text-transform: uppercase; letter-spacing: 0.3px;">OPEN</div>
+                                <div style="font-size: 16px; font-weight: bold; color: #1d4ed8; margin-top: 2px;">{{ $openCount }}</div>
                             </div>
                         </td>
                     </tr>
