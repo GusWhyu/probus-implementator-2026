@@ -22,74 +22,7 @@ class NotificationController extends Controller
         $unreadNotifications = $user->unreadNotifications()->latest()->take(15)->get();
 
         $data = $unreadNotifications->map(function ($notif) {
-            $raw = $notif->data ?? [];
-            $message = $raw['message'] ?? '';
-            $title = $raw['title'] ?? 'Pembaruan Notifikasi';
-            $url = $raw['url'] ?? null;
-            $requestId = $raw['request_id'] ?? null;
-            $isTicket = $raw['is_ticket'] ?? null;
-
-            // Bersihkan pesan jika merupakan format lama yang mengandung JSON status atau judul kosong
-            if (strpos($message, '{"id":') !== false || strpos($message, "The status of your ticket") !== false) {
-                $statusName = 'Update';
-                if (preg_match('/"name":"([^"]+)"/', $message, $m)) {
-                    $statusName = $m[1];
-                } elseif (preg_match("/updated to '([^']+)'/", $message, $m)) {
-                    $statusName = $m[1];
-                }
-
-                $itemTitle = $raw['item_title'] ?? '';
-                if (empty($itemTitle) && $requestId) {
-                    $reqObj = RequestModel::find($requestId);
-                    if ($reqObj) {
-                        $itemTitle = $reqObj->judul;
-                        if (!$url) $url = url('/detailrequest/' . $requestId);
-                        $isTicket = false;
-                    } else {
-                        $tckObj = Ticket::find($requestId);
-                        if ($tckObj) {
-                            $itemTitle = $tckObj->title;
-                            if (!$url) $url = url('/detailticket/' . $requestId);
-                            $isTicket = true;
-                        }
-                    }
-                }
-
-                $typeLabel = $isTicket ? 'Tiket' : 'Request';
-                $formattedTitle = !empty($itemTitle) ? $itemTitle : "Item #{$requestId}";
-                $message = "Status {$typeLabel} '{$formattedTitle}' telah diperbarui menjadi '{$statusName}'.";
-                $title = "Pembaruan Status {$typeLabel}";
-            }
-
-            // Fallback URL jika belum terisi
-            if (!$url && $requestId) {
-                if ($isTicket) {
-                    $url = url('/detailticket/' . $requestId);
-                } else {
-                    $url = url('/detailrequest/' . $requestId);
-                }
-            }
-
-            // Deteksi apakah notifikasi adalah tentang request/tiket yang telah selesai (Closed)
-            $isClosed = !empty($raw['is_closed']);
-            if (!$isClosed) {
-                $statusVal = strtolower((string)($raw['status'] ?? ''));
-                $statusIdVal = (int)($raw['status_id'] ?? 0);
-                if ($statusVal === 'closed' || $statusIdVal === 4 || strpos(strtolower($title), 'selesai') !== false || strpos(strtolower($message), 'closed') !== false || strpos(strtolower($message), 'selesai') !== false) {
-                    $isClosed = true;
-                }
-            }
-
-            return [
-                'id' => $notif->id,
-                'title' => $title,
-                'message' => $message,
-                'url' => $url,
-                'created_at_human' => $notif->created_at ? $notif->created_at->diffForHumans() : 'Baru saja',
-                'created_at_timestamp' => $notif->created_at ? $notif->created_at->timestamp : 0,
-                'is_ticket' => (bool)$isTicket,
-                'is_closed' => (bool)$isClosed,
-            ];
+            return \App\Services\NotificationSyncService::formatNotification($notif);
         });
 
         return response()->json([

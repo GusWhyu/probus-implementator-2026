@@ -28,55 +28,14 @@
             <div class="bg-white dark:bg-slate-900 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden divide-y divide-slate-100 dark:divide-slate-800/60">
                 @forelse ($notifications as $notification)
                     @php
-                        $data = $notification->data ?? [];
+                        $notifData = \App\Services\NotificationSyncService::formatNotification($notification);
                         $isUnread = is_null($notification->read_at);
-                        $message = $data['message'] ?? 'Pemberitahuan aktivitas sistem.';
-                        $title = $data['title'] ?? 'Pembaruan Notifikasi';
-                        $url = $data['url'] ?? null;
-                        $requestId = $data['request_id'] ?? null;
-                        $isTicket = $data['is_ticket'] ?? false;
-
-                        // Pembersihan pesan legacy
-                        if (strpos($message, '{"id":') !== false || strpos($message, "The status of your ticket") !== false) {
-                            $statusName = 'Update';
-                            if (preg_match('/"name":"([^"]+)"/', $message, $m)) {
-                                $statusName = $m[1];
-                            } elseif (preg_match("/updated to '([^']+)'/", $message, $m)) {
-                                $statusName = $m[1];
-                            }
-                            $itemTitle = $data['item_title'] ?? '';
-                            if (empty($itemTitle) && $requestId) {
-                                $reqObj = \App\Models\Request::find($requestId);
-                                if ($reqObj) {
-                                    $itemTitle = $reqObj->judul;
-                                    if (!$url) $url = url('/detailrequest/' . $requestId);
-                                    $isTicket = false;
-                                } else {
-                                    $tckObj = \App\Models\Ticket::find($requestId);
-                                    if ($tckObj) {
-                                        $itemTitle = $tckObj->title;
-                                        if (!$url) $url = url('/detailticket/' . $requestId);
-                                        $isTicket = true;
-                                    }
-                                }
-                            }
-                            $typeLabel = $isTicket ? 'Tiket' : 'Request';
-                            $formattedTitle = !empty($itemTitle) ? $itemTitle : "Item #{$requestId}";
-                            $message = "Status {$typeLabel} '{$formattedTitle}' telah diperbarui menjadi '{$statusName}'.";
-                            $title = "Pembaruan Status {$typeLabel}";
-                        }
-
-                        if (!$url && $requestId) {
-                            $url = $isTicket ? url('/detailticket/' . $requestId) : url('/detailrequest/' . $requestId);
-                        }
-                        $isClosed = !empty($data['is_closed']);
-                        if (!$isClosed) {
-                            $statusVal = strtolower((string)($data['status'] ?? ''));
-                            $statusIdVal = (int)($data['status_id'] ?? 0);
-                            if ($statusVal === 'closed' || $statusIdVal === 4 || strpos(strtolower($title), 'selesai') !== false || strpos(strtolower($message), 'closed') !== false || strpos(strtolower($message), 'selesai') !== false) {
-                                $isClosed = true;
-                            }
-                        }
+                        $title = $notifData['title'];
+                        $message = $notifData['message'];
+                        $url = $notifData['url'];
+                        $isTicket = $notifData['is_ticket'];
+                        $isClosed = $notifData['is_closed'];
+                        $timeAgo = $notifData['created_at_human'];
                     @endphp
 
                     @if ($isClosed)
@@ -96,7 +55,7 @@
                                 </div>
                                 <span class="text-xs text-emerald-700/80 dark:text-emerald-400 font-semibold flex items-center gap-1 shrink-0">
                                     <i class="fa-regular fa-clock text-[10px]"></i>
-                                    {{ $notification->created_at->diffForHumans() }}
+                                    {{ $timeAgo }}
                                 </span>
                             </div>
                             <p class="text-sm text-slate-700 dark:text-slate-300 font-medium leading-relaxed mb-3">
@@ -129,7 +88,7 @@
                                 </h4>
                                 <span class="text-xs text-slate-400 font-semibold flex items-center gap-1 shrink-0">
                                     <i class="fa-regular fa-clock text-[10px]"></i>
-                                    {{ $notification->created_at->diffForHumans() }}
+                                    {{ $timeAgo }}
                                 </span>
                             </div>
                             <p class="text-sm text-slate-600 dark:text-slate-300 font-medium leading-relaxed mb-3">

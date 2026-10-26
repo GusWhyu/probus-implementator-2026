@@ -311,6 +311,9 @@ class TicketController extends Controller
 
         $datarq->update($updateData);
 
+        // Sinkronisasi status notifikasi agar selaras dengan status terbaru tiket
+        \App\Services\NotificationSyncService::syncTicket($datarq);
+
         TicketLog::create([
             'ticket_id' => $datarq->id,
             'user_id' => Auth::id(),
@@ -436,6 +439,9 @@ class TicketController extends Controller
         if ($data->advisor && $data->advisor_id !== Auth::id() && $data->advisor_id !== $data->user_id) {
             $data->advisor->notify(new RequestStatusChanged($data));
         }
+
+        // Sinkronisasi status notifikasi agar selaras dengan status terbaru tiket
+        \App\Services\NotificationSyncService::syncTicket($data);
         
         Alert::success('Berhasil!', 'Status tiket telah diperbarui.')->showConfirmButton('Tutup', '#3b82f6')->autoClose(2500);
         return redirect()->back();
@@ -554,6 +560,16 @@ class TicketController extends Controller
         TicketTakeover::where('ticket_id', $ticket->id)->delete();
         TicketSurvey::where('ticket_id', $ticket->id)->delete();
         \App\Models\Review::where('ticket_id', $ticket->id)->delete();
+
+        // Hapus notifikasi terkait tiket yang dihapus
+        \Illuminate\Support\Facades\DB::table('notifications')
+            ->where(function ($query) use ($ticket) {
+                $query->where('data', 'like', '%"request_id":' . $ticket->id . ',%')
+                      ->orWhere('data', 'like', '%"request_id": ' . $ticket->id . ',%')
+                      ->orWhere('data', 'like', '%"request_id":"' . $ticket->id . '"%')
+                      ->orWhere('data', 'like', '%detailticket/' . $ticket->id . '%');
+            })
+            ->delete();
 
         $ticketNumber = $ticket->ticket_number ?? ('#' . $ticket->id);
         $ticket->delete();

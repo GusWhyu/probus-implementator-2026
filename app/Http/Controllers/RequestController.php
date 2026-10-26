@@ -624,6 +624,7 @@ class RequestController extends Controller
                 ));
             }
         }
+        \App\Services\NotificationSyncService::syncRequest($rq);
         $imagedata = [];
         if($request->hasfile('images')){
             foreach ($request->file('images') as $image) {
@@ -679,6 +680,7 @@ class RequestController extends Controller
                 $creator->notify(new RequestStatusChanged($data));
             }
         }
+        \App\Services\NotificationSyncService::syncRequest($data);
         Alert::success('Status Changed!');
         return redirect()->back();
     }
