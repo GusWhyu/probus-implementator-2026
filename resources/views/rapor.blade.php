@@ -80,19 +80,19 @@
                             <input type="hidden" name="period_type" value="{{ $periodType ?? '1m' }}">
 
                             {{-- Unified Compact Period Bar --}}
-                            <div class="inline-flex items-center bg-white dark:bg-slate-800 p-1 rounded-2xl border border-slate-200/90 dark:border-slate-700 shadow-xs max-w-full">
+                            <div class="period-capsule inline-flex items-center p-1 rounded-2xl border shadow-xs max-w-full">
                                 {{-- Interval Switcher (1 Bulan / 3 Bulan / 6 Bulan) --}}
-                                <div class="inline-flex items-center bg-slate-100 dark:bg-slate-900/80 p-0.5 rounded-xl border border-slate-200/60 dark:border-slate-800/80 shrink-0">
+                                <div class="period-capsule-switcher inline-flex items-center p-0.5 rounded-xl border shrink-0">
                                     <a href="{{ route('rapor', ['id' => $user->id, 'period_type' => '1m']) }}" 
-                                       class="px-2.5 py-1 text-[11px] font-bold rounded-lg transition-all whitespace-nowrap {{ ($periodType ?? '1m') === '1m' ? 'bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 shadow-2xs font-extrabold' : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200' }}">
+                                       class="px-2.5 py-1 text-[11px] font-bold rounded-lg transition-all whitespace-nowrap {{ ($periodType ?? '1m') === '1m' ? 'period-capsule-btn-active font-extrabold' : 'period-capsule-btn-inactive' }}">
                                         1 Bulan
                                     </a>
                                     <a href="{{ route('rapor', ['id' => $user->id, 'period_type' => '3m']) }}" 
-                                       class="px-2.5 py-1 text-[11px] font-bold rounded-lg transition-all whitespace-nowrap {{ ($periodType ?? '1m') === '3m' ? 'bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 shadow-2xs font-extrabold' : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200' }}">
+                                       class="px-2.5 py-1 text-[11px] font-bold rounded-lg transition-all whitespace-nowrap {{ ($periodType ?? '1m') === '3m' ? 'period-capsule-btn-active font-extrabold' : 'period-capsule-btn-inactive' }}">
                                         3 Bulan
                                     </a>
                                     <a href="{{ route('rapor', ['id' => $user->id, 'period_type' => '6m']) }}" 
-                                       class="px-2.5 py-1 text-[11px] font-bold rounded-lg transition-all whitespace-nowrap {{ ($periodType ?? '1m') === '6m' ? 'bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 shadow-2xs font-extrabold' : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200' }}">
+                                       class="px-2.5 py-1 text-[11px] font-bold rounded-lg transition-all whitespace-nowrap {{ ($periodType ?? '1m') === '6m' ? 'period-capsule-btn-active font-extrabold' : 'period-capsule-btn-inactive' }}">
                                         6 Bulan
                                     </a>
                                 </div>
@@ -108,9 +108,11 @@
                                             ? ($periodOptions['quarterly'] ?? []) 
                                             : (($periodType === '6m') ? ($periodOptions['semester'] ?? []) : ($periodOptions['monthly'] ?? []));
                                     @endphp
-                                    <select name="period" onchange="this.form.submit()" class="bg-transparent border-0 text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-200 py-1 pl-0 pr-5 focus:ring-0 cursor-pointer appearance-none truncate max-w-[170px] sm:max-w-none">
+                                    <select name="period" onchange="this.form.submit()" 
+                                        class="period-select-clean bg-transparent border-0 text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-200 py-1 pl-0 pr-5 focus:ring-0 cursor-pointer truncate max-w-[170px] sm:max-w-none"
+                                        style="background: transparent !important; background-color: transparent !important; border: 0 !important; outline: none !important; -webkit-appearance: none !important; -moz-appearance: none !important; appearance: none !important;">
                                         @foreach($activeOptions as $opt)
-                                            <option value="{{ $opt['value'] }}" {{ $opt['value'] === ($periodKey ?? '') ? 'selected' : '' }} class="bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 py-1 font-semibold">
+                                            <option value="{{ $opt['value'] }}" {{ $opt['value'] === ($periodKey ?? '') ? 'selected' : '' }} class="bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 py-1 font-semibold" style="background-color: #0f172a; color: #f8fafc;">
                                                 {{ $opt['label'] }}
                                             </option>
                                         @endforeach
