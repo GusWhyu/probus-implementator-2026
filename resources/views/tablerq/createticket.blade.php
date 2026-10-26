@@ -118,7 +118,7 @@
                                 @endphp
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-3 items-center">
                                     <div>
-                                        <span class="block text-[10px] font-bold text-slate-400 mb-1">Tanggal Mulai</span>
+                                        <span class="block text-[10px] font-bold text-slate-400 mb-1">Tanggal Dibuat</span>
                                         <input type="date" min="{{ $minStartDate }}" max="{{ $maxStartDate }}" class="w-full bg-slate-50/50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-sm font-semibold rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 block p-3.5 outline-none transition-all cursor-pointer" value="{{ $currentStartDate }}" name="start_date" id="start-date-picker" required>
                                     </div>
                                     <div>
