@@ -460,37 +460,58 @@
             @endphp
             @if(count($modulesList) > 0)
             <div x-data="{ onlyHandled: {{ $handledCount > 0 ? 'false' : 'false' }} }" class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm p-4 sm:p-6 mb-6 overflow-hidden">
-                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+                <!-- Header: Judul & Filter Modul (Simetris & Rapi) -->
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 mb-4 pb-3.5 border-b border-slate-100 dark:border-slate-700/60">
                     <div class="min-w-0">
-                        <h3 class="text-sm font-extrabold text-slate-800 dark:text-slate-100 flex items-center gap-2">
-                            <i class="fa-solid fa-layer-group text-blue-500"></i> Rincian Penilaian per Modul
-                        </h3>
-                        <p class="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5"><span class="text-blue-600 dark:text-blue-400 font-bold inline-flex items-center gap-1 mr-1"><i class="fa-solid fa-arrow-pointer text-[10px]"></i> Klik modul untuk riwayat tiket & download Excel/PDF</span> &bull; Rumus: Skor = Σ (Bobot Modul × Total Tiket) | Nilai Tiket = (Skor Staff / Skor Tertinggi) × 100</p>
+                        <div class="flex items-center gap-2.5 flex-wrap">
+                            <h3 class="text-sm sm:text-base font-extrabold text-slate-800 dark:text-slate-100 flex items-center gap-2">
+                                <i class="fa-solid fa-layer-group text-blue-500"></i> Rincian Penilaian per Modul
+                            </h3>
+                            <span class="text-[11px] font-bold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-700/60 px-2.5 py-0.5 rounded-full border border-slate-200/60 dark:border-slate-700/40">
+                                {{ count($modulesList) }} Modul
+                            </span>
+                        </div>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 font-medium mt-1 flex items-center gap-1.5">
+                            <span class="text-blue-600 dark:text-blue-400 font-bold inline-flex items-center gap-1">
+                                <i class="fa-solid fa-arrow-pointer text-[10px]"></i> Klik modul untuk riwayat tiket & download Excel/PDF
+                            </span>
+                        </p>
                     </div>
                     
-                    <div class="flex items-center gap-2.5 flex-wrap w-full sm:w-auto">
-                        <!-- Filter Toggle: Semua Modul vs Hanya Ditangani -->
-                        <div class="inline-flex items-center p-1 bg-slate-100 dark:bg-slate-700/60 rounded-xl text-xs font-semibold shrink-0 w-full sm:w-auto justify-between sm:justify-start">
-                            <button type="button" @click="onlyHandled = false" 
-                                :class="!onlyHandled ? 'bg-white dark:bg-slate-600 text-blue-600 dark:text-blue-400 shadow-xs' : 'text-slate-500 hover:text-slate-800 dark:text-slate-300 dark:hover:text-slate-100'"
-                                class="px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer flex-1 sm:flex-initial justify-center">
-                                <span>Semua Modul</span>
-                                <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-slate-200/70 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold">{{ count($modulesList) }}</span>
-                            </button>
-                            <button type="button" @click="onlyHandled = true" 
-                                :class="onlyHandled ? 'bg-white dark:bg-slate-600 text-blue-600 dark:text-blue-400 shadow-xs' : 'text-slate-500 hover:text-slate-800 dark:text-slate-300 dark:hover:text-slate-100'"
-                                class="px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer flex-1 sm:flex-initial justify-center">
-                                <span>Hanya Ditangani</span>
-                                <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-blue-100 dark:bg-blue-900/60 text-blue-700 dark:text-blue-300 font-bold">{{ $handledCount }}</span>
-                            </button>
-                        </div>
-
-                        @if(($max_ticket_score ?? ($rapor->max_ticket_score ?? 0)) > 0)
-                        <div class="text-xs bg-blue-50 dark:bg-blue-950/50 border border-blue-200 dark:border-blue-800/60 text-blue-700 dark:text-blue-300 px-3 py-1.5 rounded-xl font-bold whitespace-nowrap self-start sm:self-auto">
-                            Benchmark Tertinggi: {{ number_format($max_ticket_score ?? $rapor->max_ticket_score, 0, ',', '.') }} poin
-                        </div>
-                        @endif
+                    <!-- Filter Toggle: Semua Modul vs Hanya Ditangani -->
+                    <div class="inline-flex items-center p-1 bg-slate-100 dark:bg-slate-700/60 rounded-xl text-xs font-semibold shrink-0 w-full sm:w-auto justify-between sm:justify-start">
+                        <button type="button" @click="onlyHandled = false" 
+                            :class="!onlyHandled ? 'bg-white dark:bg-slate-600 text-blue-600 dark:text-blue-400 shadow-xs' : 'text-slate-500 hover:text-slate-800 dark:text-slate-300 dark:hover:text-slate-100'"
+                            class="px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer flex-1 sm:flex-initial justify-center">
+                            <span>Semua Modul</span>
+                            <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-slate-200/70 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold">{{ count($modulesList) }}</span>
+                        </button>
+                        <button type="button" @click="onlyHandled = true" 
+                            :class="onlyHandled ? 'bg-white dark:bg-slate-600 text-blue-600 dark:text-blue-400 shadow-xs' : 'text-slate-500 hover:text-slate-800 dark:text-slate-300 dark:hover:text-slate-100'"
+                            class="px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer flex-1 sm:flex-initial justify-center">
+                            <span>Hanya Ditangani</span>
+                            <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-blue-100 dark:bg-blue-900/60 text-blue-700 dark:text-blue-300 font-bold">{{ $handledCount }}</span>
+                        </button>
                     </div>
+                </div>
+
+                <!-- Sub-bar Info: Rumus & Benchmark Symmetrical Banner -->
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-2.5 mb-4 px-3.5 py-2.5 rounded-xl bg-slate-50/90 dark:bg-slate-900/50 border border-slate-200/70 dark:border-slate-700/60 text-xs">
+                    <div class="flex items-center gap-2 flex-wrap text-slate-600 dark:text-slate-400">
+                        <span class="font-extrabold text-slate-700 dark:text-slate-200 flex items-center gap-1.5">
+                            <i class="fa-solid fa-calculator text-blue-500 text-[11px]"></i> Rumus:
+                        </span>
+                        <span>Skor = Σ (Bobot Modul × Total Tiket)</span>
+                        <span class="text-slate-300 dark:text-slate-600">|</span>
+                        <span>Nilai Tiket = (Skor Staff / Benchmark) × 100</span>
+                    </div>
+
+                    @if(($max_ticket_score ?? ($rapor->max_ticket_score ?? 0)) > 0)
+                    <div class="inline-flex items-center gap-1.5 bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-800/60 text-blue-700 dark:text-blue-300 px-3 py-1 rounded-lg text-xs font-bold whitespace-nowrap self-start md:self-auto shrink-0 shadow-2xs">
+                        <i class="fa-solid fa-trophy text-amber-500 text-[11px]"></i>
+                        <span>Benchmark Tertinggi: <strong>{{ number_format($max_ticket_score ?? $rapor->max_ticket_score, 0, ',', '.') }}</strong> poin</span>
+                    </div>
+                    @endif
                 </div>
 
                 <div class="w-full overflow-x-auto custom-scrollbar">
