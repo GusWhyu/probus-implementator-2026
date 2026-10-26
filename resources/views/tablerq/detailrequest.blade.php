@@ -48,11 +48,21 @@
                     </div>
                 </div>
                 
-                @if (($rqid == $aid || $ust == 'admin' || $ust == 'supervisor') && $stid != 4)
-                <a href="/editrq/{{ $datarq->id }}" class="px-6 py-2.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold rounded-xl text-sm shadow-sm flex items-center justify-center gap-2 transition-all active:scale-95">
-                    <i class="fa-solid fa-pen text-blue-500"></i> Edit Request
-                </a>
-                @endif
+                <div class="flex items-center gap-2.5">
+                    <button type="button" 
+                        onclick="copyRequestDirectLink(this, '{{ url('/detailrequest/' . $datarq->id) }}')" 
+                        class="px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/60 text-slate-700 dark:text-slate-200 font-bold rounded-xl text-sm shadow-xs flex items-center justify-center gap-2 transition-all active:scale-95 cursor-pointer" 
+                        title="Salin tautan detail request ini untuk dibagikan">
+                        <i class="fa-regular fa-copy text-blue-500 dark:text-blue-400"></i>
+                        <span>Salin Link</span>
+                    </button>
+
+                    @if (($rqid == $aid || $ust == 'admin' || $ust == 'supervisor') && $stid != 4)
+                    <a href="/editrq/{{ $datarq->id }}" class="px-5 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/60 text-slate-700 dark:text-slate-200 font-bold rounded-xl text-sm shadow-sm flex items-center justify-center gap-2 transition-all active:scale-95">
+                        <i class="fa-solid fa-pen text-blue-500 dark:text-blue-400"></i> Edit Request
+                    </a>
+                    @endif
+                </div>
             </div>
 
             @php
@@ -301,7 +311,15 @@
                         <div class="flex items-center justify-between gap-3 mb-8 pb-6 border-b border-slate-100 dark:border-slate-800">
                             <div class="shrink-0">
                                 <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1">Request ID</p>
-                                <span class="text-blue-600 dark:text-blue-400 font-bold text-xl font-mono whitespace-nowrap">RQ-{{ $datarq->id }}</span>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-blue-600 dark:text-blue-400 font-bold text-xl font-mono whitespace-nowrap">RQ-{{ $datarq->id }}</span>
+                                    <button type="button" 
+                                        onclick="copyRequestDirectLink(this, '{{ url('/detailrequest/' . $datarq->id) }}', true)" 
+                                        class="w-7 h-7 rounded-lg bg-slate-100 hover:bg-blue-50 dark:bg-slate-800 dark:hover:bg-slate-700 border border-slate-200/80 dark:border-slate-700 flex items-center justify-center text-slate-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-blue-400 transition-all cursor-pointer" 
+                                        title="Salin tautan request">
+                                        <i class="fa-regular fa-copy text-xs"></i>
+                                    </button>
+                                </div>
                             </div>
                             <div class="flex flex-col items-end shrink-0">
                                 <div class="flex items-center gap-2">
@@ -440,6 +458,23 @@
                                     Ditutup oleh <span class="font-bold text-slate-600 dark:text-slate-200">{{ $closedLog->user->name }}</span>
                                 </p>
                                 @endif
+                                
+                                <div class="pt-2 border-t border-slate-100 dark:border-slate-800/80 mt-1">
+                                    <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider text-center mb-2">Bagikan Detail Request</p>
+                                    @php
+                                        $outletName = $datarq->outlet ? $datarq->outlet->nm_out : 'Client';
+                                        $shareText = "Halo, berikut detail request pengerjaan sistem di Probus System:\n\n"
+                                                   . "📌 *Request ID:* RQ-{$datarq->id}\n"
+                                                   . "🏢 *Client:* {$outletName}\n"
+                                                   . "📋 *Deskripsi:* " . \Illuminate\Support\Str::limit(strip_tags($cleanDeskripsi ?? $datarq->deskripsi ?? ''), 80) . "\n"
+                                                   . "✅ *Status:* Selesai (CLOSED)\n\n"
+                                                   . "🔗 *Tautan Detail Request:*\n" . url('/detailrequest/' . $datarq->id);
+                                        $waShareUrl = 'https://api.whatsapp.com/send?text=' . rawurlencode($shareText);
+                                    @endphp
+                                    <a href="{{ $waShareUrl }}" target="_blank" class="w-full flex items-center justify-center bg-emerald-50 dark:bg-emerald-950/40 hover:bg-emerald-600 dark:hover:bg-emerald-600 text-emerald-700 dark:text-emerald-300 hover:text-white dark:hover:text-white border border-emerald-200 dark:border-emerald-800/80 py-2.5 rounded-xl font-bold text-xs transition-all active:scale-95 gap-2 cursor-pointer">
+                                        <i class="fa-brands fa-whatsapp text-sm"></i> Bagikan ke WhatsApp
+                                    </a>
+                                </div>
                             @elseif ($stid == 3)
                                 <!-- STATUS PROGRESS -->
                                 @if ($canManage)
@@ -806,6 +841,50 @@
     @endif
 
     <script>
+        function copyRequestDirectLink(btn, directUrl, isIconOnly = false) {
+            const url = directUrl || (window.location.origin + '/detailrequest/{{ $datarq->id }}');
+            const origHtml = btn.innerHTML;
+            
+            function onSuccess() {
+                if (isIconOnly) {
+                    btn.innerHTML = '<i class="fa-solid fa-check text-xs text-emerald-500"></i>';
+                } else {
+                    btn.innerHTML = '<i class="fa-solid fa-check text-emerald-500"></i> <span class="text-emerald-600 dark:text-emerald-400">Link Disalin!</span>';
+                }
+                btn.classList.add('border-emerald-400', 'dark:border-emerald-600');
+                setTimeout(() => {
+                    btn.innerHTML = origHtml;
+                    btn.classList.remove('border-emerald-400', 'dark:border-emerald-600');
+                }, 2000);
+            }
+
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(url).then(onSuccess).catch(() => {
+                    fallbackCopyRequestLink(url, onSuccess);
+                });
+            } else {
+                fallbackCopyRequestLink(url, onSuccess);
+            }
+        }
+
+        function fallbackCopyRequestLink(text, cb) {
+            const ta = document.createElement('textarea');
+            ta.value = text;
+            ta.style.position = 'fixed';
+            ta.style.left = '-9999px';
+            ta.style.top = '-9999px';
+            document.body.appendChild(ta);
+            ta.focus();
+            ta.select();
+            try {
+                document.execCommand('copy');
+                if (cb) cb();
+            } catch (e) {
+                prompt('Salin link berikut:', text);
+            }
+            document.body.removeChild(ta);
+        }
+
         const reviewImages = @json($dataimg->map(function($i) {
             return [
                 'id' => $i->id,

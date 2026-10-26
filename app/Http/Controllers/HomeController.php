@@ -19,6 +19,7 @@ use App\Models\PerformanceWeight;
 use App\Models\Kategori;
 use App\Services\TicketExcelService;
 use App\Services\StaffPerformanceExcelService;
+use App\Services\PeriodService;
 
 class HomeController extends Controller
 {
@@ -495,10 +496,11 @@ class HomeController extends Controller
         ])->deleteFileAfterSend(true);
     }
 
-    public function laporan(Request $request){
+    public function laporan(Request $request)
+    {
         $currentUser = auth()->user();
         if ($currentUser->usertype == 'user') {
-            return redirect()->route('dashboard')->with('error', 'Akses ditolak. Anda tidak memiliki izin untuk melihat modul Laporan.');
+            return redirect()->route('dashboard')->with('error', 'Akses ditolak. Anda tidak memiliki izin untuk melihat laporan.');
         }
 
         $userDeptId = $currentUser->departemen_id;
@@ -507,22 +509,34 @@ class HomeController extends Controller
         $selectedDeptId = (int)($userDeptId ?: 1);
         $currentDepartemen = Departemen::find($selectedDeptId);
 
-        if ($request->filled('period')) {
-            $parts = explode('-', $request->input('period'));
-            $year = (int)$parts[0];
-            $month = (int)$parts[1];
-        } else {
-            $month = (int)$request->input('month', date('m'));
-            $year = (int)$request->input('year', date('Y'));
-        }
+        $periodInfo = PeriodService::parse($request->input('period'), $request->input('month'), $request->input('year'), $request->input('period_type'));
+        $month = $periodInfo['month'];
+        $year = $periodInfo['year'];
+        $startDate = $periodInfo['start_date'];
+        $endDate = $periodInfo['end_date'];
+        $period = $periodInfo['period_key'];
+        $periodType = $periodInfo['period_type'];
         
         // HANYA CS dengan usertype == 'user' dan berada di departemen yang dipilih
         $baseCsQuery = User::where('usertype', 'user')
             ->where('departemen_id', $selectedDeptId);
 
-        $usersQuery = (clone $baseCsQuery)->with(['performanceReviews' => function($q) use ($month, $year) {
-            $q->whereMonth('periode', $month)->whereYear('periode', $year);
-        }]);
+        $reviewQueryClosure = function($q) use ($periodInfo) {
+            $q->where(function($sub) use ($periodInfo) {
+                $sub->where('period_key', $periodInfo['period_key']);
+                if ($periodInfo['period_type'] === '1m') {
+                    $sub->orWhere(function($sub2) use ($periodInfo) {
+                        $sub2->whereMonth('periode', $periodInfo['month'])
+                             ->whereYear('periode', $periodInfo['year'])
+                             ->where(function($sub3) {
+                                 $sub3->where('period_type', '1m')->orWhereNull('period_type');
+                             });
+                    });
+                }
+            });
+        };
+
+        $usersQuery = (clone $baseCsQuery)->with(['performanceReviews' => $reviewQueryClosure]);
 
         if ($request->filled('search')) {
             $s = trim($request->search);
@@ -548,9 +562,7 @@ class HomeController extends Controller
         }
 
         // Seluruh staf CS pada departemen ini untuk periode ini
-        $allCsUsers = (clone $baseCsQuery)->with(['performanceReviews' => function($q) use ($month, $year) {
-            $q->whereMonth('periode', $month)->whereYear('periode', $year);
-        }])->get();
+        $allCsUsers = (clone $baseCsQuery)->with(['performanceReviews' => $reviewQueryClosure])->get();
 
         $totalCS = $allCsUsers->count();
         $sudahDinilai = $allCsUsers->filter(function($u) {
@@ -580,13 +592,10 @@ class HomeController extends Controller
 
         if ($allCsEvaluated) {
             $modulesBobot = ModuleSystem::pluck('bobot', 'id');
-            $monthTickets = Ticket::whereMonth('created_at', $month)
-                ->whereYear('created_at', $year)
-                ->get();
+            $monthTickets = Ticket::whereBetween('created_at', [$startDate, $endDate])->get();
 
             $reviews = PerformanceReview::with(['user', 'details.category'])
-                ->whereMonth('periode', $month)
-                ->whereYear('periode', $year)
+                ->where($reviewQueryClosure)
                 ->where('status', 'FINAL')
                 ->whereIn('user_id', $allCsUsers->pluck('id'))
                 ->get();
@@ -607,8 +616,7 @@ class HomeController extends Controller
                 $surveyRatings = \Illuminate\Support\Facades\DB::table('ticket_surveys')
                     ->join('tickets', 'ticket_surveys.ticket_id', '=', 'tickets.id')
                     ->where('tickets.user_id', $u->id)
-                    ->whereMonth('tickets.created_at', $month)
-                    ->whereYear('tickets.created_at', $year)
+                    ->whereBetween('tickets.created_at', [$startDate, $endDate])
                     ->pluck('rating');
                 $avgSurvey = $surveyRatings->count() > 0 ? round($surveyRatings->avg(), 1) : null;
 
@@ -677,15 +685,13 @@ class HomeController extends Controller
         }
 
         // Agregat tiket per user untuk periode ini (tiket selesai, tiket di-advice, dan survey kepuasan)
-        $monthClosedTickets = Ticket::whereMonth('created_at', $month)
-            ->whereYear('created_at', $year)
+        $monthClosedTickets = Ticket::whereBetween('created_at', [$startDate, $endDate])
             ->whereRaw('UPPER(status) = ?', ['CLOSED'])
             ->selectRaw('user_id, count(*) as total')
             ->groupBy('user_id')
             ->pluck('total', 'user_id');
 
-        $monthAdvisedTickets = Ticket::whereMonth('created_at', $month)
-            ->whereYear('created_at', $year)
+        $monthAdvisedTickets = Ticket::whereBetween('created_at', [$startDate, $endDate])
             ->whereNotNull('advisor_id')
             ->selectRaw('advisor_id, count(*) as total')
             ->groupBy('advisor_id')
@@ -693,16 +699,18 @@ class HomeController extends Controller
 
         $monthSurveys = \Illuminate\Support\Facades\DB::table('ticket_surveys')
             ->join('tickets', 'ticket_surveys.ticket_id', '=', 'tickets.id')
-            ->whereMonth('tickets.created_at', $month)
-            ->whereYear('tickets.created_at', $year)
+            ->whereBetween('tickets.created_at', [$startDate, $endDate])
             ->selectRaw('tickets.user_id, avg(ticket_surveys.rating) as avg_rating')
             ->groupBy('tickets.user_id')
             ->pluck('avg_rating', 'user_id');
 
+        $periodOptions = PeriodService::getOptions();
+
         return view('laporan', compact(
             'users', 'month', 'year', 'totalCS', 'sudahDinilai', 'belumDinilai', 'sangatBaik', 'topCS',
             'selectedDeptId', 'currentDepartemen', 'isAllProcessed', 'sudahDiproses', 'belumDiproses',
-            'monthClosedTickets', 'monthAdvisedTickets', 'monthSurveys'
+            'monthClosedTickets', 'monthAdvisedTickets', 'monthSurveys', 'periodInfo', 'periodOptions',
+            'period', 'periodType'
         ));
     }
 
@@ -717,22 +725,32 @@ class HomeController extends Controller
         $selectedDeptId = (int)($request->input('department_id', $userDeptId ?: 1));
         $currentDepartemen = Departemen::find($selectedDeptId);
 
-        if ($request->filled('period')) {
-            $parts = explode('-', $request->input('period'));
-            $year = (int)$parts[0];
-            $month = (int)$parts[1];
-        } else {
-            $month = (int)$request->input('month', date('m'));
-            $year = (int)$request->input('year', date('Y'));
-        }
+        $periodInfo = PeriodService::parse($request->input('period'), $request->input('month'), $request->input('year'), $request->input('period_type'));
+        $month = $periodInfo['month'];
+        $year = $periodInfo['year'];
+        $startDate = $periodInfo['start_date'];
+        $endDate = $periodInfo['end_date'];
 
         // HANYA CS dengan usertype == 'user' dan berada di departemen yang dipilih
         $baseCsQuery = User::where('usertype', 'user')
             ->where('departemen_id', $selectedDeptId);
 
-        $usersQuery = (clone $baseCsQuery)->with(['performanceReviews' => function($q) use ($month, $year) {
-            $q->whereMonth('periode', $month)->whereYear('periode', $year);
-        }]);
+        $reviewQueryClosure = function($q) use ($periodInfo) {
+            $q->where(function($sub) use ($periodInfo) {
+                $sub->where('period_key', $periodInfo['period_key']);
+                if ($periodInfo['period_type'] === '1m') {
+                    $sub->orWhere(function($sub2) use ($periodInfo) {
+                        $sub2->whereMonth('periode', $periodInfo['month'])
+                             ->whereYear('periode', $periodInfo['year'])
+                             ->where(function($sub3) {
+                                 $sub3->where('period_type', '1m')->orWhereNull('period_type');
+                             });
+                    });
+                }
+            });
+        };
+
+        $usersQuery = (clone $baseCsQuery)->with(['performanceReviews' => $reviewQueryClosure]);
 
         if ($request->filled('search')) {
             $s = trim($request->search);
@@ -758,15 +776,13 @@ class HomeController extends Controller
         }
 
         // Agregat tiket per user untuk periode ini
-        $monthClosedTickets = Ticket::whereMonth('created_at', $month)
-            ->whereYear('created_at', $year)
+        $monthClosedTickets = Ticket::whereBetween('created_at', [$startDate, $endDate])
             ->whereRaw('UPPER(status) = ?', ['CLOSED'])
             ->selectRaw('user_id, count(*) as total')
             ->groupBy('user_id')
             ->pluck('total', 'user_id');
 
-        $monthAdvisedTickets = Ticket::whereMonth('created_at', $month)
-            ->whereYear('created_at', $year)
+        $monthAdvisedTickets = Ticket::whereBetween('created_at', [$startDate, $endDate])
             ->whereNotNull('advisor_id')
             ->selectRaw('advisor_id, count(*) as total')
             ->groupBy('advisor_id')
@@ -774,14 +790,13 @@ class HomeController extends Controller
 
         $monthSurveys = \Illuminate\Support\Facades\DB::table('ticket_surveys')
             ->join('tickets', 'ticket_surveys.ticket_id', '=', 'tickets.id')
-            ->whereMonth('tickets.created_at', $month)
-            ->whereYear('tickets.created_at', $year)
+            ->whereBetween('tickets.created_at', [$startDate, $endDate])
             ->selectRaw('tickets.user_id, avg(ticket_surveys.rating) as avg_rating')
             ->groupBy('tickets.user_id')
             ->pluck('avg_rating', 'user_id');
 
         $deptSlug = $currentDepartemen ? \Illuminate\Support\Str::slug($currentDepartemen->name, '_') : 'operasional';
-        $periodSlug = sprintf('%04d_%02d', $year, $month);
+        $periodSlug = str_replace(['-', ' '], '_', $periodInfo['period_key']);
         $fileName = "Laporan_Kinerja_Staff_{$deptSlug}_{$periodSlug}.xlsx";
 
         $statusStr = $request->filled('status') ? ($request->status == 'dinilai' ? 'Sudah Dinilai (Final)' : ($request->status == 'belum' ? 'Belum Dinilai' : 'Semua Status')) : 'Semua Status';
@@ -790,6 +805,10 @@ class HomeController extends Controller
         $meta = [
             'month' => $month,
             'year' => $year,
+            'period_label' => $periodInfo['label'],
+            'cutoff_label' => $periodInfo['cutoff_label'],
+            'period_key' => $periodInfo['period_key'],
+            'period_type' => $periodInfo['period_type'],
             'departemen_name' => $currentDepartemen->name ?? 'Operasional',
             'status_filter' => $statusStr,
             'search' => $request->search,
@@ -819,27 +838,38 @@ class HomeController extends Controller
             return redirect()->back()->with('error', 'Anda hanya memiliki izin memproses nilai untuk staf di departemen Anda.');
         }
         
-        $month = (int)$request->input('month', date('m'));
-        $year = (int)$request->input('year', date('Y'));
-        if ($request->filled('period')) {
-            $parts = explode('-', $request->input('period'));
-            $year = isset($parts[0]) && is_numeric($parts[0]) ? (int)$parts[0] : $year;
-            $month = isset($parts[1]) && is_numeric($parts[1]) ? (int)$parts[1] : $month;
-        }
-        $periode = sprintf('%04d-%02d-01', $year, $month);
+        $periodInfo = PeriodService::parse($request->input('period'), $request->input('month'), $request->input('year'), $request->input('period_type'));
+        $month = $periodInfo['month'];
+        $year = $periodInfo['year'];
+        $startDate = $periodInfo['start_date'];
+        $endDate = $periodInfo['end_date'];
+        $periodKey = $periodInfo['period_key'];
+        $periode = $periodInfo['periode_date'];
+        $periodeEnd = $periodInfo['periode_end'];
+        $periodType = $periodInfo['period_type'];
 
         // Pastikan hanya bisa diproses 1 kali per periode
         $existing = PerformanceReview::where('user_id', $id)
-            ->whereMonth('periode', $month)
-            ->whereYear('periode', $year)
+            ->where(function($q) use ($periodInfo) {
+                $q->where('period_key', $periodInfo['period_key']);
+                if ($periodInfo['period_type'] === '1m') {
+                    $q->orWhere(function($sub) use ($periodInfo) {
+                        $sub->whereMonth('periode', $periodInfo['month'])
+                             ->whereYear('periode', $periodInfo['year'])
+                             ->where(function($sub3) {
+                                 $sub3->where('period_type', '1m')->orWhereNull('period_type');
+                             });
+                    });
+                }
+            })
             ->first();
+
         if ($existing) {
             return redirect()->route('laporan', [
-                'month' => $month,
-                'year' => $year,
-                'period' => sprintf('%04d-%02d', $year, $month),
+                'period' => $periodKey,
+                'period_type' => $periodType,
                 'department_id' => $user->departemen_id
-            ])->with('info', "Nilai untuk staf {$user->name} sudah pernah diproses sebelumnya. Silakan klik 'Nilai' untuk mengisi atau memperbarui evaluasi soft skill.");
+            ])->with('info', "Nilai untuk staf {$user->name} sudah pernah diproses sebelumnya pada periode {$periodInfo['label']}. Silakan klik 'Nilai' untuk mengisi atau memperbarui evaluasi soft skill.");
         }
 
         // Modul sistem & bobot
@@ -847,11 +877,11 @@ class HomeController extends Controller
         $moduleBobotMap = $modules->pluck('bobot', 'id');
 
         // Tiket CS pada periode ini (hanya user_id, advisor tidak dihitung ke penilaian)
-        $tiketQuery = Ticket::where('user_id', $id)->whereMonth('created_at', $month)->whereYear('created_at', $year);
+        $tiketQuery = Ticket::where('user_id', $id)->whereBetween('created_at', [$startDate, $endDate]);
 
         $total_ticket = (clone $tiketQuery)->count();
         $tiket_selesai = (clone $tiketQuery)->whereRaw('UPPER(status) = ?', ['CLOSED'])->count();
-        $tiket_di_advice = Ticket::where('advisor_id', $id)->whereMonth('created_at', $month)->whereYear('created_at', $year)->count();
+        $tiket_di_advice = Ticket::where('advisor_id', $id)->whereBetween('created_at', [$startDate, $endDate])->count();
 
         // Rata-rata waktu: totalin seluruh durasi menit tiket selesai dulu, baru dibagi jumlah tiket selesai
         $closedTickets = (clone $tiketQuery)->whereRaw('UPPER(status) = ?', ['CLOSED'])
@@ -882,8 +912,7 @@ class HomeController extends Controller
         foreach ($modules as $mod) {
             $modTickets = Ticket::where('module_system_id', $mod->id)
                 ->where('user_id', $id)
-                ->whereMonth('created_at', $month)
-                ->whereYear('created_at', $year)
+                ->whereBetween('created_at', [$startDate, $endDate])
                 ->get();
 
             $modCount = $modTickets->count();
@@ -922,8 +951,7 @@ class HomeController extends Controller
         $max_ticket_score = 0;
         $total_team_score = 0;
 
-        $allMonthTickets = Ticket::whereMonth('created_at', $month)
-            ->whereYear('created_at', $year)
+        $allMonthTickets = Ticket::whereBetween('created_at', [$startDate, $endDate])
             ->get(['id', 'user_id', 'advisor_id', 'module_system_id']);
 
         foreach ($allUsers as $u) {
@@ -951,8 +979,7 @@ class HomeController extends Controller
         $surveyRatings = \Illuminate\Support\Facades\DB::table('ticket_surveys')
             ->join('tickets', 'ticket_surveys.ticket_id', '=', 'tickets.id')
             ->where('tickets.user_id', $id)
-            ->whereMonth('tickets.created_at', $month)
-            ->whereYear('tickets.created_at', $year)
+            ->whereBetween('tickets.created_at', [$startDate, $endDate])
             ->pluck('rating');
         $avgSurvey = $surveyRatings->count() > 0 ? round($surveyRatings->avg(), 1) : null;
         $client_score = $avgSurvey ? ($avgSurvey * 20) : ($tiket_selesai > 0 ? 90 : 0);
@@ -964,9 +991,12 @@ class HomeController extends Controller
         $review = PerformanceReview::updateOrCreate(
             [
                 'user_id' => $id,
-                'periode' => $periode,
+                'period_key' => $periodKey,
             ],
             [
+                'periode' => $periode,
+                'periode_end' => $periodeEnd,
+                'period_type' => $periodType,
                 'reviewer_id' => auth()->id() ?? 1,
                 'total_score' => round($nilai_tiket * $wTicket, 2), // Skor awal sebelum soft skill
                 'module_score' => $nilai_tiket,
@@ -999,21 +1029,16 @@ class HomeController extends Controller
         }
 
         return redirect()->route('laporan', [
-            'month' => $month,
-            'year' => $year,
-            'period' => sprintf('%04d-%02d', $year, $month),
+            'period' => $periodKey,
+            'period_type' => $periodType,
             'department_id' => $user->departemen_id
-        ])->with('success', "Data tiket {$user->name} berhasil di-proses (di-sum)! Silakan klik 'Nilai' untuk mengisi evaluasi soft skill.");
+        ])->with('success', "Data tiket {$user->name} untuk periode {$periodInfo['label']} berhasil di-proses (di-sum)! Silakan klik 'Nilai' untuk mengisi evaluasi soft skill.");
     }
 
     public function prosesSemuaNilai(Request $request){
-        $month = (int)$request->input('month', date('m'));
-        $year = (int)$request->input('year', date('Y'));
-        if ($request->filled('period')) {
-            $parts = explode('-', $request->input('period'));
-            $year = isset($parts[0]) && is_numeric($parts[0]) ? (int)$parts[0] : $year;
-            $month = isset($parts[1]) && is_numeric($parts[1]) ? (int)$parts[1] : $month;
-        }
+        $periodInfo = PeriodService::parse($request->input('period'), $request->input('month'), $request->input('year'), $request->input('period_type'));
+        $periodKey = $periodInfo['period_key'];
+        $periodType = $periodInfo['period_type'];
 
         $currentUser = auth()->user();
         $selectedDeptId = (int)($currentUser ? ($currentUser->departemen_id ?: 1) : 1);
@@ -1024,33 +1049,43 @@ class HomeController extends Controller
 
         if ($csUsers->isEmpty()) {
             return redirect()->route('laporan', [
-                'month' => $month,
-                'year' => $year,
-                'period' => sprintf('%04d-%02d', $year, $month),
+                'period' => $periodKey,
+                'period_type' => $periodType,
             ])->with('error', "Tidak ada staff dengan role user yang terdaftar di departemen ini.");
         }
 
         // Cari staff yang belum diproses untuk periode ini
-        $unprocessedCs = $csUsers->filter(function($u) use ($month, $year) {
+        $unprocessedCs = $csUsers->filter(function($u) use ($periodInfo) {
             return !PerformanceReview::where('user_id', $u->id)
-                ->whereMonth('periode', $month)
-                ->whereYear('periode', $year)
+                ->where(function($q) use ($periodInfo) {
+                    $q->where('period_key', $periodInfo['period_key']);
+                    if ($periodInfo['period_type'] === '1m') {
+                        $q->orWhere(function($sub) use ($periodInfo) {
+                            $sub->whereMonth('periode', $periodInfo['month'])
+                                ->whereYear('periode', $periodInfo['year'])
+                                ->where(function($sub3) {
+                                    $sub3->where('period_type', '1m')->orWhereNull('period_type');
+                                });
+                        });
+                    }
+                })
                 ->exists();
         });
 
         if ($unprocessedCs->isEmpty()) {
             return redirect()->route('laporan', [
-                'month' => $month,
-                'year' => $year,
-                'period' => sprintf('%04d-%02d', $year, $month),
-            ])->with('info', "Seluruh staff di departemen ini sudah selesai diproses sebelumnya. Proses agregat tiket hanya dapat dilakukan 1 kali per periode.");
+                'period' => $periodKey,
+                'period_type' => $periodType,
+            ])->with('info', "Seluruh staff di departemen ini sudah selesai diproses sebelumnya untuk periode {$periodInfo['label']}. Proses agregat tiket hanya dapat dilakukan 1 kali per periode.");
         }
 
         $processedCount = 0;
         foreach ($unprocessedCs as $u) {
             $subReq = new Request([
-                'month' => $month,
-                'year' => $year,
+                'period' => $periodKey,
+                'period_type' => $periodType,
+                'month' => $periodInfo['month'],
+                'year' => $periodInfo['year'],
                 'department_id' => $selectedDeptId,
             ]);
             $this->prosesNilai($subReq, $u->id);
@@ -1058,11 +1093,10 @@ class HomeController extends Controller
         }
 
         return redirect()->route('laporan', [
-            'month' => $month,
-            'year' => $year,
-            'period' => sprintf('%04d-%02d', $year, $month),
+            'period' => $periodKey,
+            'period_type' => $periodType,
             'department_id' => $selectedDeptId,
-        ])->with('success', "Berhasil memproses (sum) data tiket untuk {$processedCount} staff! Sekarang Anda dapat mengisi nilai soft skill per masing-masing staff.");
+        ])->with('success', "Berhasil memproses (sum) data tiket untuk {$processedCount} staff pada periode {$periodInfo['label']}! Sekarang Anda dapat mengisi nilai soft skill per masing-masing staff.");
     }
 
     public function penilaian($id){
@@ -1077,14 +1111,13 @@ class HomeController extends Controller
             return redirect()->route('laporan')->with('error', 'Anda hanya memiliki izin menilai staf di departemen Anda.');
         }
         
-        if (request()->filled('period')) {
-            $parts = explode('-', request('period'));
-            $currentYear = isset($parts[0]) && is_numeric($parts[0]) ? (int)$parts[0] : (int)date('Y');
-            $currentMonth = isset($parts[1]) && is_numeric($parts[1]) ? (int)$parts[1] : (int)date('m');
-        } else {
-            $currentMonth = (int)request('month', date('m'));
-            $currentYear = (int)request('year', date('Y'));
-        }
+        $periodInfo = PeriodService::parse(request('period'), request('month'), request('year'), request('period_type'));
+        $currentMonth = $periodInfo['month'];
+        $currentYear = $periodInfo['year'];
+        $startDate = $periodInfo['start_date'];
+        $endDate = $periodInfo['end_date'];
+        $periodKey = $periodInfo['period_key'];
+        $periodType = $periodInfo['period_type'];
 
         // Modul-modul sistem
         $modules = ModuleSystem::orderBy('id', 'asc')->get();
@@ -1095,12 +1128,12 @@ class HomeController extends Controller
         $highestBobotModule = $highestBobotModuleObj ? $highestBobotModuleObj->name : '-';
         $highestBobotVal = $highestBobotModuleObj ? (int)$highestBobotModuleObj->bobot : 0;
 
-        // 1. Tiket user ini di bulan berjalan (hanya user_id, advisor tidak dihitung ke penilaian)
-        $tiketQuery = Ticket::where('user_id', $id)->whereMonth('created_at', $currentMonth)->whereYear('created_at', $currentYear);
+        // 1. Tiket user ini di periode berjalan (hanya user_id, advisor tidak dihitung ke penilaian)
+        $tiketQuery = Ticket::where('user_id', $id)->whereBetween('created_at', [$startDate, $endDate]);
 
         $tiket_ditangani = (clone $tiketQuery)->count();
         $tiket_selesai = (clone $tiketQuery)->whereRaw('UPPER(status) = ?', ['CLOSED'])->count();
-        $tiket_di_advice = Ticket::where('advisor_id', $id)->whereMonth('created_at', $currentMonth)->whereYear('created_at', $currentYear)->count();
+        $tiket_di_advice = Ticket::where('advisor_id', $id)->whereBetween('created_at', [$startDate, $endDate])->count();
 
         // Rata-rata waktu penyelesaian: Totalin durasi seluruh tiket selesai dulu, baru dibagi jumlah tiket selesai
         $closedTickets = (clone $tiketQuery)->whereRaw('UPPER(status) = ?', ['CLOSED'])
@@ -1138,8 +1171,7 @@ class HomeController extends Controller
         foreach ($modules as $mod) {
             $modTickets = Ticket::where('module_system_id', $mod->id)
                 ->where('user_id', $id)
-                ->whereMonth('created_at', $currentMonth)
-                ->whereYear('created_at', $currentYear)
+                ->whereBetween('created_at', [$startDate, $endDate])
                 ->get();
 
             $modCount = $modTickets->count();
@@ -1197,8 +1229,7 @@ class HomeController extends Controller
         $total_team_score = 0;
         $top_performer_name = null;
 
-        $allMonthTickets = Ticket::whereMonth('created_at', $currentMonth)
-            ->whereYear('created_at', $currentYear)
+        $allMonthTickets = Ticket::whereBetween('created_at', [$startDate, $endDate])
             ->get(['id', 'user_id', 'advisor_id', 'module_system_id']);
 
         foreach ($allUsers as $u) {
@@ -1247,16 +1278,25 @@ class HomeController extends Controller
         // Cek apakah sudah ada penilaian di periode ini (draft/final)
         $existingReview = PerformanceReview::with(['details.category', 'moduleDetails'])
             ->where('user_id', $id)
-            ->whereMonth('periode', $currentMonth)
-            ->whereYear('periode', $currentYear)
+            ->where(function($q) use ($periodInfo) {
+                $q->where('period_key', $periodInfo['period_key']);
+                if ($periodInfo['period_type'] === '1m') {
+                    $q->orWhere(function($sub) use ($periodInfo) {
+                        $sub->whereMonth('periode', $periodInfo['month'])
+                            ->whereYear('periode', $periodInfo['year'])
+                            ->where(function($sub3) {
+                                $sub3->where('period_type', '1m')->orWhereNull('period_type');
+                            });
+                    });
+                }
+            })
             ->first();
 
         // Review by client (Rating Bintang)
         $surveyRatings = \Illuminate\Support\Facades\DB::table('ticket_surveys')
             ->join('tickets', 'ticket_surveys.ticket_id', '=', 'tickets.id')
             ->where('tickets.user_id', $id)
-            ->whereMonth('tickets.created_at', $currentMonth)
-            ->whereYear('tickets.created_at', $currentYear)
+            ->whereBetween('tickets.created_at', [$startDate, $endDate])
             ->pluck('rating');
         $avgSurvey = $surveyRatings->count() > 0 ? round($surveyRatings->avg(), 1) : null;
         $client_rating = $existingReview && $existingReview->review_score ? round($existingReview->review_score / 20, 1) : ($avgSurvey ?: ($tiket_selesai > 0 ? 5.0 : 0.0));
@@ -1279,29 +1319,32 @@ class HomeController extends Controller
             'user', 
             'currentMonth',
             'currentYear',
+            'periodInfo',
+            'periodKey',
+            'periodType',
             'tiket_ditangani', 
             'tiket_selesai', 
             'tiket_di_advice', 
-            'total_lama_waktu',
+            'total_lama_waktu', 
             'rata_rata_waktu', 
             'nilai_tiket', 
             'raw_ticket_score', 
             'max_ticket_score', 
             'top_performer_name', 
             'team_portion', 
-            'total_qty',
-            'total_bobot',
-            'module_details',
-            'existingReview',
-            'highestBobotModule',
-            'highestBobotVal',
-            'topHandledModuleName',
-            'topHandledModuleCount',
-            'topHandledModuleBobot',
-            'client_rating',
-            'client_score',
-            'categories',
-            'catScores',
+            'total_qty', 
+            'total_bobot', 
+            'module_details', 
+            'existingReview', 
+            'highestBobotModule', 
+            'highestBobotVal', 
+            'topHandledModuleName', 
+            'topHandledModuleCount', 
+            'topHandledModuleBobot', 
+            'client_rating', 
+            'client_score', 
+            'categories', 
+            'catScores', 
             'weights'
         ));
     }
@@ -1368,17 +1411,18 @@ class HomeController extends Controller
             $status = 'DRAFT';
         }
 
-        if ($request->filled('period')) {
-            $parts = explode('-', $request->input('period'));
-            $currentYear = isset($parts[0]) && is_numeric($parts[0]) ? (int)$parts[0] : (int)date('Y');
-            $currentMonth = isset($parts[1]) && is_numeric($parts[1]) ? (int)$parts[1] : (int)date('m');
-        } else {
-            $currentMonth = (int)$request->input('month', date('m'));
-            $currentYear = (int)$request->input('year', date('Y'));
-        }
+        $periodInfo = PeriodService::parse($request->input('period'), $request->input('month'), $request->input('year'), $request->input('period_type'));
+        $currentMonth = $periodInfo['month'];
+        $currentYear = $periodInfo['year'];
+        $startDate = $periodInfo['start_date'];
+        $endDate = $periodInfo['end_date'];
+        $periodKey = $periodInfo['period_key'];
+        $periodType = $periodInfo['period_type'];
+        $periode = $periodInfo['periode_date'];
+        $periodeEnd = $periodInfo['periode_end'];
 
         // Hitung total ticket, rata-rata waktu (hanya user_id, advisor tidak dihitung ke penilaian)
-        $tiketQuery = Ticket::where('user_id', $id)->whereMonth('created_at', $currentMonth)->whereYear('created_at', $currentYear);
+        $tiketQuery = Ticket::where('user_id', $id)->whereBetween('created_at', [$startDate, $endDate]);
 
         $total_ticket = (clone $tiketQuery)->count();
         $tiket_di_advice = 0;
@@ -1410,15 +1454,16 @@ class HomeController extends Controller
         $max_ticket_score = (float)$request->input('max_ticket_score', 0);
         $team_portion = (float)$request->input('team_portion', 0);
 
-        $periode = sprintf('%04d-%02d-01', $currentYear, $currentMonth);
-
         $review = PerformanceReview::updateOrCreate(
             [
                 'user_id' => $id,
-                'periode' => $periode,
+                'period_key' => $periodKey,
             ],
             [
                 'reviewer_id' => auth()->id() ?? 1,
+                'periode' => $periode,
+                'periode_end' => $periodeEnd,
+                'period_type' => $periodType,
                 'total_score' => $n_akhir,
                 'module_score' => $n_t,
                 'raw_ticket_score' => $raw_ticket_score,
@@ -1456,8 +1501,7 @@ class HomeController extends Controller
         foreach($modules as $mod) {
             $modTickets = Ticket::where('module_system_id', $mod->id)
                 ->where('user_id', $id)
-                ->whereMonth('created_at', $currentMonth)
-                ->whereYear('created_at', $currentYear)
+                ->whereBetween('created_at', [$startDate, $endDate])
                 ->get();
 
             $count = $modTickets->count();
@@ -1495,14 +1539,13 @@ class HomeController extends Controller
 
         if ($isDraft) {
             return redirect()->route('laporan', [
-                'month' => $currentMonth,
-                'year' => $currentYear,
-                'period' => sprintf('%04d-%02d', $currentYear, $currentMonth),
+                'period' => $periodKey,
+                'period_type' => $periodType,
                 'department_id' => $user->departemen_id,
             ])->with('success', 'Draft penilaian CS berhasil disimpan!');
         }
 
-        return redirect()->route('rapor', ['id' => $id, 'month' => $currentMonth, 'year' => $currentYear, 'period' => sprintf('%04d-%02d', $currentYear, $currentMonth)])->with('success', 'Penilaian final berhasil disimpan lengkap dengan evaluasi soft skill!');
+        return redirect()->route('rapor', ['id' => $id, 'period' => $periodKey, 'period_type' => $periodType])->with('success', 'Penilaian final berhasil disimpan lengkap dengan evaluasi soft skill!');
     }
 
     public function rapor($id){
@@ -1516,66 +1559,48 @@ class HomeController extends Controller
             return redirect()->route('dashboard')->with('error', 'Anda hanya memiliki izin melihat rapor Anda sendiri.');
         }
 
+        $periodParam = request('period');
+        $monthParam = request('month');
+        $yearParam = request('year');
+        $typeParam = request('period_type');
+
+        // Jika tidak ada parameter periode sama sekali, cari rapor terbaru milik user ini
+        if (empty($periodParam) && empty($monthParam) && empty($yearParam)) {
+            $latestRev = PerformanceReview::where('user_id', $id)->orderBy('periode', 'desc')->first();
+            if ($latestRev) {
+                $periodParam = $latestRev->period_key ?: $latestRev->periode;
+                $typeParam = $latestRev->period_type ?: '1m';
+            }
+        }
+
+        $periodInfo = PeriodService::parse($periodParam, $monthParam, $yearParam, $typeParam);
+        $month = $periodInfo['month'];
+        $year = $periodInfo['year'];
+        $startDate = $periodInfo['start_date'];
+        $endDate = $periodInfo['end_date'];
+        $periodKey = $periodInfo['period_key'];
+        $periodType = $periodInfo['period_type'];
+
         $query = PerformanceReview::with(['details.category', 'moduleDetails.moduleSystem'])->where('user_id', $id);
-        
-        $m = request('month');
-        $y = request('year');
-        if (request()->filled('period')) {
-            $parts = explode('-', request('period'));
-            $y = isset($parts[0]) && is_numeric($parts[0]) ? (int)$parts[0] : (int)date('Y');
-            $m = isset($parts[1]) && is_numeric($parts[1]) ? (int)$parts[1] : (int)date('m');
-        }
-        
-        if ($m && $y) {
-            $rapor = (clone $query)->whereMonth('periode', $m)->whereYear('periode', $y)->first();
-            $month = (int)$m;
-            $year = (int)$y;
-        } else {
-            $rapor = (clone $query)->orderBy('periode', 'desc')->first();
-            if ($rapor) {
-                $month = (int)\Carbon\Carbon::parse($rapor->periode)->month;
-                $year = (int)\Carbon\Carbon::parse($rapor->periode)->year;
-            } else {
-                $month = (int)date('m');
-                $year = (int)date('Y');
+        $rapor = (clone $query)->where(function($q) use ($periodInfo) {
+            $q->where('period_key', $periodInfo['period_key']);
+            if ($periodInfo['period_type'] === '1m') {
+                $q->orWhere(function($sub) use ($periodInfo) {
+                    $sub->whereMonth('periode', $periodInfo['month'])
+                        ->whereYear('periode', $periodInfo['year'])
+                        ->where(function($sub3) {
+                            $sub3->where('period_type', '1m')->orWhereNull('period_type');
+                        });
+                });
             }
-        }
-        
-        $chartHistory = [];
-        for ($k = 3; $k >= 0; $k--) {
-            $refDate = \Carbon\Carbon::createFromDate($year, $month, 1)->subMonths($k);
-            $revItem = PerformanceReview::with('details.category')->where('user_id', $id)
-                ->whereMonth('periode', $refDate->month)
-                ->whereYear('periode', $refDate->year)
-                ->first();
-            
-            $ticketSc = 0;
-            $qualSc = 0;
-            $survSc = 0;
-            $totSc = 0;
-            if ($revItem) {
-                $ticketSc = (float)($revItem->module_score ?: (optional($revItem->details->firstWhere("category.name", "Produktivitas & Resolusi Tiket"))->score ?: 0));
-                $qualSc = (float)($revItem->performance_score ?: (optional($revItem->details->firstWhere("category.name", "Kualitas Solusi"))->score ?: 0));
-                $survSc = (float)($revItem->review_score ?: (optional($revItem->details->firstWhere("category.name", "Kepuasan Klien (Survey)"))->score ?: 0));
-                $totSc = (float)($revItem->total_score ?: 0);
-            }
+        })->first();
 
-            $chartHistory[] = [
-                'label' => $refDate->locale('id')->translatedFormat('M Y'),
-                'is_current' => ($k === 0),
-                'review' => $revItem,
-                'ticket_score' => $ticketSc,
-                'quality_score' => $qualSc,
-                'survey_score' => $survSc,
-                'total_score' => $totSc,
-            ];
-        }
-
+        $chartHistory = PeriodService::buildChartHistory($id, $periodInfo, 4);
         $history = PerformanceReview::where('user_id', $id)->orderBy('periode', 'asc')->take(4)->get();
         $categories = PerformanceCategory::orderBy('id')->get();
 
         // 1. Hitung Statistik Tiket untuk Periode Ini (hanya tiket milik user_id, advisor tidak dihitung)
-        $tiketQuery = Ticket::where('user_id', $id)->whereMonth('created_at', $month)->whereYear('created_at', $year);
+        $tiketQuery = Ticket::where('user_id', $id)->whereBetween('created_at', [$startDate, $endDate]);
 
         $tiket_ditangani = (clone $tiketQuery)->count();
         $tiket_selesai = (clone $tiketQuery)->whereRaw('UPPER(status) = ?', ['CLOSED'])->count();
@@ -1612,8 +1637,7 @@ class HomeController extends Controller
             $surveyRatings = \Illuminate\Support\Facades\DB::table('ticket_surveys')
                 ->join('tickets', 'ticket_surveys.ticket_id', '=', 'tickets.id')
                 ->where('tickets.user_id', $id)
-                ->whereMonth('tickets.created_at', $month)
-                ->whereYear('tickets.created_at', $year)
+                ->whereBetween('tickets.created_at', [$startDate, $endDate])
                 ->pluck('rating');
             $client_rating = $surveyRatings->count() > 0 ? round($surveyRatings->avg(), 1) : ($tiket_selesai > 0 ? 5.0 : 0.0);
         }
@@ -1671,7 +1695,7 @@ class HomeController extends Controller
             if ($raw_ticket_score >= $max_ticket_score) {
                 $top_performer_name = $user->name;
             } else {
-                $topRev = PerformanceReview::whereMonth('periode', $month)->whereYear('periode', $year)
+                $topRev = PerformanceReview::where('period_key', $periodKey)
                     ->whereHas('user', function($q) use ($user) {
                         $q->where('departemen_id', $user->departemen_id)
                           ->where('usertype', 'user');
@@ -1690,6 +1714,7 @@ class HomeController extends Controller
         }
         
         $weights = PerformanceWeight::getWeightsMap();
+        $periodOptions = PeriodService::getOptions();
 
         return view('rapor', compact(
             'user', 
@@ -1712,45 +1737,60 @@ class HomeController extends Controller
             'raw_ticket_score',
             'team_portion',
             'top_performer_name',
-            'weights'
+            'weights',
+            'periodInfo',
+            'periodOptions',
+            'periodKey',
+            'periodType'
         ));
     }
 
     public function downloadRapor($id){
         $user = User::with('departemen')->findOrFail($id);
-        $query = PerformanceReview::with(['details.category', 'moduleDetails.moduleSystem'])->where('user_id', $id);
-        
-        $m = request('month');
-        $y = request('year');
-        if (request()->filled('period')) {
-            $parts = explode('-', request('period'));
-            $y = isset($parts[0]) && is_numeric($parts[0]) ? (int)$parts[0] : (int)date('Y');
-            $m = isset($parts[1]) && is_numeric($parts[1]) ? (int)$parts[1] : (int)date('m');
-        }
-        
-        if ($m && $y) {
-            $rapor = (clone $query)->whereMonth('periode', $m)->whereYear('periode', $y)->first();
-            $month = (int)$m;
-            $year = (int)$y;
-        } else {
-            $rapor = (clone $query)->orderBy('periode', 'desc')->first();
-            if ($rapor) {
-                $month = (int)\Carbon\Carbon::parse($rapor->periode)->month;
-                $year = (int)\Carbon\Carbon::parse($rapor->periode)->year;
-            } else {
-                $month = (int)date('m');
-                $year = (int)date('Y');
+
+        $periodParam = request('period');
+        $monthParam = request('month');
+        $yearParam = request('year');
+        $typeParam = request('period_type');
+
+        if (empty($periodParam) && empty($monthParam) && empty($yearParam)) {
+            $latestRev = PerformanceReview::where('user_id', $id)->orderBy('periode', 'desc')->first();
+            if ($latestRev) {
+                $periodParam = $latestRev->period_key ?: $latestRev->periode;
+                $typeParam = $latestRev->period_type ?: '1m';
             }
         }
+
+        $periodInfo = PeriodService::parse($periodParam, $monthParam, $yearParam, $typeParam);
+        $month = $periodInfo['month'];
+        $year = $periodInfo['year'];
+        $startDate = $periodInfo['start_date'];
+        $endDate = $periodInfo['end_date'];
+        $periodKey = $periodInfo['period_key'];
+        $periodType = $periodInfo['period_type'];
+
+        $query = PerformanceReview::with(['details.category', 'moduleDetails.moduleSystem'])->where('user_id', $id);
+        $rapor = (clone $query)->where(function($q) use ($periodInfo) {
+            $q->where('period_key', $periodInfo['period_key']);
+            if ($periodInfo['period_type'] === '1m') {
+                $q->orWhere(function($sub) use ($periodInfo) {
+                    $sub->whereMonth('periode', $periodInfo['month'])
+                        ->whereYear('periode', $periodInfo['year'])
+                        ->where(function($sub3) {
+                            $sub3->where('period_type', '1m')->orWhereNull('period_type');
+                        });
+                });
+            }
+        })->first();
         
         $history = PerformanceReview::where('user_id', $id)->orderBy('periode', 'asc')->take(4)->get();
         $categories = PerformanceCategory::orderBy('id')->get();
         
-        $periode = $rapor ? \Carbon\Carbon::parse($rapor->periode) : \Carbon\Carbon::createFromDate($year, $month, 1);
+        $periode = $periodInfo['start_date'];
         $m = $periode->format('m');
         $y = $periode->format('Y');
 
-        $tiketQuery = Ticket::where('user_id', $id)->whereMonth('created_at', $m)->whereYear('created_at', $y);
+        $tiketQuery = Ticket::where('user_id', $id)->whereBetween('created_at', [$startDate, $endDate]);
 
         $tiket_selesai = (clone $tiketQuery)->whereRaw('UPPER(status) = ?', ['CLOSED'])->count();
         $tiket_ditangani = (clone $tiketQuery)->count();
@@ -1803,7 +1843,7 @@ class HomeController extends Controller
             if ($raw_ticket_score >= $max_ticket_score) {
                 $top_performer_name = $user->name;
             } else {
-                $topRev = PerformanceReview::whereMonth('periode', $m)->whereYear('periode', $y)
+                $topRev = PerformanceReview::where('period_key', $periodKey)
                     ->whereHas('user', function($q) use ($user) {
                         $q->where('departemen_id', $user->departemen_id)
                           ->where('usertype', 'user');
@@ -1829,37 +1869,36 @@ class HomeController extends Controller
             'history', 
             'tiket_ditangani', 
             'tiket_selesai', 
-            'tiket_progress',
-            'tiket_di_advice',
-            'completion_rate',
-            'topHandledModuleName',
-            'topHandledModuleCount',
+            'tiket_progress', 
+            'tiket_di_advice', 
+            'completion_rate', 
+            'topHandledModuleName', 
+            'topHandledModuleCount', 
             'total_bobot', 
             'total_qty', 
-            'client_rating',
-            'scoreTicket',
-            'scoreQuality',
-            'scoreSurvey',
-            'scoreTotal',
-            'predikat',
-            'max_ticket_score',
-            'raw_ticket_score',
-            'team_portion',
-            'top_performer_name',
-            'month',
-            'year',
-            'periode',
-            'categories',
-            'weights',
-            'allModules'
+            'client_rating', 
+            'scoreTicket', 
+            'scoreQuality', 
+            'scoreSurvey', 
+            'scoreTotal', 
+            'predikat', 
+            'max_ticket_score', 
+            'raw_ticket_score', 
+            'team_portion', 
+            'top_performer_name', 
+            'month', 
+            'year', 
+            'periode', 
+            'categories', 
+            'weights', 
+            'allModules',
+            'periodInfo'
         ))->setPaper('a4', 'portrait');
                 
-        return $pdf->stream('Rapor_Kinerja_CS_' . str_replace(' ', '_', $user->name) . '_' . $periode->format('M_Y') . '.pdf');
+        $cleanPeriodSlug = str_replace(['-', ' '], '_', $periodKey);
+        return $pdf->stream('Rapor_Kinerja_CS_' . str_replace(' ', '_', $user->name) . '_' . $cleanPeriodSlug . '.pdf');
     }
 
-    /**
-     * Mendapatkan daftar riwayat tiket untuk modul tertentu berdasarkan staff dan periode (JSON API).
-     */
     public function getModuleTickets($id, $moduleId, Request $request) {
         $user = User::findOrFail($id);
         $currentUser = auth()->user();
@@ -1873,31 +1912,11 @@ class HomeController extends Controller
 
         $module = ModuleSystem::findOrFail($moduleId);
 
-        $m = $request->query('month');
-        $y = $request->query('year');
-        if ($request->filled('period')) {
-            $parts = explode('-', $request->query('period'));
-            $y = isset($parts[0]) && is_numeric($parts[0]) ? (int)$parts[0] : (int)date('Y');
-            $m = isset($parts[1]) && is_numeric($parts[1]) ? (int)$parts[1] : (int)date('m');
-        }
-        if (!$m || !$y) {
-            $rapor = PerformanceReview::where('user_id', $id)->orderBy('periode', 'desc')->first();
-            if ($rapor) {
-                $m = (int)\Carbon\Carbon::parse($rapor->periode)->month;
-                $y = (int)\Carbon\Carbon::parse($rapor->periode)->year;
-            } else {
-                $m = (int)date('m');
-                $y = (int)date('Y');
-            }
-        }
-        $month = (int)$m;
-        $year = (int)$y;
-        $periodeCarbon = \Carbon\Carbon::createFromDate($year, $month, 1);
+        $periodInfo = PeriodService::parse($request->query('period'), $request->query('month'), $request->query('year'), $request->query('period_type'));
 
         $tickets = Ticket::where('user_id', $id)
             ->where('module_system_id', $moduleId)
-            ->whereMonth('created_at', $month)
-            ->whereYear('created_at', $year)
+            ->whereBetween('created_at', [$periodInfo['start_date'], $periodInfo['end_date']])
             ->with(['client', 'user', 'advisor', 'moduleSystem', 'kategoriSystem'])
             ->orderBy('created_at', 'desc')
             ->get();
@@ -1941,9 +1960,13 @@ class HomeController extends Controller
                 'departemen' => $user->departemen->name ?? 'Operasional',
             ],
             'period' => [
-                'month' => $month,
-                'year' => $year,
-                'label' => $periodeCarbon->locale('id')->translatedFormat('F Y'),
+                'key' => $periodInfo['period_key'],
+                'type' => $periodInfo['period_type'],
+                'month' => $periodInfo['month'],
+                'year' => $periodInfo['year'],
+                'label' => $periodInfo['label'],
+                'short_label' => $periodInfo['short_label'],
+                'cutoff' => $periodInfo['cutoff_label'],
             ],
             'summary' => [
                 'total' => $totalCount,
@@ -1970,32 +1993,11 @@ class HomeController extends Controller
         }
 
         $module = ModuleSystem::findOrFail($moduleId);
-
-        $m = $request->query('month');
-        $y = $request->query('year');
-        if ($request->filled('period')) {
-            $parts = explode('-', $request->query('period'));
-            $y = isset($parts[0]) && is_numeric($parts[0]) ? (int)$parts[0] : (int)date('Y');
-            $m = isset($parts[1]) && is_numeric($parts[1]) ? (int)$parts[1] : (int)date('m');
-        }
-        if (!$m || !$y) {
-            $rapor = PerformanceReview::where('user_id', $id)->orderBy('periode', 'desc')->first();
-            if ($rapor) {
-                $m = (int)\Carbon\Carbon::parse($rapor->periode)->month;
-                $y = (int)\Carbon\Carbon::parse($rapor->periode)->year;
-            } else {
-                $m = (int)date('m');
-                $y = (int)date('Y');
-            }
-        }
-        $month = (int)$m;
-        $year = (int)$y;
-        $periodeCarbon = \Carbon\Carbon::createFromDate($year, $month, 1);
+        $periodInfo = PeriodService::parse($request->query('period'), $request->query('month'), $request->query('year'), $request->query('period_type'));
 
         $tickets = Ticket::where('user_id', $id)
             ->where('module_system_id', $moduleId)
-            ->whereMonth('created_at', $month)
-            ->whereYear('created_at', $year)
+            ->whereBetween('created_at', [$periodInfo['start_date'], $periodInfo['end_date']])
             ->with(['client', 'user', 'advisor', 'moduleSystem', 'kategoriSystem'])
             ->orderBy('created_at', 'desc')
             ->get();
@@ -2003,7 +2005,8 @@ class HomeController extends Controller
         $meta = [
             'staff_name' => $user->name,
             'module_name' => $module->name,
-            'period_label' => $periodeCarbon->locale('id')->translatedFormat('F Y'),
+            'period_label' => $periodInfo['label'],
+            'cutoff_label' => $periodInfo['cutoff_label'],
             'printed_by' => auth()->user()->name ?? 'User',
             'printed_at' => date('d/m/Y H:i') . ' WITA',
         ];
@@ -2011,7 +2014,8 @@ class HomeController extends Controller
         $tempFile = \App\Services\TicketExcelService::createModuleTicketsXlsx($tickets, $meta);
         $cleanStaff = preg_replace('/[^A-Za-z0-9_-]/', '_', $user->name);
         $cleanModule = preg_replace('/[^A-Za-z0-9_-]/', '_', $module->name);
-        $filename = "Tiket_Modul_{$cleanModule}_{$cleanStaff}_{$periodeCarbon->format('M_Y')}.xlsx";
+        $cleanPeriodSlug = str_replace(['-', ' '], '_', $periodInfo['period_key']);
+        $filename = "Tiket_Modul_{$cleanModule}_{$cleanStaff}_{$cleanPeriodSlug}.xlsx";
 
         return response()->download($tempFile, $filename, [
             'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
@@ -2033,33 +2037,14 @@ class HomeController extends Controller
         }
 
         $module = ModuleSystem::findOrFail($moduleId);
-
-        $m = $request->query('month');
-        $y = $request->query('year');
-        if ($request->filled('period')) {
-            $parts = explode('-', $request->query('period'));
-            $y = isset($parts[0]) && is_numeric($parts[0]) ? (int)$parts[0] : (int)date('Y');
-            $m = isset($parts[1]) && is_numeric($parts[1]) ? (int)$parts[1] : (int)date('m');
-        }
-        if (!$m || !$y) {
-            $rapor = PerformanceReview::where('user_id', $id)->orderBy('periode', 'desc')->first();
-            if ($rapor) {
-                $m = (int)\Carbon\Carbon::parse($rapor->periode)->month;
-                $y = (int)\Carbon\Carbon::parse($rapor->periode)->year;
-            } else {
-                $m = (int)date('m');
-                $y = (int)date('Y');
-            }
-        }
-        $month = (int)$m;
-        $year = (int)$y;
-        $periodeCarbon = \Carbon\Carbon::createFromDate($year, $month, 1);
-        $periodeText = $periodeCarbon->locale('id')->translatedFormat('F Y');
+        $periodInfo = PeriodService::parse($request->query('period'), $request->query('month'), $request->query('year'), $request->query('period_type'));
+        $month = $periodInfo['month'];
+        $year = $periodInfo['year'];
+        $periodeText = $periodInfo['label'];
 
         $tickets = Ticket::where('user_id', $id)
             ->where('module_system_id', $moduleId)
-            ->whereMonth('created_at', $month)
-            ->whereYear('created_at', $year)
+            ->whereBetween('created_at', [$periodInfo['start_date'], $periodInfo['end_date']])
             ->with(['client', 'user', 'advisor', 'moduleSystem', 'kategoriSystem'])
             ->orderBy('created_at', 'desc')
             ->get();
@@ -2070,12 +2055,14 @@ class HomeController extends Controller
             'tickets',
             'month',
             'year',
-            'periodeText'
+            'periodeText',
+            'periodInfo'
         ))->setPaper('a4', 'landscape');
 
         $cleanStaff = preg_replace('/[^A-Za-z0-9_-]/', '_', $user->name);
         $cleanModule = preg_replace('/[^A-Za-z0-9_-]/', '_', $module->name);
-        $filename = "Tiket_Modul_{$cleanModule}_{$cleanStaff}_{$periodeCarbon->format('M_Y')}.pdf";
+        $cleanPeriodSlug = str_replace(['-', ' '], '_', $periodInfo['period_key']);
+        $filename = "Tiket_Modul_{$cleanModule}_{$cleanStaff}_{$cleanPeriodSlug}.pdf";
 
         return $pdf->stream($filename);
     }

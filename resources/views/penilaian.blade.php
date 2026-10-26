@@ -71,7 +71,7 @@
             <!-- Breadcrumb & Top Bar -->
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
-                    <a href="{{ route('laporan', ['month' => $currentMonth, 'year' => $currentYear, 'period' => sprintf('%04d-%02d', $currentYear, $currentMonth), 'department_id' => $user->departemen_id]) }}" class="inline-flex items-center gap-1.5 text-xs font-semibold text-blue-600 hover:text-blue-700 mb-1.5 transition-colors">
+                    <a href="{{ route('laporan', ['period' => $periodKey, 'period_type' => $periodType, 'department_id' => $user->departemen_id]) }}" class="inline-flex items-center gap-1.5 text-xs font-semibold text-blue-600 hover:text-blue-700 mb-1.5 transition-colors">
                         <span class="text-sm font-bold">&laquo;</span> Kembali ke daftar
                     </a>
                     <h1 class="text-2xl font-bold text-slate-800 tracking-tight">
@@ -79,10 +79,10 @@
                     </h1>
                 </div>
                 <div class="flex flex-col sm:items-end">
-                    <span class="text-[11px] font-medium text-slate-400 mb-1">Periode Penilaian (Cut-off Akhir Bulan):</span>
-                    <div class="bg-white border border-slate-200 rounded-lg px-3.5 py-1.5 text-xs font-semibold text-slate-700 shadow-sm flex items-center gap-2">
+                    <span class="text-[11px] font-medium text-slate-400 mb-1">Periode Penilaian:</span>
+                    <div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3.5 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 shadow-sm flex items-center gap-2">
                         <i class="fa-regular fa-calendar-check text-blue-500"></i>
-                        <span>{{ \Carbon\Carbon::createFromDate($currentYear, $currentMonth, 1)->locale('id')->translatedFormat('F Y') }} (1 – {{ \Carbon\Carbon::createFromDate($currentYear, $currentMonth, 1)->endOfMonth()->translatedFormat('d M Y') }})</span>
+                        <span>{{ $periodInfo['label'] }} (Cut-off: {{ $periodInfo['cutoff_label'] }})</span>
                     </div>
                 </div>
             </div>
@@ -135,6 +135,8 @@
                 @csrf
                 <input type="hidden" name="month" value="{{ $currentMonth }}">
                 <input type="hidden" name="year" value="{{ $currentYear }}">
+                <input type="hidden" name="period" value="{{ $periodKey }}">
+                <input type="hidden" name="period_type" value="{{ $periodType }}">
                 <input type="hidden" name="total_ticket" value="{{ $tiket_ditangani }}">
                 <input type="hidden" name="total_ticket_yang_di_advice" value="{{ $tiket_di_advice }}">
                 <input type="hidden" name="total_lama_waktu" value="{{ $total_lama_waktu }}">
@@ -543,7 +545,7 @@
                 isLoading: false,
                 moduleId: null,
                 moduleName: '',
-                periodLabel: '{{ \Carbon\Carbon::createFromDate($currentYear, $currentMonth, 1)->locale('id')->translatedFormat('F Y') }}',
+                periodLabel: '{{ $periodInfo['label'] }}',
                 summary: { total: 0, closed: 0, progress: 0, open: 0 },
                 tickets: [],
                 excelUrl: '',
@@ -560,10 +562,10 @@
                     let baseUrlPdf = '{{ route('rapor.module_tickets.pdf', ['id' => $user->id, 'module_id' => '__MODULE_ID__']) }}';
                     let baseUrlJson = '{{ route('rapor.module_tickets', ['id' => $user->id, 'module_id' => '__MODULE_ID__']) }}';
                     
-                    this.excelUrl = baseUrlExcel.replace('__MODULE_ID__', id) + '?month={{ $currentMonth }}&year={{ $currentYear }}';
-                    this.pdfUrl = baseUrlPdf.replace('__MODULE_ID__', id) + '?month={{ $currentMonth }}&year={{ $currentYear }}';
+                    this.excelUrl = baseUrlExcel.replace('__MODULE_ID__', id) + '?period={{ $periodKey }}&period_type={{ $periodType }}&month={{ $currentMonth }}&year={{ $currentYear }}';
+                    this.pdfUrl = baseUrlPdf.replace('__MODULE_ID__', id) + '?period={{ $periodKey }}&period_type={{ $periodType }}&month={{ $currentMonth }}&year={{ $currentYear }}';
                     
-                    fetch(baseUrlJson.replace('__MODULE_ID__', id) + '?month={{ $currentMonth }}&year={{ $currentYear }}')
+                    fetch(baseUrlJson.replace('__MODULE_ID__', id) + '?period={{ $periodKey }}&period_type={{ $periodType }}&month={{ $currentMonth }}&year={{ $currentYear }}')
                         .then(res => res.json())
                         .then(data => {
                             this.isLoading = false;

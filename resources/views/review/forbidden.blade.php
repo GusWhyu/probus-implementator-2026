@@ -42,12 +42,19 @@
                 $isIncognito = $isIncognitoStaff ?? false;
             @endphp
 
-            @if ($isCreator || $isAdvisor)
+            @if ($isCreator)
             <p class="text-xs font-bold text-amber-600 bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-xl mb-4">
                 Petugas / Pembuat Tiket Tidak Dapat Mengisi Review Sendiri
             </p>
             <p class="text-sm font-medium text-slate-500 leading-relaxed max-w-sm mb-6">
-                Anda sedang login sebagai <b class="text-slate-800">{{ Auth::user()->name }}</b> (staf penangan tiket ini). Untuk menjaga integritas dan objektivitas data, survey ini <span class="font-bold text-slate-700">hanya dapat diisi oleh pihak klien ({{ $ticket->client->nm_out ?? 'Pelanggan' }})</span>.
+                Anda sedang login sebagai <b class="text-slate-800">{{ Auth::user()->name }}</b> (staf pembuat & penangan tiket ini). Untuk menjaga integritas dan objektivitas data, survey ini <span class="font-bold text-slate-700">hanya dapat diisi oleh pihak klien ({{ $ticket->client->nm_out ?? 'Pelanggan' }})</span>.
+            </p>
+            @elseif ($isAdvisor)
+            <p class="text-xs font-bold text-amber-600 bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-xl mb-4">
+                Advisor Tiket Tidak Dapat Mengisi Review
+            </p>
+            <p class="text-sm font-medium text-slate-500 leading-relaxed max-w-sm mb-6">
+                Anda sedang login sebagai <b class="text-slate-800">{{ Auth::user()->name }}</b> (advisor pada tiket ini). Survey kepuasan ini <span class="font-bold text-slate-700">hanya dapat diisi oleh pihak klien ({{ $ticket->client->nm_out ?? 'Pelanggan' }})</span>.
             </p>
             @elseif ($isLoggedIn)
             <p class="text-xs font-bold text-amber-600 bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-xl mb-4">

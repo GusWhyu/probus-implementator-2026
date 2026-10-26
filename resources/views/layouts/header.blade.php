@@ -98,6 +98,41 @@
                             }
                         @endphp
 
+                        @php
+                            $isClosed = !empty($data['is_closed']);
+                            if (!$isClosed) {
+                                $statusVal = strtolower((string)($data['status'] ?? ''));
+                                $statusIdVal = (int)($data['status_id'] ?? 0);
+                                if ($statusVal === 'closed' || $statusIdVal === 4 || strpos(strtolower($title), 'selesai') !== false || strpos(strtolower($message), 'closed') !== false || strpos(strtolower($message), 'selesai') !== false) {
+                                    $isClosed = true;
+                                }
+                            }
+                        @endphp
+
+                        @if ($isClosed)
+                        <a href="{{ $url ?: '#' }}" onclick="markNotificationRead('{{ $notification->id }}')" class="p-4 transition-all relative group cursor-pointer block border-l-4 border-l-emerald-500 bg-emerald-50/60 hover:bg-emerald-100/70 dark:bg-emerald-950/30 dark:hover:bg-emerald-900/50">
+                            <div class="flex gap-3.5 items-start">
+                                <div class="w-9 h-9 rounded-full bg-emerald-100 text-emerald-600 dark:bg-emerald-900/60 dark:text-emerald-400 dark:border dark:border-emerald-700/60 flex items-center justify-center shrink-0 mt-0.5 group-hover:scale-110 shadow-xs transition-all duration-300">
+                                    <i class="fa-solid fa-circle-check text-sm"></i>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <div class="flex items-center justify-between gap-1.5 mb-1">
+                                        <div class="flex items-center gap-1.5 min-w-0">
+                                            <span class="px-1.5 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider bg-emerald-200/80 text-emerald-900 dark:bg-emerald-900/80 dark:text-emerald-200 border border-emerald-300 dark:border-emerald-700/80 shrink-0 flex items-center gap-1">
+                                                <i class="fa-solid fa-check text-[8px]"></i> Selesai
+                                            </span>
+                                            <h5 class="text-xs font-extrabold text-emerald-950 dark:text-emerald-200 truncate">{{ $title }}</h5>
+                                        </div>
+                                        <span class="text-[9px] text-emerald-700/80 dark:text-emerald-400 font-semibold flex items-center gap-1 shrink-0">
+                                            <i class="fa-regular fa-clock text-[8px]"></i>
+                                            {{ $notification->created_at->diffForHumans() }}
+                                        </span>
+                                    </div>
+                                    <p class="text-xs text-slate-700 dark:text-slate-300 leading-snug font-medium line-clamp-2">{{ $message }}</p>
+                                </div>
+                            </div>
+                        </a>
+                        @else
                         <a href="{{ $url ?: '#' }}" onclick="markNotificationRead('{{ $notification->id }}')" class="p-4 hover:bg-blue-50/50 dark:hover:bg-slate-800/50 transition-colors relative group cursor-pointer block">
                             <div class="flex gap-3.5 items-start">
                                 <div class="notif-icon-box w-9 h-9 rounded-full bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400 dark:border dark:border-blue-700/30 flex items-center justify-center shrink-0 mt-0.5 group-hover:scale-110 group-hover:bg-blue-600 group-hover:text-white transition-all duration-300">
@@ -115,6 +150,7 @@
                                 </div>
                             </div>
                         </a>
+                        @endif
                     @empty
                         <div class="py-12 px-6 text-center flex flex-col items-center bg-slate-50/30 dark:bg-slate-900/40">
                             <div class="w-16 h-16 bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700/60 rounded-full flex items-center justify-center text-slate-300 dark:text-slate-500 mb-4 shadow-sm">
@@ -241,25 +277,54 @@
         let html = '';
         notifications.forEach(item => {
             const itemUrl = item.url || '#';
-            html += `
-                <a href="${itemUrl}" onclick="markNotificationRead('${item.id}')" class="p-4 hover:bg-blue-50/50 dark:hover:bg-slate-800/50 transition-colors relative group cursor-pointer block">
-                    <div class="flex gap-3.5 items-start">
-                        <div class="notif-icon-box w-9 h-9 rounded-full bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400 dark:border dark:border-blue-700/30 flex items-center justify-center shrink-0 mt-0.5 group-hover:scale-110 group-hover:bg-blue-600 group-hover:text-white transition-all duration-300">
-                            <i class="fa-solid fa-bell text-xs"></i>
-                        </div>
-                        <div class="flex-1 min-w-0">
-                            <div class="flex items-center justify-between gap-1 mb-0.5">
-                                <h5 class="text-xs font-bold text-slate-800 dark:text-slate-100 truncate">${escapeHtml(item.title)}</h5>
-                                <span class="text-[9px] text-slate-400 font-semibold flex items-center gap-1 shrink-0">
-                                    <i class="fa-regular fa-clock text-[8px]"></i>
-                                    <span>${escapeHtml(item.created_at_human)}</span>
-                                </span>
+            const isClosed = Boolean(item.is_closed);
+
+            if (isClosed) {
+                html += `
+                    <a href="${itemUrl}" onclick="markNotificationRead('${item.id}')" class="p-4 transition-all relative group cursor-pointer block border-l-4 border-l-emerald-500 bg-emerald-50/60 hover:bg-emerald-100/70 dark:bg-emerald-950/30 dark:hover:bg-emerald-900/50">
+                        <div class="flex gap-3.5 items-start">
+                            <div class="w-9 h-9 rounded-full bg-emerald-100 text-emerald-600 dark:bg-emerald-900/60 dark:text-emerald-400 dark:border dark:border-emerald-700/60 flex items-center justify-center shrink-0 mt-0.5 group-hover:scale-110 shadow-xs transition-all duration-300">
+                                <i class="fa-solid fa-circle-check text-sm"></i>
                             </div>
-                            <p class="text-xs text-slate-600 dark:text-slate-300 leading-snug mb-1 font-medium line-clamp-2">${escapeHtml(item.message)}</p>
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-center justify-between gap-1.5 mb-1">
+                                    <div class="flex items-center gap-1.5 min-w-0">
+                                        <span class="px-1.5 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider bg-emerald-200/80 text-emerald-900 dark:bg-emerald-900/80 dark:text-emerald-200 border border-emerald-300 dark:border-emerald-700/80 shrink-0 flex items-center gap-1">
+                                            <i class="fa-solid fa-check text-[8px]"></i> Selesai
+                                        </span>
+                                        <h5 class="text-xs font-extrabold text-emerald-950 dark:text-emerald-200 truncate">${escapeHtml(item.title)}</h5>
+                                    </div>
+                                    <span class="text-[9px] text-emerald-700/80 dark:text-emerald-400 font-semibold flex items-center gap-1 shrink-0">
+                                        <i class="fa-regular fa-clock text-[8px]"></i>
+                                        <span>${escapeHtml(item.created_at_human)}</span>
+                                    </span>
+                                </div>
+                                <p class="text-xs text-slate-700 dark:text-slate-300 leading-snug font-medium line-clamp-2">${escapeHtml(item.message)}</p>
+                            </div>
                         </div>
-                    </div>
-                </a>
-            `;
+                    </a>
+                `;
+            } else {
+                html += `
+                    <a href="${itemUrl}" onclick="markNotificationRead('${item.id}')" class="p-4 hover:bg-blue-50/50 dark:hover:bg-slate-800/50 transition-colors relative group cursor-pointer block">
+                        <div class="flex gap-3.5 items-start">
+                            <div class="notif-icon-box w-9 h-9 rounded-full bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400 dark:border dark:border-blue-700/30 flex items-center justify-center shrink-0 mt-0.5 group-hover:scale-110 group-hover:bg-blue-600 group-hover:text-white transition-all duration-300">
+                                <i class="fa-solid fa-bell text-xs"></i>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-center justify-between gap-1 mb-0.5">
+                                    <h5 class="text-xs font-bold text-slate-800 dark:text-slate-100 truncate">${escapeHtml(item.title)}</h5>
+                                    <span class="text-[9px] text-slate-400 font-semibold flex items-center gap-1 shrink-0">
+                                        <i class="fa-regular fa-clock text-[8px]"></i>
+                                        <span>${escapeHtml(item.created_at_human)}</span>
+                                    </span>
+                                </div>
+                                <p class="text-xs text-slate-600 dark:text-slate-300 leading-snug mb-1 font-medium line-clamp-2">${escapeHtml(item.message)}</p>
+                            </div>
+                        </div>
+                    </a>
+                `;
+            }
         });
         container.innerHTML = html;
     }

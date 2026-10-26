@@ -70,6 +70,16 @@ class NotificationController extends Controller
                 }
             }
 
+            // Deteksi apakah notifikasi adalah tentang request/tiket yang telah selesai (Closed)
+            $isClosed = !empty($raw['is_closed']);
+            if (!$isClosed) {
+                $statusVal = strtolower((string)($raw['status'] ?? ''));
+                $statusIdVal = (int)($raw['status_id'] ?? 0);
+                if ($statusVal === 'closed' || $statusIdVal === 4 || strpos(strtolower($title), 'selesai') !== false || strpos(strtolower($message), 'closed') !== false || strpos(strtolower($message), 'selesai') !== false) {
+                    $isClosed = true;
+                }
+            }
+
             return [
                 'id' => $notif->id,
                 'title' => $title,
@@ -78,6 +88,7 @@ class NotificationController extends Controller
                 'created_at_human' => $notif->created_at ? $notif->created_at->diffForHumans() : 'Baru saja',
                 'created_at_timestamp' => $notif->created_at ? $notif->created_at->timestamp : 0,
                 'is_ticket' => (bool)$isTicket,
+                'is_closed' => (bool)$isClosed,
             ];
         });
 

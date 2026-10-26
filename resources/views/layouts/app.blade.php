@@ -316,11 +316,70 @@
             html.dark input[type="email"],
             html.dark input[type="password"],
             html.dark input[type="number"],
-            html.dark select,
+            html.dark select:not(.period-select-clean),
             html.dark textarea {
                 background-color: #0f172a !important;
                 color: #f8fafc !important;
                 border-color: #334155 !important;
+            }
+
+            /* Period Capsule UI for Laporan & Rapor (Perfect Light & Dark Mode Blend) */
+            .period-capsule {
+                background-color: #ffffff;
+                border-color: #e2e8f0;
+            }
+            html.dark .period-capsule,
+            html[data-theme="dark"] .period-capsule {
+                background-color: #1e293b !important;
+                border-color: #334155 !important;
+            }
+            .period-capsule-switcher {
+                background-color: #f1f5f9;
+                border-color: #e2e8f0;
+            }
+            html.dark .period-capsule-switcher,
+            html[data-theme="dark"] .period-capsule-switcher {
+                background-color: #0f172a !important;
+                border-color: rgba(51, 65, 85, 0.7) !important;
+            }
+            .period-capsule-btn-active {
+                background-color: #ffffff !important;
+                color: #2563eb !important;
+                box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            }
+            html.dark .period-capsule-btn-active,
+            html[data-theme="dark"] .period-capsule-btn-active {
+                background-color: #334155 !important;
+                color: #38bdf8 !important;
+                border-color: rgba(148, 163, 184, 0.25) !important;
+                box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.3) !important;
+            }
+            .period-capsule-btn-inactive {
+                color: #64748b;
+            }
+            html.dark .period-capsule-btn-inactive,
+            html[data-theme="dark"] .period-capsule-btn-inactive {
+                color: #94a3b8 !important;
+            }
+            html.dark .period-capsule-btn-inactive:hover,
+            html[data-theme="dark"] .period-capsule-btn-inactive:hover {
+                color: #f8fafc !important;
+            }
+            select.period-select-clean,
+            html.dark select.period-select-clean,
+            html[data-theme="dark"] select.period-select-clean {
+                background: transparent !important;
+                background-color: transparent !important;
+                border: none !important;
+                border-color: transparent !important;
+                outline: none !important;
+                box-shadow: none !important;
+                -webkit-appearance: none !important;
+                -moz-appearance: none !important;
+                appearance: none !important;
+            }
+            select.period-select-clean::-ms-expand {
+                display: none !important;
             }
             html.dark input::placeholder,
             html.dark textarea::placeholder {

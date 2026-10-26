@@ -103,6 +103,11 @@
                             <span class="break-words">{{ $ticket->client->nm_out }}</span>
                         </span>
                         @endif
+                        @if($ticket->advisor)
+                        <span class="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 bg-white px-2.5 py-1 rounded-lg border border-slate-200/80 shadow-xs break-words" title="Advisor Tiket">
+                            <i class="fa-solid fa-user-shield text-[10px] text-indigo-500 shrink-0 mr-1"></i>Advisor: {{ $ticket->advisor->name }}
+                        </span>
+                        @endif
                     </div>
                     <h2 class="font-bold text-slate-800 text-sm sm:text-[15px] leading-snug pt-0.5 break-words">{{ $ticket->title }}</h2>
                 </div>
