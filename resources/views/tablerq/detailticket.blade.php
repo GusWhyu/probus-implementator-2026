@@ -95,42 +95,6 @@
             </div>
             @endif
 
-            <!-- Banner Menunggu Konfirmasi Klien -->
-            @if ($datarq->is_waiting_confirmation)
-            <div class="bg-amber-50/90 dark:bg-amber-950/40 border border-amber-300/90 dark:border-amber-800/60 rounded-2xl p-4 sm:p-5 mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 sm:gap-4 shadow-xs">
-                <div class="flex items-start sm:items-center gap-3 sm:gap-3.5">
-                    <div class="w-9 h-9 sm:w-10 sm:h-10 bg-amber-100 dark:bg-amber-900/50 rounded-xl sm:rounded-2xl flex items-center justify-center text-amber-600 dark:text-amber-400 shrink-0 shadow-2xs border border-amber-200 dark:border-amber-800/60 text-base sm:text-lg mt-0.5 sm:mt-0">
-                        <i class="fa-solid fa-hourglass-half"></i>
-                    </div>
-                    <div>
-                        <div class="flex items-center gap-2 flex-wrap">
-                            <h4 class="font-extrabold text-amber-950 dark:text-amber-100 text-xs sm:text-sm">Menunggu Konfirmasi Klien</h4>
-                            <span class="px-2 py-0.5 rounded-md text-[9px] sm:text-[10px] font-bold uppercase tracking-wider bg-amber-200/80 dark:bg-amber-900/80 text-amber-900 dark:text-amber-200 border border-amber-300 dark:border-amber-800">
-                                Status: Progress
-                            </span>
-                        </div>
-                        <p class="text-xs sm:text-[13px] font-medium text-amber-900/90 dark:text-amber-200/90 mt-0.5 leading-relaxed">
-                            Pengerjaan kendala telah diselesaikan dan telah dikirimkan ke pihak klien. Saat ini sedang menunggu konfirmasi hasil pengetesan dari <strong>{{ $datarq->client->nm_out ?? 'Klien' }}</strong>.
-                        </p>
-                    </div>
-                </div>
-                <div class="w-full sm:w-auto shrink-0 pt-1 sm:pt-0">
-                    @php
-                        $clientName = $datarq->client ? $datarq->client->nm_out : 'Bapak/Ibu';
-                        $waDirectMsg = "Halo Tim *{$clientName}*,\n\n"
-                                     . "Pemberitahuan dari *Tim Support Probus System*:\n\n"
-                                     . "📋 *No. Tiket:* #{$datarq->ticket_number}\n"
-                                     . "📌 *Kendala:* {$datarq->title}\n"
-                                     . "⏳ *Status:* Selesai Dikerjakan (Menunggu Konfirmasi Klien)\n\n"
-                                     . "Mohon kesediaannya untuk melakukan pengecekan kembali. Terima kasih atas kerja samanya. 🙏";
-                        $waDirectUrl = 'https://api.whatsapp.com/send?text=' . rawurlencode($waDirectMsg);
-                    @endphp
-                    <a href="{{ $waDirectUrl }}" target="_blank" class="w-full sm:w-auto justify-center px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-all active:scale-95 shadow-sm shadow-emerald-500/20 flex items-center gap-2 cursor-pointer text-center">
-                        <i class="fa-brands fa-whatsapp text-sm"></i> WhatsApp Klien
-                    </a>
-                </div>
-            </div>
-            @endif
 
             <!-- Takeover Notification Banners -->
             @php
@@ -604,28 +568,24 @@
                                 @endphp
 
                                 @if($isKomenWaiting)
-                                    <!-- Specialized Card: Menunggu Konfirmasi Klien -->
-                                    <div class="w-full bg-amber-50/90 dark:bg-amber-950/40 border border-amber-300/80 dark:border-amber-800/60 rounded-2xl p-4 shadow-2xs">
-                                        <div class="flex items-center justify-between gap-2 mb-2">
-                                            <div class="flex items-center gap-2">
-                                                <span class="w-7 h-7 rounded-xl bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center text-xs">
-                                                    <i class="fa-solid fa-hourglass-half"></i>
-                                                </span>
-                                                <div>
-                                                    <span class="text-xs font-extrabold text-amber-950 dark:text-amber-200 uppercase tracking-wider block">Permintaan Konfirmasi Klien</span>
-                                                    <span class="text-[10px] text-amber-800/70 dark:text-amber-400 font-medium">Oleh: {{ $komen->user->name ?? 'Petugas' }}</span>
-                                                </div>
+                                    <!-- Specialized Card: Menunggu Konfirmasi Klien (Compact timeline log) -->
+                                    <div class="w-full bg-amber-50/70 dark:bg-amber-950/30 border border-amber-200/80 dark:border-amber-800/50 rounded-xl p-3 text-xs shadow-2xs">
+                                        <div class="flex items-center justify-between gap-2 mb-1.5">
+                                            <div class="flex items-center gap-1.5">
+                                                <i class="fa-solid fa-hourglass-half text-amber-500 text-xs"></i>
+                                                <span class="font-bold text-amber-900 dark:text-amber-200">Permintaan Konfirmasi Klien</span>
+                                                <span class="text-[10px] text-amber-700/70 dark:text-amber-400">({{ $komen->user->name ?? 'Petugas' }})</span>
                                             </div>
-                                            <span class="text-[10px] text-slate-400 dark:text-slate-500">{{ $komen->created_at->diffForHumans() }}</span>
+                                            <div class="flex items-center gap-2">
+                                                <span class="text-[10px] text-slate-400">{{ $komen->created_at->diffForHumans() }}</span>
+                                                @if ($komen->user_id == $aid && $stid != 'CLOSED')
+                                                <a data-confirm-delete="true" href="/deletekomen/{{ $komen->id }}" class="text-[10px] font-bold text-slate-400 hover:text-rose-500 transition-colors" title="Hapus"><i class="fa-solid fa-trash-can"></i></a>
+                                                @endif
+                                            </div>
                                         </div>
-                                        <div class="text-xs sm:text-sm text-slate-700 dark:text-slate-200 whitespace-pre-line leading-relaxed my-2 bg-white/70 dark:bg-slate-900/60 p-3 rounded-xl border border-amber-200/50 dark:border-amber-900/40">
+                                        <p class="text-xs text-slate-700 dark:text-slate-300 leading-relaxed bg-white/60 dark:bg-slate-900/50 p-2.5 rounded-lg border border-amber-100 dark:border-amber-900/30">
                                             {{ trim(str_replace('[MENUNGGU KONFIRMASI KLIEN]', '', $komen->body ?? $komen->message)) }}
-                                        </div>
-                                        @if ($komen->user_id == $aid && $stid != 'CLOSED')
-                                        <div class="flex items-center justify-end pt-1.5 border-t border-amber-200/60 dark:border-amber-800/40">
-                                            <a data-confirm-delete="true" href="/deletekomen/{{ $komen->id }}" class="text-[10px] font-bold text-slate-400 hover:text-rose-500 transition-colors"><i class="fa-solid fa-trash-can mr-1"></i>Hapus</a>
-                                        </div>
-                                        @endif
+                                        </p>
                                     </div>
                                 @elseif($isKomenResume)
                                     <!-- Specialized Card: Lanjut Dikerjakan -->
@@ -730,13 +690,19 @@
                                         <span class="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>NEW
                                     </span>
                                     @endif
+                                    @if ($datarq->is_waiting_confirmation)
+                                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-amber-500 text-white shadow-2xs flex items-center gap-1">
+                                        <i class="fa-solid fa-hourglass-half text-[9px]"></i> MENUNGGU KLIEN
+                                    </span>
+                                    @else
                                     <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider {{ $bg }}">
                                         {{ $datarq->status }}
                                     </span>
+                                    @endif
                                 </div>
                             </div>
 
-                            <!-- Bottom row: Ticket Number with Copy Button & Sub-Status Badge -->
+                            <!-- Bottom row: Ticket Number with Copy Button -->
                             <div class="flex items-center justify-between gap-2 flex-wrap">
                                 <div class="flex items-center gap-1.5">
                                     <span class="text-blue-600 dark:text-blue-400 font-black text-base sm:text-lg font-mono tracking-tight whitespace-nowrap">
@@ -749,11 +715,6 @@
                                         <i class="fa-regular fa-copy text-[10px]"></i>
                                     </button>
                                 </div>
-                                @if ($datarq->is_waiting_confirmation)
-                                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 border border-amber-300/80 dark:border-amber-700/60 shadow-2xs whitespace-nowrap">
-                                    <i class="fa-solid fa-hourglass-half text-[9px]"></i> MENUNGGU KLIEN
-                                </span>
-                                @endif
                             </div>
                         </div>
                         
@@ -874,6 +835,30 @@
                                     @else
                                         @if ($datarq->is_waiting_confirmation)
                                             {{-- Tiket sedang menunggu konfirmasi klien --}}
+                                            @php
+                                                $clientName = $datarq->client ? $datarq->client->nm_out : 'Bapak/Ibu';
+                                                $waDirectMsg = "Halo Tim *{$clientName}*,\n\n"
+                                                             . "Pemberitahuan dari *Tim Support Probus System*:\n\n"
+                                                             . "📋 *No. Tiket:* #{$datarq->ticket_number}\n"
+                                                             . "📌 *Kendala:* {$datarq->title}\n"
+                                                             . "⏳ *Status:* Selesai Dikerjakan (Menunggu Konfirmasi Klien)\n\n"
+                                                             . "Mohon kesediaannya untuk melakukan pengecekan kembali. Terima kasih atas kerja samanya. 🙏";
+                                                $waDirectUrl = 'https://api.whatsapp.com/send?text=' . rawurlencode($waDirectMsg);
+                                            @endphp
+                                            <div class="bg-amber-50/80 dark:bg-amber-950/40 border border-amber-200/90 dark:border-amber-800/60 rounded-xl p-3 mb-1">
+                                                <div class="flex items-center justify-between gap-2 mb-1">
+                                                    <span class="text-[11px] font-bold text-amber-900 dark:text-amber-200 flex items-center gap-1.5">
+                                                        <i class="fa-solid fa-hourglass-half text-amber-500"></i> Menunggu Respon Klien
+                                                    </span>
+                                                    <a href="{{ $waDirectUrl }}" target="_blank" class="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-[10px] font-bold transition-all flex items-center gap-1 shadow-2xs cursor-pointer active:scale-95">
+                                                        <i class="fa-brands fa-whatsapp text-xs"></i> WhatsApp
+                                                    </a>
+                                                </div>
+                                                <p class="text-[10.5px] text-amber-800/80 dark:text-amber-300/80 leading-snug">
+                                                    Pekerjaan telah dikirimkan ke <strong>{{ $datarq->client->nm_out ?? 'klien' }}</strong> untuk diuji.
+                                                </p>
+                                            </div>
+
                                             @if(is_null($datarq->advisor_id))
                                                 <button type="button" onclick="document.getElementById('forceAdvisorModal').showModal()" class="w-full flex items-center justify-center bg-emerald-600 hover:bg-emerald-700 text-white py-3.5 rounded-xl font-bold text-sm shadow-md shadow-emerald-500/25 transition-all active:scale-95 gap-2 cursor-pointer">
                                                     <i class="fa-solid fa-circle-check text-emerald-200"></i> Klien Sudah OK (Selesaikan)
@@ -1330,11 +1315,9 @@
                     </button>
                 </div>
 
-                <div class="bg-amber-50/70 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/60 rounded-2xl p-4 mb-4 text-xs text-amber-900 dark:text-amber-200">
-                    <p class="font-bold flex items-center gap-1.5 mb-1 text-amber-800 dark:text-amber-300">
-                        <i class="fa-solid fa-circle-info"></i> Penandaan Progres
-                    </p>
-                    Status tiket tetap <strong>PROGRESS</strong>, namun ditandai bahwa pekerjaan teknis telah selesai dan sedang menunggu respon/pengetesan dari pihak <strong>{{ $datarq->client->nm_out ?? 'Klien' }}</strong>.
+                <div class="mb-4 text-xs text-slate-600 dark:text-slate-300 leading-relaxed bg-amber-50/60 dark:bg-amber-950/30 border border-amber-200/60 dark:border-amber-800/40 rounded-xl p-3 flex items-start gap-2.5">
+                    <i class="fa-solid fa-circle-info text-amber-500 mt-0.5 shrink-0 text-sm"></i>
+                    <span>Tandai bahwa perbaikan teknis telah selesai dan kirim pemberitahuan ke <strong>{{ $datarq->client->nm_out ?? 'klien' }}</strong> untuk melakukan pengujian.</span>
                 </div>
 
                 <div class="mb-4">
