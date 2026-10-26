@@ -594,8 +594,11 @@ public static function createXlsx($tickets, array $meta = [])
 
         $xml .= '  <sheetData>' . "\n";
 
+        $isAll = !empty($meta['is_all_modules']);
         // Row 1: Header Judul Laporan (Tinggi 36pt, Merged A1:L1)
-        $titleText = 'PROBUS SYSTEM - RIWAYAT PENGERJAAN TIKET MODUL: ' . mb_strtoupper($moduleName);
+        $titleText = $isAll 
+            ? 'PROBUS SYSTEM - RIWAYAT PENGERJAAN TIKET: SEMUA MODUL (TOTAL KESELURUHAN)' 
+            : 'PROBUS SYSTEM - RIWAYAT PENGERJAAN TIKET MODUL: ' . mb_strtoupper($moduleName);
         $xml .= '    <row r="1" ht="36" customHeight="1">' . "\n";
         $xml .= '      <c r="A1" s="5" t="inlineStr"><is><t>' . self::xmlEscape($titleText) . '</t></is></c>' . "\n";
         for ($colIdx = 2; $colIdx <= 12; $colIdx++) {
@@ -618,8 +621,9 @@ public static function createXlsx($tickets, array $meta = [])
         $xml .= '    <row r="3" ht="10" customHeight="1"/>' . "\n";
 
         // Row 4: KPI Summary Cards - Label Row (Tinggi 18pt)
+        $kpiTotalLabel = $isAll ? 'TOTAL SELURUH TIKET' : 'TOTAL TIKET MODUL';
         $xml .= '    <row r="4" ht="18" customHeight="1">' . "\n";
-        $xml .= '      <c r="A4" s="7" t="inlineStr"><is><t>TOTAL TIKET MODUL</t></is></c>' . "\n";
+        $xml .= '      <c r="A4" s="7" t="inlineStr"><is><t>' . $kpiTotalLabel . '</t></is></c>' . "\n";
         $xml .= '      <c r="B4" s="7"/>' . "\n";
         $xml .= '      <c r="C4" s="7"/>' . "\n";
         $xml .= '      <c r="D4" s="13" t="inlineStr"><is><t>TIKET SELESAI (CLOSED)</t></is></c>' . "\n";
@@ -699,7 +703,8 @@ public static function createXlsx($tickets, array $meta = [])
             // B: No. Tiket
             $xml .= '      <c r="B' . $currentRow . '" s="' . $sTck . '" t="inlineStr"><is><t>' . self::xmlEscape($t->ticket_number) . '</t></is></c>' . "\n";
             // C: Judul Tiket
-            $xml .= '      <c r="C' . $currentRow . '" s="' . $sWrap . '" t="inlineStr"><is><t>' . self::xmlEscape($t->title) . '</t></is></c>' . "\n";
+            $displayTitle = ($isAll && !empty($t->moduleSystem->name)) ? '[' . $t->moduleSystem->name . '] ' . $t->title : $t->title;
+            $xml .= '      <c r="C' . $currentRow . '" s="' . $sWrap . '" t="inlineStr"><is><t>' . self::xmlEscape($displayTitle) . '</t></is></c>' . "\n";
             // D: Kendala / Deskripsi
             $xml .= '      <c r="D' . $currentRow . '" s="' . $sWrap . '" t="inlineStr"><is><t>' . self::xmlEscape($deskripsi) . '</t></is></c>' . "\n";
             // E: Apa Yang Dikerjakan (Solusi)
