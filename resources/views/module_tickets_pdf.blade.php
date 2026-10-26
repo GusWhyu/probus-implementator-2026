@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>Laporan Tiket Modul {{ $module->name }} - {{ $user->name }}</title>
+    <title>Laporan Tiket {{ ($module->id ?? '') === 'all' ? 'Keseluruhan' : 'Modul ' . $module->name }} - {{ $user->name }}</title>
     <style>
         @page {
             margin: 22px 38px 22px 38px;
@@ -178,9 +178,14 @@
                 </table>
             </td>
             <td style="width: 50%; text-align: right; vertical-align: middle;">
-                <div style="font-size: 14px; font-weight: bold; color: #0f172a; text-transform: uppercase;">LAPORAN RIWAYAT TIKET PER MODUL</div>
+                <div style="font-size: 14px; font-weight: bold; color: #0f172a; text-transform: uppercase;">
+                    {{ ($module->id ?? '') === 'all' ? 'LAPORAN RIWAYAT TIKET KESELURUHAN' : 'LAPORAN RIWAYAT TIKET PER MODUL' }}
+                </div>
                 <div style="font-size: 10.5px; font-weight: bold; color: #1e40af; margin-top: 2px;">
-                    MODUL: {{ strtoupper($module->name) }} <span style="font-size: 9px; color: #64748b; font-weight: normal;">(Bobot: {{ $module->bobot }})</span>
+                    MODUL: {{ strtoupper($module->name) }}
+                    @if(!empty($module->bobot) && $module->bobot !== '-')
+                        <span style="font-size: 9px; color: #64748b; font-weight: normal;">(Bobot: {{ $module->bobot }})</span>
+                    @endif
                 </div>
             </td>
         </tr>
@@ -274,6 +279,11 @@
                     <td style="text-align: center; font-weight: bold; font-size: 10px;">{{ $index + 1 }}</td>
                     <td>
                         <div style="font-weight: bold; font-family: monospace; font-size: 10px; color: #0f172a;">{{ $t->ticket_number }}</div>
+                        @if(($module->id ?? '') === 'all' && !empty($t->moduleSystem->name))
+                            <div style="font-size: 8px; color: #1e40af; font-weight: bold; margin-top: 1px;">
+                                [{{ $t->moduleSystem->name }}]
+                            </div>
+                        @endif
                         <div style="margin-top: 4px;">
                             @if($status === 'CLOSED')
                                 <span class="badge badge-closed">CLOSED</span>

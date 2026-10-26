@@ -1910,16 +1910,29 @@ class HomeController extends Controller
             return response()->json(['error' => 'Anda hanya memiliki izin melihat tiket Anda sendiri.'], 403);
         }
 
-        $module = ModuleSystem::findOrFail($moduleId);
+        $isAll = ($moduleId === 'all' || $moduleId == '0');
+        if ($isAll) {
+            $module = (object)[
+                'id' => 'all',
+                'name' => 'Total Keseluruhan',
+                'bobot' => '-',
+            ];
+        } else {
+            $module = ModuleSystem::findOrFail($moduleId);
+        }
 
         $periodInfo = PeriodService::parse($request->query('period'), $request->query('month'), $request->query('year'), $request->query('period_type'));
 
-        $tickets = Ticket::where('user_id', $id)
-            ->where('module_system_id', $moduleId)
+        $query = Ticket::where('user_id', $id)
             ->whereBetween('created_at', [$periodInfo['start_date'], $periodInfo['end_date']])
             ->with(['client', 'user', 'advisor', 'moduleSystem', 'kategoriSystem'])
-            ->orderBy('created_at', 'desc')
-            ->get();
+            ->orderBy('created_at', 'desc');
+
+        if (!$isAll) {
+            $query->where('module_system_id', $moduleId);
+        }
+
+        $tickets = $query->get();
 
         $ticketsData = $tickets->map(function($t) {
             $clientName = $t->client->nm_out ?? $t->client->name ?? '-';
@@ -1930,6 +1943,7 @@ class HomeController extends Controller
                 'id' => $t->id,
                 'ticket_number' => $t->ticket_number,
                 'title' => $t->title,
+                'module_name' => $t->moduleSystem->name ?? '-',
                 'description' => $t->description ? trim(strip_tags($t->description)) : null,
                 'solusi' => $t->solusi ? trim(strip_tags($t->solusi)) : null,
                 'client_name' => $clientName,
@@ -1979,7 +1993,7 @@ class HomeController extends Controller
     }
 
     /**
-     * Download format Excel (.xlsx) untuk riwayat tiket modul.
+     * Download format Excel (.xlsx) untuk riwayat tiket modul atau total keseluruhan.
      */
     public function exportModuleTicketsExcel($id, $moduleId, Request $request) {
         $user = User::findOrFail($id);
@@ -1992,19 +2006,34 @@ class HomeController extends Controller
             return redirect()->route('dashboard')->with('error', 'Anda hanya memiliki izin melihat tiket Anda sendiri.');
         }
 
-        $module = ModuleSystem::findOrFail($moduleId);
+        $isAll = ($moduleId === 'all' || $moduleId == '0');
+        if ($isAll) {
+            $module = (object)[
+                'id' => 'all',
+                'name' => 'Semua Modul (Total Keseluruhan)',
+                'bobot' => '-',
+            ];
+        } else {
+            $module = ModuleSystem::findOrFail($moduleId);
+        }
+
         $periodInfo = PeriodService::parse($request->query('period'), $request->query('month'), $request->query('year'), $request->query('period_type'));
 
-        $tickets = Ticket::where('user_id', $id)
-            ->where('module_system_id', $moduleId)
+        $query = Ticket::where('user_id', $id)
             ->whereBetween('created_at', [$periodInfo['start_date'], $periodInfo['end_date']])
             ->with(['client', 'user', 'advisor', 'moduleSystem', 'kategoriSystem'])
-            ->orderBy('created_at', 'desc')
-            ->get();
+            ->orderBy('created_at', 'desc');
+
+        if (!$isAll) {
+            $query->where('module_system_id', $moduleId);
+        }
+
+        $tickets = $query->get();
 
         $meta = [
             'staff_name' => $user->name,
             'module_name' => $module->name,
+            'is_all_modules' => $isAll,
             'period_label' => $periodInfo['label'],
             'cutoff_label' => $periodInfo['cutoff_label'],
             'printed_by' => auth()->user()->name ?? 'User',
@@ -2023,7 +2052,7 @@ class HomeController extends Controller
     }
 
     /**
-     * Download format PDF (.pdf) untuk riwayat tiket modul.
+     * Download format PDF (.pdf) untuk riwayat tiket modul atau total keseluruhan.
      */
     public function exportModuleTicketsPdf($id, $moduleId, Request $request) {
         $user = User::findOrFail($id);
@@ -2036,18 +2065,32 @@ class HomeController extends Controller
             return redirect()->route('dashboard')->with('error', 'Anda hanya memiliki izin melihat tiket Anda sendiri.');
         }
 
-        $module = ModuleSystem::findOrFail($moduleId);
+        $isAll = ($moduleId === 'all' || $moduleId == '0');
+        if ($isAll) {
+            $module = (object)[
+                'id' => 'all',
+                'name' => 'Semua Modul (Total Keseluruhan)',
+                'bobot' => '-',
+            ];
+        } else {
+            $module = ModuleSystem::findOrFail($moduleId);
+        }
+
         $periodInfo = PeriodService::parse($request->query('period'), $request->query('month'), $request->query('year'), $request->query('period_type'));
         $month = $periodInfo['month'];
         $year = $periodInfo['year'];
         $periodeText = $periodInfo['label'];
 
-        $tickets = Ticket::where('user_id', $id)
-            ->where('module_system_id', $moduleId)
+        $query = Ticket::where('user_id', $id)
             ->whereBetween('created_at', [$periodInfo['start_date'], $periodInfo['end_date']])
             ->with(['client', 'user', 'advisor', 'moduleSystem', 'kategoriSystem'])
-            ->orderBy('created_at', 'desc')
-            ->get();
+            ->orderBy('created_at', 'desc');
+
+        if (!$isAll) {
+            $query->where('module_system_id', $moduleId);
+        }
+
+        $tickets = $query->get();
 
         $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('module_tickets_pdf', compact(
             'user',

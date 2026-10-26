@@ -582,13 +582,49 @@
                             @endforeach
                         </tbody>
                         <tfoot>
-                            <tr class="bg-slate-50 dark:bg-slate-800/80 border-t-2 border-slate-200 dark:border-slate-700 font-extrabold text-xs text-slate-800 dark:text-slate-200">
-                                <td class="py-3.5 px-4 uppercase text-slate-500 dark:text-slate-400 font-bold">Total Keseluruhan</td>
+                            @php
+                                $hasTotalTickets = ($totalSumTickets > 0);
+                            @endphp
+                            <tr @if($hasTotalTickets)
+                                @click="$dispatch('open-module-modal', { id: 'all', name: 'Total Keseluruhan', total: {{ (int)$totalSumTickets }} })"
+                                class="transition-all cursor-pointer group bg-blue-50/30 dark:bg-slate-850 hover:bg-blue-100/60 dark:hover:bg-blue-900/40 border-t-2 border-slate-200 dark:border-slate-700 font-extrabold text-xs text-slate-800 dark:text-slate-200"
+                                title="Klik untuk melihat seluruh riwayat {{ $totalSumTickets }} tiket & download format Excel/PDF"
+                                @else
+                                class="bg-slate-50 dark:bg-slate-800/80 border-t-2 border-slate-200 dark:border-slate-700 font-extrabold text-xs text-slate-800 dark:text-slate-200"
+                                @endif>
+                                <td class="py-3.5 px-4 font-bold">
+                                    <div class="flex items-center gap-2.5">
+                                        @if($hasTotalTickets)
+                                        <span class="w-2 h-2 rounded-full bg-blue-500 shrink-0 group-hover:scale-125 transition-transform animate-pulse"></span>
+                                        <div class="flex flex-col">
+                                            <button type="button" class="text-left font-black text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 flex items-center gap-1.5 group-hover:underline cursor-pointer">
+                                                <span class="text-sm font-extrabold uppercase">Total Keseluruhan</span>
+                                                <i class="fa-solid fa-arrow-up-right-from-square text-[10px] text-blue-500"></i>
+                                            </button>
+                                            <span class="text-[10px] font-semibold text-slate-400 dark:text-slate-500 group-hover:text-blue-500 flex items-center gap-1 mt-0.5 normal-case">
+                                                <i class="fa-solid fa-file-arrow-down text-[9px]"></i> Klik untuk riwayat & unduh
+                                            </span>
+                                        </div>
+                                        @else
+                                        <span class="w-1.5 h-1.5 rounded-full bg-slate-300 dark:bg-slate-600 shrink-0"></span>
+                                        <span class="uppercase text-slate-500 dark:text-slate-400">Total Keseluruhan</span>
+                                        @endif
+                                    </div>
+                                </td>
                                 <td class="py-3.5 px-4 text-center text-slate-400">&ndash;</td>
                                 <td class="py-3.5 px-4 text-center">
-                                    <span class="inline-flex items-center justify-center px-2.5 py-1 rounded-lg text-xs font-black bg-blue-600 text-white shadow-xs">
-                                        {{ $totalSumTickets }} tiket
-                                    </span>
+                                    @if($hasTotalTickets)
+                                    <button type="button" 
+                                        @click.stop="$dispatch('open-module-modal', { id: 'all', name: 'Total Keseluruhan', total: {{ (int)$totalSumTickets }} })"
+                                        class="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black bg-blue-600 hover:bg-blue-700 text-white shadow-xs hover:shadow-md transition-all hover:scale-105 cursor-pointer"
+                                        title="Klik untuk membuka popup riwayat tiket & download Excel/PDF">
+                                        <i class="fa-solid fa-list-check text-[10px]"></i>
+                                        <span>{{ $totalSumTickets }} Tiket</span>
+                                        <i class="fa-solid fa-chevron-right text-[9px] opacity-75"></i>
+                                    </button>
+                                    @else
+                                    <span class="text-xs text-slate-400 font-medium">0</span>
+                                    @endif
                                 </td>
                                 <td class="py-3.5 px-4 text-center">{!! renderDurationBadge($rapor->lama_waktu ?? '-') !!}</td>
                                 <td class="py-3.5 px-4 text-center">{!! renderDurationBadge($rapor->rata_rata_waktu ?? '-') !!}</td>
@@ -832,7 +868,8 @@
                                 <div class="min-w-0">
                                     <div class="flex items-center gap-2 flex-wrap">
                                         <h3 class="text-base sm:text-lg font-black text-slate-800 dark:text-slate-100 truncate">
-                                            Riwayat Tiket Modul: <span class="text-blue-600 dark:text-blue-400" x-text="moduleName"></span>
+                                            <span x-text="moduleId === 'all' ? 'Riwayat Seluruh Tiket: ' : 'Riwayat Tiket Modul: '"></span>
+                                            <span class="text-blue-600 dark:text-blue-400" x-text="moduleName"></span>
                                         </h3>
                                         <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800" x-text="periodLabel"></span>
                                     </div>
@@ -930,6 +967,14 @@
                                                         <i class="fa-solid fa-ticket text-blue-500 text-[11px]"></i>
                                                         <span x-text="t.ticket_number"></span>
                                                     </div>
+                                                    <template x-if="t.module_name && t.module_name !== '-'">
+                                                        <div class="mt-1">
+                                                            <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9.5px] font-bold bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-200/60 dark:border-blue-900/40">
+                                                                <i class="fa-solid fa-layer-group text-[8px]"></i>
+                                                                <span x-text="t.module_name"></span>
+                                                            </span>
+                                                        </div>
+                                                    </template>
                                                     <div class="text-[11px] font-semibold text-slate-600 dark:text-slate-300 mt-1 flex items-center gap-1 truncate max-w-[200px]" :title="t.client_name">
                                                         <i class="fa-solid fa-hotel text-slate-400 text-[10px]"></i>
                                                         <span x-text="t.client_name"></span>
