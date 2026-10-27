@@ -907,9 +907,6 @@
                                                 </button>
                                             @endif
 
-                                            <button type="button" onclick="document.getElementById('resumeProgressModal').showModal()" class="w-full flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-bold text-xs sm:text-sm shadow-md shadow-blue-500/25 transition-all active:scale-95 gap-2 cursor-pointer">
-                                                <i class="fa-solid fa-rotate-left text-blue-200"></i> Lanjut Kerjakan Kembali
-                                            </button>
                                         @else
                                             {{-- Tiket progress normal --}}
                                             @if(is_null($datarq->advisor_id))
@@ -1379,43 +1376,7 @@
         <form method="dialog" class="modal-backdrop bg-slate-900/60 backdrop-blur-sm"><button>close</button></form>
     </dialog>
 
-    {{-- Modal Lanjut Kerjakan Kembali --}}
-    <dialog id="resumeProgressModal" class="modal">
-        <div class="modal-box w-11/12 max-w-md rounded-3xl p-6 md:p-8 bg-white dark:bg-[#1e293b] border border-slate-100 dark:border-slate-700 shadow-2xl relative">
-            <form action="{{ route('ticket.resume_progress', $datarq->id) }}" method="POST" onsubmit="const btn = this.querySelector('button[type=submit]'); btn.disabled = true; btn.innerHTML = '<i class=\'fa-solid fa-spinner fa-spin mr-1\'></i> Menyimpan...';">
-                @csrf
-                <div class="flex justify-between items-start mb-4">
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-950/40 text-blue-500 dark:text-blue-400 flex items-center justify-center shrink-0 border border-blue-200 dark:border-blue-800/60 shadow-2xs">
-                            <i class="fa-solid fa-rotate-left text-lg"></i>
-                        </div>
-                        <div>
-                            <h3 class="font-extrabold text-[17px] text-slate-800 dark:text-slate-100 mb-0.5">Lanjut Kerjakan Tiket</h3>
-                            <p class="text-[11px] text-slate-500 dark:text-slate-400 font-medium">Kembalikan ke status pengerjaan aktif</p>
-                        </div>
-                    </div>
-                    <button type="button" class="w-8 h-8 rounded-xl bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-100 dark:border-slate-700 transition-colors cursor-pointer" onclick="document.getElementById('resumeProgressModal').close()">
-                        <i class="fa-solid fa-xmark"></i>
-                    </button>
-                </div>
 
-                <div class="mb-5">
-                    <label class="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-2">
-                        Catatan Kendala / Respon Klien (Opsional)
-                    </label>
-                    <textarea name="resume_notes" rows="3" class="w-full bg-slate-50/50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 p-3.5 outline-none font-medium shadow-2xs transition-colors" placeholder="Contoh: Klien menginfokan masih ada kendala pada modul kasir saat cetak struk..."></textarea>
-                </div>
-
-                <div class="grid grid-cols-2 gap-3">
-                    <button type="button" class="py-3 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold text-xs rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-800 dark:hover:text-slate-100 transition-all shadow-sm cursor-pointer" onclick="document.getElementById('resumeProgressModal').close()">Batal</button>
-                    <button type="submit" class="py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl transition-all shadow-sm shadow-blue-500/30 flex items-center justify-center gap-1.5 cursor-pointer">
-                        <i class="fa-solid fa-play text-xs"></i> Lanjutkan Progress
-                    </button>
-                </div>
-            </form>
-        </div>
-        <form method="dialog" class="modal-backdrop bg-slate-900/60 backdrop-blur-sm"><button>close</button></form>
-    </dialog>
 
     {{-- Modal Alihkan Tiket Menjadi Request --}}
     <dialog id="convertToRequestModal" class="modal">
