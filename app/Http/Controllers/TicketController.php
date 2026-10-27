@@ -198,7 +198,7 @@ class TicketController extends Controller
             'due_date' => $request->due_date,
             'status' => 'OPEN',
             'link_id' => \Illuminate\Support\Str::random(10),
-            'handle_at' => null,
+            'handle_at' => $createdAt,
             'created_at' => $createdAt,
         ]);
 
@@ -330,11 +330,9 @@ class TicketController extends Controller
                 $updateData['closed_at'] = null;
                 $updateData['duration_minutes'] = null;
                 if ($newStatus == 'PROGRESS') {
-                    if ($datarq->status !== 'PROGRESS' || empty($datarq->handle_at)) {
+                    if (empty($datarq->handle_at)) {
                         $updateData['handle_at'] = now();
                     }
-                } elseif ($newStatus == 'OPEN') {
-                    $updateData['handle_at'] = null;
                 }
             }
             TicketLog::create([
@@ -465,11 +463,9 @@ class TicketController extends Controller
             $updateData['closed_at'] = null;
             $updateData['duration_minutes'] = null;
             if ($stid == 'PROGRESS') {
-                if ($data->status !== 'PROGRESS' || empty($data->handle_at)) {
+                if (empty($data->handle_at)) {
                     $updateData['handle_at'] = now();
                 }
-            } elseif ($stid == 'OPEN') {
-                $updateData['handle_at'] = null;
             }
         }
 

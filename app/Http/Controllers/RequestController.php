@@ -916,7 +916,7 @@ class RequestController extends Controller
                 'due_date' => $request->due_date,
                 'status' => 'OPEN',
                 'link_id' => \Illuminate\Support\Str::random(10),
-                'handle_at' => null,
+                'handle_at' => now(),
             ]);
 
             // 6. Alihkan lampiran gambar ke tiket baru
