@@ -201,11 +201,11 @@
                                 </div>
                                 <div>
                                     <div class="text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase mb-0.5 tracking-wider">User</div>
-                                    <div class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 truncate" title="{{ $rq->user->name ?? '-' }}">{{ $rq->user->name ?? '-' }}</div>
+                                    <div class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 break-words leading-snug" title="{{ $rq->user->name ?? '-' }}">{{ $rq->user->name ?? '-' }}</div>
                                 </div>
                                 <div>
                                     <div class="text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase mb-0.5 tracking-wider">Advisor</div>
-                                    <div class="text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200 truncate" title="{{ $rq->advisor->name ?? '-' }}">{{ $rq->advisor->name ?? '-' }}</div>
+                                    <div class="text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200 break-words leading-snug" title="{{ $rq->advisor->name ?? '-' }}">{{ $rq->advisor->name ?? '-' }}</div>
                                 </div>
                                 <div>
                                     <div class="text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase mb-0.5 tracking-wider">Created At</div>
@@ -299,11 +299,11 @@
                                 </div>
                                 <div>
                                     <div class="text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase mb-0.5 tracking-wider">User</div>
-                                    <div class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 truncate" title="{{ $rq->user->name ?? '-' }}">{{ $rq->user->name ?? '-' }}</div>
+                                    <div class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 break-words leading-snug" title="{{ $rq->user->name ?? '-' }}">{{ $rq->user->name ?? '-' }}</div>
                                 </div>
                                 <div>
                                     <div class="text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase mb-0.5 tracking-wider">Advisor</div>
-                                    <div class="text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200 truncate" title="{{ $rq->advisor->name ?? '-' }}">{{ $rq->advisor->name ?? '-' }}</div>
+                                    <div class="text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200 break-words leading-snug" title="{{ $rq->advisor->name ?? '-' }}">{{ $rq->advisor->name ?? '-' }}</div>
                                 </div>
                                 <div>
                                     <div class="text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase mb-0.5 tracking-wider">Created At</div>
@@ -375,11 +375,11 @@
                                 </div>
                                 <div>
                                     <div class="text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase mb-0.5 tracking-wider">User</div>
-                                    <div class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 truncate" title="{{ $rq->user->name ?? '-' }}">{{ $rq->user->name ?? '-' }}</div>
+                                    <div class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 break-words leading-snug" title="{{ $rq->user->name ?? '-' }}">{{ $rq->user->name ?? '-' }}</div>
                                 </div>
                                 <div>
                                     <div class="text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase mb-0.5 tracking-wider">Advisor</div>
-                                    <div class="text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200 truncate" title="{{ $rq->advisor->name ?? '-' }}">{{ $rq->advisor->name ?? '-' }}</div>
+                                    <div class="text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200 break-words leading-snug" title="{{ $rq->advisor->name ?? '-' }}">{{ $rq->advisor->name ?? '-' }}</div>
                                 </div>
                                 <div>
                                     <div class="text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase mb-0.5 tracking-wider">Created At</div>
@@ -460,11 +460,11 @@
                         </div>
                         <div>
                             <div class="text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1.5">User</div>
-                            <div class="text-sm font-medium text-slate-600 dark:text-slate-300 truncate">{{ $rq->user->name ?? '-' }}</div>
+                            <div class="text-sm font-medium text-slate-600 dark:text-slate-300 break-words leading-snug">{{ $rq->user->name ?? '-' }}</div>
                         </div>
                         <div>
                             <div class="text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1.5">Advisor</div>
-                            <div class="text-sm font-extrabold text-slate-800 dark:text-slate-200 truncate">{{ $rq->advisor->name ?? '-' }}</div>
+                            <div class="text-sm font-extrabold text-slate-800 dark:text-slate-200 break-words leading-snug">{{ $rq->advisor->name ?? '-' }}</div>
                         </div>
                         <div>
                             <div class="text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1.5">Created At</div>

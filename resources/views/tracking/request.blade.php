@@ -289,18 +289,18 @@
                     <!-- Client -->
                     <div>
                         <span class="text-slate-400 font-semibold block text-[10px] uppercase tracking-wider">Client / Outlet</span>
-                        <span class="font-extrabold text-slate-800 dark:text-slate-100 text-sm mt-0.5 block">{{ $outletName }}</span>
+                        <span class="font-extrabold text-slate-800 dark:text-slate-100 text-sm mt-0.5 block break-words leading-snug">{{ $outletName }}</span>
                     </div>
 
                     <!-- System & Module Grid -->
                     <div class="grid grid-cols-2 gap-3 pt-1">
                         <div>
                             <span class="text-slate-400 font-semibold block text-[10px] uppercase tracking-wider">Kategori</span>
-                            <span class="font-bold text-slate-700 dark:text-slate-200 mt-0.5 block">{{ $requestData->kategori->name ?? '-' }}</span>
+                            <span class="font-bold text-slate-700 dark:text-slate-200 mt-0.5 block break-words leading-snug">{{ $requestData->kategori->name ?? '-' }}</span>
                         </div>
                         <div>
                             <span class="text-slate-400 font-semibold block text-[10px] uppercase tracking-wider">Module</span>
-                            <span class="font-bold text-slate-700 dark:text-slate-200 mt-0.5 block">{{ $requestData->module ?? '-' }}</span>
+                            <span class="font-bold text-slate-700 dark:text-slate-200 mt-0.5 block break-words leading-snug">{{ $requestData->module ?? '-' }}</span>
                         </div>
                     </div>
 
@@ -319,7 +319,7 @@
                     <!-- Penanggung Jawab -->
                     <div class="pt-1">
                         <span class="text-slate-400 font-semibold block text-[10px] uppercase tracking-wider">Penanggung Jawab (PIC)</span>
-                        <span class="font-bold text-slate-700 dark:text-slate-200 mt-0.5 block">
+                        <span class="font-bold text-slate-700 dark:text-slate-200 mt-0.5 block break-words leading-snug">
                             {{ $requestData->user->name ?? '-' }}
                         </span>
                     </div>

@@ -266,18 +266,18 @@
                     <!-- Client -->
                     <div>
                         <span class="text-slate-400 font-semibold block text-[10px] uppercase tracking-wider">Client / Outlet</span>
-                        <span class="font-extrabold text-slate-800 dark:text-slate-100 text-sm mt-0.5 block">{{ $clientName }}</span>
+                        <span class="font-extrabold text-slate-800 dark:text-slate-100 text-sm mt-0.5 block break-words leading-snug">{{ $clientName }}</span>
                     </div>
 
                     <!-- System & Module Grid -->
                     <div class="grid grid-cols-2 gap-3 pt-1">
                         <div>
                             <span class="text-slate-400 font-semibold block text-[10px] uppercase tracking-wider">System</span>
-                            <span class="font-bold text-slate-700 dark:text-slate-200 mt-0.5 block">{{ $ticket->kategoriSystem->name ?? ($ticket->system ?: '-') }}</span>
+                            <span class="font-bold text-slate-700 dark:text-slate-200 mt-0.5 block break-words leading-snug">{{ $ticket->kategoriSystem->name ?? ($ticket->system ?: '-') }}</span>
                         </div>
                         <div>
                             <span class="text-slate-400 font-semibold block text-[10px] uppercase tracking-wider">Module</span>
-                            <span class="font-bold text-slate-700 dark:text-slate-200 mt-0.5 block">{{ $ticket->moduleSystem->name ?? '-' }}</span>
+                            <span class="font-bold text-slate-700 dark:text-slate-200 mt-0.5 block break-words leading-snug">{{ $ticket->moduleSystem->name ?? '-' }}</span>
                         </div>
                     </div>
 
@@ -301,13 +301,13 @@
                     <div class="grid grid-cols-2 gap-3 pt-1">
                         <div>
                             <span class="text-slate-400 font-semibold block text-[10px] uppercase tracking-wider">Penanggung Jawab</span>
-                            <span class="font-bold text-slate-700 dark:text-slate-200 mt-0.5 block truncate" title="{{ $ticket->user->name ?? '-' }}">
+                            <span class="font-bold text-slate-700 dark:text-slate-200 mt-0.5 block break-words leading-snug" title="{{ $ticket->user->name ?? '-' }}">
                                 {{ $ticket->user->name ?? '-' }}
                             </span>
                         </div>
                         <div>
                             <span class="text-slate-400 font-semibold block text-[10px] uppercase tracking-wider">Advisor</span>
-                            <span class="font-bold text-slate-700 dark:text-slate-200 mt-0.5 block truncate" title="{{ $ticket->advisor->name ?? '-' }}">
+                            <span class="font-bold text-slate-700 dark:text-slate-200 mt-0.5 block break-words leading-snug" title="{{ $ticket->advisor->name ?? '-' }}">
                                 {{ $ticket->advisor->name ?? '-' }}
                             </span>
                         </div>

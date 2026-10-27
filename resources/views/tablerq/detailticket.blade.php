@@ -785,17 +785,17 @@
                             <!-- Row 1 -->
                             <div>
                                 <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wide mb-1.5">System</p>
-                                <p class="font-bold text-slate-800 text-sm">{{ $datarq->kategoriSystem->name ?? '-' }}</p>
+                                <p class="font-bold text-slate-800 text-sm break-words leading-snug">{{ $datarq->kategoriSystem->name ?? '-' }}</p>
                             </div>
                             <div>
                                 <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wide mb-1.5">Module</p>
-                                <p class="font-bold text-slate-800 text-sm">{{ $datarq->moduleSystem->name ?? '-' }}</p>
+                                <p class="font-bold text-slate-800 text-sm break-words leading-snug">{{ $datarq->moduleSystem->name ?? '-' }}</p>
                             </div>
                             
                             <!-- Row 2 -->
                             <div>
                                 <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wide mb-1.5">Client</p>
-                                <p class="font-bold text-slate-800 text-sm">{{ $datarq->client->nm_out ?? '-' }}</p>
+                                <p class="font-bold text-slate-800 text-sm break-words leading-snug">{{ $datarq->client->nm_out ?? '-' }}</p>
                             </div>
                             <div>
                                 <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wide mb-1.5">Tipe Penanganan</p>
@@ -806,8 +806,8 @@
                                     $isOnline = in_array(strtolower($tp), ['online', 'remote', 'remote / online']);
                                     $tpIcon = $isSite ? 'fa-location-dot text-amber-500' : ($isPiket ? 'fa-calendar-check text-emerald-500' : ($isOnline ? 'fa-globe text-purple-500' : 'fa-building-user text-sky-500'));
                                 @endphp
-                                <p class="font-bold text-slate-800 text-sm flex items-center gap-1.5">
-                                    <i class="fa-solid {{ $tpIcon }} text-xs"></i>
+                                <p class="font-bold text-slate-800 text-sm flex items-center gap-1.5 break-words leading-snug">
+                                    <i class="fa-solid {{ $tpIcon }} text-xs shrink-0"></i>
                                     <span>{{ $tp }}</span>
                                 </p>
                             </div>
@@ -815,11 +815,11 @@
                             <!-- Row 3 -->
                             <div>
                                 <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wide mb-1.5">User</p>
-                                <p class="font-bold text-slate-800 text-sm truncate" title="{{ $datarq->user->name ?? '-' }}">{{ $datarq->user->name ?? '-' }}</p>
+                                <p class="font-bold text-slate-800 text-sm break-words leading-snug" title="{{ $datarq->user->name ?? '-' }}">{{ $datarq->user->name ?? '-' }}</p>
                             </div>
                             <div>
                                 <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wide mb-1.5">Advisor</p>
-                                <p class="font-bold text-slate-800 text-sm truncate" title="{{ $datarq->advisor->name ?? '-' }}">{{ $datarq->advisor->name ?? '-' }}</p>
+                                <p class="font-bold text-slate-800 text-sm break-words leading-snug" title="{{ $datarq->advisor->name ?? '-' }}">{{ $datarq->advisor->name ?? '-' }}</p>
                             </div>
 
                             <!-- Row 4: Created At (Tanggal Mulai) & Due Date -->

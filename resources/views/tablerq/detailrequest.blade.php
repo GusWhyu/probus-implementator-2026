@@ -415,7 +415,7 @@
                                 </div>
                                 <div class="min-w-0">
                                     <div class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-0.5">User Reporter</div>
-                                    <div class="font-bold text-slate-800 text-sm truncate" title="{{ $datarq->user->name }}">{{ $datarq->user->name }}</div>
+                                    <div class="font-bold text-slate-800 text-sm break-words leading-snug" title="{{ $datarq->user->name }}">{{ $datarq->user->name }}</div>
                                 </div>
                             </div>
 
@@ -445,7 +445,7 @@
                                 </div>
                                 <div class="min-w-0">
                                     <div class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-0.5">Closed By</div>
-                                    <div class="font-bold text-emerald-600 dark:text-emerald-400 text-sm truncate" title="{{ $closedLog->user->name }}">{{ $closedLog->user->name }}</div>
+                                    <div class="font-bold text-emerald-600 dark:text-emerald-400 text-sm break-words leading-snug" title="{{ $closedLog->user->name }}">{{ $closedLog->user->name }}</div>
                                 </div>
                             </div>
                             @endif
