@@ -429,7 +429,34 @@
                                 <td style="color: #0f172a; font-weight: bold; padding: 4.5px 0 0 0;">Total Nilai Akhir ({{ number_format($wTotal, 0) }}%)</td>
                                 <td style="text-align: right; padding: 4.5px 0 0 0;">
                                     <span style="font-weight: bold; font-size: 13.5px; color: #0f172a;">{{ number_format($scoreTotal, 1) }}</span>
-                                    <span style="background-color: {{ $scoreTotal >= 80 ? '#ecfdf5' : ($scoreTotal >= 70 ? '#eff6ff' : '#fffbeb') }}; color: {{ $scoreTotal >= 80 ? '#059669' : ($scoreTotal >= 70 ? '#004880' : '#d97706') }}; padding: 1.5px 6px; border-radius: 3px; font-weight: bold; font-size: 9.5px; border: 1px solid {{ $scoreTotal >= 80 ? '#a7f3d0' : ($scoreTotal >= 70 ? '#bfdbfe' : '#fde68a') }}; margin-left: 3px;">
+                                    @php
+                                        if ($scoreTotal >= 90) {
+                                            $pdfBadgeBg = '#ecfdf5';
+                                            $pdfBadgeColor = '#059669';
+                                            $pdfBadgeBorder = '#a7f3d0';
+                                        } elseif ($scoreTotal >= 80) {
+                                            $pdfBadgeBg = '#eff6ff';
+                                            $pdfBadgeColor = '#1d4ed8';
+                                            $pdfBadgeBorder = '#bfdbfe';
+                                        } elseif ($scoreTotal >= 70) {
+                                            $pdfBadgeBg = '#f0f9ff';
+                                            $pdfBadgeColor = '#0284c7';
+                                            $pdfBadgeBorder = '#bae6fd';
+                                        } elseif ($scoreTotal >= 60) {
+                                            $pdfBadgeBg = '#fefce8';
+                                            $pdfBadgeColor = '#ca8a04';
+                                            $pdfBadgeBorder = '#fef08a';
+                                        } elseif ($scoreTotal >= 50) {
+                                            $pdfBadgeBg = '#fff7ed';
+                                            $pdfBadgeColor = '#ea580c';
+                                            $pdfBadgeBorder = '#fed7aa';
+                                        } else {
+                                            $pdfBadgeBg = '#fff1f2';
+                                            $pdfBadgeColor = '#e11d48';
+                                            $pdfBadgeBorder = '#fecdd3';
+                                        }
+                                    @endphp
+                                    <span style="background-color: {{ $pdfBadgeBg }}; color: {{ $pdfBadgeColor }}; padding: 1.5px 6px; border-radius: 3px; font-weight: bold; font-size: 9.5px; border: 1px solid {{ $pdfBadgeBorder }}; margin-left: 3px;">
                                         {{ $predikat }}
                                     </span>
                                 </td>
@@ -499,14 +526,30 @@
         $py = $cy - $arcR * sin($pRad);
         $pLargeArc = ($gaugePercent > 50) ? 1 : 0;
 
-        if ($nilaiAkhir >= 80) {
+        if ($nilaiAkhir >= 90) {
             $gaugeColor = '#059669';
+            $gaugeBadgeBg = '#ecfdf5';
+            $gaugeBadgeColor = '#059669';
+        } elseif ($nilaiAkhir >= 80) {
+            $gaugeColor = '#1d4ed8';
+            $gaugeBadgeBg = '#eff6ff';
+            $gaugeBadgeColor = '#1d4ed8';
         } elseif ($nilaiAkhir >= 70) {
-            $gaugeColor = '#004880';
+            $gaugeColor = '#0284c7';
+            $gaugeBadgeBg = '#f0f9ff';
+            $gaugeBadgeColor = '#0284c7';
         } elseif ($nilaiAkhir >= 60) {
             $gaugeColor = '#d97706';
+            $gaugeBadgeBg = '#fefce8';
+            $gaugeBadgeColor = '#ca8a04';
+        } elseif ($nilaiAkhir >= 50) {
+            $gaugeColor = '#ea580c';
+            $gaugeBadgeBg = '#fff7ed';
+            $gaugeBadgeColor = '#ea580c';
         } else {
-            $gaugeColor = '#ef4444';
+            $gaugeColor = '#e11d48';
+            $gaugeBadgeBg = '#fff1f2';
+            $gaugeBadgeColor = '#e11d48';
         }
     @endphp
 
@@ -580,7 +623,7 @@
                     <div style="margin-top: -30px; text-align: center; position: relative;">
                         <div style="font-size: 7.5px; font-weight: bold; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px;">NILAI AKHIR</div>
                         <div style="font-size: 21px; font-weight: bold; color: #0f172a; line-height: 1.1;">{{ number_format($nilaiAkhir, 1) }}</div>
-                        <div style="display: inline-block; margin-top: 2px; padding: 2px 7px; font-size: 8.5px; font-weight: bold; border-radius: 3px; background: {{ $nilaiAkhir >= 80 ? '#ecfdf5' : ($nilaiAkhir >= 70 ? '#eff6ff' : '#fffbeb') }}; color: {{ $nilaiAkhir >= 80 ? '#059669' : ($nilaiAkhir >= 70 ? '#004880' : '#d97706') }};">
+                        <div style="display: inline-block; margin-top: 2px; padding: 2px 7px; font-size: 8.5px; font-weight: bold; border-radius: 3px; background: {{ $gaugeBadgeBg }}; color: {{ $gaugeBadgeColor }};">
                             {{ $predikat }}
                         </div>
                     </div>

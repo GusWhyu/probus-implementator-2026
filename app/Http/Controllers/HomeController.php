@@ -570,10 +570,12 @@ class HomeController extends Controller
             return $rev && strtoupper($rev->status) === 'FINAL';
         })->count();
         $belumDinilai = $totalCS - $sudahDinilai;
-        $sangatBaik = $allCsUsers->filter(function($u) {
+        $sangatMemuaskan = $allCsUsers->filter(function($u) {
             $rev = $u->performanceReviews->first();
-            return $rev && strtoupper($rev->status) === 'FINAL' && $rev->total_score >= 80;
+            return $rev && strtoupper($rev->status) === 'FINAL' && $rev->total_score >= 90;
         })->count();
+        $sangatBaik = $sangatMemuaskan; // Alias kompatibilitas
+
 
         // Cek status pemrosesan agregat tiket CS (apakah sudah pernah di-sum)
         $sudahDiproses = $allCsUsers->filter(function($u) {
@@ -707,7 +709,7 @@ class HomeController extends Controller
         $periodOptions = PeriodService::getOptions();
 
         return view('laporan', compact(
-            'users', 'month', 'year', 'totalCS', 'sudahDinilai', 'belumDinilai', 'sangatBaik', 'topCS',
+            'users', 'month', 'year', 'totalCS', 'sudahDinilai', 'belumDinilai', 'sangatMemuaskan', 'sangatBaik', 'topCS',
             'selectedDeptId', 'currentDepartemen', 'isAllProcessed', 'sudahDiproses', 'belumDiproses',
             'monthClosedTickets', 'monthAdvisedTickets', 'monthSurveys', 'periodInfo', 'periodOptions',
             'period', 'periodType'
@@ -1833,7 +1835,7 @@ class HomeController extends Controller
         $scoreQuality = $rapor ? (float)($rapor->performance_score ?? 0) : 0;
         $scoreSurvey = $rapor ? (float)($rapor->review_score ?? 0) : 0;
         $scoreTotal = $rapor ? (float)($rapor->total_score ?? 0) : 0;
-        $predikat = $scoreTotal >= 80 ? 'Sangat Baik' : ($scoreTotal >= 70 ? 'Baik' : 'Cukup');
+        $predikat = PerformanceReview::getPredikatLabel($scoreTotal);
 
         $max_ticket_score = $rapor ? (float)($rapor->max_ticket_score ?? 0) : 0;
         $raw_ticket_score = $rapor ? (float)($rapor->raw_ticket_score ?? 0) : ($rapor && $rapor->moduleDetails ? $rapor->moduleDetails->sum('score') : 0);

@@ -241,13 +241,15 @@
                                     </h3>
                                     <span class="px-2.5 py-1 rounded-lg text-xs font-extrabold uppercase tracking-wide border shadow-xs inline-flex items-center gap-1.5 shrink-0"
                                         :class="{
-                                            'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800': Number(nilaiAkhir()) >= 85,
-                                            'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/60 dark:text-blue-300 dark:border-blue-800': Number(nilaiAkhir()) >= 70 && Number(nilaiAkhir()) < 85,
-                                            'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-800': Number(nilaiAkhir()) >= 50 && Number(nilaiAkhir()) < 70,
+                                            'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800': Number(nilaiAkhir()) >= 90,
+                                            'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/60 dark:text-blue-300 dark:border-blue-800': Number(nilaiAkhir()) >= 80 && Number(nilaiAkhir()) < 90,
+                                            'bg-sky-50 text-sky-700 border-sky-200 dark:bg-sky-950/60 dark:text-sky-300 dark:border-sky-800': Number(nilaiAkhir()) >= 70 && Number(nilaiAkhir()) < 80,
+                                            'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-800': Number(nilaiAkhir()) >= 60 && Number(nilaiAkhir()) < 70,
+                                            'bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-950/60 dark:text-orange-300 dark:border-orange-800': Number(nilaiAkhir()) >= 50 && Number(nilaiAkhir()) < 60,
                                             'bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/60 dark:text-rose-300 dark:border-rose-800': Number(nilaiAkhir()) < 50
                                         }">
                                         <i class="fa-solid fa-award text-xs"></i>
-                                        <span x-text="Number(nilaiAkhir()) >= 85 ? 'Sangat Baik' : (Number(nilaiAkhir()) >= 70 ? 'Baik' : (Number(nilaiAkhir()) >= 50 ? 'Cukup' : 'Perlu Evaluasi'))"></span>
+                                        <span x-text="Number(nilaiAkhir()) >= 90 ? 'Sangat Memuaskan' : (Number(nilaiAkhir()) >= 80 ? 'Memuaskan' : (Number(nilaiAkhir()) >= 70 ? 'Cukup Memuaskan' : (Number(nilaiAkhir()) >= 60 ? 'Perlu Peningkatan' : (Number(nilaiAkhir()) >= 50 ? 'Perlu Pembinaan' : 'Perlu Perhatian Khusus'))))"></span>
                                     </span>
                                 </div>
 

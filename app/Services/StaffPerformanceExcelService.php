@@ -117,8 +117,12 @@ class StaffPerformanceExcelService
     <font><name val="Calibri"/><sz val="9.5"/><color rgb="FF475569"/></font>
     <!-- 19: Score Bold 10.5pt -->
     <font><name val="Calibri"/><sz val="10.5"/><b/><color rgb="FF0F172A"/></font>
+    <!-- 20: Badge Bold Sky #0369A1 (Cukup Memuaskan) -->
+    <font><name val="Calibri"/><sz val="10"/><b/><color rgb="FF0369A1"/></font>
+    <!-- 21: Badge Bold Orange #C2410C (Perlu Pembinaan) -->
+    <font><name val="Calibri"/><sz val="10"/><b/><color rgb="FFC2410C"/></font>
   </fonts>
-  <fills count="9">
+  <fills count="11">
     <!-- 0: None -->
     <fill><patternFill patternType="none"/></fill>
     <!-- 1: Gray125 -->
@@ -129,14 +133,18 @@ class StaffPerformanceExcelService
     <fill><patternFill patternType="solid"><fgColor rgb="FFF8FAFC"/></patternFill></fill>
     <!-- 4: Soft Gray #F1F5F9 (Card Total & Belum Diproses) -->
     <fill><patternFill patternType="solid"><fgColor rgb="FFF1F5F9"/></patternFill></fill>
-    <!-- 5: Soft Green #DCFCE7 (Card Final & Sangat Baik) -->
+    <!-- 5: Soft Green #DCFCE7 (Card Final & Sangat Baik / Sangat Memuaskan) -->
     <fill><patternFill patternType="solid"><fgColor rgb="FFDCFCE7"/></patternFill></fill>
-    <!-- 6: Soft Amber #FEF3C7 (Card Draft & Draft) -->
+    <!-- 6: Soft Amber #FEF3C7 (Card Draft, Draft & Perlu Peningkatan) -->
     <fill><patternFill patternType="solid"><fgColor rgb="FFFEF3C7"/></patternFill></fill>
-    <!-- 7: Soft Blue #EFF6FF (Card Avg & Baik) -->
+    <!-- 7: Soft Blue #EFF6FF (Card Avg & Memuaskan) -->
     <fill><patternFill patternType="solid"><fgColor rgb="FFEFF6FF"/></patternFill></fill>
-    <!-- 8: Soft Red #FEE2E2 (Cukup) -->
+    <!-- 8: Soft Red #FEE2E2 (Perlu Perhatian Khusus) -->
     <fill><patternFill patternType="solid"><fgColor rgb="FFFEE2E2"/></patternFill></fill>
+    <!-- 9: Soft Sky #E0F2FE (Cukup Memuaskan) -->
+    <fill><patternFill patternType="solid"><fgColor rgb="FFE0F2FE"/></patternFill></fill>
+    <!-- 10: Soft Orange #FFEDD5 (Perlu Pembinaan) -->
+    <fill><patternFill patternType="solid"><fgColor rgb="FFFFEDD5"/></patternFill></fill>
   </fills>
   <borders count="7">
     <!-- 0: None -->
@@ -237,6 +245,10 @@ class StaffPerformanceExcelService
     <xf numFmtId="0" fontId="19" fillId="0" borderId="1" xfId="0" applyFont="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>
     <!-- 25: Score Bold Center Zebra (10.5pt Bold) -->
     <xf numFmtId="0" fontId="19" fillId="3" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>
+    <!-- 26: Badge Sky (Soft Sky fill, Sky text, border 1, center - Cukup Memuaskan) -->
+    <xf numFmtId="0" fontId="20" fillId="9" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>
+    <!-- 27: Badge Orange (Soft Orange fill, Orange text, border 1, center - Perlu Pembinaan) -->
+    <xf numFmtId="0" fontId="21" fillId="10" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>
   </cellXfs>
 </styleSheet>';
     }
@@ -490,14 +502,23 @@ class StaffPerformanceExcelService
             if ($isFinal) {
                 $scoreVal = (float)$penilaian->total_score;
                 $scoreText = number_format($scoreVal, 1, ',', '.');
-                if ($scoreVal >= 80) {
-                    $predikatText = 'Sangat Baik';
+                if ($scoreVal >= 90) {
+                    $predikatText = 'Sangat Memuaskan';
                     $sPredikat = 19; // Soft Green
-                } elseif ($scoreVal >= 70) {
-                    $predikatText = 'Baik';
+                } elseif ($scoreVal >= 80) {
+                    $predikatText = 'Memuaskan';
                     $sPredikat = 20; // Soft Blue
+                } elseif ($scoreVal >= 70) {
+                    $predikatText = 'Cukup Memuaskan';
+                    $sPredikat = 26; // Soft Sky
+                } elseif ($scoreVal >= 60) {
+                    $predikatText = 'Perlu Peningkatan';
+                    $sPredikat = 21; // Soft Amber
+                } elseif ($scoreVal >= 50) {
+                    $predikatText = 'Perlu Pembinaan';
+                    $sPredikat = 27; // Soft Orange
                 } else {
-                    $predikatText = 'Cukup';
+                    $predikatText = 'Perlu Perhatian Khusus';
                     $sPredikat = 22; // Soft Red
                 }
             } elseif ($isDraft) {

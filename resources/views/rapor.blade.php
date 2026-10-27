@@ -35,8 +35,25 @@
         $tiketProgress = isset($tiket_progress) ? (int)$tiket_progress : 0;
         $rataRataWaktu = $rapor ? ($rapor->rata_rata_waktu ?: '-') : '-';
         $cRate = isset($completion_rate) ? $completion_rate : ($totalTicket > 0 ? round(($tiketSelesai / $totalTicket) * 100, 1) : 0);
-        $predikat = $scoreTotal >= 80 ? 'Sangat Baik' : ($scoreTotal >= 70 ? 'Baik' : 'Cukup');
-        $badgeClass = $scoreTotal >= 80 ? 'bg-teal-50 text-teal-700 border-teal-200' : ($scoreTotal >= 70 ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-rose-50 text-rose-700 border-rose-200');
+        if ($scoreTotal >= 90) {
+            $predikat = 'Sangat Memuaskan';
+            $badgeClass = 'bg-teal-50 text-teal-700 border-teal-200';
+        } elseif ($scoreTotal >= 80) {
+            $predikat = 'Memuaskan';
+            $badgeClass = 'bg-blue-50 text-blue-700 border-blue-200';
+        } elseif ($scoreTotal >= 70) {
+            $predikat = 'Cukup Memuaskan';
+            $badgeClass = 'bg-sky-50 text-sky-700 border-sky-200';
+        } elseif ($scoreTotal >= 60) {
+            $predikat = 'Perlu Peningkatan';
+            $badgeClass = 'bg-amber-50 text-amber-700 border-amber-200';
+        } elseif ($scoreTotal >= 50) {
+            $predikat = 'Perlu Pembinaan';
+            $badgeClass = 'bg-orange-50 text-orange-700 border-orange-200';
+        } else {
+            $predikat = 'Perlu Perhatian Khusus';
+            $badgeClass = 'bg-rose-50 text-rose-700 border-rose-200';
+        }
     @endphp
 
     <div class="pt-1 sm:pt-4 pb-8 min-h-screen w-full min-w-0">
@@ -127,8 +144,25 @@
                             @if($rapor)
                                 @php
                                     $score = (float)($rapor->total_score ?? 0);
-                                    $predikat = $score >= 80 ? 'Sangat Baik' : ($score >= 70 ? 'Baik' : 'Cukup');
-                                    $badgeClass = $score >= 80 ? 'bg-teal-50 dark:bg-teal-950/50 text-teal-700 dark:text-teal-300 border-teal-200 dark:border-teal-800/60' : ($score >= 70 ? 'bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800/60' : 'bg-rose-50 dark:bg-rose-950/50 text-rose-700 dark:text-rose-300 border-rose-200 dark:border-rose-800/60');
+                                    if ($score >= 90) {
+                                        $predikat = 'Sangat Memuaskan';
+                                        $badgeClass = 'bg-teal-50 dark:bg-teal-950/50 text-teal-700 dark:text-teal-300 border-teal-200 dark:border-teal-800/60';
+                                    } elseif ($score >= 80) {
+                                        $predikat = 'Memuaskan';
+                                        $badgeClass = 'bg-blue-50 dark:bg-blue-950/50 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800/60';
+                                    } elseif ($score >= 70) {
+                                        $predikat = 'Cukup Memuaskan';
+                                        $badgeClass = 'bg-sky-50 dark:bg-sky-950/50 text-sky-700 dark:text-sky-300 border-sky-200 dark:border-sky-800/60';
+                                    } elseif ($score >= 60) {
+                                        $predikat = 'Perlu Peningkatan';
+                                        $badgeClass = 'bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800/60';
+                                    } elseif ($score >= 50) {
+                                        $predikat = 'Perlu Pembinaan';
+                                        $badgeClass = 'bg-orange-50 dark:bg-orange-950/50 text-orange-700 dark:text-orange-300 border-orange-200 dark:border-orange-800/60';
+                                    } else {
+                                        $predikat = 'Perlu Perhatian Khusus';
+                                        $badgeClass = 'bg-rose-50 dark:bg-rose-950/50 text-rose-700 dark:text-rose-300 border-rose-200 dark:border-rose-800/60';
+                                    }
                                 @endphp
                                 <span class="px-3 py-2 {{ $badgeClass }} font-extrabold text-xs rounded-xl border shadow-xs whitespace-nowrap">
                                     {{ $predikat }}
@@ -746,8 +780,29 @@
                                 @endfor
                                 <span class="text-[11px] font-bold text-slate-600 dark:text-slate-300 ml-1">{{ $scale5 }} / 5.0</span>
                             </div>
-                            <span class="text-[10px] font-bold uppercase tracking-wider {{ $rawScore >= 80 ? 'text-emerald-600 dark:text-emerald-400' : ($rawScore >= 60 ? 'text-amber-600 dark:text-amber-400' : 'text-rose-600 dark:text-rose-400') }}">
-                                {{ $rawScore >= 80 ? 'Sangat Baik' : ($rawScore >= 60 ? 'Baik' : 'Perlu Ditingkatkan') }}
+                            @php
+                                if ($rawScore >= 90) {
+                                    $catColor = 'text-emerald-600 dark:text-emerald-400';
+                                    $catLabel = 'Sangat Memuaskan';
+                                } elseif ($rawScore >= 80) {
+                                    $catColor = 'text-blue-600 dark:text-blue-400';
+                                    $catLabel = 'Memuaskan';
+                                } elseif ($rawScore >= 70) {
+                                    $catColor = 'text-sky-600 dark:text-sky-400';
+                                    $catLabel = 'Cukup Memuaskan';
+                                } elseif ($rawScore >= 60) {
+                                    $catColor = 'text-amber-600 dark:text-amber-400';
+                                    $catLabel = 'Perlu Peningkatan';
+                                } elseif ($rawScore >= 50) {
+                                    $catColor = 'text-orange-600 dark:text-orange-400';
+                                    $catLabel = 'Perlu Pembinaan';
+                                } else {
+                                    $catColor = 'text-rose-600 dark:text-rose-400';
+                                    $catLabel = 'Perlu Perhatian Khusus';
+                                }
+                            @endphp
+                            <span class="text-[10px] font-bold uppercase tracking-wider {{ $catColor }}">
+                                {{ $catLabel }}
                             </span>
                         </div>
                     </div>
