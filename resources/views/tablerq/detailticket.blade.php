@@ -81,19 +81,19 @@
 
                     @if ($datarq->pending_advisor_id != null)
                         @if (in_array($ust, ['admin', 'supervisor']) || $rqid == $aid)
-                        <form action="{{ route('ticket.takeover.cancel', $datarq->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin membatalkan pengalihan tiket ini?');" class="inline">
+                        <form id="form-cancel-takeover" action="{{ route('ticket.takeover.cancel', $datarq->id) }}" method="POST" class="inline">
                             @csrf
-                            <button type="submit" class="px-4 py-2.5 bg-white dark:bg-slate-800 border border-rose-200 dark:border-rose-900/60 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-rose-600 dark:text-rose-400 font-bold rounded-xl text-sm shadow-sm flex items-center justify-center gap-2 transition-all active:scale-95 cursor-pointer" title="Batalkan Pengalihan Tiket">
+                            <button type="button" onclick="confirmCancelTakeover()" class="px-4 py-2.5 bg-white dark:bg-slate-800 border border-rose-200 dark:border-rose-900/60 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-rose-600 dark:text-rose-400 font-bold rounded-xl text-sm shadow-sm flex items-center justify-center gap-2 transition-all active:scale-95 cursor-pointer" title="Batalkan Pengalihan Tiket">
                                 <i class="fa-solid fa-ban"></i> Cancel Alih Tiket
                             </button>
                         </form>
                         @endif
                     @else
                         @if (in_array($ust, ['admin', 'supervisor']) || ($rqid == $aid && $stid != 'CLOSED'))
-                        <form action="{{ route('deleteticket', $datarq->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus tiket #{{ $datarq->ticket_number }}? Seluruh riwayat dan data lampiran akan dihapus.');" class="inline">
+                        <form id="form-delete-ticket" action="{{ route('deleteticket', $datarq->id) }}" method="POST" class="inline">
                             @csrf
                             @method('DELETE')
-                            <button type="submit" class="px-4 py-2.5 bg-white border border-rose-200 hover:bg-rose-50 text-rose-600 font-bold rounded-xl text-sm shadow-sm flex items-center justify-center gap-2 transition-all active:scale-95 cursor-pointer" title="Hapus Tiket">
+                            <button type="button" onclick="confirmDeleteTicket()" class="px-4 py-2.5 bg-white border border-rose-200 hover:bg-rose-50 text-rose-600 font-bold rounded-xl text-sm shadow-sm flex items-center justify-center gap-2 transition-all active:scale-95 cursor-pointer" title="Hapus Tiket">
                                 <i class="fa-regular fa-trash-can"></i> Hapus
                             </button>
                         </form>
@@ -147,10 +147,10 @@
 
                 <!-- Tombol Hapus status menunggu konfirmasi -->
                 <div class="flex items-center gap-2 shrink-0">
-                    <form action="{{ route('ticket.resume_progress', $datarq->id) }}" method="POST" onsubmit="return confirm('Hapus status menunggu konfirmasi dan lanjutkan pengerjaan tiket?');">
+                    <form id="form-delete-waiting-confirmation" action="{{ route('ticket.resume_progress', $datarq->id) }}" method="POST">
                         @csrf
                         <input type="hidden" name="resume_notes" value="Menunggu konfirmasi klien dihapus. Pengerjaan aktif dilanjutkan.">
-                        <button type="submit" class="px-3 py-2 bg-white dark:bg-slate-800 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-slate-600 hover:text-rose-600 dark:text-slate-300 dark:hover:text-rose-400 rounded-xl text-xs font-bold transition-all border border-slate-200 dark:border-slate-700 hover:border-rose-300 dark:hover:border-rose-800 flex items-center gap-1.5 shadow-2xs cursor-pointer" title="Hapus status menunggu konfirmasi">
+                        <button type="button" onclick="confirmDeleteWaitingConfirmation()" class="px-3 py-2 bg-white dark:bg-slate-800 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-slate-600 hover:text-rose-600 dark:text-slate-300 dark:hover:text-rose-400 rounded-xl text-xs font-bold transition-all border border-slate-200 dark:border-slate-700 hover:border-rose-300 dark:hover:border-rose-800 flex items-center gap-1.5 shadow-2xs cursor-pointer" title="Hapus status menunggu konfirmasi">
                             <i class="fa-solid fa-trash-can text-xs text-rose-500"></i>
                             <span class="hidden sm:inline">Hapus</span>
                         </button>
@@ -2008,4 +2008,137 @@
         });
     </script>
     @endif
+    <!-- SweetAlert2 Confirmation Modals & Theme Script -->
+    <script>
+        function getTicketSwalTheme() {
+            const isDark = document.documentElement.classList.contains('dark') || document.documentElement.getAttribute('data-theme') === 'dark';
+            return {
+                isDark: isDark,
+                background: isDark ? '#1e293b' : '#ffffff',
+                color: isDark ? '#f8fafc' : '#0f172a',
+                cancelButtonColor: isDark ? '#475569' : '#94a3b8'
+            };
+        }
+
+        function confirmDeleteWaitingConfirmation() {
+            const form = document.getElementById('form-delete-waiting-confirmation');
+            if (!form) return;
+
+            if (typeof Swal !== 'undefined') {
+                const th = getTicketSwalTheme();
+                Swal.fire({
+                    title: 'Hapus Status Menunggu?',
+                    html: `
+                        <div class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 space-y-2 mt-2 leading-relaxed">
+                            <p>Status <strong class="text-amber-600 dark:text-amber-400 font-bold">Menunggu Konfirmasi Klien</strong> akan dihapus.</p>
+                            <p class="text-[11.5px] text-slate-500 dark:text-slate-400">Tiket akan kembali aktif dalam tahap pengerjaan (PROGRESS).</p>
+                        </div>
+                    `,
+                    icon: 'warning',
+                    iconColor: '#f59e0b',
+                    showCancelButton: true,
+                    confirmButtonColor: '#ef4444',
+                    cancelButtonColor: th.cancelButtonColor,
+                    confirmButtonText: '<i class="fa-solid fa-trash-can mr-1.5"></i> Ya, Hapus Status',
+                    cancelButtonText: 'Batal',
+                    reverseButtons: true,
+                    background: th.background,
+                    color: th.color,
+                    customClass: {
+                        popup: 'rounded-3xl border border-slate-100 dark:border-slate-700 shadow-2xl p-6',
+                        confirmButton: 'rounded-xl px-5 py-2.5 font-bold text-xs sm:text-sm shadow-md shadow-rose-500/25 cursor-pointer',
+                        cancelButton: 'rounded-xl px-5 py-2.5 font-bold text-xs sm:text-sm cursor-pointer'
+                    }
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        form.submit();
+                    }
+                });
+            } else {
+                if (confirm('Hapus status menunggu konfirmasi dan lanjutkan pengerjaan tiket?')) {
+                    form.submit();
+                }
+            }
+        }
+
+        function confirmDeleteTicket() {
+            const form = document.getElementById('form-delete-ticket');
+            if (!form) return;
+
+            if (typeof Swal !== 'undefined') {
+                const th = getTicketSwalTheme();
+                Swal.fire({
+                    title: 'Hapus Tiket #{{ $datarq->ticket_number }}?',
+                    html: `
+                        <div class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 mt-2 leading-relaxed">
+                            Seluruh riwayat, lampiran berkas, dan data diskusi pada tiket ini akan <strong class="text-rose-500 font-bold">dihapus permanen</strong> dan tidak dapat dikembalikan.
+                        </div>
+                    `,
+                    icon: 'warning',
+                    iconColor: '#ef4444',
+                    showCancelButton: true,
+                    confirmButtonColor: '#ef4444',
+                    cancelButtonColor: th.cancelButtonColor,
+                    confirmButtonText: '<i class="fa-solid fa-trash-can mr-1.5"></i> Ya, Hapus Tiket',
+                    cancelButtonText: 'Batal',
+                    reverseButtons: true,
+                    background: th.background,
+                    color: th.color,
+                    customClass: {
+                        popup: 'rounded-3xl border border-slate-100 dark:border-slate-700 shadow-2xl p-6',
+                        confirmButton: 'rounded-xl px-5 py-2.5 font-bold text-xs sm:text-sm shadow-md shadow-rose-500/25 cursor-pointer',
+                        cancelButton: 'rounded-xl px-5 py-2.5 font-bold text-xs sm:text-sm cursor-pointer'
+                    }
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        form.submit();
+                    }
+                });
+            } else {
+                if (confirm('Apakah Anda yakin ingin menghapus tiket #{{ $datarq->ticket_number }}? Seluruh riwayat dan data lampiran akan dihapus.')) {
+                    form.submit();
+                }
+            }
+        }
+
+        function confirmCancelTakeover() {
+            const form = document.getElementById('form-cancel-takeover');
+            if (!form) return;
+
+            if (typeof Swal !== 'undefined') {
+                const th = getTicketSwalTheme();
+                Swal.fire({
+                    title: 'Batalkan Pengalihan Tiket?',
+                    html: `
+                        <div class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 mt-2 leading-relaxed">
+                            Permintaan pengalihan tiket ke advisor lain akan dibatalkan dan tiket tetap berada di bawah penanganan Anda.
+                        </div>
+                    `,
+                    icon: 'question',
+                    iconColor: '#3b82f6',
+                    showCancelButton: true,
+                    confirmButtonColor: '#ef4444',
+                    cancelButtonColor: th.cancelButtonColor,
+                    confirmButtonText: '<i class="fa-solid fa-ban mr-1.5"></i> Ya, Batalkan Alih',
+                    cancelButtonText: 'Tutup',
+                    reverseButtons: true,
+                    background: th.background,
+                    color: th.color,
+                    customClass: {
+                        popup: 'rounded-3xl border border-slate-100 dark:border-slate-700 shadow-2xl p-6',
+                        confirmButton: 'rounded-xl px-5 py-2.5 font-bold text-xs sm:text-sm shadow-md shadow-rose-500/25 cursor-pointer',
+                        cancelButton: 'rounded-xl px-5 py-2.5 font-bold text-xs sm:text-sm cursor-pointer'
+                    }
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        form.submit();
+                    }
+                });
+            } else {
+                if (confirm('Apakah Anda yakin ingin membatalkan pengalihan tiket ini?')) {
+                    form.submit();
+                }
+            }
+        }
+    </script>
 </x-app-layout>
