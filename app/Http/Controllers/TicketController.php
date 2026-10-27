@@ -869,7 +869,13 @@ class TicketController extends Controller
                 'description' => 'Tiket dialihkan langsung dari ' . $oldOwnerName . ' kepada ' . $targetUser->name . ' oleh ' . $currentUser->name . '. Alasan: ' . $reasonText,
             ]);
 
+            if ($targetUserId == $currentUser->id) {
+                Alert::success('Berhasil!', 'Anda telah mengambil alih tiket ini.')->showConfirmButton('Tutup', '#3b82f6')->autoClose(2500);
+                return redirect()->back();
+            }
+
             Alert::success('Berhasil!', 'Tiket telah berhasil dialihkan.')->showConfirmButton('Tutup', '#3b82f6')->autoClose(2500);
+            return redirect()->route('inbox');
         } else {
             // User asks another user -> Need approval with custom duration
             $ticket->update([
@@ -909,9 +915,10 @@ class TicketController extends Controller
 
             $targetUser->notify(new RequestStatusChanged($ticket, Auth::user()->name . " meminta pengalihan tiket '" . $ticket->title . "' kepada Anda.", "Permintaan Pengalihan Tiket"));
             Alert::success('Terkirim!', 'Permintaan pengalihan tiket telah dikirim ke user tersebut.')->showConfirmButton('Tutup', '#3b82f6')->autoClose(2500);
+            return redirect()->route('inbox');
         }
         
-        return redirect()->back();
+        return redirect()->route('inbox');
     }
 
     public function takeoverAccept($id) {
