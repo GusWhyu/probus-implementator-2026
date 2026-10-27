@@ -149,7 +149,7 @@
                 <div class="flex items-center gap-2 shrink-0">
                     <form id="form-delete-waiting-confirmation" action="{{ route('ticket.resume_progress', $datarq->id) }}" method="POST">
                         @csrf
-                        <input type="hidden" name="resume_notes" value="Menunggu konfirmasi klien dihapus. Pengerjaan aktif dilanjutkan.">
+                        <input type="hidden" name="resume_notes" value="Menunggu konfirmasi klien dihapus.">
                         <button type="button" onclick="confirmDeleteWaitingConfirmation()" class="px-3 py-2 bg-white dark:bg-slate-800 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-slate-600 hover:text-rose-600 dark:text-slate-300 dark:hover:text-rose-400 rounded-xl text-xs font-bold transition-all border border-slate-200 dark:border-slate-700 hover:border-rose-300 dark:hover:border-rose-800 flex items-center gap-1.5 shadow-2xs cursor-pointer" title="Hapus status menunggu konfirmasi">
                             <i class="fa-solid fa-trash-can text-xs text-rose-500"></i>
                             <span class="hidden sm:inline">Hapus</span>
@@ -2029,9 +2029,8 @@
                 Swal.fire({
                     title: 'Hapus Status Menunggu?',
                     html: `
-                        <div class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 space-y-2 mt-2 leading-relaxed">
-                            <p>Status <strong class="text-amber-600 dark:text-amber-400 font-bold">Menunggu Konfirmasi Klien</strong> akan dihapus.</p>
-                            <p class="text-[11.5px] text-slate-500 dark:text-slate-400">Tiket akan kembali aktif dalam tahap pengerjaan (PROGRESS).</p>
+                        <div class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 mt-2 leading-relaxed">
+                            Apakah Anda yakin ingin menghapus status <strong class="text-amber-600 dark:text-amber-400 font-bold">Menunggu Konfirmasi Klien</strong>?
                         </div>
                     `,
                     icon: 'warning',
@@ -2055,7 +2054,7 @@
                     }
                 });
             } else {
-                if (confirm('Hapus status menunggu konfirmasi dan lanjutkan pengerjaan tiket?')) {
+                if (confirm('Hapus status menunggu konfirmasi klien?')) {
                     form.submit();
                 }
             }
