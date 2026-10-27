@@ -27,7 +27,7 @@
             </div>
             <div class="ml-2.5 flex flex-col justify-center">
                 <span class="font-bold text-slate-800 dark:text-white text-[14px] sm:text-[15px] tracking-tight whitespace-nowrap leading-tight">Probus Implementator</span>
-                <span class="text-[10px] font-semibold text-slate-400 dark:text-slate-400/80 tracking-wider leading-none mt-0.5">v{{ config('app.version', '10.1') }}</span>
+                <span class="text-[10px] font-semibold text-slate-400 dark:text-slate-400/80 tracking-wider leading-none mt-0.5">v{{ config('app.version', '10.2') }}</span>
             </div>
         </a>
     </div>

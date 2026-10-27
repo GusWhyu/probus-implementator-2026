@@ -98,7 +98,7 @@
             <div class="absolute top-4 right-4 sm:top-6 sm:right-6 z-20">
                 <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/90 backdrop-blur-md border border-slate-200/90 shadow-xs text-slate-600 text-xs font-semibold tracking-wide hover:border-blue-300 transition-colors">
                     <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                    <span class="font-bold text-slate-700">v{{ config('app.version', '10.1') }}</span>
+                    <span class="font-bold text-slate-700">v{{ config('app.version', '10.2') }}</span>
                 </div>
             </div>
 
@@ -119,7 +119,7 @@
                         <div class="text-left">
                             <div class="text-xs sm:text-sm font-black tracking-widest uppercase text-blue-600 leading-tight">PROBUS SYSTEM</div>
                             <div class="text-xl sm:text-2xl font-black text-slate-800 tracking-wider uppercase leading-tight mt-0.5">IMPLEMENTATOR</div>
-                            <div class="text-[10px] font-bold text-slate-400 tracking-wider uppercase leading-none mt-0.5">v{{ config('app.version', '10.1') }}</div>
+                            <div class="text-[10px] font-bold text-slate-400 tracking-wider uppercase leading-none mt-0.5">v{{ config('app.version', '10.2') }}</div>
                         </div>
                     </div>
                     <p class="text-xs sm:text-sm text-slate-500 font-medium mt-3 text-center">Silakan masuk ke akun Probus Implementator Anda.</p>
