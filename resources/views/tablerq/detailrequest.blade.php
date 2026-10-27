@@ -730,21 +730,39 @@
                                 @php
                                     $userList = isset($assignableUsers) 
                                         ? $assignableUsers 
-                                        : \App\Models\User::whereIn('usertype', ['admin', 'supervisor', 'user'])->where('id', '!=', Auth::id())->orderBy('name')->get();
-                                    $defaultAssigneeId = ($datarq->user_id && $datarq->user_id != Auth::id() && $userList->contains('id', $datarq->user_id)) 
+                                        : \App\Models\User::with(['departemen', 'tag'])
+                                            ->whereIn('usertype', ['admin', 'supervisor', 'user'])
+                                            ->where('is_active', true)
+                                            ->orderBy('name')
+                                            ->get();
+
+                                    $defaultAssigneeId = ($datarq->user_id && $userList->contains('id', $datarq->user_id)) 
                                         ? $datarq->user_id 
                                         : null;
+
+                                    // Kelompokkan petugas tiket berdasarkan Departemen dan Tag
+                                    $groupedUsers = $userList->groupBy(function($u) {
+                                        $dept = $u->departemen ? strtoupper($u->departemen->name) : 'LAINNYA';
+                                        $tag = $u->tag ? strtoupper($u->tag->name) : 'UMUM';
+                                        return $dept . ' — ' . $tag;
+                                    })->sortBy(function($users, $key) {
+                                        if (str_starts_with($key, 'PRODUKSI')) return '1_' . $key;
+                                        if (str_starts_with($key, 'OPERASIONAL')) return '2_' . $key;
+                                        return '3_' . $key;
+                                    });
                                 @endphp
                                 @if($userList->isEmpty())
-                                    <option value="" disabled selected>Tidak ada petugas lain yang tersedia</option>
+                                    <option value="" disabled selected>Tidak ada petugas yang tersedia</option>
                                 @else
                                     <option value="" disabled {{ is_null($defaultAssigneeId) ? 'selected' : '' }}>-- Pilih Petugas Penangan --</option>
-                                    @foreach($userList as $u)
-                                        @if($u->id != Auth::id())
-                                            <option value="{{ $u->id }}" {{ $defaultAssigneeId == $u->id ? 'selected' : '' }}>
-                                                {{ $u->name }} ({{ ucfirst($u->usertype) }})
-                                            </option>
-                                        @endif
+                                    @foreach($groupedUsers as $groupLabel => $usersInGroup)
+                                        <optgroup label="{{ $groupLabel }}" class="font-extrabold text-slate-900 dark:text-slate-100 bg-slate-100 dark:bg-slate-800">
+                                            @foreach($usersInGroup as $u)
+                                                <option value="{{ $u->id }}" {{ $defaultAssigneeId == $u->id ? 'selected' : '' }} class="font-medium text-slate-800 dark:text-slate-100 bg-white dark:bg-slate-900">
+                                                    {{ $u->name }} ({{ ucfirst($u->usertype) }}){{ $u->id == Auth::id() ? ' - Anda' : '' }}
+                                                </option>
+                                            @endforeach
+                                        </optgroup>
                                     @endforeach
                                 @endif
                             </select>
@@ -814,10 +832,14 @@
                         <div class="relative">
                             <select name="advisor_id" class="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 p-3 pl-4 pr-10 outline-none font-bold appearance-none shadow-sm cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
                                 <option value="">-- Tanpa Advisor (Opsional) --</option>
-                                @foreach($userList as $u)
-                                    @if($u->id != Auth::id())
-                                        <option value="{{ $u->id }}">{{ $u->name }} ({{ ucfirst($u->usertype) }})</option>
-                                    @endif
+                                @foreach($groupedUsers as $groupLabel => $usersInGroup)
+                                    <optgroup label="{{ $groupLabel }}" class="font-extrabold text-slate-900 dark:text-slate-100 bg-slate-100 dark:bg-slate-800">
+                                        @foreach($usersInGroup as $u)
+                                            <option value="{{ $u->id }}" class="font-medium text-slate-800 dark:text-slate-100 bg-white dark:bg-slate-900">
+                                                {{ $u->name }} ({{ ucfirst($u->usertype) }}){{ $u->id == Auth::id() ? ' - Anda' : '' }}
+                                            </option>
+                                        @endforeach
+                                    </optgroup>
                                 @endforeach
                             </select>
                             <i class="fa-solid fa-chevron-down absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-[10px] pointer-events-none"></i>

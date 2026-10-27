@@ -351,8 +351,9 @@ class RequestController extends Controller
 
         $returnUrl = session('detailrequest_return_url_' . $id, session('detailrequest_return_url', route('myreq')));
         $moduleSystems = ModuleSystem::orderBy('name')->get();
-        $assignableUsers = User::whereIn('usertype', ['admin', 'supervisor', 'user'])
-            ->where('id', '!=', Auth::id())
+        $assignableUsers = User::with(['departemen', 'tag'])
+            ->whereIn('usertype', ['admin', 'supervisor', 'user'])
+            ->where('is_active', true)
             ->orderBy('name')
             ->get();
 
@@ -863,23 +864,12 @@ class RequestController extends Controller
             return redirect()->back();
         }
 
-        if ($request->assigned_user_id == Auth::id()) {
-            Alert::error('Gagal', 'Anda tidak dapat mengalihkan tiket ke diri Anda sendiri.');
-            return redirect()->back();
-        }
-
         $request->validate([
-            'assigned_user_id' => [
-                'required',
-                'exists:users,id',
-                \Illuminate\Validation\Rule::notIn([Auth::id()]),
-            ],
+            'assigned_user_id' => 'required|exists:users,id',
             'tipe_penanganan' => 'required|in:On Site,Office,Piket,Online,Remote,Remote / Online',
             'due_date' => 'required|date',
             'module_system_id' => 'nullable|exists:module_systems,id',
             'advisor_id' => 'nullable|exists:users,id',
-        ], [
-            'assigned_user_id.not_in' => 'Anda tidak dapat mengalihkan tiket ke diri Anda sendiri.',
         ]);
 
         DB::beginTransaction();
