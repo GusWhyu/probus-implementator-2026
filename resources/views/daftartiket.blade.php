@@ -242,6 +242,14 @@
                                             </span>
                                             <span class="whitespace-nowrap">{{ $rq->duration_text }}</span>
                                         </div>
+                                    @elseif($rq->status == 'OPEN' && $rq->duration_text && $rq->duration_text !== '-')
+                                        <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border border-blue-200/80 dark:border-blue-800/80 shadow-xs whitespace-nowrap" title="Waktu berjalan: {{ $rq->duration_text }}">
+                                            <span class="relative flex h-2 w-2 shrink-0">
+                                                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                                                <span class="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
+                                            </span>
+                                            <span class="whitespace-nowrap">{{ $rq->duration_text }}</span>
+                                        </div>
                                     @else
                                         <div class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold text-slate-400 dark:text-slate-500 bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700" title="Belum diproses">
                                             <span>-</span>
@@ -546,10 +554,15 @@
                                 <div class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-0.5 flex items-center gap-1">
                                     <i class="fa-regular fa-calendar-xmark text-[10px] {{ $isOverdue ? 'text-rose-500' : '' }}"></i> Due Date
                                 </div>
-                                <div class="text-xs font-semibold {{ $isOverdue ? 'text-rose-600 dark:text-rose-400' : 'text-slate-600 dark:text-slate-400' }}">
-                                    {{ $rq->due_date ? \Carbon\Carbon::parse($rq->due_date)->format('d/m/Y') : '-' }}
+                                <div class="text-xs font-semibold {{ $isOverdue ? 'text-rose-600 dark:text-rose-400' : 'text-slate-600 dark:text-slate-400' }} flex items-center flex-wrap gap-1">
+                                    <span>{{ $rq->due_date ? \Carbon\Carbon::parse($rq->due_date)->format('d/m/Y') : '-' }}</span>
                                     @if($isOverdue)
-                                        <span class="text-[9px] bg-rose-100 dark:bg-rose-950/50 text-rose-700 dark:text-rose-300 px-1.5 py-0.5 rounded font-bold ml-0.5 border border-rose-200 dark:border-rose-800">Late</span>
+                                        <span class="text-[9px] bg-rose-100 dark:bg-rose-950/50 text-rose-700 dark:text-rose-300 px-1.5 py-0.5 rounded font-bold border border-rose-200 dark:border-rose-800">Late</span>
+                                    @endif
+                                    @if($rq->status == 'PROGRESS' && $rq->duration_text && $rq->duration_text !== '-')
+                                        <span class="text-[10px] text-amber-600 dark:text-amber-400 font-bold bg-amber-50 dark:bg-amber-950/40 px-1 rounded border border-amber-200/60 dark:border-amber-800/80" title="Sedang diproses: {{ $rq->duration_text }}">({{ $rq->duration_text }})</span>
+                                    @elseif($rq->status == 'OPEN' && $rq->duration_text && $rq->duration_text !== '-')
+                                        <span class="text-[10px] text-blue-600 dark:text-blue-400 font-bold bg-blue-50 dark:bg-blue-950/40 px-1 rounded border border-blue-200/60 dark:border-blue-800/80" title="Lama pengerjaan: {{ $rq->duration_text }}">({{ $rq->duration_text }})</span>
                                     @endif
                                 </div>
                             @endif

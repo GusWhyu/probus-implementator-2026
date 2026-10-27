@@ -822,11 +822,11 @@
                             </div>
 
                             <!-- Row 6: Durasi Pengerjaan -->
-                            <div class="col-span-2 bg-slate-50/80 p-3 rounded-xl border border-slate-200/60 flex items-center justify-between">
-                                <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
-                                    <i class="fa-solid fa-stopwatch text-blue-500"></i> Durasi Pengerjaan:
+                            <div class="col-span-2 bg-slate-50/80 dark:bg-slate-800/60 p-3 rounded-xl border border-slate-200/60 dark:border-slate-700/80 flex items-center justify-between">
+                                <span class="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                                    <i class="fa-solid fa-stopwatch {{ $datarq->status == 'CLOSED' ? 'text-emerald-500' : ($datarq->status == 'PROGRESS' ? 'text-amber-500' : 'text-blue-500') }}"></i> Durasi Pengerjaan:
                                 </span>
-                                <span class="font-bold text-sm {{ $datarq->status == 'CLOSED' ? 'text-emerald-700' : ($datarq->status == 'PROGRESS' ? 'text-amber-700' : 'text-slate-600') }}">
+                                <span class="font-bold text-sm {{ $datarq->status == 'CLOSED' ? 'text-emerald-600 dark:text-emerald-400' : ($datarq->status == 'PROGRESS' ? 'text-amber-600 dark:text-amber-400' : 'text-blue-600 dark:text-blue-400') }}">
                                     {{ $datarq->duration_text ?? '-' }}
                                 </span>
                             </div>

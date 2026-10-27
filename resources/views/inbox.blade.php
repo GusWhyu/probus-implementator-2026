@@ -215,6 +215,20 @@
                                     <div class="text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase mb-0.5 tracking-wider">Updated At</div>
                                     <div class="text-[11px] font-medium text-slate-500 dark:text-slate-400">{{ $rq->updated_at ? $rq->updated_at->format('d/m/Y') : '-' }}</div>
                                 </div>
+                                @if($rq->duration_text && $rq->duration_text !== '-')
+                                <div class="col-span-2 pt-2 mt-0.5 border-t border-dashed border-slate-200/80 dark:border-slate-700/80 flex items-center justify-between">
+                                    <div class="text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
+                                        <i class="fa-solid fa-stopwatch text-blue-500 text-[10px]"></i> Lama Pengerjaan
+                                    </div>
+                                    <div class="text-xs font-bold text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/40 px-2.5 py-0.5 rounded-md border border-blue-200/60 dark:border-blue-800/40 shadow-2xs flex items-center gap-1.5">
+                                        <span class="relative flex h-1.5 w-1.5">
+                                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                                            <span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-blue-500"></span>
+                                        </span>
+                                        {{ $rq->duration_text }}
+                                    </div>
+                                </div>
+                                @endif
                             </div>
                         </a>
                         @empty
