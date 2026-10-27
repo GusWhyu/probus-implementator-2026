@@ -162,7 +162,7 @@ class TicketController extends Controller
             'tag' => 'required',
             'category' => 'required',
             'client' => 'required', // client from form is now client_id (moutlet)
-            'tipe_penanganan' => 'required|in:On Site,Office,Piket,Online,Remote,Remote / Online',
+            'tipe_penanganan' => 'required|in:On Site,Office,Piket,Online,Remote,Remote / Online,TRAINING / Retraining ONLINE,Training 4 Traner,Training 4 Trainer',
             'advisor' => 'nullable', // advisor is optional
             'start_date' => ['required', 'date', 'after_or_equal:' . $minDate, 'before_or_equal:' . $maxDate],
             'due_date' => 'required|date|after_or_equal:start_date',
@@ -274,7 +274,7 @@ class TicketController extends Controller
             'tag' => 'required',
             'category' => 'required',
             'client' => 'required',
-            'tipe_penanganan' => 'required|in:On Site,Office,Piket,Online,Remote,Remote / Online',
+            'tipe_penanganan' => 'required|in:On Site,Office,Piket,Online,Remote,Remote / Online,TRAINING / Retraining ONLINE,Training 4 Traner,Training 4 Trainer',
             'advisor' => 'nullable',
             'start_date' => ['required', 'date', 'after_or_equal:' . $minDate, 'before_or_equal:' . $maxDate],
             'due_date' => 'required|date|after_or_equal:start_date',

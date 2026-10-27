@@ -289,9 +289,13 @@
                                 <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-extrabold bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800/80">
                                     <i class="fa-solid fa-location-dot"></i> On Site (Kunjungan)
                                 </span>
+                            @elseif (stripos($ticket->tipe_penanganan ?? '', 'training') !== false)
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-extrabold bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800/80">
+                                    <i class="fa-solid fa-chalkboard-user"></i> {{ $ticket->tipe_penanganan }}
+                                </span>
                             @else
                                 <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-extrabold bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800/80">
-                                    <i class="fa-solid fa-headset"></i> Remote / Office
+                                    <i class="fa-solid fa-headset"></i> {{ $ticket->tipe_penanganan ?: 'Office' }}
                                 </span>
                             @endif
                         </div>

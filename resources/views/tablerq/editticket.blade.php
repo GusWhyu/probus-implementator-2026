@@ -85,6 +85,8 @@
                                         <option value="Office" {{ old('tipe_penanganan', $datarq->tipe_penanganan) == 'Office' ? 'selected' : '' }}>Office</option>
                                         <option value="Online" {{ in_array(old('tipe_penanganan', $datarq->tipe_penanganan), ['Online', 'Remote', 'Remote / Online']) ? 'selected' : '' }}>Online</option>
                                         <option value="Piket" {{ old('tipe_penanganan', $datarq->tipe_penanganan) == 'Piket' ? 'selected' : '' }}>Piket</option>
+                                        <option value="TRAINING / Retraining ONLINE" {{ old('tipe_penanganan', $datarq->tipe_penanganan) == 'TRAINING / Retraining ONLINE' ? 'selected' : '' }}>TRAINING / Retraining ONLINE</option>
+                                        <option value="Training 4 Traner" {{ in_array(old('tipe_penanganan', $datarq->tipe_penanganan), ['Training 4 Traner', 'Training 4 Trainer']) ? 'selected' : '' }}>Training 4 Traner</option>
                                     </select>
                                 </div>
                                 

@@ -517,9 +517,10 @@ class HomeController extends Controller
         $period = $periodInfo['period_key'];
         $periodType = $periodInfo['period_type'];
         
-        // HANYA CS dengan usertype == 'user' dan berada di departemen yang dipilih
+        // HANYA CS dengan usertype == 'user', berada di departemen yang dipilih, dan berstatus aktif
         $baseCsQuery = User::where('usertype', 'user')
-            ->where('departemen_id', $selectedDeptId);
+            ->where('departemen_id', $selectedDeptId)
+            ->where('is_active', true);
 
         $reviewQueryClosure = function($q) use ($periodInfo) {
             $q->where(function($sub) use ($periodInfo) {
@@ -733,9 +734,10 @@ class HomeController extends Controller
         $startDate = $periodInfo['start_date'];
         $endDate = $periodInfo['end_date'];
 
-        // HANYA CS dengan usertype == 'user' dan berada di departemen yang dipilih
+        // HANYA CS dengan usertype == 'user', berada di departemen yang dipilih, dan berstatus aktif
         $baseCsQuery = User::where('usertype', 'user')
-            ->where('departemen_id', $selectedDeptId);
+            ->where('departemen_id', $selectedDeptId)
+            ->where('is_active', true);
 
         $reviewQueryClosure = function($q) use ($periodInfo) {
             $q->where(function($sub) use ($periodInfo) {
@@ -946,9 +948,10 @@ class HomeController extends Controller
             }
         }
 
-        // Benchmark terhadap seluruh tim CS pada departemen yang sama
+        // Benchmark terhadap seluruh tim CS pada departemen yang sama (hanya staf aktif)
         $allUsers = User::where('usertype', 'user')
             ->where('departemen_id', $user->departemen_id)
+            ->where('is_active', true)
             ->get();
         $max_ticket_score = 0;
         $total_team_score = 0;
@@ -1072,6 +1075,7 @@ class HomeController extends Controller
 
         $csUsers = User::where('usertype', 'user')
             ->where('departemen_id', $selectedDeptId)
+            ->where('is_active', true)
             ->get();
 
         if ($csUsers->isEmpty()) {

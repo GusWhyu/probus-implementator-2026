@@ -8,6 +8,8 @@ use App\Models\Departemen;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\Rules;
 use RealRashid\SweetAlert\Facades\Alert;
 
@@ -139,16 +141,63 @@ class UserController extends Controller
 
     public function delete($id){
         $this->authorize('aspv');
-        $request = \App\Models\Request::where('user_id', $id)->get();
-        $updatesystem = \App\Models\UpdateSystem::where('user_id', $id)->get();
-        if ($request->count() > 0 || $updatesystem->count() > 0) {
-            Alert::error('Failed to Delete Data!', 'This user is still in use.');
+
+        if ($id == 1 || $id == auth()->id()) {
+            Alert::error('Aksi Ditolak', 'Akun Superadministrator utama atau akun Anda sendiri tidak dapat dihapus.');
             return redirect()->back();
         }
-        $user = User::find($id);
-        $user->delete();
-        Alert::success('Account Successfully Deleted!');
-        return redirect('/user');
+
+        $user = User::findOrFail($id);
+
+        DB::beginTransaction();
+        try {
+            // 1. Lepaskan relasi tiket agar arsip dan histori tiket tetap aman (user_id & advisor_id set null)
+            \App\Models\Ticket::where('user_id', $id)->update(['user_id' => null]);
+            \App\Models\Ticket::where('advisor_id', $id)->update(['advisor_id' => null]);
+            \App\Models\Ticket::where('pending_advisor_id', $id)->update(['pending_advisor_id' => null]);
+
+            if (Schema::hasTable('ticket_logs')) {
+                DB::table('ticket_logs')->where('user_id', $id)->update(['user_id' => null]);
+            }
+
+            if (Schema::hasTable('request')) {
+                DB::table('request')->where('approved_by', $id)->update(['approved_by' => null]);
+            }
+
+            // 2. Hapus data relasi langsung yang memiliki foreign key constraint ke user
+            if (Schema::hasTable('ticket_takeovers')) {
+                DB::table('ticket_takeovers')->where('from_user_id', $id)->orWhere('to_user_id', $id)->delete();
+            }
+
+            if (Schema::hasTable('performance_reviews')) {
+                DB::table('performance_reviews')->where('user_id', $id)->orWhere('reviewer_id', $id)->delete();
+            }
+
+            \App\Models\Komentar::where('user_id', $id)->delete();
+
+            if (Schema::hasTable('requestlog')) {
+                DB::table('requestlog')->where('user_id', $id)->delete();
+            }
+
+            if (Schema::hasTable('request')) {
+                DB::table('request')->where('user_id', $id)->delete();
+            }
+
+            if (Schema::hasTable('updatesystem')) {
+                DB::table('updatesystem')->where('user_id', $id)->delete();
+            }
+
+            // 3. Hapus data user
+            $user->delete();
+
+            DB::commit();
+            Alert::success('Berhasil!', "Akun pengguna '{$user->name}' berhasil dihapus.");
+            return redirect('/user');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Alert::error('Gagal Menghapus Akun!', 'Terjadi kendala saat menghapus data: ' . $e->getMessage());
+            return redirect()->back();
+        }
     }
 
     public function updatepass(Request $request,$id){

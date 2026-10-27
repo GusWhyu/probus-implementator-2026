@@ -723,7 +723,8 @@
                                     $isSite = $tp == 'On Site';
                                     $isPiket = $tp == 'Piket';
                                     $isOnline = in_array(strtolower($tp), ['online', 'remote', 'remote / online']);
-                                    $tpIcon = $isSite ? 'fa-location-dot text-amber-500' : ($isPiket ? 'fa-calendar-check text-emerald-500' : ($isOnline ? 'fa-globe text-purple-500' : 'fa-building-user text-sky-500'));
+                                    $isTraining = stripos($tp, 'training') !== false;
+                                    $tpIcon = $isSite ? 'fa-location-dot text-amber-500' : ($isPiket ? 'fa-calendar-check text-emerald-500' : ($isTraining ? 'fa-chalkboard-user text-indigo-500' : ($isOnline ? 'fa-globe text-purple-500' : 'fa-building-user text-sky-500')));
                                 @endphp
                                 <p class="font-bold text-slate-800 text-sm flex items-center gap-1.5 break-words leading-snug">
                                     <i class="fa-solid {{ $tpIcon }} text-xs shrink-0"></i>

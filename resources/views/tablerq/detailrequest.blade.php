@@ -426,7 +426,8 @@
                                     $reqIsSite = $reqTp == 'On Site';
                                     $reqIsPiket = $reqTp == 'Piket';
                                     $reqIsOnline = in_array(strtolower($reqTp), ['online', 'remote', 'remote / online']);
-                                    $reqTpIcon = $reqIsSite ? 'fa-location-dot text-amber-500' : ($reqIsPiket ? 'fa-calendar-check text-emerald-500' : ($reqIsOnline ? 'fa-globe text-purple-500' : 'fa-building-user text-sky-500'));
+                                    $reqIsTraining = stripos($reqTp, 'training') !== false;
+                                    $reqTpIcon = $reqIsSite ? 'fa-location-dot text-amber-500' : ($reqIsPiket ? 'fa-calendar-check text-emerald-500' : ($reqIsTraining ? 'fa-chalkboard-user text-indigo-500' : ($reqIsOnline ? 'fa-globe text-purple-500' : 'fa-building-user text-sky-500')));
                                 @endphp
                                 <div class="w-8 h-8 rounded-lg bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-400 shrink-0">
                                     <i class="fa-solid {{ $reqTpIcon }} text-xs"></i>
@@ -869,6 +870,8 @@
                                     <option value="On Site" {{ ($datarq->tipe_penanganan ?? '') == 'On Site' ? 'selected' : '' }}>On Site</option>
                                     <option value="Online" {{ in_array($datarq->tipe_penanganan ?? '', ['Online', 'Remote', 'Remote / Online']) ? 'selected' : '' }}>Online</option>
                                     <option value="Piket" {{ ($datarq->tipe_penanganan ?? '') == 'Piket' ? 'selected' : '' }}>Piket</option>
+                                    <option value="TRAINING / Retraining ONLINE" {{ ($datarq->tipe_penanganan ?? '') == 'TRAINING / Retraining ONLINE' ? 'selected' : '' }}>TRAINING / Retraining ONLINE</option>
+                                    <option value="Training 4 Traner" {{ in_array($datarq->tipe_penanganan ?? '', ['Training 4 Traner', 'Training 4 Trainer']) ? 'selected' : '' }}>Training 4 Traner</option>
                                 </select>
                                 <i class="fa-solid fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-[10px] pointer-events-none"></i>
                             </div>

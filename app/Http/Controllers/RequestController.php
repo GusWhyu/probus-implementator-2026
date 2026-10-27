@@ -866,7 +866,7 @@ class RequestController extends Controller
 
         $request->validate([
             'assigned_user_id' => 'required|exists:users,id',
-            'tipe_penanganan' => 'required|in:On Site,Office,Piket,Online,Remote,Remote / Online',
+            'tipe_penanganan' => 'required|in:On Site,Office,Piket,Online,Remote,Remote / Online,TRAINING / Retraining ONLINE,Training 4 Traner,Training 4 Trainer',
             'due_date' => 'required|date',
             'module_system_id' => 'nullable|exists:module_systems,id',
             'advisor_id' => 'nullable|exists:users,id',

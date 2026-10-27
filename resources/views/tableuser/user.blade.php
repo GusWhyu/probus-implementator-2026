@@ -172,10 +172,13 @@
                                         </a>
 
                                         {{-- Hapus Akun --}}
-                                        @if ($item->id != '1' && $item->id != auth()->id())
-                                            <a href="/deleteacc/{{ $item->id }}" data-confirm-delete="true" class="w-8 h-8 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 flex items-center justify-center transition-colors" title="Hapus Akun">
+                                        @if ($item->id != 1 && $item->id != auth()->id())
+                                            <button type="button" 
+                                                    onclick="confirmDeleteUser({{ $item->id }}, '{{ addslashes($item->name) }}')"
+                                                    class="w-8 h-8 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 flex items-center justify-center transition-colors" 
+                                                    title="Hapus Akun">
                                                 <i class="fa-solid fa-trash-can text-[10px]"></i>
-                                            </a>
+                                            </button>
                                         @endif
                                     </div>
                                 </td>
@@ -207,6 +210,12 @@
     {{-- Form for status toggle --}}
     <form id="toggle-status-form" method="POST" style="display: none;">
         @csrf
+    </form>
+
+    {{-- Form for delete user --}}
+    <form id="delete-user-form" method="POST" style="display: none;">
+        @csrf
+        @method('DELETE')
     </form>
 
     <script>
@@ -247,6 +256,39 @@
                 if (confirm(`Apakah Anda yakin ingin ${actionText} akun "${userName}"?`)) {
                     const form = document.getElementById('toggle-status-form');
                     form.action = `/user/${userId}/toggle-status`;
+                    form.submit();
+                }
+            }
+        }
+
+        function confirmDeleteUser(userId, userName) {
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    title: 'Hapus Pengguna?',
+                    html: `Apakah Anda yakin ingin menghapus akun <b>${userName}</b>?<br><span class="text-xs text-rose-500 font-semibold mt-1 inline-block">Data akun dan akses ke sistem akan dihapus secara permanen.</span>`,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#e11d48',
+                    cancelButtonColor: '#64748b',
+                    confirmButtonText: 'Ya, Hapus Akun',
+                    cancelButtonText: 'Batal',
+                    reverseButtons: true,
+                    customClass: {
+                        popup: 'rounded-2xl',
+                        confirmButton: 'rounded-xl px-5 py-2.5 font-semibold text-sm',
+                        cancelButton: 'rounded-xl px-5 py-2.5 font-semibold text-sm'
+                    }
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        const form = document.getElementById('delete-user-form');
+                        form.action = `/deleteacc/${userId}`;
+                        form.submit();
+                    }
+                });
+            } else {
+                if (confirm(`Apakah Anda yakin ingin menghapus akun "${userName}"? Data akun akan dihapus permanen.`)) {
+                    const form = document.getElementById('delete-user-form');
+                    form.action = `/deleteacc/${userId}`;
                     form.submit();
                 }
             }
