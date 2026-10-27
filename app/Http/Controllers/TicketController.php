@@ -198,7 +198,7 @@ class TicketController extends Controller
             'due_date' => $request->due_date,
             'status' => 'OPEN',
             'link_id' => \Illuminate\Support\Str::random(10),
-            'handle_at' => null,
+            'handle_at' => $createdAt,
             'created_at' => $createdAt,
         ]);
 
@@ -212,13 +212,13 @@ class TicketController extends Controller
         if ($data->advisor_id) {
             $advisor = User::find($data->advisor_id);
             if ($advisor && $data->advisor_id != Auth::id()) {
-                $advisor->notify(new RequestStatusChanged($data, Auth::user()->name . " menugaskan tiket baru '" . $data->title . "' kepada Anda.", "Penugasan Tiket Baru"));
+                $advisor->notify(new RequestStatusChanged($data, Auth::user()->name . " menunjuk Anda sebagai advisor pada tiket '" . $data->title . "'.", "Penunjukan Advisor Tiket"));
             }
             TicketLog::create([
                 'ticket_id' => $data->id,
                 'user_id' => Auth::id(),
-                'action' => 'ASSIGNED',
-                'description' => 'Tiket ditugaskan kepada ' . ($advisor ? $advisor->name : '#' . $data->advisor_id) . '.',
+                'action' => 'ASSIGNED_ADVISOR',
+                'description' => ($advisor ? $advisor->name : '#' . $data->advisor_id) . ' ditambahkan sebagai advisor tiket.',
             ]);
         }
         
@@ -330,11 +330,9 @@ class TicketController extends Controller
                 $updateData['closed_at'] = null;
                 $updateData['duration_minutes'] = null;
                 if ($newStatus == 'PROGRESS') {
-                    if ($datarq->status !== 'PROGRESS' || empty($datarq->handle_at)) {
+                    if (empty($datarq->handle_at)) {
                         $updateData['handle_at'] = now();
                     }
-                } elseif ($newStatus == 'OPEN') {
-                    $updateData['handle_at'] = null;
                 }
             }
             TicketLog::create([
@@ -465,11 +463,9 @@ class TicketController extends Controller
             $updateData['closed_at'] = null;
             $updateData['duration_minutes'] = null;
             if ($stid == 'PROGRESS') {
-                if ($data->status !== 'PROGRESS' || empty($data->handle_at)) {
+                if (empty($data->handle_at)) {
                     $updateData['handle_at'] = now();
                 }
-            } elseif ($stid == 'OPEN') {
-                $updateData['handle_at'] = null;
             }
         }
 
@@ -553,8 +549,8 @@ class TicketController extends Controller
             TicketLog::create([
                 'ticket_id' => $data->id,
                 'user_id' => Auth::id(),
-                'action' => 'ASSIGNED',
-                'description' => 'Advisor tiket ditugaskan kepada ' . ($advisorUser ? $advisorUser->name : '#' . $request->advisor_id) . ' oleh ' . Auth::user()->name . '.',
+                'action' => 'ASSIGNED_ADVISOR',
+                'description' => ($advisorUser ? $advisorUser->name : '#' . $request->advisor_id) . ' ditambahkan sebagai advisor tiket oleh ' . Auth::user()->name . '.',
             ]);
         }
 

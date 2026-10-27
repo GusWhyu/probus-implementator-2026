@@ -27,7 +27,7 @@
             $statusId = $req->status_id;
             if (in_array($statusId, [1, 2])) {
                 $statusName = 'OPEN';
-                $statusClass = 'bg-indigo-50 text-indigo-700 border border-indigo-200';
+                $statusClass = 'bg-blue-50 text-blue-700 border border-blue-200/80 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-800/80';
             } elseif ($statusId == 3) {
                 $statusName = 'PROGRESS';
                 $statusClass = 'bg-sky-50 text-sky-700 border border-sky-200';

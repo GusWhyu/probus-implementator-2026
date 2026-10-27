@@ -111,11 +111,11 @@
         <div class="sticky top-0 bg-[#F8FAFC]/95 dark:bg-[#0b1120]/95 backdrop-blur-sm -mx-3 px-3 sm:-mx-5 sm:px-5 py-2 z-20 flex lg:hidden">
             <div class="w-full bg-slate-200/80 dark:bg-slate-800/90 p-1 rounded-xl flex gap-1 shadow-inner border border-slate-300/40 dark:border-slate-700/60">
                 <button type="button" @click="activeTab = 'open'" 
-                    :class="activeTab === 'open' ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 font-semibold'" 
+                    :class="activeTab === 'open' ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-sm font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 font-semibold'" 
                     class="flex-1 py-2 px-2 rounded-lg text-xs flex items-center justify-center gap-1.5 transition-all">
                     <span>Open</span>
                     <span class="px-2 py-0.5 rounded-full text-xs font-black min-w-[22px] text-center inline-flex items-center justify-center transition-all" 
-                        :class="activeTab === 'open' ? 'bg-indigo-600 text-white shadow-sm shadow-indigo-600/30' : 'bg-indigo-100 dark:bg-indigo-950/80 text-indigo-800 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800/80'">
+                        :class="activeTab === 'open' ? 'bg-blue-600 text-white shadow-sm shadow-blue-600/30' : 'bg-blue-100 dark:bg-blue-950/80 text-blue-800 dark:text-blue-300 border border-blue-200 dark:border-blue-800/80'">
                         {{ count($open) }}
                     </span>
                 </button>
@@ -151,15 +151,15 @@
                 <div :class="activeTab === 'open' ? 'flex' : 'hidden lg:flex'" class="flex-col w-full lg:h-full lg:min-h-0 shrink-0">
                     <div class="flex items-center justify-between mb-3 px-1 shrink-0">
                         <div class="flex items-center gap-2">
-                            <span class="w-2.5 h-2.5 rounded-full bg-indigo-500"></span>
+                            <span class="w-2.5 h-2.5 rounded-full bg-blue-500"></span>
                             <h3 class="font-bold text-sm text-slate-800 dark:text-slate-200 tracking-wider uppercase">OPEN</h3>
                         </div>
-                        <span class="text-xs font-black text-indigo-700 dark:text-indigo-300 bg-indigo-100 dark:bg-indigo-950/80 border border-indigo-300 dark:border-indigo-800/80 px-2.5 py-0.5 rounded-full shadow-sm">{{ count($open) }}</span>
+                        <span class="text-xs font-black text-blue-700 dark:text-blue-300 bg-blue-100 dark:bg-blue-950/80 border border-blue-300 dark:border-blue-800/80 px-2.5 py-0.5 rounded-full shadow-sm">{{ count($open) }}</span>
                     </div>
                     <!-- Per-column vertical scroll on desktop, natural flow on mobile -->
                     <div class="flex flex-col gap-4 pr-1 sm:pr-2 pb-6 lg:flex-1 lg:min-h-0 lg:overflow-y-auto custom-scrollbar">
                         @forelse($open as $rq)
-                        <a href="/detailticket/{{ $rq->id }}" class="{{ $rq->pending_advisor_id != null ? 'bg-amber-50/40 dark:bg-amber-950/20 border-2 border-amber-300 dark:border-amber-500/50 hover:border-amber-400 ring-2 ring-amber-200/50 dark:ring-amber-500/20' : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-indigo-300 dark:hover:border-indigo-400' }} rounded-2xl p-4 sm:p-5 shadow-sm hover:shadow-md transition-all cursor-pointer flex flex-col group shrink-0 relative">
+                        <a href="/detailticket/{{ $rq->id }}" class="{{ $rq->pending_advisor_id != null ? 'bg-amber-50/40 dark:bg-amber-950/20 border-2 border-amber-300 dark:border-amber-500/50 hover:border-amber-400 ring-2 ring-amber-200/50 dark:ring-amber-500/20' : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-400' }} rounded-2xl p-4 sm:p-5 shadow-sm hover:shadow-md transition-all cursor-pointer flex flex-col group shrink-0 relative">
                             @if($rq->pending_advisor_id != null)
                             <div class="mb-3 px-3 py-1.5 rounded-xl bg-amber-100/90 dark:bg-amber-950/60 border border-amber-300/80 dark:border-amber-500/40 text-amber-900 dark:text-amber-300 text-xs font-bold flex items-center justify-between shadow-sm">
                                 <span class="flex items-center gap-1.5">
@@ -185,10 +185,10 @@
                                         <span class="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>NEW
                                     </span>
                                     @endif
-                                    <span class="bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider border border-indigo-200/60 dark:border-indigo-800/40 shrink-0">{{ $rq->status }}</span>
+                                    <span class="bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider border border-blue-200/80 dark:border-blue-800/80 shrink-0">{{ $rq->status }}</span>
                                 </div>
                             </div>
-                            <h3 class="font-extrabold text-slate-800 dark:text-slate-100 text-base sm:text-lg mb-4 leading-snug line-clamp-2 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors" title="{{ $rq->title }}">{{ $rq->title }}</h3>
+                            <h3 class="font-extrabold text-slate-800 dark:text-slate-100 text-base sm:text-lg mb-4 leading-snug line-clamp-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors" title="{{ $rq->title }}">{{ $rq->title }}</h3>
                             
                             <div class="grid grid-cols-2 gap-y-3.5 gap-x-3 mt-auto border-t border-slate-100 dark:border-slate-700/60 pt-3.5">
                                 <div>
@@ -215,6 +215,20 @@
                                     <div class="text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase mb-0.5 tracking-wider">Updated At</div>
                                     <div class="text-[11px] font-medium text-slate-500 dark:text-slate-400">{{ $rq->updated_at ? $rq->updated_at->format('d/m/Y') : '-' }}</div>
                                 </div>
+                                @if($rq->duration_text && $rq->duration_text !== '-')
+                                <div class="col-span-2 pt-2 mt-0.5 border-t border-dashed border-slate-200/80 dark:border-slate-700/80 flex items-center justify-between">
+                                    <div class="text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
+                                        <i class="fa-solid fa-stopwatch text-blue-500 text-[10px]"></i> Lama Pengerjaan
+                                    </div>
+                                    <div class="text-xs font-bold text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/40 px-2.5 py-0.5 rounded-md border border-blue-200/60 dark:border-blue-800/40 shadow-2xs flex items-center gap-1.5">
+                                        <span class="relative flex h-1.5 w-1.5">
+                                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                                            <span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-blue-500"></span>
+                                        </span>
+                                        {{ $rq->duration_text }}
+                                    </div>
+                                </div>
+                                @endif
                             </div>
                         </a>
                         @empty

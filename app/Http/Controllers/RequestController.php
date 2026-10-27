@@ -351,8 +351,9 @@ class RequestController extends Controller
 
         $returnUrl = session('detailrequest_return_url_' . $id, session('detailrequest_return_url', route('myreq')));
         $moduleSystems = ModuleSystem::orderBy('name')->get();
-        $assignableUsers = User::whereIn('usertype', ['admin', 'supervisor', 'user'])
-            ->where('id', '!=', Auth::id())
+        $assignableUsers = User::with(['departemen', 'tag'])
+            ->whereIn('usertype', ['admin', 'supervisor', 'user'])
+            ->where('is_active', true)
             ->orderBy('name')
             ->get();
 
@@ -863,23 +864,12 @@ class RequestController extends Controller
             return redirect()->back();
         }
 
-        if ($request->assigned_user_id == Auth::id()) {
-            Alert::error('Gagal', 'Anda tidak dapat mengalihkan tiket ke diri Anda sendiri.');
-            return redirect()->back();
-        }
-
         $request->validate([
-            'assigned_user_id' => [
-                'required',
-                'exists:users,id',
-                \Illuminate\Validation\Rule::notIn([Auth::id()]),
-            ],
+            'assigned_user_id' => 'required|exists:users,id',
             'tipe_penanganan' => 'required|in:On Site,Office,Piket,Online,Remote,Remote / Online',
             'due_date' => 'required|date',
             'module_system_id' => 'nullable|exists:module_systems,id',
             'advisor_id' => 'nullable|exists:users,id',
-        ], [
-            'assigned_user_id.not_in' => 'Anda tidak dapat mengalihkan tiket ke diri Anda sendiri.',
         ]);
 
         DB::beginTransaction();
@@ -926,7 +916,7 @@ class RequestController extends Controller
                 'due_date' => $request->due_date,
                 'status' => 'OPEN',
                 'link_id' => \Illuminate\Support\Str::random(10),
-                'handle_at' => null,
+                'handle_at' => now(),
             ]);
 
             // 6. Alihkan lampiran gambar ke tiket baru
@@ -954,8 +944,8 @@ class RequestController extends Controller
                 TicketLog::create([
                     'ticket_id' => $newTicket->id,
                     'user_id' => $user->id,
-                    'action' => 'ASSIGNED',
-                    'description' => 'Advisor tiket ditugaskan kepada ' . ($advisor ? $advisor->name : '#' . $newTicket->advisor_id) . ' oleh ' . $user->name . '.',
+                    'action' => 'ASSIGNED_ADVISOR',
+                    'description' => ($advisor ? $advisor->name : '#' . $newTicket->advisor_id) . ' ditambahkan sebagai advisor tiket oleh ' . $user->name . '.',
                 ]);
             }
 

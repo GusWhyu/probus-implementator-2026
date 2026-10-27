@@ -52,17 +52,21 @@ class Ticket extends Model
             return '-';
         }
 
-        if (strtoupper($this->status) === 'PROGRESS') {
+        if (in_array(strtoupper($this->status), ['PROGRESS', 'OPEN'])) {
             $handleStart = $this->handle_at ?: $this->created_at;
             if ($handleStart) {
-                $secs = now()->diffInSeconds(\Carbon\Carbon::parse($handleStart));
+                $startCarbon = \Carbon\Carbon::parse($handleStart);
+                if (now()->lessThan($startCarbon)) {
+                    return '< 1 menit';
+                }
+                $secs = now()->diffInSeconds($startCarbon);
                 if ($secs < 60) {
                     return '< 1 menit';
                 }
                 $mins = (int) floor($secs / 60);
                 return self::formatMinutesToText($mins);
             }
-            return 'Sedang diproses';
+            return '< 1 menit';
         }
 
         return '-';
