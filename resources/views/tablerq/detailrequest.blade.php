@@ -479,23 +479,7 @@
                                     Ditutup oleh <span class="font-bold text-slate-600 dark:text-slate-200">{{ $closedLog->user->name }}</span>
                                 </p>
                                 @endif
-                                
-                                <div class="pt-2 border-t border-slate-100 dark:border-slate-800/80 mt-1">
-                                    <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider text-center mb-2">Bagikan Detail Request</p>
-                                    @php
-                                        $outletName = $datarq->outlet ? $datarq->outlet->nm_out : 'Client';
-                                        $shareText = "Halo, berikut detail request pengerjaan sistem di Probus System:\n\n"
-                                                   . "📌 *Request ID:* RQ-{$datarq->id}\n"
-                                                   . "🏢 *Client:* {$outletName}\n"
-                                                   . "📋 *Deskripsi:* " . \Illuminate\Support\Str::limit(strip_tags($cleanDeskripsi ?? $datarq->deskripsi ?? ''), 80) . "\n"
-                                                   . "✅ *Status:* Selesai (CLOSED)\n\n"
-                                                   . "🔗 *Tautan Detail Request:*\n" . url('/detailrequest/' . $datarq->id);
-                                        $waShareUrl = 'https://api.whatsapp.com/send?text=' . rawurlencode($shareText);
-                                    @endphp
-                                    <a href="{{ $waShareUrl }}" target="_blank" class="w-full flex items-center justify-center bg-emerald-50 dark:bg-emerald-950/40 hover:bg-emerald-600 dark:hover:bg-emerald-600 text-emerald-700 dark:text-emerald-300 hover:text-white dark:hover:text-white border border-emerald-200 dark:border-emerald-800/80 py-2.5 rounded-xl font-bold text-xs transition-all active:scale-95 gap-2 cursor-pointer">
-                                        <i class="fa-brands fa-whatsapp text-sm"></i> Bagikan ke WhatsApp
-                                    </a>
-                                </div>
+
                             @elseif ($stid == 3)
                                 <!-- STATUS PROGRESS -->
                                 @if ($canManage)

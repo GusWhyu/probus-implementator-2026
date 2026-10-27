@@ -652,7 +652,7 @@ class TicketController extends Controller
             'description' => $desc,
         ]);
 
-        Alert::info('Informasi', 'Status menunggu konfirmasi telah dihapus. Pengerjaan aktif dilanjutkan.')->showConfirmButton('Tutup', '#3b82f6')->autoClose(2500);
+        Alert::info('Informasi', 'Status menunggu konfirmasi telah dihapus.')->showConfirmButton('Tutup', '#3b82f6')->autoClose(2500);
 
         return redirect()->back();
     }
