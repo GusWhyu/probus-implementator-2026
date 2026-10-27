@@ -217,6 +217,12 @@ Route::middleware(['auth', 'can:aspv'])->group(function () {
 Route::get('/review/{ticket_number}', [\App\Http\Controllers\ReviewController::class, 'show'])->name('review.show');
 Route::post('/review/{ticket_number}', [\App\Http\Controllers\ReviewController::class, 'store'])->name('review.store');
 
+// Client Public Tracking Routes (Tanpa Login / Read-Only)
+Route::get('/track/ticket/{identifier}', [\App\Http\Controllers\PublicTrackingController::class, 'trackTicket'])->name('public.track.ticket');
+Route::get('/track/request/{identifier}', [\App\Http\Controllers\PublicTrackingController::class, 'trackRequest'])->name('public.track.request');
+Route::get('/pantau/tiket/{identifier}', [\App\Http\Controllers\PublicTrackingController::class, 'trackTicket']);
+Route::get('/pantau/request/{identifier}', [\App\Http\Controllers\PublicTrackingController::class, 'trackRequest']);
+
 // Fallback route for storage files when symlink is not available or blocked
 Route::get('/storage/{path}', function ($path) {
     $filePath = storage_path('app/public/' . $path);
