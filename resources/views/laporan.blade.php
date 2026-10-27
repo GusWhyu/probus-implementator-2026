@@ -75,6 +75,20 @@
                 </div>
             </div>
 
+            @if($periodInfo['is_current'] ?? false)
+            <div class="mb-6 p-4 rounded-2xl bg-amber-50/80 dark:bg-amber-950/30 border border-amber-200/80 dark:border-amber-800/60 text-amber-900 dark:text-amber-200 text-xs sm:text-sm font-medium flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs transition-all">
+                <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-xl bg-amber-100 dark:bg-amber-900/60 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
+                        <i class="fa-solid fa-clock-rotate-left text-sm"></i>
+                    </div>
+                    <div>
+                        <span class="font-bold text-amber-800 dark:text-amber-300">Periode Masih Berjalan (Live Monitoring):</span>
+                        <span class="text-slate-600 dark:text-slate-300 ml-1">Data tiket staf pada periode <strong>{{ $periodInfo['label'] }}</strong> masih aktif bertambah hingga <strong>{{ $periodInfo['cutoff_label'] }}</strong>. Anda dapat mencicil evaluasi soft skill dan menggunakan tombol <strong>Sinkronkan Tiket</strong> jika ada tiket baru yang diselesaikan staf.</span>
+                    </div>
+                </div>
+            </div>
+            @endif
+
             @if(session('success'))
             <div class="mb-6 p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/80 text-emerald-800 dark:text-emerald-200 text-xs sm:text-sm font-semibold flex items-center justify-between shadow-xs transition-all">
                 <div class="flex items-center gap-3">
@@ -512,12 +526,28 @@
                         <span>Export Excel</span>
                     </a>
 
-                    <!-- Tombol Proses Semua Nilai (Hanya 1 kali per periode) -->
+                    <!-- Tombol Proses Semua Nilai / Sinkronkan Tiket -->
                     @if($isAllProcessed)
-                        <button type="button" onclick="alertSudahDiproses()" class="w-full sm:w-auto px-4 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all shadow-xs cursor-pointer whitespace-nowrap" title="Seluruh staff telah diproses untuk periode ini">
-                            <i class="fa-solid fa-circle-check text-emerald-500 text-sm"></i>
-                            <span>Sudah Diproses ({{ $sudahDiproses }}/{{ $totalCS }})</span>
-                        </button>
+                        <div class="flex flex-wrap items-center gap-2">
+                            <span class="inline-flex items-center gap-1.5 px-3 py-2 bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/80 rounded-xl text-xs font-bold whitespace-nowrap shadow-2xs">
+                                <i class="fa-solid fa-circle-check text-emerald-500"></i>
+                                <span>Terproses ({{ $sudahDiproses }}/{{ $totalCS }})</span>
+                            </span>
+
+                            <form id="form-sinkron-semua" action="{{ route('laporan.proses_semua') }}" method="POST">
+                                @csrf
+                                <input type="hidden" name="month" value="{{ $month }}">
+                                <input type="hidden" name="year" value="{{ $year }}">
+                                <input type="hidden" name="period" value="{{ $period }}">
+                                <input type="hidden" name="period_type" value="{{ $periodType }}">
+                                <input type="hidden" name="department_id" value="{{ $selectedDeptId }}">
+                                <input type="hidden" name="force_sync" value="1">
+                                <button type="button" onclick="konfirmasiSinkronUlang()" class="px-3.5 py-2 bg-blue-50 hover:bg-blue-100 dark:bg-blue-950/60 dark:hover:bg-blue-900/60 text-blue-600 dark:text-blue-300 border border-blue-200/80 dark:border-blue-800 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all shadow-xs active:scale-95 cursor-pointer whitespace-nowrap" title="Sinkronkan data tiket terbaru jika ada tiket baru selesai (soft skill tetap aman)">
+                                    <i class="fa-solid fa-rotate text-blue-500"></i>
+                                    <span>Sinkronkan Tiket</span>
+                                </button>
+                            </form>
+                        </div>
                     @elseif($totalCS === 0)
                         <button type="button" disabled class="w-full sm:w-auto px-4 py-2.5 bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 border border-slate-200 dark:border-slate-700 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 opacity-60 cursor-not-allowed whitespace-nowrap">
                             <i class="fa-solid fa-ban"></i>
@@ -529,10 +559,8 @@
                             <input type="hidden" name="month" value="{{ $month }}">
                             <input type="hidden" name="year" value="{{ $year }}">
                             <input type="hidden" name="period" value="{{ $period }}">
-                    <input type="hidden" name="period_type" value="{{ $periodType }}">
-                            <input type="hidden" name="period" value="{{ $period }}">
-                                                <input type="hidden" name="period_type" value="{{ $periodType }}">
-                                                <input type="hidden" name="department_id" value="{{ $selectedDeptId }}">
+                            <input type="hidden" name="period_type" value="{{ $periodType }}">
+                            <input type="hidden" name="department_id" value="{{ $selectedDeptId }}">
                             <button type="button" id="btn-proses-semua" onclick="konfirmasiProsesSemua()" class="w-full sm:w-auto px-4 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all shadow-md shadow-blue-500/25 active:scale-95 cursor-pointer whitespace-nowrap" title="Hitung agregat tiket seluruh staff departemen ini sekaligus">
                                 <i class="fa-solid fa-bolt text-amber-300"></i>
                                 <span>Proses Semua Nilai</span>
@@ -1055,6 +1083,67 @@
                     }
                 });
 
+                form.submit();
+            }
+        });
+    }
+
+    // --- Pop-up Modern: Konfirmasi Sinkronisasi Ulang Data Tiket ---
+    function konfirmasiSinkronUlang() {
+        const form = document.getElementById('form-sinkron-semua');
+        if (!form) return;
+
+        const th = getSwalTheme();
+        const periodeStr = @json($periodInfo['label']);
+
+        if (!window.Swal) {
+            if (confirm("Sinkronkan ulang data tiket terbaru untuk periode " + periodeStr + "? Nilai soft skill staf yang telah Anda input akan tetap dipertahankan.")) {
+                form.submit();
+            }
+            return;
+        }
+
+        Swal.fire({
+            title: 'Sinkronkan Tiket Terbaru?',
+            html: `
+                <div class="text-left text-xs sm:text-sm space-y-3 pt-2">
+                    <p style="color: ${th.isDark ? '#cbd5e1' : '#475569'}">
+                        Sistem akan menghitung ulang data tiket dan survei terbaru pada periode <strong>${periodeStr}</strong>.
+                    </p>
+                    <div class="p-3 rounded-xl flex items-center gap-2.5 text-xs" style="background: ${th.isDark ? 'rgba(59, 130, 246, 0.15)' : '#eff6ff'}; border: 1px solid ${th.isDark ? 'rgba(59, 130, 246, 0.3)' : '#bfdbfe'}; color: ${th.isDark ? '#93c5fd' : '#1d4ed8'};">
+                        <i class="fa-solid fa-shield-halved text-base shrink-0"></i>
+                        <span><strong>Data Soft Skill Aman:</strong> Nilai soft skill dan catatan yang sudah Anda input pada masing-masing staf akan <strong>tetap dipertahankan</strong>.</span>
+                    </div>
+                </div>
+            `,
+            icon: 'question',
+            iconColor: '#3b82f6',
+            showCancelButton: true,
+            confirmButtonColor: '#2563eb',
+            cancelButtonColor: th.cancelButtonColor,
+            confirmButtonText: '<i class="fa-solid fa-rotate mr-1"></i> Ya, Sinkronkan',
+            cancelButtonText: 'Batal',
+            background: th.background,
+            color: th.color,
+            reverseButtons: true,
+            customClass: {
+                popup: 'rounded-2xl border border-slate-200 dark:border-slate-700 shadow-2xl p-6',
+                confirmButton: 'px-5 py-2.5 rounded-xl font-bold shadow-md shadow-blue-500/25 text-sm',
+                cancelButton: 'px-4 py-2.5 rounded-xl font-semibold text-sm'
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                Swal.fire({
+                    title: 'Menyinkronkan Data Tiket...',
+                    text: 'Mengambil pembaruan tiket dan survei terbaru...',
+                    allowOutsideClick: false,
+                    showConfirmButton: false,
+                    background: th.background,
+                    color: th.color,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
                 form.submit();
             }
         });

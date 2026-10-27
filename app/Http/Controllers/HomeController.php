@@ -988,6 +988,28 @@ class HomeController extends Controller
 
         $weights = PerformanceWeight::getWeightsMap();
         $wTicket = ($weights['ticket'] ?? 30.0) / 100;
+        $wSoftSkill = ($weights['soft_skill'] ?? 40.0) / 100;
+        $wClient = ($weights['client_review'] ?? 30.0) / 100;
+
+        // Cek apakah sudah ada review sebelumnya (agar soft skill tidak hilang saat sinkronisasi tiket baru)
+        $existingReview = PerformanceReview::with(['details'])->where('user_id', $id)
+            ->where(function($q) use ($periodInfo) {
+                $q->where('period_key', $periodInfo['period_key']);
+                if ($periodInfo['period_type'] === '1m') {
+                    $q->orWhere(function($sub) use ($periodInfo) {
+                        $sub->whereMonth('periode', $periodInfo['month'])
+                            ->whereYear('periode', $periodInfo['year'])
+                            ->where(function($sub3) {
+                                $sub3->where('period_type', '1m')->orWhereNull('period_type');
+                            });
+                    });
+                }
+            })
+            ->first();
+
+        $existingSoftScore = ($existingReview && $existingReview->performance_score > 0) ? (float)$existingReview->performance_score : 0;
+        $existingStatus = $existingReview ? $existingReview->status : 'DRAFT';
+        $totalScoreRecalc = round(($nilai_tiket * $wTicket) + ($existingSoftScore * $wSoftSkill) + ($client_score * $wClient), 2);
 
         // Simpan / update ke PerformanceReview sebagai PROCESSED (sudah di-sum, siap dinilai soft skill)
         $review = PerformanceReview::updateOrCreate(
@@ -1000,24 +1022,27 @@ class HomeController extends Controller
                 'periode_end' => $periodeEnd,
                 'period_type' => $periodType,
                 'reviewer_id' => auth()->id() ?? 1,
-                'total_score' => round($nilai_tiket * $wTicket, 2), // Skor awal sebelum soft skill
+                'total_score' => $totalScoreRecalc,
                 'module_score' => $nilai_tiket,
                 'raw_ticket_score' => $raw_ticket_score,
                 'max_ticket_score' => $max_ticket_score,
                 'team_portion' => $team_portion,
-                'performance_score' => 0, // Soft skill masih 0 (belum diisi)
+                'performance_score' => $existingSoftScore,
                 'review_score' => $client_score,
                 'total_ticket' => $total_ticket,
                 'lama_waktu' => $total_lama_waktu,
                 'rata_rata_waktu' => $rata_rata_waktu,
                 'total_ticket_yang_di_advice' => $tiket_di_advice,
-                'status' => 'DRAFT', // Disimpan sebagai draft terproses
+                'status' => $existingStatus,
             ]
         );
 
-        // Simpan detail modul & pastikan soft skill tidak otomatis terisi (default 0)
+        // Simpan detail modul
         $review->moduleDetails()->delete();
-        $review->details()->delete();
+        if (!$existingReview || $existingReview->details->isEmpty()) {
+            $review->details()->delete();
+        }
+
         foreach ($module_details_to_save as $mdData) {
             PerformanceReviewModuleDetail::create([
                 'p_rev_id' => $review->id,
@@ -1056,6 +1081,8 @@ class HomeController extends Controller
             ])->with('error', "Tidak ada staff dengan role user yang terdaftar di departemen ini.");
         }
 
+        $forceSync = (bool)$request->input('force_sync', false);
+
         // Cari staff yang belum diproses untuk periode ini
         $unprocessedCs = $csUsers->filter(function($u) use ($periodInfo) {
             return !PerformanceReview::where('user_id', $u->id)
@@ -1074,15 +1101,16 @@ class HomeController extends Controller
                 ->exists();
         });
 
-        if ($unprocessedCs->isEmpty()) {
+        if (!$forceSync && $unprocessedCs->isEmpty()) {
             return redirect()->route('laporan', [
                 'period' => $periodKey,
                 'period_type' => $periodType,
-            ])->with('info', "Seluruh staff di departemen ini sudah selesai diproses sebelumnya untuk periode {$periodInfo['label']}. Proses agregat tiket hanya dapat dilakukan 1 kali per periode.");
+            ])->with('info', "Seluruh staff di departemen ini sudah selesai diproses sebelumnya untuk periode {$periodInfo['label']}. Jika ingin menyinkronkan data tiket terbaru, gunakan tombol 'Sinkronkan Tiket'.");
         }
 
+        $targets = $forceSync ? $csUsers : $unprocessedCs;
         $processedCount = 0;
-        foreach ($unprocessedCs as $u) {
+        foreach ($targets as $u) {
             $subReq = new Request([
                 'period' => $periodKey,
                 'period_type' => $periodType,
@@ -1094,11 +1122,15 @@ class HomeController extends Controller
             $processedCount++;
         }
 
+        $successMsg = $forceSync
+            ? "Berhasil menyinkronkan data tiket terbaru untuk {$processedCount} staff pada periode {$periodInfo['label']}! Nilai soft skill staf yang telah diinput tetap aman dan tersimpan."
+            : "Berhasil memproses (sum) data tiket untuk {$processedCount} staff pada periode {$periodInfo['label']}! Sekarang Anda dapat mengisi nilai soft skill per masing-masing staff.";
+
         return redirect()->route('laporan', [
             'period' => $periodKey,
             'period_type' => $periodType,
             'department_id' => $selectedDeptId,
-        ])->with('success', "Berhasil memproses (sum) data tiket untuk {$processedCount} staff pada periode {$periodInfo['label']}! Sekarang Anda dapat mengisi nilai soft skill per masing-masing staff.");
+        ])->with('success', $successMsg);
     }
 
     public function penilaian($id){

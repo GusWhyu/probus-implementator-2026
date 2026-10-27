@@ -63,6 +63,12 @@
                 alert('Perhatian: Untuk Simpan Nilai (Final), seluruh {{ $categories->count() }} kriteria Soft Skill harus diisi (nilai 1 - 5). Jika ingin menyimpan sementara tanpa melengkapi soft skill, silakan klik tombol \'Simpan Draft\'.');
                 return false;
             }
+            @if($periodInfo['is_current'] ?? false)
+            if (!confirm("Konfirmasi Finalisasi:\n\nPeriode {{ $periodInfo['label'] }} saat ini masih berjalan (cut-off tanggal {{ $periodInfo['cutoff_label'] }}).\n\nApakah Anda yakin ingin menyimpan penilaian staf ini sebagai FINAL sekarang?\n\n(Catatan: Jika nanti ada tiket baru yang selesai sebelum akhir bulan, Anda tetap dapat melakukan Sinkronkan Tiket di halaman laporan).")) {
+                e.preventDefault();
+                return false;
+            }
+            @endif
             return true;
         }
     }">

@@ -62,7 +62,7 @@
             <!-- Top Bar -->
             <div class="flex flex-col lg:flex-row lg:items-center justify-between mb-6 gap-4 w-full min-w-0">
                 <div class="min-w-0">
-                    <a href="{{ route('laporan', ['month' => $month, 'year' => $year, 'department_id' => $user->departemen_id]) }}" class="inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 mb-2 transition-colors">
+                    <a href="{{ route('laporan', ['period' => $periodKey, 'period_type' => $periodType, 'department_id' => $user->departemen_id]) }}" class="inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 mb-2 transition-colors">
                         <i class="fa-solid fa-chevron-left text-[10px]"></i> Kembali ke daftar
                     </a>
                     
@@ -83,64 +83,27 @@
                     </div>
                 </div>
                 
-                <div class="flex flex-col items-start lg:items-end gap-2.5 w-full lg:w-auto shrink-0">
-                    <div class="flex items-center gap-2 flex-wrap">
-                        <span class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Periode Evaluasi</span>
-                        <span class="inline-flex items-center gap-1 text-[11px] font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/50 px-2 py-0.5 rounded-md border border-blue-100 dark:border-blue-900/40">
-                            <i class="fa-solid fa-calendar-check text-[10px]"></i>
-                            Cut-off: <strong>{{ $periodInfo['cutoff_label'] ?? \Carbon\Carbon::createFromDate($year, $month, 1)->endOfMonth()->locale('id')->translatedFormat('d F Y') }}</strong>
-                        </span>
+                <div class="flex flex-col sm:flex-row items-start sm:items-center gap-3 w-full lg:w-auto shrink-0 justify-end flex-wrap">
+                    {{-- Badge Periode Evaluasi (Terkunci Sesuai Pilihan di Laporan) --}}
+                    <div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700/80 rounded-2xl px-4 py-2 shadow-xs flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-xl bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
+                            <i class="fa-regular fa-calendar-check text-sm"></i>
+                        </div>
+                        <div class="flex flex-col">
+                            <div class="flex items-center gap-1.5">
+                                <span class="font-extrabold text-slate-800 dark:text-slate-100 text-xs sm:text-sm">{{ $periodInfo['label'] }}</span>
+                                @php
+                                    $intervalLabel = ($periodType === '3m') ? '3 Bulan' : (($periodType === '6m') ? '6 Bulan' : '1 Bulan');
+                                @endphp
+                                <span class="text-[10px] font-bold px-1.5 py-0.5 bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 rounded-md border border-blue-200/60 dark:border-blue-900/40">
+                                    {{ $intervalLabel }}
+                                </span>
+                            </div>
+                            <span class="text-[10px] text-slate-400 dark:text-slate-500 font-medium">Cut-off: {{ $periodInfo['cutoff_label'] ?? \Carbon\Carbon::createFromDate($year, $month, 1)->endOfMonth()->locale('id')->translatedFormat('d F Y') }}</span>
+                        </div>
                     </div>
 
-                    <div class="flex flex-wrap items-center gap-2.5 w-full sm:w-auto">
-                        <form action="{{ route('rapor', ['id' => $user->id]) }}" method="GET" class="w-full sm:w-auto">
-                            <input type="hidden" name="period_type" value="{{ $periodType ?? '1m' }}">
-
-                            {{-- Unified Compact Period Bar (Responsive: stacks on mobile, pill on desktop) --}}
-                            <div class="period-capsule flex flex-col sm:inline-flex sm:flex-row sm:items-center p-1.5 sm:p-1 rounded-2xl border shadow-xs w-full sm:w-auto gap-1.5 sm:gap-0 max-w-full">
-                                {{-- Interval Switcher (1 Bulan / 3 Bulan / 6 Bulan) --}}
-                                <div class="period-capsule-switcher grid grid-cols-3 sm:inline-flex items-center p-0.5 rounded-xl border w-full sm:w-auto shrink-0">
-                                    <a href="{{ route('rapor', ['id' => $user->id, 'period_type' => '1m']) }}" 
-                                       class="px-2 sm:px-2.5 py-1 text-[11px] font-bold rounded-lg text-center transition-all whitespace-nowrap {{ ($periodType ?? '1m') === '1m' ? 'period-capsule-btn-active font-extrabold' : 'period-capsule-btn-inactive' }}">
-                                        1 Bulan
-                                    </a>
-                                    <a href="{{ route('rapor', ['id' => $user->id, 'period_type' => '3m']) }}" 
-                                       class="px-2 sm:px-2.5 py-1 text-[11px] font-bold rounded-lg text-center transition-all whitespace-nowrap {{ ($periodType ?? '1m') === '3m' ? 'period-capsule-btn-active font-extrabold' : 'period-capsule-btn-inactive' }}">
-                                        3 Bulan
-                                    </a>
-                                    <a href="{{ route('rapor', ['id' => $user->id, 'period_type' => '6m']) }}" 
-                                       class="px-2 sm:px-2.5 py-1 text-[11px] font-bold rounded-lg text-center transition-all whitespace-nowrap {{ ($periodType ?? '1m') === '6m' ? 'period-capsule-btn-active font-extrabold' : 'period-capsule-btn-inactive' }}">
-                                        6 Bulan
-                                    </a>
-                                </div>
-
-                                {{-- Divider --}}
-                                <div class="hidden sm:block h-4 w-px bg-slate-200 dark:bg-slate-700 mx-2 shrink-0"></div>
-
-                                {{-- Dropdown for selected interval --}}
-                                <div class="relative flex sm:inline-flex items-center justify-between sm:justify-start px-2.5 sm:px-0 sm:pr-2 w-full sm:w-auto min-w-0 bg-slate-100/60 dark:bg-slate-900/50 sm:bg-transparent dark:sm:bg-transparent rounded-xl sm:rounded-none py-1 sm:py-0 border border-slate-200/60 dark:border-slate-800/80 sm:border-0">
-                                    <div class="flex items-center gap-1.5 min-w-0">
-                                        <i class="fa-regular fa-calendar text-blue-500 dark:text-blue-400 text-xs ml-0.5 sm:ml-1 mr-1 pointer-events-none shrink-0"></i>
-                                        @php
-                                            $activeOptions = ($periodType === '3m') 
-                                                ? ($periodOptions['quarterly'] ?? []) 
-                                                : (($periodType === '6m') ? ($periodOptions['semester'] ?? []) : ($periodOptions['monthly'] ?? []));
-                                        @endphp
-                                        <select name="period" onchange="this.form.submit()" 
-                                            class="period-select-clean bg-transparent border-0 text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-100 py-1 pl-0 pr-6 focus:ring-0 cursor-pointer w-full sm:w-auto">
-                                            @foreach($activeOptions as $opt)
-                                                <option value="{{ $opt['value'] }}" {{ $opt['value'] === ($periodKey ?? '') ? 'selected' : '' }} class="bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 py-1.5 font-semibold">
-                                                    {{ $opt['label'] }}
-                                                </option>
-                                            @endforeach
-                                        </select>
-                                    </div>
-                                    <i class="fa-solid fa-chevron-down absolute right-2.5 sm:right-1.5 top-1/2 -translate-y-1/2 text-slate-400 text-[10px] pointer-events-none"></i>
-                                </div>
-                            </div>
-                        </form>
-
-                        <div class="flex items-center justify-between sm:justify-end gap-2 shrink-0">
+                    <div class="flex items-center justify-between sm:justify-end gap-2 shrink-0">
                             @if($rapor)
                                 @php
                                     $score = (float)($rapor->total_score ?? 0);

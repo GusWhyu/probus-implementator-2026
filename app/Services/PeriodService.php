@@ -191,9 +191,9 @@ class PeriodService
     {
         $now = Carbon::now();
 
-        // 1. Bulanan (1 Bulan)
+        // 1. Bulanan (1 Bulan: Mulai bulan saat ini hingga 11 bulan ke belakang, tidak ada bulan depan)
         $monthlyOptions = [];
-        for ($i = -1; $i <= 11; $i++) {
+        for ($i = 0; $i <= 11; $i++) {
             $d = $now->copy()->startOfMonth()->subMonths($i);
             $val = $d->format('Y-m');
             $isCur = ($d->year === $now->year && $d->month === $now->month);
@@ -208,9 +208,9 @@ class PeriodService
             ];
         }
 
-        // 2. 3 Bulan (Rolling 3 Bulan per Bulan, e.g. Nov 2026 - Jan 2027, Okt - Des 2026, dst.)
+        // 2. 3 Bulan (Rolling 3 Bulan mulai periode berjalan ke belakang)
         $quarterlyOptions = [];
-        for ($i = -1; $i <= 11; $i++) {
+        for ($i = 0; $i <= 11; $i++) {
             $start = $now->copy()->startOfMonth()->subMonths($i);
             $parsed = self::buildRollingPeriod($start->year, $start->month, 3, '3m');
             $isCur = ($start->year === $now->year && $start->month === $now->month);
@@ -224,9 +224,9 @@ class PeriodService
             ];
         }
 
-        // 3. 6 Bulan (Rolling 6 Bulan per Bulan, e.g. Nov 2026 - Apr 2027, Okt 2026 - Mar 2027, dst.)
+        // 3. 6 Bulan (Rolling 6 Bulan mulai periode berjalan ke belakang)
         $semesterOptions = [];
-        for ($i = -1; $i <= 11; $i++) {
+        for ($i = 0; $i <= 11; $i++) {
             $start = $now->copy()->startOfMonth()->subMonths($i);
             $parsed = self::buildRollingPeriod($start->year, $start->month, 6, '6m');
             $isCur = ($start->year === $now->year && $start->month === $now->month);
