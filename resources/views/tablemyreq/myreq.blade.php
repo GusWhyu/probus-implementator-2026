@@ -1,6 +1,5 @@
 <x-app-layout>
-    <div x-data="{ activeTab: 'open' }" class="py-4 sm:py-8 bg-slate-50/50 min-h-screen">
-        <div class="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
+    <div x-data="{ activeTab: 'open' }" class="w-full pb-8">
             
             {{-- Header Section --}}
             <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-6 md:mb-8 gap-4">
@@ -322,7 +321,6 @@
                 </div>
 
             </div>
-        </div>
     </div>
 
     <style>

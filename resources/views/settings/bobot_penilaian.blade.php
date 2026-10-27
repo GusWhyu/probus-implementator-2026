@@ -2,7 +2,7 @@
     @php
         $totalBobot = $totalBobot ?? (isset($weights) && $weights ? $weights->sum('bobot') : 100);
     @endphp
-    <div class="py-8 bg-slate-50/50 dark:bg-slate-900/50 min-h-screen" 
+    <div class="w-full pb-8 space-y-6" 
          x-data="{
              wTicket: {{ (float)($weights->firstWhere('key', 'ticket')->bobot ?? 30) }},
              wSoftSkill: {{ (float)($weights->firstWhere('key', 'soft_skill')->bobot ?? 40) }},
@@ -36,7 +36,6 @@
                  return Math.round((this.kontribusiTiket() + this.kontribusiSoftSkill() + this.kontribusiClient()) * 100) / 100;
              }
          }">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
             
             <!-- Header Section -->
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -421,6 +420,5 @@
                 </div>
 
             </div>
-        </div>
     </div>
 </x-app-layout>

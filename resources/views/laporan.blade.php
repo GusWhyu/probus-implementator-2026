@@ -1,6 +1,5 @@
 <x-app-layout>
-    <div class="pt-4 pb-8 bg-slate-50/50 min-h-screen">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="w-full pb-8">
             
             <!-- Header Section -->
             <div class="flex flex-col lg:flex-row lg:items-center justify-between mb-8 gap-4">
@@ -790,7 +789,6 @@
             <div class="flex items-center justify-between text-xs font-medium text-slate-500 px-1">
                 <p>Menampilkan <strong>{{ $users->count() }}</strong> Staff</p>
             </div>
-        </div>
     </div>
 
     <!-- Script HTML5 Canvas Generator untuk Download Kartu Achievement HD (Poin 12) -->

@@ -14,8 +14,7 @@
     }
 @endphp
 <x-app-layout>
-    <div class="py-8 bg-slate-50/50 min-h-screen">
-        <div class="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="w-full pb-8">
             
             {{-- Header section --}}
             <div class="flex flex-col lg:flex-row lg:items-center justify-between mb-8 gap-4">
@@ -155,6 +154,5 @@
                 {{ $data->links() }}
             </div>
 
-        </div>
     </div>
 </x-app-layout>

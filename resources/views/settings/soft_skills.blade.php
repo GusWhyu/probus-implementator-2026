@@ -1,6 +1,5 @@
 <x-app-layout>
-    <div class="py-8 bg-slate-50/50 dark:bg-slate-900/50 min-h-screen">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="w-full pb-8">
             
             <!-- Header section -->
             <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
@@ -97,7 +96,6 @@
                     {{ $categories->links() }}
                 </div>
             </div>
-        </div>
     </div>
 
     <!-- Edit Modal -->

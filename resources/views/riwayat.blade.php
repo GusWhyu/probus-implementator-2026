@@ -1,6 +1,5 @@
 <x-app-layout>
-    <div class="pt-4 pb-8 bg-slate-50/50 min-h-screen">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="w-full pb-8">
             
             <!-- Top Link -->
             <div class="mb-6">
@@ -86,8 +85,6 @@
                     <p class="text-xs font-medium text-slate-400">Menampilkan {{ $riwayat->count() }} data penilaian</p>
                 </div>
             </div>
-
-        </div>
     </div>
 </x-app-layout>
 
