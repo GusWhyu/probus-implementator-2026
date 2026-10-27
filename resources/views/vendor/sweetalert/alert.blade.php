@@ -20,7 +20,15 @@
 
                 if (confirmDeleteElement) {
                     event.preventDefault();
-                    Swal.fire({!! Session::pull('alert.delete') !!}).then(function(result) {
+                    var delConfig = {!! Session::pull('alert.delete') !!};
+                    var isDark = document.documentElement.classList.contains('dark') || document.documentElement.getAttribute('data-theme') === 'dark';
+                    if (isDark && delConfig) {
+                        delConfig.background = '#1e293b';
+                        delConfig.color = '#f8fafc';
+                        if (!delConfig.customClass) delConfig.customClass = {};
+                        delConfig.customClass.popup = (delConfig.customClass.popup || '') + ' border border-slate-700 shadow-2xl rounded-3xl';
+                    }
+                    Swal.fire(delConfig).then(function(result) {
                         if (result.isConfirmed) {
                             var form = document.createElement('form');
                             form.action = confirmDeleteElement.href;
@@ -37,7 +45,17 @@
             });
 
             @if (Session::has('alert.config'))
-                Swal.fire({!! Session::pull('alert.config') !!});
+                (function() {
+                    var alertConfig = {!! Session::pull('alert.config') !!};
+                    var isDark = document.documentElement.classList.contains('dark') || document.documentElement.getAttribute('data-theme') === 'dark';
+                    if (isDark && alertConfig) {
+                        alertConfig.background = '#1e293b';
+                        alertConfig.color = '#f8fafc';
+                        if (!alertConfig.customClass) alertConfig.customClass = {};
+                        alertConfig.customClass.popup = (alertConfig.customClass.popup || '') + ' border border-slate-700 shadow-2xl rounded-3xl';
+                    }
+                    Swal.fire(alertConfig);
+                })();
             @endif
         </script>
     @endif

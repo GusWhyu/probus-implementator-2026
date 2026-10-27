@@ -1004,6 +1004,66 @@
             html.dark #notif-dropdown-footer a:hover {
                 color: #60a5fa !important;
             }
+
+            /* SweetAlert2 Dark Mode Synchronization */
+            html.dark .swal2-popup,
+            html[data-theme="dark"] .swal2-popup {
+                background-color: #1e293b !important;
+                color: #f8fafc !important;
+                border: 1px solid #334155 !important;
+                box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5) !important;
+                border-radius: 1.5rem !important;
+            }
+            html.dark .swal2-title,
+            html[data-theme="dark"] .swal2-title {
+                color: #f8fafc !important;
+            }
+            html.dark .swal2-html-container,
+            html.dark .swal2-content,
+            html[data-theme="dark"] .swal2-html-container,
+            html[data-theme="dark"] .swal2-content {
+                color: #cbd5e1 !important;
+            }
+            html.dark .swal2-close,
+            html[data-theme="dark"] .swal2-close {
+                color: #94a3b8 !important;
+            }
+            html.dark .swal2-close:hover,
+            html[data-theme="dark"] .swal2-close:hover {
+                color: #f8fafc !important;
+            }
+            html.dark .swal2-confirm,
+            html[data-theme="dark"] .swal2-confirm {
+                border-radius: 0.75rem !important;
+                font-weight: 700 !important;
+                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2) !important;
+            }
+            html.dark .swal2-cancel,
+            html[data-theme="dark"] .swal2-cancel {
+                border-radius: 0.75rem !important;
+                font-weight: 700 !important;
+            }
+            html.dark .swal2-footer,
+            html[data-theme="dark"] .swal2-footer {
+                border-top: 1px solid #334155 !important;
+                color: #94a3b8 !important;
+            }
+            html.dark .swal2-input,
+            html.dark .swal2-textarea,
+            html[data-theme="dark"] .swal2-input,
+            html[data-theme="dark"] .swal2-textarea {
+                background-color: #0f172a !important;
+                color: #f8fafc !important;
+                border-color: #334155 !important;
+            }
+            html.dark .swal2-icon.swal2-success .swal2-success-circular-line-left,
+            html.dark .swal2-icon.swal2-success .swal2-success-circular-line-right,
+            html.dark .swal2-icon.swal2-success .swal2-success-fix,
+            html[data-theme="dark"] .swal2-icon.swal2-success .swal2-success-circular-line-left,
+            html[data-theme="dark"] .swal2-icon.swal2-success .swal2-success-circular-line-right,
+            html[data-theme="dark"] .swal2-icon.swal2-success .swal2-success-fix {
+                background-color: #1e293b !important;
+            }
         </style>
     </head>
     <body class="font-sans antialiased text-slate-800">
