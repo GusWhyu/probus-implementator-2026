@@ -432,7 +432,7 @@
                         </div>
                         @endif
 
-                        <!-- Keterangan Solusi Kendala (Jika CLOSED atau sudah ada solusi) -->
+                        <!-- Keterangan Solusi (Jika CLOSED atau sudah ada solusi) -->
                         @if ($datarq->status == 'CLOSED' || !empty($datarq->solusi))
                         <div class="mt-8 border-t border-slate-100 dark:border-slate-800/80 pt-6">
                             <div class="bg-emerald-50/70 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/60 rounded-2xl p-5 shadow-xs">
@@ -441,7 +441,7 @@
                                         <i class="fa-solid fa-lightbulb text-sm"></i>
                                     </div>
                                     <div>
-                                        <h3 class="text-xs font-extrabold text-emerald-950 dark:text-emerald-200 uppercase tracking-wider">Keterangan Solusi Kendala</h3>
+                                        <h3 class="text-xs font-extrabold text-emerald-950 dark:text-emerald-200 uppercase tracking-wider">Keterangan Solusi</h3>
                                         <p class="text-[10px] text-emerald-700 dark:text-emerald-400 font-medium">Tindakan atau solusi yang dilakukan untuk menyelesaikan kendala</p>
                                     </div>
                                 </div>
@@ -1286,7 +1286,7 @@
 
                 <div class="mb-5">
                     <label class="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-2">
-                        Keterangan Solusi Kendala <span class="text-rose-500">*</span>
+                        Keterangan Solusi <span class="text-rose-500">*</span>
                     </label>
                     <textarea name="solusi" rows="3" required class="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 p-3.5 outline-none font-medium shadow-xs transition-colors" placeholder="Tuliskan keterangan tindakan atau solusi yang dilakukan untuk mengatasi kendala ini...">{{ old('solusi', $datarq->solusi) }}</textarea>
                 </div>
@@ -1322,7 +1322,7 @@
 
                 <div class="mb-5">
                     <label class="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-2">
-                        Keterangan Solusi Kendala <span class="text-rose-500">*</span>
+                        Keterangan Solusi <span class="text-rose-500">*</span>
                     </label>
                     <textarea name="solusi" rows="3" required class="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 p-3.5 outline-none font-medium shadow-xs transition-colors" placeholder="Tuliskan keterangan tindakan atau solusi yang dilakukan untuk mengatasi kendala ini...">{{ old('solusi', $datarq->solusi) }}</textarea>
                 </div>

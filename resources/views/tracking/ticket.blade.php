@@ -176,7 +176,7 @@
                     </div>
                     <div class="flex-1">
                         <div class="flex items-center gap-2 flex-wrap">
-                            <h3 class="text-xs font-black uppercase tracking-widest text-emerald-700 dark:text-emerald-400">Keterangan Solusi Kendala</h3>
+                            <h3 class="text-xs font-black uppercase tracking-widest text-emerald-700 dark:text-emerald-400">Keterangan Solusi</h3>
                             <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-100 dark:bg-emerald-900/80 text-emerald-800 dark:text-emerald-200">Terverifikasi</span>
                         </div>
                         <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Tindakan atau solusi yang dilakukan oleh tim teknis untuk menyelesaikan kendala:</p>
