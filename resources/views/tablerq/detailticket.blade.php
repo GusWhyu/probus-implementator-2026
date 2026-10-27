@@ -9,13 +9,13 @@
 
     // Status Styling
     if ($stid == 'CLOSED') {
-        $bg = "bg-emerald-50 text-emerald-600 border-emerald-200";
+        $bg = "bg-emerald-50 text-emerald-600 border border-emerald-200 dark:bg-emerald-950/50 dark:text-emerald-400 dark:border-emerald-800";
         $icon = "fa-circle-check";
     } elseif ($stid == 'PROGRESS') {
-        $bg = "bg-amber-50 text-amber-600 border-amber-200";
+        $bg = "bg-amber-50 text-amber-600 border border-amber-200 dark:bg-amber-950/50 dark:text-amber-400 dark:border-amber-800";
         $icon = "fa-bars-progress";
     } else {
-        $bg = "bg-indigo-50 text-indigo-600 border-indigo-200 dark:bg-indigo-950/50 dark:text-indigo-400 dark:border-indigo-800";
+        $bg = "bg-blue-50 text-blue-700 border border-blue-200/80 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-800/80";
         $icon = "fa-regular fa-clock";
     }
 
@@ -944,12 +944,12 @@
                     @endif
 
                     <!-- Riwayat & Log Aktivitas Card -->
-                    <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 overflow-hidden">
+                    <div class="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm p-6 overflow-hidden">
                         <div class="flex items-center justify-between mb-4">
-                            <h3 class="text-xs font-extrabold text-slate-800 uppercase tracking-wider flex items-center gap-2">
+                            <h3 class="text-xs font-extrabold text-slate-800 dark:text-slate-100 uppercase tracking-wider flex items-center gap-2">
                                 <i class="fa-solid fa-clock-rotate-left text-blue-500 text-sm"></i> Riwayat & Aktivitas
                             </h3>
-                            <span class="text-[10px] font-bold bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full">
+                            <span class="text-[10px] font-bold bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 px-2 py-0.5 rounded-full">
                                 {{ isset($ticketLogs) ? $ticketLogs->count() : 0 }} catatan
                             </span>
                         </div>
@@ -963,8 +963,8 @@
                                     if ($log->action == 'CREATED') {
                                         $logIcon = 'fa-plus text-blue-600';
                                         $logBg = 'bg-blue-50 text-blue-600 border-blue-200';
-                                    } elseif ($log->action == 'ASSIGNED') {
-                                        $logIcon = 'fa-user-check text-sky-600';
+                                    } elseif ($log->action == 'ASSIGNED' || $log->action == 'ASSIGNED_ADVISOR' || str_contains(strtolower($log->description), 'advisor')) {
+                                        $logIcon = 'fa-headphones text-sky-600';
                                         $logBg = 'bg-sky-50 text-sky-600 border-sky-200';
                                     } elseif ($log->action == 'STATUS_CHANGED') {
                                         $logIcon = 'fa-arrows-rotate text-amber-600';

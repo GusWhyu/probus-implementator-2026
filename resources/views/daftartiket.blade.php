@@ -302,7 +302,7 @@
                                             $statusName = $rq->status;
                                             
                                             if ($rq->status == 'OPEN') {
-                                                $statusClass = 'bg-indigo-50 text-indigo-600 border-indigo-200 dark:bg-indigo-950/50 dark:text-indigo-400 dark:border-indigo-800';
+                                                $statusClass = 'bg-blue-50 text-blue-700 border-blue-200/80 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-800/80';
                                             } elseif ($rq->status == 'PROGRESS') {
                                                 $statusClass = 'bg-amber-50 text-amber-600 border-amber-200 dark:bg-amber-950/50 dark:text-amber-400 dark:border-amber-800';
                                             } elseif ($rq->status == 'CLOSED') {
@@ -405,7 +405,7 @@
                     $statusName = $rq->status;
                     
                     if ($rq->status == 'OPEN') {
-                        $statusClass = 'bg-indigo-50 text-indigo-600 border-indigo-200 dark:bg-indigo-950/50 dark:text-indigo-400 dark:border-indigo-800';
+                        $statusClass = 'bg-blue-50 text-blue-700 border-blue-200/80 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-800/80';
                     } elseif ($rq->status == 'PROGRESS') {
                         $statusClass = 'bg-amber-50 text-amber-600 border-amber-200 dark:bg-amber-950/50 dark:text-amber-400 dark:border-amber-800';
                     } elseif ($rq->status == 'CLOSED') {

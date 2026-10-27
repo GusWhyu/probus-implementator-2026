@@ -944,8 +944,8 @@ class RequestController extends Controller
                 TicketLog::create([
                     'ticket_id' => $newTicket->id,
                     'user_id' => $user->id,
-                    'action' => 'ASSIGNED',
-                    'description' => 'Advisor tiket ditugaskan kepada ' . ($advisor ? $advisor->name : '#' . $newTicket->advisor_id) . ' oleh ' . $user->name . '.',
+                    'action' => 'ASSIGNED_ADVISOR',
+                    'description' => ($advisor ? $advisor->name : '#' . $newTicket->advisor_id) . ' ditambahkan sebagai advisor tiket oleh ' . $user->name . '.',
                 ]);
             }
 
