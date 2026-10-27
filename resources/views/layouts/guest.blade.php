@@ -36,6 +36,17 @@
         <script src="{{ asset('js/app.js') }}"></script>
         <style>
             body { font-family: 'Inter', sans-serif; }
+            /* Hide Edge & WebKit default password reveal/clear icons to prevent duplicate eye buttons */
+            input[type="password"]::-ms-reveal,
+            input[type="password"]::-ms-clear,
+            input[type="password"]::-webkit-contacts-auto-fill-button,
+            input[type="password"]::-webkit-credentials-auto-fill-button {
+                display: none !important;
+                visibility: hidden !important;
+                pointer-events: none !important;
+                width: 0 !important;
+                height: 0 !important;
+            }
         </style>
     </head>
     <body class="bg-slate-100 text-slate-800 antialiased selection:bg-blue-600 selection:text-white">

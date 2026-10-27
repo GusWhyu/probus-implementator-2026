@@ -44,14 +44,34 @@
                     </div>
                 </div>
                 
+                @php
+                    $clientNameForChat = $datarq->client ? $datarq->client->nm_out : 'Bapak/Ibu';
+                    $publicTicketTrackUrl = route('public.track.ticket', $datarq->ticket_number);
+                    $ticketChatTemplate = "Halo Tim *{$clientNameForChat}*,\n\n"
+                                        . "Berikut tautan untuk memantau progres tiket Anda:\n"
+                                        . "📋 *No. Tiket:* #{$datarq->ticket_number}\n"
+                                        . "📌 *Kendala:* {$datarq->title}\n"
+                                        . "⚡ *Status:* " . strtoupper($datarq->status ?? 'OPEN') . "\n"
+                                        . "🔗 *Link Pantau:* {$publicTicketTrackUrl}\n\n"
+                                        . "Terima kasih. 🙏";
+                    $waShareTrackingUrl = 'https://api.whatsapp.com/send?text=' . rawurlencode($ticketChatTemplate);
+                @endphp
+                
                 <div class="flex items-center gap-2">
+                    <textarea id="ticket-chat-template" class="hidden" style="display:none;" aria-hidden="true">{{ $ticketChatTemplate }}</textarea>
                     <button type="button" 
-                        onclick="copyTicketDirectLink(this, '{{ url('/detailticket/' . $datarq->id) }}')" 
+                        onclick="copyTicketTrackingTemplate(this)" 
                         class="px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/60 text-slate-700 dark:text-slate-200 font-bold rounded-xl text-sm shadow-xs flex items-center justify-center gap-2 transition-all active:scale-95 cursor-pointer" 
-                        title="Salin tautan detail tiket ini untuk dibagikan">
+                        title="Salin tautan pemantauan & template chat untuk client">
                         <i class="fa-regular fa-copy text-blue-500 dark:text-blue-400"></i>
                         <span>Salin Link</span>
                     </button>
+                    <a href="{{ $waShareTrackingUrl }}" target="_blank" 
+                        class="px-3.5 py-2.5 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/80 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 font-bold rounded-xl text-sm shadow-xs flex items-center justify-center gap-1.5 transition-all active:scale-95 cursor-pointer" 
+                        title="Kirim template tautan pemantauan tiket ke WhatsApp client">
+                        <i class="fa-brands fa-whatsapp text-emerald-600 dark:text-emerald-400 text-base"></i>
+                        <span class="hidden sm:inline">WhatsApp</span>
+                    </a>
 
                     @if (in_array($ust, ['admin', 'supervisor']) || ($rqid == $aid && $datarq->pending_advisor_id == null && $stid != 'CLOSED'))
                     <a href="/editticket/{{ $datarq->id }}" class="px-5 py-2.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold rounded-xl text-sm shadow-sm flex items-center justify-center gap-2 transition-all active:scale-95">
@@ -412,7 +432,7 @@
                         </div>
                         @endif
 
-                        <!-- Keterangan Solusi Kendala (Jika CLOSED atau sudah ada solusi) -->
+                        <!-- Keterangan Solusi (Jika CLOSED atau sudah ada solusi) -->
                         @if ($datarq->status == 'CLOSED' || !empty($datarq->solusi))
                         <div class="mt-8 border-t border-slate-100 dark:border-slate-800/80 pt-6">
                             <div class="bg-emerald-50/70 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/60 rounded-2xl p-5 shadow-xs">
@@ -421,7 +441,7 @@
                                         <i class="fa-solid fa-lightbulb text-sm"></i>
                                     </div>
                                     <div>
-                                        <h3 class="text-xs font-extrabold text-emerald-950 dark:text-emerald-200 uppercase tracking-wider">Keterangan Solusi Kendala</h3>
+                                        <h3 class="text-xs font-extrabold text-emerald-950 dark:text-emerald-200 uppercase tracking-wider">Keterangan Solusi</h3>
                                         <p class="text-[10px] text-emerald-700 dark:text-emerald-400 font-medium">Tindakan atau solusi yang dilakukan untuk menyelesaikan kendala</p>
                                     </div>
                                 </div>
@@ -512,15 +532,16 @@
                                 </div>
                             </div>
                             <script>
-                                function copyTicketDirectLink(btn, directUrl, isIconOnly = false) {
-                                    const url = directUrl || (window.location.origin + '/detailticket/{{ $datarq->id }}');
+                                function copyTicketTrackingTemplate(btn, isIconOnly = false) {
+                                    const el = document.getElementById('ticket-chat-template');
+                                    const text = el ? el.value : '{{ $publicTicketTrackUrl ?? url('/detailticket/' . $datarq->id) }}';
                                     const origHtml = btn.innerHTML;
                                     
                                     function onSuccess() {
                                         if (isIconOnly) {
                                             btn.innerHTML = '<i class="fa-solid fa-check text-[10px] text-emerald-500"></i>';
                                         } else {
-                                            btn.innerHTML = '<i class="fa-solid fa-check text-emerald-500"></i> <span class="text-emerald-600 dark:text-emerald-400">Link Disalin!</span>';
+                                            btn.innerHTML = '<i class="fa-solid fa-check text-emerald-500"></i> <span class="text-emerald-600 dark:text-emerald-400">Template Disalin!</span>';
                                         }
                                         btn.classList.add('border-emerald-400', 'dark:border-emerald-600');
                                         setTimeout(() => {
@@ -530,12 +551,16 @@
                                     }
 
                                     if (navigator.clipboard && navigator.clipboard.writeText) {
-                                        navigator.clipboard.writeText(url).then(onSuccess).catch(() => {
-                                            fallbackCopyTicket(url, onSuccess);
+                                        navigator.clipboard.writeText(text).then(onSuccess).catch(() => {
+                                            fallbackCopyTicket(text, onSuccess);
                                         });
                                     } else {
-                                        fallbackCopyTicket(url, onSuccess);
+                                        fallbackCopyTicket(text, onSuccess);
                                     }
+                                }
+
+                                function copyTicketDirectLink(btn, directUrl, isIconOnly = false) {
+                                    copyTicketTrackingTemplate(btn, isIconOnly);
                                 }
 
                                 function fallbackCopyTicket(text, cb) {
@@ -741,9 +766,9 @@
                                         {{ $datarq->ticket_number }}
                                     </span>
                                     <button type="button" 
-                                        onclick="copyTicketDirectLink(this, '{{ url('/detailticket/' . $datarq->id) }}', true)" 
+                                        onclick="copyTicketTrackingTemplate(this, true)" 
                                         class="w-6 h-6 rounded-lg bg-slate-100 hover:bg-blue-50 dark:bg-slate-800 dark:hover:bg-slate-700 border border-slate-200/80 dark:border-slate-700 flex items-center justify-center text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-all cursor-pointer" 
-                                        title="Salin tautan tiket">
+                                        title="Salin tautan & template tiket">
                                         <i class="fa-regular fa-copy text-[10px]"></i>
                                     </button>
                                 </div>
@@ -1261,7 +1286,7 @@
 
                 <div class="mb-5">
                     <label class="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-2">
-                        Keterangan Solusi Kendala <span class="text-rose-500">*</span>
+                        Keterangan Solusi <span class="text-rose-500">*</span>
                     </label>
                     <textarea name="solusi" rows="3" required class="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 p-3.5 outline-none font-medium shadow-xs transition-colors" placeholder="Tuliskan keterangan tindakan atau solusi yang dilakukan untuk mengatasi kendala ini...">{{ old('solusi', $datarq->solusi) }}</textarea>
                 </div>
@@ -1297,7 +1322,7 @@
 
                 <div class="mb-5">
                     <label class="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-2">
-                        Keterangan Solusi Kendala <span class="text-rose-500">*</span>
+                        Keterangan Solusi <span class="text-rose-500">*</span>
                     </label>
                     <textarea name="solusi" rows="3" required class="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 p-3.5 outline-none font-medium shadow-xs transition-colors" placeholder="Tuliskan keterangan tindakan atau solusi yang dilakukan untuk mengatasi kendala ini...">{{ old('solusi', $datarq->solusi) }}</textarea>
                 </div>

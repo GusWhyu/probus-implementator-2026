@@ -48,14 +48,35 @@
                     </div>
                 </div>
                 
+                @php
+                    $outletNameForChat = $datarq->outlet ? $datarq->outlet->nm_out : 'Bapak/Ibu';
+                    $publicRequestTrackUrl = route('public.track.request', $datarq->id);
+                    $reqStatusNameForChat = $datarq->status ? $datarq->status->name : ($datarq->status_id == 4 ? 'Closed' : ($datarq->status_id == 3 ? 'Progress' : 'Open'));
+                    $requestChatTemplate = "Halo Tim *{$outletNameForChat}*,\n\n"
+                                         . "Berikut tautan untuk memantau progres request sistem Anda:\n"
+                                         . "📋 *No. Request:* #RQ-{$datarq->id}\n"
+                                         . "📌 *Judul:* {$datarq->judul}\n"
+                                         . "⚡ *Status:* {$reqStatusNameForChat}\n"
+                                         . "🔗 *Link Pantau:* {$publicRequestTrackUrl}\n\n"
+                                         . "Terima kasih. 🙏";
+                    $waShareRequestUrl = 'https://api.whatsapp.com/send?text=' . rawurlencode($requestChatTemplate);
+                @endphp
+                
                 <div class="flex items-center gap-2.5">
+                    <textarea id="request-chat-template" class="hidden" style="display:none;" aria-hidden="true">{{ $requestChatTemplate }}</textarea>
                     <button type="button" 
-                        onclick="copyRequestDirectLink(this, '{{ url('/detailrequest/' . $datarq->id) }}')" 
+                        onclick="copyRequestTrackingTemplate(this)" 
                         class="px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/60 text-slate-700 dark:text-slate-200 font-bold rounded-xl text-sm shadow-xs flex items-center justify-center gap-2 transition-all active:scale-95 cursor-pointer" 
-                        title="Salin tautan detail request ini untuk dibagikan">
+                        title="Salin tautan pemantauan & template chat untuk client">
                         <i class="fa-regular fa-copy text-blue-500 dark:text-blue-400"></i>
                         <span>Salin Link</span>
                     </button>
+                    <a href="{{ $waShareRequestUrl }}" target="_blank" 
+                        class="px-3.5 py-2.5 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/80 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 font-bold rounded-xl text-sm shadow-xs flex items-center justify-center gap-1.5 transition-all active:scale-95 cursor-pointer" 
+                        title="Kirim template tautan pemantauan request ke WhatsApp client">
+                        <i class="fa-brands fa-whatsapp text-emerald-600 dark:text-emerald-400 text-base"></i>
+                        <span class="hidden sm:inline">WhatsApp</span>
+                    </a>
 
                     @if (($rqid == $aid || $ust == 'admin' || $ust == 'supervisor') && $stid != 4)
                     <a href="/editrq/{{ $datarq->id }}" class="px-5 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/60 text-slate-700 dark:text-slate-200 font-bold rounded-xl text-sm shadow-sm flex items-center justify-center gap-2 transition-all active:scale-95">
@@ -314,9 +335,9 @@
                                 <div class="flex items-center gap-2">
                                     <span class="text-blue-600 dark:text-blue-400 font-bold text-xl font-mono whitespace-nowrap">RQ-{{ $datarq->id }}</span>
                                     <button type="button" 
-                                        onclick="copyRequestDirectLink(this, '{{ url('/detailrequest/' . $datarq->id) }}', true)" 
+                                        onclick="copyRequestTrackingTemplate(this, true)" 
                                         class="w-7 h-7 rounded-lg bg-slate-100 hover:bg-blue-50 dark:bg-slate-800 dark:hover:bg-slate-700 border border-slate-200/80 dark:border-slate-700 flex items-center justify-center text-slate-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-blue-400 transition-all cursor-pointer" 
-                                        title="Salin tautan request">
+                                        title="Salin tautan & template request">
                                         <i class="fa-regular fa-copy text-xs"></i>
                                     </button>
                                 </div>
@@ -952,15 +973,16 @@
     @endif
 
     <script>
-        function copyRequestDirectLink(btn, directUrl, isIconOnly = false) {
-            const url = directUrl || (window.location.origin + '/detailrequest/{{ $datarq->id }}');
+        function copyRequestTrackingTemplate(btn, isIconOnly = false) {
+            const el = document.getElementById('request-chat-template');
+            const text = el ? el.value : '{{ $publicRequestTrackUrl ?? url('/detailrequest/' . $datarq->id) }}';
             const origHtml = btn.innerHTML;
             
             function onSuccess() {
                 if (isIconOnly) {
                     btn.innerHTML = '<i class="fa-solid fa-check text-xs text-emerald-500"></i>';
                 } else {
-                    btn.innerHTML = '<i class="fa-solid fa-check text-emerald-500"></i> <span class="text-emerald-600 dark:text-emerald-400">Link Disalin!</span>';
+                    btn.innerHTML = '<i class="fa-solid fa-check text-emerald-500"></i> <span class="text-emerald-600 dark:text-emerald-400">Template Disalin!</span>';
                 }
                 btn.classList.add('border-emerald-400', 'dark:border-emerald-600');
                 setTimeout(() => {
@@ -970,12 +992,16 @@
             }
 
             if (navigator.clipboard && navigator.clipboard.writeText) {
-                navigator.clipboard.writeText(url).then(onSuccess).catch(() => {
-                    fallbackCopyRequestLink(url, onSuccess);
+                navigator.clipboard.writeText(text).then(onSuccess).catch(() => {
+                    fallbackCopyRequestLink(text, onSuccess);
                 });
             } else {
-                fallbackCopyRequestLink(url, onSuccess);
+                fallbackCopyRequestLink(text, onSuccess);
             }
+        }
+
+        function copyRequestDirectLink(btn, directUrl, isIconOnly = false) {
+            copyRequestTrackingTemplate(btn, isIconOnly);
         }
 
         function fallbackCopyRequestLink(text, cb) {

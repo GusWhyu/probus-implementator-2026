@@ -162,17 +162,17 @@
                     </div>
                 </div>
 
-                <!-- Sangat Baik -->
+                <!-- Sangat Memuaskan -->
                 <div class="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700 shadow-sm flex items-center gap-4">
                     <div class="w-14 h-14 rounded-full bg-teal-50 dark:bg-teal-950/60 text-teal-500 dark:text-teal-400 flex items-center justify-center shrink-0">
                         <i class="fa-solid fa-ranking-star text-lg"></i>
                     </div>
                     <div class="flex-1">
-                        <p class="text-[11px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-wider mb-1">Sangat Baik (≥80)</p>
+                        <p class="text-[11px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-wider mb-1">Sangat Memuaskan (≥90)</p>
                         <div class="flex items-end justify-between">
-                            <h3 class="text-3xl font-extrabold text-slate-800 dark:text-slate-100 leading-none">{{ $sangatBaik ?? 0 }}</h3>
+                            <h3 class="text-3xl font-extrabold text-slate-800 dark:text-slate-100 leading-none">{{ $sangatMemuaskan ?? $sangatBaik ?? 0 }}</h3>
                             <span class="text-xs font-bold text-teal-600 dark:text-teal-400 bg-teal-50 dark:bg-teal-950/60 px-2 py-0.5 rounded-full border border-teal-200/60 dark:border-teal-800/60">
-                                {{ ($sudahDinilai ?? 0) > 0 ? round((($sangatBaik ?? 0) / $sudahDinilai) * 100, 1) : 0 }}%
+                                {{ ($sudahDinilai ?? 0) > 0 ? round((($sangatMemuaskan ?? $sangatBaik ?? 0) / $sudahDinilai) * 100, 1) : 0 }}%
                             </span>
                         </div>
                     </div>
@@ -648,18 +648,30 @@
                                     @if($isFinal)
                                         @php
                                              $score = (float)$penilaian->total_score;
-                                             if ($score >= 80) {
+                                             if ($score >= 90) {
                                                  $scoreColorClass = 'text-emerald-600 dark:text-emerald-400';
                                                  $badgeClass = 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800/80';
-                                                 $scoreLabel = 'Sangat Baik';
+                                                 $scoreLabel = 'Sangat Memuaskan';
+                                             } elseif ($score >= 80) {
+                                                 $scoreColorClass = 'text-blue-600 dark:text-blue-400';
+                                                 $badgeClass = 'bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800/80';
+                                                 $scoreLabel = 'Memuaskan';
                                              } elseif ($score >= 70) {
+                                                 $scoreColorClass = 'text-sky-600 dark:text-sky-400';
+                                                 $badgeClass = 'bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 border-sky-200 dark:border-sky-800/80';
+                                                 $scoreLabel = 'Cukup Memuaskan';
+                                             } elseif ($score >= 60) {
                                                  $scoreColorClass = 'text-amber-600 dark:text-amber-400';
                                                  $badgeClass = 'bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800/80';
-                                                 $scoreLabel = 'Baik';
+                                                 $scoreLabel = 'Perlu Peningkatan';
+                                             } elseif ($score >= 50) {
+                                                 $scoreColorClass = 'text-orange-600 dark:text-orange-400';
+                                                 $badgeClass = 'bg-orange-50 dark:bg-orange-950/60 text-orange-700 dark:text-orange-300 border-orange-200 dark:border-orange-800/80';
+                                                 $scoreLabel = 'Perlu Pembinaan';
                                              } else {
                                                  $scoreColorClass = 'text-rose-600 dark:text-rose-400';
                                                  $badgeClass = 'bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border-rose-200 dark:border-rose-800/80';
-                                                 $scoreLabel = 'Cukup';
+                                                 $scoreLabel = 'Perlu Perhatian Khusus';
                                              }
                                         @endphp
                                         <div class="flex items-center justify-center gap-2 whitespace-nowrap">

@@ -49,8 +49,30 @@
                                 <td class="py-5 px-4 text-sm font-semibold text-slate-600 text-center">{{ $r->kepuasan_klien }}</td>
                                 <td class="py-5 px-4 text-sm font-extrabold text-slate-800 text-center">{{ $r->nilai_akhir }}</td>
                                 <td class="py-5 px-6 text-center">
-                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold {{ $r->nilai_akhir >= 80 ? 'bg-green-50 text-green-600 border-green-100' : ($r->nilai_akhir >= 70 ? 'bg-yellow-50 text-yellow-600 border-yellow-100' : 'bg-red-50 text-red-600 border-red-100') }} border">
-                                        {{ $r->nilai_akhir >= 80 ? 'Sangat Baik' : ($r->nilai_akhir >= 70 ? 'Baik' : 'Kurang') }}
+                                    @php
+                                        $rScore = (float)$r->nilai_akhir;
+                                        if ($rScore >= 90) {
+                                            $rBadge = 'bg-emerald-50 text-emerald-600 border-emerald-100';
+                                            $rLabel = 'Sangat Memuaskan';
+                                        } elseif ($rScore >= 80) {
+                                            $rBadge = 'bg-blue-50 text-blue-600 border-blue-100';
+                                            $rLabel = 'Memuaskan';
+                                        } elseif ($rScore >= 70) {
+                                            $rBadge = 'bg-sky-50 text-sky-600 border-sky-100';
+                                            $rLabel = 'Cukup Memuaskan';
+                                        } elseif ($rScore >= 60) {
+                                            $rBadge = 'bg-amber-50 text-amber-600 border-amber-100';
+                                            $rLabel = 'Perlu Peningkatan';
+                                        } elseif ($rScore >= 50) {
+                                            $rBadge = 'bg-orange-50 text-orange-600 border-orange-100';
+                                            $rLabel = 'Perlu Pembinaan';
+                                        } else {
+                                            $rBadge = 'bg-rose-50 text-rose-600 border-rose-100';
+                                            $rLabel = 'Perlu Perhatian Khusus';
+                                        }
+                                    @endphp
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold {{ $rBadge }} border">
+                                        {{ $rLabel }}
                                     </span>
                                 </td>
                             </tr>

@@ -75,9 +75,33 @@
             </div>
         </div>
 
+        <style>
+            /* Suppress Microsoft Edge and WebKit default eye/reveal icons on password inputs */
+            #password::-ms-reveal,
+            #password::-ms-clear,
+            input[type="password"]::-ms-reveal,
+            input[type="password"]::-ms-clear,
+            input[type="password"]::-webkit-contacts-auto-fill-button,
+            input[type="password"]::-webkit-credentials-auto-fill-button {
+                display: none !important;
+                visibility: hidden !important;
+                pointer-events: none !important;
+                width: 0 !important;
+                height: 0 !important;
+            }
+        </style>
+
         <!-- RIGHT PANEL: Full-Height Clean Form -->
         <div class="w-full md:w-1/2 lg:w-[52%] xl:w-[55%] bg-[#F8FAFC] min-h-screen flex flex-col justify-center items-center p-4 sm:p-6 md:p-12 lg:p-16 xl:p-24 relative overflow-hidden">
             
+            <!-- Top Right Version Badge (Pojok Kanan Atas saat Login) -->
+            <div class="absolute top-4 right-4 sm:top-6 sm:right-6 z-20">
+                <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/90 backdrop-blur-md border border-slate-200/90 shadow-xs text-slate-600 text-xs font-semibold tracking-wide hover:border-blue-300 transition-colors">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span class="font-bold text-slate-700">v{{ config('app.version', '10.1') }}</span>
+                </div>
+            </div>
+
             <!-- Mobile Ambient Glow Accents -->
             <div class="absolute -top-24 -right-24 w-72 h-72 bg-blue-100/60 rounded-full blur-3xl pointer-events-none md:hidden"></div>
             <div class="absolute -bottom-24 -left-24 w-72 h-72 bg-sky-100/60 rounded-full blur-3xl pointer-events-none md:hidden"></div>
@@ -95,6 +119,7 @@
                         <div class="text-left">
                             <div class="text-xs sm:text-sm font-black tracking-widest uppercase text-blue-600 leading-tight">PROBUS SYSTEM</div>
                             <div class="text-xl sm:text-2xl font-black text-slate-800 tracking-wider uppercase leading-tight mt-0.5">IMPLEMENTATOR</div>
+                            <div class="text-[10px] font-bold text-slate-400 tracking-wider uppercase leading-none mt-0.5">v{{ config('app.version', '10.1') }}</div>
                         </div>
                     </div>
                     <p class="text-xs sm:text-sm text-slate-500 font-medium mt-3 text-center">Silakan masuk ke akun Probus Implementator Anda.</p>

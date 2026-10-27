@@ -29,7 +29,10 @@
             <div class="w-8 h-8 rounded-xl bg-white border border-slate-200 dark:border-slate-700/60 flex items-center justify-center p-1.5 shadow-sm shrink-0">
                 <img src="{{ asset('img/logo.png') }}" alt="Probus Logo" class="w-full h-full object-contain">
             </div>
-            <span class="ml-2.5 font-bold text-slate-800 dark:text-white text-[15px] sm:text-base tracking-tight whitespace-nowrap">Probus Implementator</span>
+            <div class="ml-2.5 flex flex-col justify-center">
+                <span class="font-bold text-slate-800 dark:text-white text-[14px] sm:text-[15px] tracking-tight whitespace-nowrap leading-tight">Probus Implementator</span>
+                <span class="text-[10px] font-semibold text-slate-400 dark:text-slate-400/80 tracking-wider leading-none mt-0.5">v{{ config('app.version', '10.1') }}</span>
+            </div>
         </div>
         
         <!-- Nav -->

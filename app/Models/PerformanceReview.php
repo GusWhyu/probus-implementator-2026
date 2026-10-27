@@ -93,4 +93,36 @@ class PerformanceReview extends Model
     {
         return $this->attributes['total_score'] ?? 0;
     }
+
+    /**
+     * Predikat kinerja 6 parameter:
+     * 1. 90-100: Sangat Memuaskan
+     * 2. 80-<90: Memuaskan
+     * 3. 70-<80: Cukup Memuaskan
+     * 4. 60-<70: Perlu Peningkatan
+     * 5. 50-<60: Perlu Pembinaan
+     * 6. <50: Perlu Perhatian Khusus
+     */
+    public static function getPredikatLabel($score)
+    {
+        $s = (float)$score;
+        if ($s >= 90) {
+            return 'Sangat Memuaskan';
+        } elseif ($s >= 80) {
+            return 'Memuaskan';
+        } elseif ($s >= 70) {
+            return 'Cukup Memuaskan';
+        } elseif ($s >= 60) {
+            return 'Perlu Peningkatan';
+        } elseif ($s >= 50) {
+            return 'Perlu Pembinaan';
+        } else {
+            return 'Perlu Perhatian Khusus';
+        }
+    }
+
+    public function getPredikatAttribute()
+    {
+        return self::getPredikatLabel($this->total_score);
+    }
 }

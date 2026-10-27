@@ -232,18 +232,30 @@
                     $sumFinalScore += $scoreVal;
                     $countFinalScore++;
 
-                    if ($scoreVal >= 80) {
+                    if ($scoreVal >= 90) {
                         $scoreColor = '#047857';
-                        $predikatText = 'Sangat Baik';
+                        $predikatText = 'Sangat Memuaskan';
                         $predikatStyle = 'background-color: #DCFCE7; color: #047857; font-weight: bold; border-color: #86EFAC;';
-                    } elseif ($scoreVal >= 70) {
+                    } elseif ($scoreVal >= 80) {
                         $scoreColor = '#1D4ED8';
-                        $predikatText = 'Baik';
+                        $predikatText = 'Memuaskan';
                         $predikatStyle = 'background-color: #DBEAFE; color: #1D4ED8; font-weight: bold; border-color: #93C5FD;';
+                    } elseif ($scoreVal >= 70) {
+                        $scoreColor = '#0284C7';
+                        $predikatText = 'Cukup Memuaskan';
+                        $predikatStyle = 'background-color: #E0F2FE; color: #0369A1; font-weight: bold; border-color: #BAE6FD;';
+                    } elseif ($scoreVal >= 60) {
+                        $scoreColor = '#D97706';
+                        $predikatText = 'Perlu Peningkatan';
+                        $predikatStyle = 'background-color: #FEF3C7; color: #B45309; font-weight: bold; border-color: #FCD34D;';
+                    } elseif ($scoreVal >= 50) {
+                        $scoreColor = '#EA580C';
+                        $predikatText = 'Perlu Pembinaan';
+                        $predikatStyle = 'background-color: #FFEDD5; color: #C2410C; font-weight: bold; border-color: #FDBA74;';
                     } else {
-                        $scoreColor = '#B91C1C';
-                        $predikatText = 'Cukup';
-                        $predikatStyle = 'background-color: #FEE2E2; color: #B91C1C; font-weight: bold; border-color: #FCA5A5;';
+                        $scoreColor = '#E11D48';
+                        $predikatText = 'Perlu Perhatian Khusus';
+                        $predikatStyle = 'background-color: #FFE4E6; color: #BE123C; font-weight: bold; border-color: #FDA4AF;';
                     }
                 } elseif ($isDraft) {
                     $scoreText = 'Draft (' . ($penilaian->module_score ?? 0) . ')';
