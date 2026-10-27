@@ -13,45 +13,22 @@
 
     // Persentase stepper progres
     $progressPercent = $isClosed ? 100 : ($statusUpper === 'PROGRESS' ? 60 : 25);
-    $waShareUrl = 'https://api.whatsapp.com/send?text=' . rawurlencode($chatTemplate);
 @endphp
 
 <div class="space-y-6">
 
-    <!-- Top Breadcrumb & Share Header Card -->
-    <div class="bg-white dark:bg-[#151f38] rounded-3xl p-5 sm:p-6 border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-            <div class="flex items-center gap-2 flex-wrap mb-1.5">
-                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
-                    <i class="fa-solid fa-hotel text-slate-400"></i> {{ $clientName }}
-                </span>
-                <span class="text-xs text-slate-400">&bull;</span>
-                <span class="font-mono text-xs font-extrabold text-blue-600 dark:text-blue-400 tracking-tight">#{{ $ticket->ticket_number }}</span>
-            </div>
-            <h1 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
-                {{ $ticket->title }}
-            </h1>
+    <!-- Top Breadcrumb Header Card -->
+    <div class="bg-white dark:bg-[#151f38] rounded-3xl p-5 sm:p-6 border border-slate-200/80 dark:border-slate-800 shadow-sm">
+        <div class="flex items-center gap-2 flex-wrap mb-1.5">
+            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+                <i class="fa-solid fa-hotel text-slate-400"></i> {{ $clientName }}
+            </span>
+            <span class="text-xs text-slate-400">&bull;</span>
+            <span class="font-mono text-xs font-extrabold text-blue-600 dark:text-blue-400 tracking-tight">#{{ $ticket->ticket_number }}</span>
         </div>
-
-        <!-- Share Actions -->
-        <div class="flex items-center gap-2 sm:gap-2.5 shrink-0">
-            <textarea id="ticket-chat-template" class="hidden" style="display:none;" aria-hidden="true">{{ $chatTemplate }}</textarea>
-            
-            <button type="button" 
-                onclick="copyTrackingTemplateChat('ticket-chat-template', 'Template chat & tautan pemantauan berhasil disalin!')" 
-                class="flex-1 sm:flex-none px-4 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold rounded-2xl text-xs sm:text-sm border border-slate-200 dark:border-slate-700 shadow-2xs flex items-center justify-center gap-2 transition-all active:scale-95 cursor-pointer"
-                title="Salin template chat dan link pemantauan tiket">
-                <i class="fa-regular fa-copy text-blue-500 dark:text-blue-400"></i>
-                <span>Salin Link</span>
-            </button>
-
-            <a href="{{ $waShareUrl }}" target="_blank" 
-                class="flex-1 sm:flex-none px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-2xl text-xs sm:text-sm shadow-sm shadow-emerald-600/20 flex items-center justify-center gap-2 transition-all active:scale-95 cursor-pointer"
-                title="Bagikan ke WhatsApp">
-                <i class="fa-brands fa-whatsapp text-base"></i>
-                <span>WhatsApp</span>
-            </a>
-        </div>
+        <h1 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
+            {{ $ticket->title }}
+        </h1>
     </div>
 
     <!-- Stepper / Progress Journey Card -->
