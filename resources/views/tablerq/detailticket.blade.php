@@ -62,7 +62,7 @@
                     <button type="button" 
                         onclick="copyTicketTrackingTemplate(this)" 
                         class="px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/60 text-slate-700 dark:text-slate-200 font-bold rounded-xl text-sm shadow-xs flex items-center justify-center gap-2 transition-all active:scale-95 cursor-pointer" 
-                        title="Salin tautan pemantauan & template chat untuk client">
+                        title="Salin template chat lengkap untuk dikirimkan ke client">
                         <i class="fa-regular fa-copy text-blue-500 dark:text-blue-400"></i>
                         <span>Salin Link</span>
                     </button>
@@ -531,87 +531,6 @@
                                     </a>
                                 </div>
                             </div>
-                            <script>
-                                function copyTicketTrackingTemplate(btn, isIconOnly = false) {
-                                    const el = document.getElementById('ticket-chat-template');
-                                    const text = el ? el.value : '{{ $publicTicketTrackUrl ?? url('/detailticket/' . $datarq->id) }}';
-                                    const origHtml = btn.innerHTML;
-                                    
-                                    function onSuccess() {
-                                        if (isIconOnly) {
-                                            btn.innerHTML = '<i class="fa-solid fa-check text-[10px] text-emerald-500"></i>';
-                                        } else {
-                                            btn.innerHTML = '<i class="fa-solid fa-check text-emerald-500"></i> <span class="text-emerald-600 dark:text-emerald-400">Template Disalin!</span>';
-                                        }
-                                        btn.classList.add('border-emerald-400', 'dark:border-emerald-600');
-                                        setTimeout(() => {
-                                            btn.innerHTML = origHtml;
-                                            btn.classList.remove('border-emerald-400', 'dark:border-emerald-600');
-                                        }, 2000);
-                                    }
-
-                                    if (navigator.clipboard && navigator.clipboard.writeText) {
-                                        navigator.clipboard.writeText(text).then(onSuccess).catch(() => {
-                                            fallbackCopyTicket(text, onSuccess);
-                                        });
-                                    } else {
-                                        fallbackCopyTicket(text, onSuccess);
-                                    }
-                                }
-
-                                function copyTicketDirectLink(btn, directUrl, isIconOnly = false) {
-                                    copyTicketTrackingTemplate(btn, isIconOnly);
-                                }
-
-                                function fallbackCopyTicket(text, cb) {
-                                    const ta = document.createElement('textarea');
-                                    ta.value = text;
-                                    ta.style.position = 'fixed';
-                                    ta.style.left = '-9999px';
-                                    ta.style.top = '-9999px';
-                                    document.body.appendChild(ta);
-                                    ta.focus();
-                                    ta.select();
-                                    try {
-                                        document.execCommand('copy');
-                                        if (cb) cb();
-                                    } catch (e) {
-                                        prompt('Salin link berikut:', text);
-                                    }
-                                    document.body.removeChild(ta);
-                                }
-
-                                function copyWaTemplate(btn) {
-                                    const el = document.getElementById('wa-template-text');
-                                    const text = el ? el.value : '';
-                                    const setCopied = () => {
-                                        const orig = btn.innerHTML;
-                                        btn.innerHTML = '<i class="fa-solid fa-check text-emerald-400"></i> Disalin!';
-                                        setTimeout(() => { btn.innerHTML = orig; }, 2000);
-                                    };
-                                    if (navigator.clipboard && navigator.clipboard.writeText) {
-                                        navigator.clipboard.writeText(text).then(setCopied).catch(() => {
-                                            fallbackCopyWa(text, setCopied);
-                                        });
-                                    } else {
-                                        fallbackCopyWa(text, setCopied);
-                                    }
-                                }
-                                function fallbackCopyWa(text, cb) {
-                                    const ta = document.createElement('textarea');
-                                    ta.value = text;
-                                    ta.style.position = 'fixed';
-                                    ta.style.left = '-9999px';
-                                    document.body.appendChild(ta);
-                                    ta.focus();
-                                    ta.select();
-                                    try {
-                                        document.execCommand('copy');
-                                        if (cb) cb();
-                                    } catch (e) {}
-                                    document.body.removeChild(ta);
-                                }
-                            </script>
                             <p class="text-[10px] font-bold text-blue-500 dark:text-blue-400 flex items-center gap-1.5 mt-4">
                                 <i class="fa-solid fa-circle-info"></i> Tautan ini khusus untuk klien. Review hanya bisa dilakukan 1 kali.
                             </p>
@@ -2138,6 +2057,89 @@
                     form.submit();
                 }
             }
+        }
+
+        // --- Salin Template Tautan Pemantauan Tiket ---
+        function copyTicketTrackingTemplate(btn, isIconOnly = false) {
+            const el = document.getElementById('ticket-chat-template');
+            const text = el ? el.value : '{{ $publicTicketTrackUrl ?? url('/detailticket/' . $datarq->id) }}';
+            const origHtml = btn.innerHTML;
+            
+            function onSuccess() {
+                if (isIconOnly) {
+                    btn.innerHTML = '<i class="fa-solid fa-check text-[10px] text-emerald-500"></i>';
+                } else {
+                    btn.innerHTML = '<i class="fa-solid fa-check text-emerald-500"></i> <span class="text-emerald-600 dark:text-emerald-400">Template Disalin!</span>';
+                }
+                btn.classList.add('border-emerald-400', 'dark:border-emerald-600');
+                setTimeout(() => {
+                    btn.innerHTML = origHtml;
+                    btn.classList.remove('border-emerald-400', 'dark:border-emerald-600');
+                }, 2000);
+            }
+
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(onSuccess).catch(() => {
+                    fallbackCopyTicket(text, onSuccess);
+                });
+            } else {
+                fallbackCopyTicket(text, onSuccess);
+            }
+        }
+
+        function copyTicketDirectLink(btn, directUrl, isIconOnly = false) {
+            copyTicketTrackingTemplate(btn, isIconOnly);
+        }
+
+        function fallbackCopyTicket(text, cb) {
+            const ta = document.createElement('textarea');
+            ta.value = text;
+            ta.style.position = 'fixed';
+            ta.style.left = '-9999px';
+            ta.style.top = '-9999px';
+            document.body.appendChild(ta);
+            ta.focus();
+            ta.select();
+            try {
+                document.execCommand('copy');
+                if (cb) cb();
+            } catch (e) {
+                prompt('Salin teks berikut:', text);
+            }
+            document.body.removeChild(ta);
+        }
+
+        function copyWaTemplate(btn) {
+            const el = document.getElementById('wa-template-text');
+            const text = el ? el.value : '';
+            const setCopied = () => {
+                const orig = btn.innerHTML;
+                btn.innerHTML = '<i class="fa-solid fa-check text-emerald-400"></i> Disalin!';
+                setTimeout(() => { btn.innerHTML = orig; }, 2000);
+            };
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(setCopied).catch(() => {
+                    fallbackCopyWa(text, setCopied);
+                });
+            } else {
+                fallbackCopyWa(text, setCopied);
+            }
+        }
+
+        function fallbackCopyWa(text, cb) {
+            const ta = document.createElement('textarea');
+            ta.value = text;
+            ta.style.position = 'fixed';
+            ta.style.left = '-9999px';
+            ta.style.top = '-9999px';
+            document.body.appendChild(ta);
+            ta.focus();
+            ta.select();
+            try {
+                document.execCommand('copy');
+                if (cb) cb();
+            } catch (e) {}
+            document.body.removeChild(ta);
         }
     </script>
 </x-app-layout>
