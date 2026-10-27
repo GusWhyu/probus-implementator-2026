@@ -721,45 +721,103 @@
                 <div class="space-y-4 mb-6">
                     <!-- Petugas Penangan Tiket -->
                     <div>
-                        <label class="flex items-center gap-1.5 text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
-                            <i class="fa-solid fa-user-gear text-blue-500 dark:text-blue-400 text-xs"></i>
-                            <span>Petugas Penangan Tiket <span class="text-rose-500">*</span></span>
-                        </label>
+                        <div class="flex items-center justify-between mb-1.5">
+                            <label class="flex items-center gap-1.5 text-xs font-bold text-slate-700 dark:text-slate-300">
+                                <i class="fa-solid fa-user-gear text-blue-500 dark:text-blue-400 text-xs"></i>
+                                <span>Petugas Penangan Tiket <span class="text-rose-500">*</span></span>
+                            </label>
+                            <span class="text-[10px] text-slate-400 font-medium">Filter Departemen:</span>
+                        </div>
+
+                        @php
+                            $userList = isset($assignableUsers) 
+                                ? $assignableUsers 
+                                : \App\Models\User::with(['departemen', 'tag'])
+                                    ->whereIn('usertype', ['admin', 'supervisor', 'user'])
+                                    ->where('is_active', true)
+                                    ->orderBy('name')
+                                    ->get();
+
+                            $defaultAssigneeId = ($datarq->user_id && $userList->contains('id', $datarq->user_id)) 
+                                ? $datarq->user_id 
+                                : null;
+
+                            $countTotal = $userList->count();
+                            $countProduksi = $userList->filter(fn($u) => $u->departemen && strtolower($u->departemen->name) === 'produksi')->count();
+                            $countOperasional = $userList->filter(fn($u) => $u->departemen && strtolower($u->departemen->name) === 'operasional')->count();
+                            $countLainnya = $countTotal - $countProduksi - $countOperasional;
+
+                            $getDeptIcon = function($dept) {
+                                $d = strtoupper($dept);
+                                if (str_contains($d, 'PRODUKSI')) return '⚙️';
+                                if (str_contains($d, 'OPERASIONAL')) return '🏢';
+                                return '🌐';
+                            };
+
+                            $getTagIcon = function($tag) {
+                                $t = strtoupper($tag);
+                                if (str_contains($t, 'WEB PROGRAMMER')) return '🌐';
+                                if (str_contains($t, 'PROGRAMMER')) return '💻';
+                                if (str_contains($t, 'TRAINER')) return '🎓';
+                                if (str_contains($t, 'COMMERCE')) return '🛒';
+                                if (str_contains($t, 'SUPERVISOR')) return '👔';
+                                if (str_contains($t, 'ADMIN')) return '🛡️';
+                                return '👤';
+                            };
+
+                            // Kelompokkan petugas tiket berdasarkan Departemen dan Tag
+                            $groupedUsers = $userList->groupBy(function($u) {
+                                $dept = $u->departemen ? strtoupper($u->departemen->name) : 'LAINNYA';
+                                $tag = $u->tag ? strtoupper($u->tag->name) : 'UMUM';
+                                return $dept . ' — ' . $tag;
+                            })->sortBy(function($users, $key) {
+                                if (str_starts_with($key, 'PRODUKSI')) return '1_' . $key;
+                                if (str_starts_with($key, 'OPERASIONAL')) return '2_' . $key;
+                                return '3_' . $key;
+                            });
+                        @endphp
+
+                        <!-- Filter Departemen Pills -->
+                        <div id="petugasDeptFilter" class="flex items-center gap-1.5 mb-2 overflow-x-auto pb-1 scrollbar-none">
+                            <button type="button" data-dept="all" class="dept-pill-btn px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all border bg-blue-600 text-white border-blue-600 shadow-xs cursor-pointer flex items-center gap-1.5 shrink-0">
+                                <span>Semua</span>
+                                <span class="dept-count-badge px-1.5 py-0.2 rounded-full text-[9px] bg-white/20 text-white font-extrabold">{{ $countTotal }}</span>
+                            </button>
+                            <button type="button" data-dept="PRODUKSI" class="dept-pill-btn px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all border bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700 cursor-pointer flex items-center gap-1.5 shrink-0">
+                                <span>⚙️ Produksi</span>
+                                <span class="dept-count-badge px-1.5 py-0.2 rounded-full text-[9px] bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 font-extrabold">{{ $countProduksi }}</span>
+                            </button>
+                            <button type="button" data-dept="OPERASIONAL" class="dept-pill-btn px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all border bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700 cursor-pointer flex items-center gap-1.5 shrink-0">
+                                <span>🏢 Operasional</span>
+                                <span class="dept-count-badge px-1.5 py-0.2 rounded-full text-[9px] bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 font-extrabold">{{ $countOperasional }}</span>
+                            </button>
+                            @if($countLainnya > 0)
+                            <button type="button" data-dept="LAINNYA" class="dept-pill-btn px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all border bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700 cursor-pointer flex items-center gap-1.5 shrink-0">
+                                <span>🌐 Lainnya</span>
+                                <span class="dept-count-badge px-1.5 py-0.2 rounded-full text-[9px] bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 font-extrabold">{{ $countLainnya }}</span>
+                            </button>
+                            @endif
+                        </div>
+
                         <div class="relative">
-                            <select name="assigned_user_id" required class="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 p-3 pl-4 pr-10 outline-none font-bold appearance-none shadow-sm cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
-                                @php
-                                    $userList = isset($assignableUsers) 
-                                        ? $assignableUsers 
-                                        : \App\Models\User::with(['departemen', 'tag'])
-                                            ->whereIn('usertype', ['admin', 'supervisor', 'user'])
-                                            ->where('is_active', true)
-                                            ->orderBy('name')
-                                            ->get();
-
-                                    $defaultAssigneeId = ($datarq->user_id && $userList->contains('id', $datarq->user_id)) 
-                                        ? $datarq->user_id 
-                                        : null;
-
-                                    // Kelompokkan petugas tiket berdasarkan Departemen dan Tag
-                                    $groupedUsers = $userList->groupBy(function($u) {
-                                        $dept = $u->departemen ? strtoupper($u->departemen->name) : 'LAINNYA';
-                                        $tag = $u->tag ? strtoupper($u->tag->name) : 'UMUM';
-                                        return $dept . ' — ' . $tag;
-                                    })->sortBy(function($users, $key) {
-                                        if (str_starts_with($key, 'PRODUKSI')) return '1_' . $key;
-                                        if (str_starts_with($key, 'OPERASIONAL')) return '2_' . $key;
-                                        return '3_' . $key;
-                                    });
-                                @endphp
+                            <select name="assigned_user_id" id="assignedUserSelect" required class="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 p-3 pl-4 pr-10 outline-none font-bold appearance-none shadow-sm cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
                                 @if($userList->isEmpty())
                                     <option value="" disabled selected>Tidak ada petugas yang tersedia</option>
                                 @else
                                     <option value="" disabled {{ is_null($defaultAssigneeId) ? 'selected' : '' }}>-- Pilih Petugas Penangan --</option>
                                     @foreach($groupedUsers as $groupLabel => $usersInGroup)
-                                        <optgroup label="{{ $groupLabel }}" class="font-extrabold text-slate-900 dark:text-slate-100 bg-slate-100 dark:bg-slate-800">
+                                        @php
+                                            $parts = explode(' — ', $groupLabel);
+                                            $dName = $parts[0];
+                                            $tName = $parts[1] ?? 'UMUM';
+                                            $dIcon = $getDeptIcon($dName);
+                                            $tIcon = $getTagIcon($tName);
+                                            $prettyLabel = "{$dIcon} {$dName} ❯ {$tIcon} {$tName}";
+                                        @endphp
+                                        <optgroup label="{{ $prettyLabel }}" data-dept="{{ $dName }}" class="font-extrabold text-slate-900 dark:text-slate-100 bg-slate-100 dark:bg-slate-800">
                                             @foreach($usersInGroup as $u)
                                                 <option value="{{ $u->id }}" {{ $defaultAssigneeId == $u->id ? 'selected' : '' }} class="font-medium text-slate-800 dark:text-slate-100 bg-white dark:bg-slate-900">
-                                                    {{ $u->name }} ({{ ucfirst($u->usertype) }}){{ $u->id == Auth::id() ? ' - Anda' : '' }}
+                                                    {{ $u->name }} ({{ ucfirst($u->usertype) }}){{ $u->id == Auth::id() ? ' ⭐ Anda' : '' }}
                                                 </option>
                                             @endforeach
                                         </optgroup>
@@ -822,21 +880,52 @@
 
                     <!-- Advisor (Opsional) -->
                     <div>
-                        <label class="flex items-center justify-between text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
-                            <span class="flex items-center gap-1.5">
+                        <div class="flex items-center justify-between mb-1.5">
+                            <label class="flex items-center gap-1.5 text-xs font-bold text-slate-700 dark:text-slate-300">
                                 <i class="fa-solid fa-headset text-blue-500 dark:text-blue-400 text-xs"></i>
                                 <span>Advisor Tiket</span>
-                            </span>
+                            </label>
                             <span class="text-[10px] font-semibold text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-md">Opsional</span>
-                        </label>
+                        </div>
+
+                        <!-- Filter Departemen Advisor Pills -->
+                        <div id="advisorDeptFilter" class="flex items-center gap-1.5 mb-2 overflow-x-auto pb-1 scrollbar-none">
+                            <button type="button" data-dept="all" class="dept-pill-btn px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all border bg-blue-600 text-white border-blue-600 shadow-xs cursor-pointer flex items-center gap-1.5 shrink-0">
+                                <span>Semua</span>
+                                <span class="dept-count-badge px-1.5 py-0.2 rounded-full text-[9px] bg-white/20 text-white font-extrabold">{{ $countTotal }}</span>
+                            </button>
+                            <button type="button" data-dept="PRODUKSI" class="dept-pill-btn px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all border bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700 cursor-pointer flex items-center gap-1.5 shrink-0">
+                                <span>⚙️ Produksi</span>
+                                <span class="dept-count-badge px-1.5 py-0.2 rounded-full text-[9px] bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 font-extrabold">{{ $countProduksi }}</span>
+                            </button>
+                            <button type="button" data-dept="OPERASIONAL" class="dept-pill-btn px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all border bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700 cursor-pointer flex items-center gap-1.5 shrink-0">
+                                <span>🏢 Operasional</span>
+                                <span class="dept-count-badge px-1.5 py-0.2 rounded-full text-[9px] bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 font-extrabold">{{ $countOperasional }}</span>
+                            </button>
+                            @if($countLainnya > 0)
+                            <button type="button" data-dept="LAINNYA" class="dept-pill-btn px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all border bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700 cursor-pointer flex items-center gap-1.5 shrink-0">
+                                <span>🌐 Lainnya</span>
+                                <span class="dept-count-badge px-1.5 py-0.2 rounded-full text-[9px] bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 font-extrabold">{{ $countLainnya }}</span>
+                            </button>
+                            @endif
+                        </div>
+
                         <div class="relative">
-                            <select name="advisor_id" class="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 p-3 pl-4 pr-10 outline-none font-bold appearance-none shadow-sm cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                            <select name="advisor_id" id="advisorUserSelect" class="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 p-3 pl-4 pr-10 outline-none font-bold appearance-none shadow-sm cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
                                 <option value="">-- Tanpa Advisor (Opsional) --</option>
                                 @foreach($groupedUsers as $groupLabel => $usersInGroup)
-                                    <optgroup label="{{ $groupLabel }}" class="font-extrabold text-slate-900 dark:text-slate-100 bg-slate-100 dark:bg-slate-800">
+                                    @php
+                                        $parts = explode(' — ', $groupLabel);
+                                        $dName = $parts[0];
+                                        $tName = $parts[1] ?? 'UMUM';
+                                        $dIcon = $getDeptIcon($dName);
+                                        $tIcon = $getTagIcon($tName);
+                                        $prettyLabel = "{$dIcon} {$dName} ❯ {$tIcon} {$tName}";
+                                    @endphp
+                                    <optgroup label="{{ $prettyLabel }}" data-dept="{{ $dName }}" class="font-extrabold text-slate-900 dark:text-slate-100 bg-slate-100 dark:bg-slate-800">
                                         @foreach($usersInGroup as $u)
                                             <option value="{{ $u->id }}" class="font-medium text-slate-800 dark:text-slate-100 bg-white dark:bg-slate-900">
-                                                {{ $u->name }} ({{ ucfirst($u->usertype) }}){{ $u->id == Auth::id() ? ' - Anda' : '' }}
+                                                {{ $u->name }} ({{ ucfirst($u->usertype) }}){{ $u->id == Auth::id() ? ' ⭐ Anda' : '' }}
                                             </option>
                                         @endforeach
                                     </optgroup>
@@ -1257,8 +1346,67 @@
             }
         };
 
+        // Setup Filter Departemen untuk Dropdown Petugas & Advisor Tiket
+        function setupDeptFilter(selectId, filterContainerId) {
+            const select = document.getElementById(selectId);
+            const container = document.getElementById(filterContainerId);
+            if (!select || !container) return;
+
+            // Klon semua optgroup asli untuk disimpan dalam memori
+            const originalOptgroups = Array.from(select.querySelectorAll('optgroup')).map(og => og.cloneNode(true));
+            const defaultOption = select.querySelector('option[value=""]');
+
+            const buttons = container.querySelectorAll('.dept-pill-btn');
+            buttons.forEach(btn => {
+                btn.addEventListener('click', function () {
+                    const targetDept = this.getAttribute('data-dept');
+
+                    // Reset semua tombol ke tampilan inactive
+                    buttons.forEach(b => {
+                        b.className = 'dept-pill-btn px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all border bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700 cursor-pointer flex items-center gap-1.5 shrink-0';
+                        const badge = b.querySelector('.dept-count-badge');
+                        if (badge) {
+                            badge.className = 'dept-count-badge px-1.5 py-0.2 rounded-full text-[9px] bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 font-extrabold';
+                        }
+                    });
+
+                    // Set tombol ini menjadi active
+                    this.className = 'dept-pill-btn px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all border bg-blue-600 text-white border-blue-600 shadow-xs cursor-pointer flex items-center gap-1.5 shrink-0';
+                    const activeBadge = this.querySelector('.dept-count-badge');
+                    if (activeBadge) {
+                        activeBadge.className = 'dept-count-badge px-1.5 py-0.2 rounded-full text-[9px] bg-white/20 text-white font-extrabold';
+                    }
+
+                    // Simpan nilai yang sedang dipilih sebelum filter
+                    const currentVal = select.value;
+
+                    // Hapus optgroup yang ada
+                    select.querySelectorAll('optgroup').forEach(og => og.remove());
+
+                    // Pasang kembali optgroup yang lolos filter
+                    originalOptgroups.forEach(og => {
+                        const ogDept = og.getAttribute('data-dept');
+                        if (targetDept === 'all' || ogDept === targetDept) {
+                            select.appendChild(og.cloneNode(true));
+                        }
+                    });
+
+                    // Pertahankan nilai jika user masih ada di daftar hasil filter
+                    if (currentVal && select.querySelector(`option[value="${currentVal}"]`)) {
+                        select.value = currentVal;
+                    } else if (defaultOption) {
+                        select.value = "";
+                    }
+                });
+            });
+        }
+
         // Scroll chat ke bawah saat halaman dimuat & pasang event keydown Enter
         document.addEventListener('DOMContentLoaded', function() {
+            // Inisialisasi filter departemen petugas & advisor tiket
+            setupDeptFilter('assignedUserSelect', 'petugasDeptFilter');
+            setupDeptFilter('advisorUserSelect', 'advisorDeptFilter');
+
             const messagesContainer = document.getElementById('diskusi-messages-container');
             if (messagesContainer) {
                 messagesContainer.scrollTop = messagesContainer.scrollHeight;
