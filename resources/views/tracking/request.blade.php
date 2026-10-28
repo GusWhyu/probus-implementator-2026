@@ -244,15 +244,6 @@
                             @endif
                         </div>
 
-                        <div class="mt-3 flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 flex-wrap">
-                            <i class="fa-regular fa-user text-blue-500"></i>
-                            <span>Diajukan oleh: <strong>{{ $outletName }}</strong></span>
-                            <span>•</span>
-                            <span class="flex items-center gap-1">
-                                <i class="fa-regular fa-clock text-slate-400"></i>
-                                {{ \Carbon\Carbon::parse($requestData->created_at)->translatedFormat('d M Y, H:i') }}
-                            </span>
-                        </div>
 
                         <!-- Attachments if any -->
                         @if (count($dataimg) > 0)
