@@ -151,11 +151,11 @@
                 <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 lg:col-span-2">
                     <div class="flex items-center justify-between mb-6">
                         <div>
-                            <h3 class="text-sm font-bold text-slate-800">Volume Tiket (Tren 7 Hari)</h3>
-                            <p class="text-[11px] text-slate-400 mt-0.5">Aktivitas volume tiket menuju tanggal yang dipilih</p>
+                            <h3 class="text-sm font-bold text-slate-800">Volume Tiket (Minggu - Sabtu)</h3>
+                            <p class="text-[11px] text-slate-400 mt-0.5" id="overview-chart-subtitle">{{ $chartSubtitle ?? 'Distribusi tiket per hari pada bulan ini' }}</p>
                         </div>
                         <span class="bg-slate-50 border border-slate-200 text-slate-600 text-[11px] font-bold rounded-lg px-2.5 py-1">
-                            Harian
+                            Per Hari
                         </span>
                     </div>
                     <div class="h-64 w-full relative">
@@ -285,17 +285,34 @@
                         label: 'Volume Tiket',
                         data: {!! json_encode($masukData ?? []) !!},
                         backgroundColor: function(ctx) {
-                            return ctx.dataIndex === 6 ? '#1d4ed8' : '#60a5fa';
+                            const dataArr = ctx.chart.data.datasets[0].data || [];
+                            const maxVal = Math.max(...dataArr);
+                            if (ctx.raw === maxVal && maxVal > 0) {
+                                return '#2563eb';
+                            }
+                            return '#60a5fa';
                         },
-                        hoverBackgroundColor: '#1e40af',
-                        borderRadius: 4,
-                        barPercentage: 0.5
+                        hoverBackgroundColor: '#1d4ed8',
+                        borderRadius: 6,
+                        barPercentage: 0.55
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
+                    plugins: { 
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                title: function(context) {
+                                    return 'Hari ' + context[0].label;
+                                },
+                                label: function(context) {
+                                    return ' Volume Tiket: ' + context.parsed.y + ' tiket';
+                                }
+                            }
+                        }
+                    },
                     scales: {
                         y: {
                             beginAtZero: true,
@@ -304,7 +321,7 @@
                         },
                         x: {
                             grid: { display: false, drawBorder: false },
-                            ticks: { font: { size: 10, weight: '600' } }
+                            ticks: { font: { size: 11, weight: '700' } }
                         }
                     },
                     interaction: { intersect: false, mode: 'index' }
@@ -569,6 +586,12 @@
                         overviewChartInstance.data.labels = data.chartLabels;
                         overviewChartInstance.data.datasets[0].data = data.masukData;
                         overviewChartInstance.update();
+                    }
+
+                    // Update Overview Subtitle with selected month
+                    const chartSub = document.getElementById('overview-chart-subtitle');
+                    if (chartSub && data.chartSubtitle) {
+                        chartSub.textContent = data.chartSubtitle;
                     }
 
                     // Update Status Donut

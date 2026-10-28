@@ -97,21 +97,31 @@ class RequestController extends Controller
                 ->get();
         }
 
-        // Chart Data Calculation (7-day trend ending on selectedDate or today)
-        $chartLabels = [];
-        $masukData = [];
-        $selesaiData = [];
-        $endDate = $hasDate ? $selectedDate->copy() : \Carbon\Carbon::now()->startOfDay();
+        // Chart Data Calculation: Akumulasi Volume Request per Hari (Minggu s/d Sabtu) untuk bulan yang dipilih
+        $chartLabels = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+        $masukData = [0, 0, 0, 0, 0, 0, 0];
+        $selesaiData = [0, 0, 0, 0, 0, 0, 0];
 
-        for ($i = 6; $i >= 0; $i--) {
-            $d = $endDate->copy()->subDays($i);
-            $chartLabels[] = $d->locale('id')->isoFormat('ddd, D MMM');
+        $chartMonthStart = $hasDate ? $selectedDate->copy()->startOfMonth() : \Carbon\Carbon::now()->startOfMonth();
+        $chartMonthEnd = $hasDate ? $selectedDate->copy()->endOfMonth() : \Carbon\Carbon::now()->endOfMonth();
+        $chartSubtitle = 'Distribusi request per hari pada bulan ' . ($selectedDate ? $selectedDate->locale('id')->isoFormat('MMMM Y') : \Carbon\Carbon::now()->locale('id')->isoFormat('MMMM Y'));
 
-            $dailyMasuk = \App\Models\Request::whereDate('created_at', $d->toDateString())->count();
-            $dailySelesai = \App\Models\Request::whereDate('updated_at', $d->toDateString())->where('status_id', 4)->count();
+        $masukCounts = \App\Models\Request::whereBetween('created_at', [$chartMonthStart, $chartMonthEnd])
+            ->selectRaw('DAYOFWEEK(created_at) as day_of_week, count(*) as total')
+            ->groupBy('day_of_week')
+            ->pluck('total', 'day_of_week')
+            ->toArray();
 
-            $masukData[] = $dailyMasuk;
-            $selesaiData[] = $dailySelesai;
+        $selesaiCounts = \App\Models\Request::whereBetween('updated_at', [$chartMonthStart, $chartMonthEnd])
+            ->where('status_id', 4)
+            ->selectRaw('DAYOFWEEK(updated_at) as day_of_week, count(*) as total')
+            ->groupBy('day_of_week')
+            ->pluck('total', 'day_of_week')
+            ->toArray();
+
+        for ($day = 1; $day <= 7; $day++) {
+            $masukData[$day - 1] = (int) ($masukCounts[$day] ?? 0);
+            $selesaiData[$day - 1] = (int) ($selesaiCounts[$day] ?? 0);
         }
 
         // Performa Divisi / Tim (Tag) — range tgl 1 s/d tanggal dipilih + carry over aktif
@@ -213,6 +223,7 @@ class RequestController extends Controller
                 'progress_count' => $progress_count,
                 'open_count' => $open_count,
                 'chartLabels' => $chartLabels,
+                'chartSubtitle' => $chartSubtitle,
                 'masukData' => $masukData,
                 'selesaiData' => $selesaiData,
                 'tagLabels' => $tagLabels,
@@ -227,7 +238,7 @@ class RequestController extends Controller
 
         return view('dashboard_request', compact(
             'open_count', 'progress_count', 'closed_count', 'total_count', 'all_requests',
-            'chartLabels', 'masukData', 'selesaiData', 'tagLabels', 'tagData', 'clientBarLabels', 'clientBarData', 'kategoriLabels', 'kategoriData',
+            'chartLabels', 'chartSubtitle', 'masukData', 'selesaiData', 'tagLabels', 'tagData', 'clientBarLabels', 'clientBarData', 'kategoriLabels', 'kategoriData',
             'hasDate', 'selectedDateRaw', 'selectedDateDisplay', 'periodTitle'
         ));
     }

@@ -149,26 +149,35 @@ class HomeController extends Controller
         }
         $all_tickets = $ticketsQuery->latest()->take(5)->get();
 
-        // Chart Data Calculation (7-day trend ending on selectedDate or today)
-        $chartLabels = [];
-        $masukData = [];
-        $selesaiData = [];
-        $endDate = $hasDate ? $selectedDate->copy() : \Carbon\Carbon::now()->startOfDay();
+        // Chart Data Calculation: Akumulasi Volume Tiket per Hari (Minggu s/d Sabtu) untuk bulan yang dipilih
+        $chartLabels = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+        $masukData = [0, 0, 0, 0, 0, 0, 0];
+        $selesaiData = [0, 0, 0, 0, 0, 0, 0];
 
-        for ($i = 6; $i >= 0; $i--) {
-            $d = $endDate->copy()->subDays($i);
-            $chartLabels[] = $d->locale('id')->isoFormat('ddd, D MMM');
-            
-            $masukQ = Ticket::whereDate('created_at', $d->toDateString());
-            $applyDeptFilter($masukQ);
-            $dailyMasuk = $masukQ->count();
+        $chartMonthStart = $hasDate ? $selectedDate->copy()->startOfMonth() : \Carbon\Carbon::now()->startOfMonth();
+        $chartMonthEnd = $hasDate ? $selectedDate->copy()->endOfMonth() : \Carbon\Carbon::now()->endOfMonth();
+        $chartSubtitle = 'Distribusi tiket per hari pada bulan ' . ($selectedDate ? $selectedDate->locale('id')->isoFormat('MMMM Y') : \Carbon\Carbon::now()->locale('id')->isoFormat('MMMM Y'));
 
-            $selesaiQ = Ticket::whereDate('updated_at', $d->toDateString())->where('status', 'CLOSED');
-            $applyDeptFilter($selesaiQ);
-            $dailySelesai = $selesaiQ->count();
-            
-            $masukData[] = $dailyMasuk;
-            $selesaiData[] = $dailySelesai;
+        // 1. Tiket dibuat (created_at) di bulan tersebut dikelompokkan berdasarkan hari (DAYOFWEEK: 1=Min, 2=Sen, ..., 7=Sab)
+        $masukQuery = Ticket::whereBetween('created_at', [$chartMonthStart, $chartMonthEnd])
+            ->selectRaw('DAYOFWEEK(created_at) as day_of_week, count(*) as total');
+        $applyDeptFilter($masukQuery);
+        $masukCounts = $masukQuery->groupBy('day_of_week')
+            ->pluck('total', 'day_of_week')
+            ->toArray();
+
+        // 2. Tiket selesai (updated_at) CLOSED di bulan tersebut dikelompokkan berdasarkan hari
+        $selesaiQuery = Ticket::whereBetween('updated_at', [$chartMonthStart, $chartMonthEnd])
+            ->where('status', 'CLOSED')
+            ->selectRaw('DAYOFWEEK(updated_at) as day_of_week, count(*) as total');
+        $applyDeptFilter($selesaiQuery);
+        $selesaiCounts = $selesaiQuery->groupBy('day_of_week')
+            ->pluck('total', 'day_of_week')
+            ->toArray();
+
+        for ($day = 1; $day <= 7; $day++) {
+            $masukData[$day - 1] = (int) ($masukCounts[$day] ?? 0);
+            $selesaiData[$day - 1] = (int) ($selesaiCounts[$day] ?? 0);
         }
 
         // Top Agents — range tgl 1 s/d tanggal dipilih + carry over open (Khusus admin & supervisor)
@@ -286,6 +295,7 @@ class HomeController extends Controller
                 'progress_count' => $progress_count,
                 'open_count' => $open_count,
                 'chartLabels' => $chartLabels,
+                'chartSubtitle' => $chartSubtitle,
                 'masukData' => $masukData,
                 'selesaiData' => $selesaiData,
                 'agentLabels' => $agentLabels,
@@ -300,7 +310,7 @@ class HomeController extends Controller
 
         return view('dashboard', compact(
             'open', 'progress', 'closed', 'us', 'open_count', 'progress_count', 'closed_count', 'total_count', 'all_tickets',
-            'chartLabels', 'masukData', 'selesaiData', 'agentLabels', 'agentData', 'clientDonutLabels', 'clientDonutData', 'clientBarLabels', 'clientBarData', 'kendalaLabels', 'kendalaData',
+            'chartLabels', 'chartSubtitle', 'masukData', 'selesaiData', 'agentLabels', 'agentData', 'clientDonutLabels', 'clientDonutData', 'clientBarLabels', 'clientBarData', 'kendalaLabels', 'kendalaData',
             'hasDate', 'selectedDateRaw', 'selectedDateDisplay', 'periodTitle', 'selectedDeptId', 'currentDepartemen', 'allDepartemens'
         ));
     }
