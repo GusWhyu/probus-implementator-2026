@@ -453,16 +453,16 @@
             /* Tables in Dark Mode - Selaras dengan Header Laporan (Navy/Blue/Indigo Gradient & Soft Blue Text) */
             html.dark table thead,
             html[data-theme="dark"] table thead {
-                background-image: linear-gradient(to right, #0f172a, #172554, rgba(30, 27, 75, 0.9)) !important;
-                background-color: #0f172a !important;
-                border-bottom: 1px solid rgba(30, 58, 138, 0.8) !important;
+                background-image: linear-gradient(to right, #111c38, #132040, #16254c) !important;
+                background-color: #111c38 !important;
+                border-bottom: 1px solid rgba(30, 58, 138, 0.7) !important;
             }
             html.dark table thead tr,
             html[data-theme="dark"] table thead tr {
                 background: transparent !important;
                 background-color: transparent !important;
                 background-image: none !important;
-                border-color: rgba(30, 58, 138, 0.6) !important;
+                border-color: rgba(30, 58, 138, 0.5) !important;
             }
             html.dark table thead th:not(.sticky):not([class*="sticky"]),
             html.dark table thead th:not(.sticky):not([class*="sticky"]) span,
@@ -474,7 +474,7 @@
                 background-color: transparent !important;
                 background-image: none !important;
                 color: #dbeafe !important;
-                border-color: rgba(30, 58, 138, 0.6) !important;
+                border-color: rgba(30, 58, 138, 0.5) !important;
             }
 
             /* Sticky table header cells in dark mode must have solid background to prevent scrolling content from showing through */
@@ -482,10 +482,10 @@
             html.dark table thead th[class*="sticky"],
             html[data-theme="dark"] table thead th.sticky,
             html[data-theme="dark"] table thead th[class*="sticky"] {
-                background-color: #0f172a !important;
+                background-color: #111c38 !important;
                 background-image: none !important;
                 color: #dbeafe !important;
-                border-color: rgba(30, 58, 138, 0.6) !important;
+                border-color: rgba(30, 58, 138, 0.5) !important;
             }
             html.dark table tbody tr {
                 border-color: #334155 !important;

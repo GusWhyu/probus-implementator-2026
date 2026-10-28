@@ -579,7 +579,7 @@
                 }
                 html.dark .laporan-sticky-th-no,
                 html[data-theme="dark"] .laporan-sticky-th-no {
-                    background-color: #0f172a !important;
+                    background-color: #111c38 !important;
                 }
                 .laporan-sticky-th-staff {
                     position: sticky !important;
@@ -589,7 +589,7 @@
                 }
                 html.dark .laporan-sticky-th-staff,
                 html[data-theme="dark"] .laporan-sticky-th-staff {
-                    background-color: #0f172a !important;
+                    background-color: #132040 !important;
                 }
                 .laporan-sticky-td-no {
                     position: sticky !important;
@@ -619,16 +619,16 @@
                 html.dark tr.group:hover .laporan-sticky-td-staff,
                 html[data-theme="dark"] tr.group:hover .laporan-sticky-td-no,
                 html[data-theme="dark"] tr.group:hover .laporan-sticky-td-staff {
-                    background-color: #334155 !important;
+                    background-color: #263349 !important;
                 }
             </style>
             <div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-sm overflow-hidden mb-6">
                 <div class="overflow-x-auto custom-scrollbar">
                     <table class="w-full text-left border-collapse min-w-[940px] xl:min-w-full">
-                        <thead class="thead-themed bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-600 dark:from-slate-900 dark:via-blue-950 dark:to-indigo-950/90 border-b border-blue-700 dark:border-blue-800/80">
+                        <thead class="thead-themed bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-700 dark:from-[#111c38] dark:via-[#132040] dark:to-[#16254c] border-b border-blue-700 dark:border-blue-900/60">
                             <tr class="text-white dark:text-blue-100">
                                 <th class="py-3 px-2 text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-center w-11 min-w-[44px] max-w-[44px] whitespace-nowrap sticky left-0 z-30 laporan-sticky-th-no">No</th>
-                                <th class="py-3 px-3.5 sm:px-4 text-[10px] sm:text-[11px] font-black uppercase tracking-wider whitespace-nowrap sticky left-[44px] z-30 laporan-sticky-th-staff border-r border-blue-700/80 dark:border-slate-700 shadow-[3px_0_6px_-2px_rgba(0,0,0,0.15)]">Staff</th>
+                                <th class="py-3 px-3.5 sm:px-4 text-[10px] sm:text-[11px] font-black uppercase tracking-wider whitespace-nowrap sticky left-[44px] z-30 laporan-sticky-th-staff min-w-[170px] sm:min-w-[220px] border-r border-blue-700/80 dark:border-blue-900/60 shadow-[3px_0_8px_-2px_rgba(0,0,0,0.12)] dark:shadow-[3px_0_8px_-2px_rgba(0,0,0,0.35)]">Staff</th>
                                 <th class="py-3 px-2 text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-center whitespace-nowrap">Periode</th>
                                 <th class="py-3 px-2 text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-center whitespace-nowrap">Tiket Selesai</th>
                                 <th class="py-3 px-2 text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-center whitespace-nowrap">Tiket Di-Advice</th>
@@ -666,7 +666,7 @@
                             @endphp
                             <tr class="group hover:bg-blue-50/40 dark:hover:bg-slate-700/30 transition-colors">
                                 <td class="py-3 px-2 text-xs sm:text-sm font-semibold text-slate-400 dark:text-slate-400 text-center whitespace-nowrap sticky left-0 z-20 w-11 min-w-[44px] max-w-[44px] laporan-sticky-td-no transition-colors">{{ $index + 1 }}</td>
-                                <td class="py-3 px-3.5 sm:px-4 whitespace-nowrap sticky left-[44px] z-20 laporan-sticky-td-staff transition-colors border-r border-slate-200/80 dark:border-slate-700 shadow-[3px_0_6px_-2px_rgba(0,0,0,0.06)] dark:shadow-[3px_0_6px_-2px_rgba(0,0,0,0.25)]">
+                                <td class="py-3 px-3.5 sm:px-4 whitespace-nowrap sticky left-[44px] z-20 laporan-sticky-td-staff min-w-[170px] sm:min-w-[220px] transition-colors border-r border-slate-200/80 dark:border-slate-700/60 shadow-[3px_0_8px_-2px_rgba(0,0,0,0.06)] dark:shadow-[3px_0_8px_-2px_rgba(0,0,0,0.3)]">
                                     <div class="flex items-center gap-2.5 sm:gap-3">
                                         @if($u->profile_image)
                                              <img src="{{ asset('storage/' . $u->profile_image) }}" alt="Avatar" class="w-8 h-8 sm:w-9 sm:h-9 rounded-full object-cover shrink-0 shadow-sm border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800">
@@ -674,8 +674,8 @@
                                              <img src="{{ asset($isFemale ? 'img/avatar-female.png' : 'img/avatar-default.png') }}" alt="Avatar" class="w-8 h-8 sm:w-9 sm:h-9 rounded-full object-cover shrink-0 shadow-sm border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800" style="{{ $isFemale ? 'object-position: top;' : '' }}">
                                         @endif
                                         <div class="min-w-0">
-                                            <span class="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-100 block truncate max-w-[140px] sm:max-w-[180px] xl:max-w-none" title="{{ $u->name }}">{{ $u->name }}</span>
-                                            <span class="text-[10px] text-slate-400 dark:text-slate-400 font-medium block truncate max-w-[140px] sm:max-w-[180px] xl:max-w-none" title="{{ $u->email }}">{{ $u->email }}</span>
+                                            <span class="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-100 block whitespace-normal break-words leading-tight" title="{{ $u->name }}">{{ $u->name }}</span>
+                                            <span class="text-[10px] text-slate-400 dark:text-slate-400 font-medium block truncate max-w-[150px] sm:max-w-[200px]" title="{{ $u->email }}">{{ $u->email }}</span>
                                         </div>
                                     </div>
                                 </td>
