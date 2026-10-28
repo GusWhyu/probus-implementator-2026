@@ -17,18 +17,117 @@
 
 <div class="space-y-6">
 
-    <!-- Top Breadcrumb Header Card -->
-    <div class="bg-white dark:bg-[#151f38] rounded-3xl p-5 sm:p-6 border border-slate-200/80 dark:border-slate-800 shadow-sm">
-        <div class="flex items-center gap-2 flex-wrap mb-1.5">
-            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
-                <i class="fa-solid fa-hotel text-slate-400"></i> {{ $clientName }}
+    <!-- Top Breadcrumb & Handler Header Card -->
+    <div class="bg-white dark:bg-[#151f38] rounded-3xl p-5 sm:p-6 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-4 sm:space-y-5">
+        
+        <!-- Outlet & Ticket Number Breadcrumb / Badges -->
+        <div class="flex items-center justify-between gap-3 flex-wrap">
+            <div class="flex items-center gap-2 flex-wrap">
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+                    <i class="fa-solid fa-hotel text-slate-400"></i> {{ $clientName }}
+                </span>
+                <span class="text-xs text-slate-400">&bull;</span>
+                <span class="font-mono text-xs font-extrabold text-blue-600 dark:text-blue-400 tracking-tight">#{{ $ticket->ticket_number }}</span>
+            </div>
+
+            @if ($ticket->tipe_penanganan)
+            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-slate-100/90 dark:bg-slate-800/90 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+                <i class="fa-solid fa-location-dot text-amber-500 text-[10px]"></i> {{ $ticket->tipe_penanganan }}
             </span>
-            <span class="text-xs text-slate-400">&bull;</span>
-            <span class="font-mono text-xs font-extrabold text-blue-600 dark:text-blue-400 tracking-tight">#{{ $ticket->ticket_number }}</span>
+            @endif
         </div>
-        <h1 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
-            {{ $ticket->title }}
-        </h1>
+
+        <!-- Handler / Orang yang Mengerjakan Tiket (Lengkap dengan Foto & Info) -->
+        <div class="bg-slate-50/90 dark:bg-slate-900/60 rounded-2xl p-4 sm:p-4.5 border border-slate-200/80 dark:border-slate-800/80 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all">
+            <div class="flex items-center gap-3.5 sm:gap-4 min-w-0">
+                <!-- Foto Profil / Avatar Petugas -->
+                <div class="relative shrink-0">
+                    <div class="w-13 h-13 sm:w-15 sm:h-15 rounded-2xl overflow-hidden ring-2 ring-blue-500/20 dark:ring-blue-500/40 shadow-sm bg-slate-200 dark:bg-slate-800 flex items-center justify-center">
+                        @if ($ticket->user)
+                            <img src="{{ $ticket->user->avatar_url }}" alt="{{ $ticket->user->name }}" class="w-full h-full object-cover">
+                        @else
+                            <div class="w-full h-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400">
+                                <i class="fa-solid fa-user-clock text-2xl"></i>
+                            </div>
+                        @endif
+                    </div>
+                    @if ($ticket->user)
+                    <span class="absolute -bottom-1 -right-1 w-4.5 h-4.5 rounded-full {{ $isClosed ? 'bg-emerald-500' : ($statusUpper === 'PROGRESS' ? 'bg-amber-500' : 'bg-blue-500') }} border-2 border-white dark:border-[#151f38] flex items-center justify-center text-[9px] text-white shadow-xs" title="{{ $isClosed ? 'Tiket Telah Selesai' : ($statusUpper === 'PROGRESS' ? 'Sedang Dikerjakan' : 'Tiket Diterima') }}">
+                        @if ($isClosed)
+                            <i class="fa-solid fa-check"></i>
+                        @elseif ($statusUpper === 'PROGRESS')
+                            <i class="fa-solid fa-bolt"></i>
+                        @else
+                            <i class="fa-solid fa-user"></i>
+                        @endif
+                    </span>
+                    @endif
+                </div>
+
+                <!-- Informasi Petugas Penanganan -->
+                <div class="min-w-0 flex-1">
+                    <div class="flex items-center gap-2 flex-wrap mb-1">
+                        <span class="inline-flex items-center gap-1 text-[10px] font-extrabold uppercase tracking-wider text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/70 px-2 py-0.5 rounded-md border border-blue-200/80 dark:border-blue-800/80">
+                            <i class="fa-solid fa-user-gear text-[9px]"></i> Petugas Penanganan
+                        </span>
+                        @if ($isClosed)
+                            <span class="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-600 dark:text-emerald-400">
+                                <i class="fa-solid fa-circle-check text-[9px]"></i> Selesai
+                            </span>
+                        @elseif ($statusUpper === 'PROGRESS')
+                            <span class="inline-flex items-center gap-1 text-[10px] font-bold text-amber-600 dark:text-amber-400">
+                                <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-ping"></span> Sedang Dikerjakan
+                            </span>
+                        @else
+                            <span class="inline-flex items-center gap-1 text-[10px] font-bold text-blue-600 dark:text-blue-400">
+                                <i class="fa-regular fa-clock text-[9px]"></i> Tiket Diterima
+                            </span>
+                        @endif
+                    </div>
+
+                    <h2 class="text-base sm:text-lg font-black text-slate-900 dark:text-white truncate" title="{{ $ticket->user->name ?? 'Belum Ditugaskan' }}">
+                        {{ $ticket->user->name ?? 'Belum Ditugaskan' }}
+                    </h2>
+
+                    <div class="flex items-center gap-2 sm:gap-3 flex-wrap mt-0.5 text-xs text-slate-500 dark:text-slate-400">
+                        <span class="inline-flex items-center gap-1.5 font-medium">
+                            <i class="fa-solid fa-briefcase text-slate-400 text-[11px]"></i>
+                            {{ $ticket->user->departemen->name ?? 'Tim Support Probus' }}
+                        </span>
+
+                        @if ($ticket->advisor)
+                        <span class="text-slate-300 dark:text-slate-700 hidden sm:inline">&bull;</span>
+                        <span class="inline-flex items-center gap-1.5 font-medium">
+                            <i class="fa-solid fa-user-tie text-indigo-400 text-[11px]"></i>
+                            Advisor: <strong class="text-slate-700 dark:text-slate-300 font-semibold">{{ $ticket->advisor->name }}</strong>
+                        </span>
+                        @endif
+                    </div>
+                </div>
+            </div>
+
+            <!-- Kartu Advisor Tambahan (Desktop) -->
+            @if ($ticket->advisor && $ticket->advisor->id !== ($ticket->user->id ?? null))
+            <div class="sm:border-l sm:border-slate-200 dark:sm:border-slate-800 sm:pl-4 flex sm:flex-col justify-between sm:justify-center items-start shrink-0 pt-2 sm:pt-0 border-t border-slate-200/50 dark:border-slate-800/50 sm:border-t-0">
+                <span class="text-[10px] uppercase font-bold tracking-wider text-slate-400">Pendamping / Advisor</span>
+                <span class="text-xs font-bold text-slate-700 dark:text-slate-200 flex items-center gap-1.5 mt-0.5">
+                    <img src="{{ $ticket->advisor->avatar_url }}" alt="{{ $ticket->advisor->name }}" class="w-4.5 h-4.5 rounded-full object-cover">
+                    <span class="truncate max-w-[150px]">{{ $ticket->advisor->name }}</span>
+                </span>
+            </div>
+            @endif
+        </div>
+
+        <!-- Judul Tiket / Kendala (Di bawah informasi orang yg mengerjakan) -->
+        <div class="pt-2 sm:pt-2.5 border-t border-slate-100 dark:border-slate-800/70">
+            <span class="text-[10px] sm:text-[11px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-slate-500 block mb-1">
+                Judul Kendala / Tiket:
+            </span>
+            <h1 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight leading-snug">
+                {{ $ticket->title }}
+            </h1>
+        </div>
+
     </div>
 
     <!-- Stepper / Progress Journey Card -->

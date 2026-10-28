@@ -21,9 +21,9 @@ class PublicTrackingController extends Controller
         $ticket = Ticket::where('ticket_number', $identifier)
             ->orWhere('id', $identifier)
             ->with([
-                'user',
+                'user.departemen',
                 'client',
-                'advisor',
+                'advisor.departemen',
                 'pendingAdvisor',
                 'kategoriSystem',
                 'moduleSystem',
@@ -64,8 +64,8 @@ class PublicTrackingController extends Controller
 
         $requestData = RequestModel::where('id', $cleanId ?: $identifier)
             ->with([
-                'user',
-                'approver',
+                'user.departemen',
+                'approver.departemen',
                 'tag',
                 'status',
                 'outlet',
