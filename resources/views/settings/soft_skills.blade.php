@@ -1,20 +1,30 @@
 <x-app-layout>
     <div class="w-full pb-8">
             
-            <!-- Header section -->
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
-                <div>
-                    <div class="flex items-center gap-1.5 text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">
-                        <span class="text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors cursor-pointer">Advanced Settings</span>
-                        <i class="fa-solid fa-chevron-right text-[8px] text-slate-400 dark:text-slate-500"></i>
-                        <span class="text-blue-600 dark:text-blue-400">Penilaian Soft Skill</span>
+            <!-- Header Section -->
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+                <div class="flex items-center gap-4">
+                    <a href="{{ url()->previous() }}" class="w-10 h-10 bg-white border border-slate-200 hover:bg-slate-50 flex items-center justify-center rounded-xl text-slate-600 transition-colors shadow-sm">
+                        <i class="fa-solid fa-arrow-left"></i>
+                    </a>
+                    <div>
+                        <div class="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider mb-1 flex items-center gap-1.5">
+                            <span>Advanced Settings</span>
+                            <i class="fa-solid fa-chevron-right text-[8px] text-slate-300"></i>
+                            <span class="text-blue-600">Penilaian Soft Skill</span>
+                        </div>
+                        <h2 class="text-2xl font-bold text-slate-800 flex items-center gap-2.5">
+                            <i class="fa-solid fa-sliders text-blue-600"></i>
+                            Master Data: Penilaian Soft Skill
+                        </h2>
+                        <p class="text-slate-500 text-sm mt-1">Kelola nama kriteria dan bobot untuk penilaian soft skill CS.</p>
                     </div>
-                    <h1 class="text-2xl font-extrabold text-slate-800 dark:text-slate-100 tracking-tight">List Penilaian Soft Skill</h1>
-                    <p class="text-sm text-slate-500 dark:text-slate-400 font-medium mt-0.5">Kelola nama kriteria dan bobot untuk penilaian soft skill CS.</p>
                 </div>
-                <a href="{{ route('soft-skill.create') }}" class="w-full sm:w-auto px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-bold shadow-sm shadow-blue-500/20 transition-all active:scale-95 flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-plus"></i> Tambah Penilaian
-                </a>
+                <div>
+                    <a href="{{ route('soft-skill.create') }}" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl text-sm font-bold flex items-center justify-center gap-2 shadow-md shadow-blue-500/20 active:scale-95 transition-all">
+                        <i class="fa-solid fa-plus text-xs"></i> Tambah Penilaian
+                    </a>
+                </div>
             </div>
 
             <x-auth-validation-errors class="mb-6" :errors="$errors" />

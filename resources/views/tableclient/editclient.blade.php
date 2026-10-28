@@ -1,39 +1,62 @@
 <x-app-layout>
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="p-6 bg-white border-b border-gray-200">
-                    <div class="my-5">
-                        <a href="{{ url()->previous() }}" class="bg-white font-bold text-black px-2 py-2 rounded-md border-black border-solid border-2 hover:bg-black hover:text-white transition delay-50 duration-300">« Back</a>
+    <div class="py-8 px-6 md:px-10">
+        {{-- Header Section --}}
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+            <div class="flex items-center gap-4">
+                <a href="{{ route('client') }}" class="w-10 h-10 bg-white border border-slate-200 hover:bg-slate-50 flex items-center justify-center rounded-xl text-slate-600 transition-colors shadow-sm">
+                    <i class="fa-solid fa-arrow-left"></i>
+                </a>
+                <div>
+                    <div class="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider mb-1 flex items-center gap-1.5">
+                        <a href="{{ route('client') }}" class="hover:text-blue-600 transition-colors">Outlet List</a>
+                        <i class="fa-solid fa-chevron-right text-[8px] text-slate-300"></i>
+                        <span class="text-blue-600">Edit Outlet</span>
                     </div>
-                    <x-auth-validation-errors class="mb-4" :errors="$errors" />
-                    <div class="flex-col">
-                        <div>
-                            <p class="text-center text-xl font-bold">Edit outlet</p>
-                        </div>
-                        <form method="POST" action="/editclient/{{ $client->id }}">
-                            @csrf
-                
-                            <!-- Name -->
-                            <div class="mt-5">
-                                <x-label for="name" :value="__('Name')" />
-                
-                                <x-input id="name" class="block mt-1 w-full" type="text" name="name" value="{{ $client->nm_out }}" required autofocus />
-                            </div>
-                            <div class="mt-5">
-                                <x-label for="name" :value="__('Location')" />
-                
-                                <x-input id="lokasi" class="block mt-1 w-full" type="text" name="lokasi" value="{{ $client->lokasi }}" required autofocus />
-                            </div>
-                
-                            <div class="flex items-center justify-end mt-4">
-                                <x-button class="ml-4">
-                                    {{ __('Edit') }}
-                                </x-button>
-                            </div>
-                        </form>
-                    </div>
+                    <h2 class="text-2xl font-bold text-slate-800">Edit Data Outlet</h2>
+                    <p class="text-slate-500 text-sm mt-1">Perbarui data outlet #{{ $client->id }}.</p>
                 </div>
+            </div>
+        </div>
+
+        {{-- Content Section --}}
+        <div class="max-w-3xl">
+            <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-8">
+                <x-auth-validation-errors class="mb-6" :errors="$errors" />
+                
+                <form method="POST" action="/editclient/{{ $client->id }}">
+                    @csrf
+        
+                    <!-- Name -->
+                    <div class="mb-6">
+                        <label for="name" class="block text-sm font-semibold text-slate-700 mb-2">
+                            Nama Outlet <span class="text-red-500">*</span>
+                        </label>
+                        <div class="relative">
+                            <i class="fa-solid fa-store absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+                            <input id="name" class="block w-full rounded-xl border-slate-200 focus:border-blue-500 focus:ring focus:ring-blue-500/20 shadow-sm text-sm py-2.5 pl-11 pr-4 transition-colors" type="text" name="name" value="{{ old('name', $client->nm_out) }}" required autofocus placeholder="Nama Outlet..." />
+                        </div>
+                    </div>
+
+                    <!-- Lokasi -->
+                    <div class="mb-6">
+                        <label for="lokasi" class="block text-sm font-semibold text-slate-700 mb-2">
+                            Lokasi <span class="text-red-500">*</span>
+                        </label>
+                        <div class="relative">
+                            <i class="fa-solid fa-location-dot absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+                            <input id="lokasi" class="block w-full rounded-xl border-slate-200 focus:border-blue-500 focus:ring focus:ring-blue-500/20 shadow-sm text-sm py-2.5 pl-11 pr-4 transition-colors" type="text" name="lokasi" value="{{ old('lokasi', $client->lokasi) }}" required placeholder="Lokasi Outlet..." />
+                        </div>
+                    </div>
+        
+                    <div class="flex items-center justify-end mt-8 pt-6 border-t border-slate-100">
+                        <a href="{{ route('client') }}" class="px-5 py-2.5 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-50 border border-transparent hover:border-slate-200 transition-all mr-3">
+                            Batal
+                        </a>
+                        <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-xl text-sm font-bold flex items-center justify-center gap-2 shadow-md shadow-blue-500/20 active:scale-95 transition-all">
+                            <i class="fa-solid fa-save text-xs"></i> Simpan Perubahan
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>

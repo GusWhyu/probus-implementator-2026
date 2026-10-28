@@ -852,7 +852,9 @@ class HomeController extends Controller
         $periodeEnd = $periodInfo['periode_end'];
         $periodType = $periodInfo['period_type'];
 
-        // Pastikan hanya bisa diproses 1 kali per periode
+        $forceSync = (bool)$request->input('force_sync', false);
+
+        // Pastikan hanya bisa diproses 1 kali per periode (kecuali jika force_sync)
         $existing = PerformanceReview::where('user_id', $id)
             ->where(function($q) use ($periodInfo) {
                 $q->where('period_key', $periodInfo['period_key']);
@@ -868,7 +870,16 @@ class HomeController extends Controller
             })
             ->first();
 
-        if ($existing) {
+        // JIKA SUDAH FINAL (TERKUNCI): Jangan izinkan sinkronisasi
+        if ($existing && $existing->status === 'FINAL') {
+            return redirect()->route('laporan', [
+                'period' => $periodKey,
+                'period_type' => $periodType,
+                'department_id' => $user->departemen_id
+            ])->with('warning', "Penilaian staf {$user->name} pada periode {$periodInfo['label']} sudah berstatus FINAL (TERKUNCI) dan nilainya telah dibekukan. Silakan klik tombol 'Buka Kunci' jika ingin memperbarui nilai.");
+        }
+
+        if ($existing && !$forceSync) {
             return redirect()->route('laporan', [
                 'period' => $periodKey,
                 'period_type' => $periodType,
@@ -1071,7 +1082,7 @@ class HomeController extends Controller
         $periodType = $periodInfo['period_type'];
 
         $currentUser = auth()->user();
-        $selectedDeptId = (int)($currentUser ? ($currentUser->departemen_id ?: 1) : 1);
+        $selectedDeptId = (int)($request->input('department_id') ?: ($currentUser ? ($currentUser->departemen_id ?: 1) : 1));
 
         $csUsers = User::where('usertype', 'user')
             ->where('departemen_id', $selectedDeptId)
@@ -1086,10 +1097,11 @@ class HomeController extends Controller
         }
 
         $forceSync = (bool)$request->input('force_sync', false);
+        $processedCount = 0;
+        $skippedFinalCount = 0;
 
-        // Cari staff yang belum diproses untuk periode ini
-        $unprocessedCs = $csUsers->filter(function($u) use ($periodInfo) {
-            return !PerformanceReview::where('user_id', $u->id)
+        foreach ($csUsers as $u) {
+            $existing = PerformanceReview::where('user_id', $u->id)
                 ->where(function($q) use ($periodInfo) {
                     $q->where('period_key', $periodInfo['period_key']);
                     if ($periodInfo['period_type'] === '1m') {
@@ -1102,32 +1114,49 @@ class HomeController extends Controller
                         });
                     }
                 })
-                ->exists();
-        });
+                ->first();
 
-        if (!$forceSync && $unprocessedCs->isEmpty()) {
-            return redirect()->route('laporan', [
-                'period' => $periodKey,
-                'period_type' => $periodType,
-            ])->with('info', "Seluruh staff di departemen ini sudah selesai diproses sebelumnya untuk periode {$periodInfo['label']}. Jika ingin menyinkronkan data tiket terbaru, gunakan tombol 'Sinkronkan Tiket'.");
-        }
+            // Jika force sync, lewati staf yang sudah berstatus FINAL (Terkunci)
+            if ($existing && $existing->status === 'FINAL') {
+                $skippedFinalCount++;
+                continue;
+            }
 
-        $targets = $forceSync ? $csUsers : $unprocessedCs;
-        $processedCount = 0;
-        foreach ($targets as $u) {
+            // Jika bukan force sync dan sudah pernah diproses, lewati
+            if (!$forceSync && $existing) {
+                continue;
+            }
+
             $subReq = new Request([
                 'period' => $periodKey,
                 'period_type' => $periodType,
                 'month' => $periodInfo['month'],
                 'year' => $periodInfo['year'],
                 'department_id' => $selectedDeptId,
+                'force_sync' => $forceSync ? 1 : 0,
             ]);
             $this->prosesNilai($subReq, $u->id);
             $processedCount++;
         }
 
+        if ($processedCount === 0 && $skippedFinalCount > 0) {
+            return redirect()->route('laporan', [
+                'period' => $periodKey,
+                'period_type' => $periodType,
+                'department_id' => $selectedDeptId,
+            ])->with('info', "Seluruh {$skippedFinalCount} staf pada periode {$periodInfo['label']} telah berstatus FINAL (TERKUNCI) sehingga data tidak diubah. Buka kunci staf terlebih dahulu jika perlu memperbarui data.");
+        }
+
+        if (!$forceSync && $processedCount === 0) {
+            return redirect()->route('laporan', [
+                'period' => $periodKey,
+                'period_type' => $periodType,
+                'department_id' => $selectedDeptId,
+            ])->with('info', "Seluruh staff di departemen ini sudah selesai diproses sebelumnya untuk periode {$periodInfo['label']}. Jika ingin menyinkronkan data tiket terbaru, gunakan tombol 'Sinkronkan Tiket'.");
+        }
+
         $successMsg = $forceSync
-            ? "Berhasil menyinkronkan data tiket terbaru untuk {$processedCount} staff pada periode {$periodInfo['label']}! Nilai soft skill staf yang telah diinput tetap aman dan tersimpan."
+            ? "Berhasil menyinkronkan data tiket terbaru untuk {$processedCount} staff pada periode {$periodInfo['label']}!" . ($skippedFinalCount > 0 ? " ({$skippedFinalCount} staf berstatus FINAL/Terkunci tetap aman dan tidak diubah)." : '')
             : "Berhasil memproses (sum) data tiket untuk {$processedCount} staff pada periode {$periodInfo['label']}! Sekarang Anda dapat mengisi nilai soft skill per masing-masing staff.";
 
         return redirect()->route('laporan', [
@@ -1135,6 +1164,44 @@ class HomeController extends Controller
             'period_type' => $periodType,
             'department_id' => $selectedDeptId,
         ])->with('success', $successMsg);
+    }
+
+    public function unlockPenilaian(Request $request, $id)
+    {
+        $user = User::findOrFail($id);
+        $currentUser = auth()->user();
+        if ($currentUser && !in_array($currentUser->usertype, ['admin', 'supervisor'])) {
+            return redirect()->back()->with('error', 'Akses ditolak. Hanya Supervisor atau Admin yang berhak membuka kunci penilaian.');
+        }
+
+        $periodInfo = PeriodService::parse($request->input('period'), $request->input('month'), $request->input('year'), $request->input('period_type'));
+
+        $review = PerformanceReview::where('user_id', $id)
+            ->where(function($q) use ($periodInfo) {
+                $q->where('period_key', $periodInfo['period_key']);
+                if ($periodInfo['period_type'] === '1m') {
+                    $q->orWhere(function($sub) use ($periodInfo) {
+                        $sub->whereMonth('periode', $periodInfo['month'])
+                             ->whereYear('periode', $periodInfo['year'])
+                             ->where(function($sub3) {
+                                 $sub3->where('period_type', '1m')->orWhereNull('period_type');
+                             });
+                    });
+                }
+            })
+            ->first();
+
+        if (!$review) {
+            return redirect()->back()->with('error', 'Data penilaian tidak ditemukan.');
+        }
+
+        $review->update(['status' => 'DRAFT']);
+
+        return redirect()->route('laporan', [
+            'period' => $periodInfo['period_key'],
+            'period_type' => $periodInfo['period_type'],
+            'department_id' => $user->departemen_id
+        ])->with('success', "Kunci penilaian untuk staf {$user->name} periode {$periodInfo['label']} berhasil dibuka. Status kembali menjadi DRAFT dan kini dapat disinkronkan atau diedit kembali.");
     }
 
     public function penilaian($id){
@@ -1463,7 +1530,7 @@ class HomeController extends Controller
         $tiketQuery = Ticket::where('user_id', $id)->whereBetween('created_at', [$startDate, $endDate]);
 
         $total_ticket = (clone $tiketQuery)->count();
-        $tiket_di_advice = 0;
+        $tiket_di_advice = Ticket::where('advisor_id', $id)->whereBetween('created_at', [$startDate, $endDate])->count();
 
         $closedTickets = (clone $tiketQuery)->whereRaw('UPPER(status) = ?', ['CLOSED'])
             ->whereNotNull('closed_at')
@@ -1583,7 +1650,7 @@ class HomeController extends Controller
             ])->with('success', 'Draft penilaian CS berhasil disimpan!');
         }
 
-        return redirect()->route('rapor', ['id' => $id, 'period' => $periodKey, 'period_type' => $periodType])->with('success', 'Penilaian final berhasil disimpan lengkap dengan evaluasi soft skill!');
+        return redirect()->route('rapor', ['id' => $id, 'period' => $periodKey, 'period_type' => $periodType])->with('success', 'Penilaian final berhasil disimpan dan TERKUNCI (LOCKED) lengkap dengan evaluasi soft skill!');
     }
 
     public function rapor($id){
@@ -1642,7 +1709,7 @@ class HomeController extends Controller
 
         $tiket_ditangani = (clone $tiketQuery)->count();
         $tiket_selesai = (clone $tiketQuery)->whereRaw('UPPER(status) = ?', ['CLOSED'])->count();
-        $tiket_di_advice = 0;
+        $tiket_di_advice = $rapor ? (int)$rapor->total_ticket_yang_di_advice : Ticket::where('advisor_id', $id)->whereBetween('created_at', [$startDate, $endDate])->count();
         $tiket_progress = (clone $tiketQuery)->whereRaw('UPPER(status) = ?', ['PROGRESS'])->count();
         $completion_rate = $tiket_ditangani > 0 ? round(($tiket_selesai / $tiket_ditangani) * 100, 1) : 0;
 

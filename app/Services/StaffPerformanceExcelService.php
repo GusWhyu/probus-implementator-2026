@@ -475,8 +475,8 @@ class StaffPerformanceExcelService
             $isFinal = $penilaian && strtoupper($penilaian->status) === 'FINAL';
             $isDraft = $penilaian && strtoupper($penilaian->status) === 'DRAFT';
 
-            $ticketClosedCount = $penilaian ? (int)$penilaian->total_ticket : (int)($monthClosedTickets[$u->id] ?? 0);
-            $ticketAdviceCount = (int)($monthAdvisedTickets[$u->id] ?? ($penilaian->total_ticket_yang_di_advice ?? 0));
+            $ticketClosedCount = (int)($monthClosedTickets[$u->id] ?? ($penilaian ? $penilaian->total_ticket : 0));
+            $ticketAdviceCount = (int)($monthAdvisedTickets[$u->id] ?? ($penilaian ? $penilaian->total_ticket_yang_di_advice : 0));
 
             // CSAT
             $csatRating = 0;
