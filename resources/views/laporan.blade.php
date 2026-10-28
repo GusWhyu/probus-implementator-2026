@@ -570,13 +570,65 @@
             </div>
 
             <!-- Main Table Card -->
+            <style>
+                .laporan-sticky-th-no {
+                    position: sticky !important;
+                    left: 0 !important;
+                    z-index: 30 !important;
+                    background-color: #2563eb !important;
+                }
+                html.dark .laporan-sticky-th-no,
+                html[data-theme="dark"] .laporan-sticky-th-no {
+                    background-color: #0f172a !important;
+                }
+                .laporan-sticky-th-staff {
+                    position: sticky !important;
+                    left: 44px !important;
+                    z-index: 30 !important;
+                    background-color: #2563eb !important;
+                }
+                html.dark .laporan-sticky-th-staff,
+                html[data-theme="dark"] .laporan-sticky-th-staff {
+                    background-color: #0f172a !important;
+                }
+                .laporan-sticky-td-no {
+                    position: sticky !important;
+                    left: 0 !important;
+                    z-index: 20 !important;
+                    background-color: #ffffff !important;
+                }
+                html.dark .laporan-sticky-td-no,
+                html[data-theme="dark"] .laporan-sticky-td-no {
+                    background-color: #1e293b !important;
+                }
+                .laporan-sticky-td-staff {
+                    position: sticky !important;
+                    left: 44px !important;
+                    z-index: 20 !important;
+                    background-color: #ffffff !important;
+                }
+                html.dark .laporan-sticky-td-staff,
+                html[data-theme="dark"] .laporan-sticky-td-staff {
+                    background-color: #1e293b !important;
+                }
+                tr.group:hover .laporan-sticky-td-no,
+                tr.group:hover .laporan-sticky-td-staff {
+                    background-color: #eff6ff !important;
+                }
+                html.dark tr.group:hover .laporan-sticky-td-no,
+                html.dark tr.group:hover .laporan-sticky-td-staff,
+                html[data-theme="dark"] tr.group:hover .laporan-sticky-td-no,
+                html[data-theme="dark"] tr.group:hover .laporan-sticky-td-staff {
+                    background-color: #334155 !important;
+                }
+            </style>
             <div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-sm overflow-hidden mb-6">
                 <div class="overflow-x-auto custom-scrollbar">
                     <table class="w-full text-left border-collapse min-w-[940px] xl:min-w-full">
                         <thead class="thead-themed bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-600 dark:from-slate-900 dark:via-blue-950 dark:to-indigo-950/90 border-b border-blue-700 dark:border-blue-800/80">
                             <tr class="text-white dark:text-blue-100">
-                                <th class="py-3 px-2 text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-center w-11 min-w-[44px] max-w-[44px] whitespace-nowrap sticky left-0 z-20 bg-blue-600 dark:bg-slate-900">No</th>
-                                <th class="py-3 px-3.5 sm:px-4 text-[10px] sm:text-[11px] font-black uppercase tracking-wider whitespace-nowrap sticky left-[44px] z-20 bg-blue-600 dark:bg-slate-900 border-r border-blue-700/80 dark:border-slate-700 shadow-[3px_0_6px_-2px_rgba(0,0,0,0.15)]">Staff</th>
+                                <th class="py-3 px-2 text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-center w-11 min-w-[44px] max-w-[44px] whitespace-nowrap sticky left-0 z-30 laporan-sticky-th-no">No</th>
+                                <th class="py-3 px-3.5 sm:px-4 text-[10px] sm:text-[11px] font-black uppercase tracking-wider whitespace-nowrap sticky left-[44px] z-30 laporan-sticky-th-staff border-r border-blue-700/80 dark:border-slate-700 shadow-[3px_0_6px_-2px_rgba(0,0,0,0.15)]">Staff</th>
                                 <th class="py-3 px-2 text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-center whitespace-nowrap">Periode</th>
                                 <th class="py-3 px-2 text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-center whitespace-nowrap">Tiket Selesai</th>
                                 <th class="py-3 px-2 text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-center whitespace-nowrap">Tiket Di-Advice</th>
@@ -613,8 +665,8 @@
                                 }
                             @endphp
                             <tr class="group hover:bg-blue-50/40 dark:hover:bg-slate-700/30 transition-colors">
-                                <td class="py-3 px-2 text-xs sm:text-sm font-semibold text-slate-400 dark:text-slate-400 text-center whitespace-nowrap sticky left-0 z-10 w-11 min-w-[44px] max-w-[44px] bg-white dark:bg-slate-800 group-hover:bg-blue-50/60 dark:group-hover:bg-slate-700/60 transition-colors">{{ $index + 1 }}</td>
-                                <td class="py-3 px-3.5 sm:px-4 whitespace-nowrap sticky left-[44px] z-10 bg-white dark:bg-slate-800 group-hover:bg-blue-50/60 dark:group-hover:bg-slate-700/60 transition-colors border-r border-slate-200/80 dark:border-slate-700 shadow-[3px_0_6px_-2px_rgba(0,0,0,0.06)] dark:shadow-[3px_0_6px_-2px_rgba(0,0,0,0.25)]">
+                                <td class="py-3 px-2 text-xs sm:text-sm font-semibold text-slate-400 dark:text-slate-400 text-center whitespace-nowrap sticky left-0 z-20 w-11 min-w-[44px] max-w-[44px] laporan-sticky-td-no transition-colors">{{ $index + 1 }}</td>
+                                <td class="py-3 px-3.5 sm:px-4 whitespace-nowrap sticky left-[44px] z-20 laporan-sticky-td-staff transition-colors border-r border-slate-200/80 dark:border-slate-700 shadow-[3px_0_6px_-2px_rgba(0,0,0,0.06)] dark:shadow-[3px_0_6px_-2px_rgba(0,0,0,0.25)]">
                                     <div class="flex items-center gap-2.5 sm:gap-3">
                                         @if($u->profile_image)
                                              <img src="{{ asset('storage/' . $u->profile_image) }}" alt="Avatar" class="w-8 h-8 sm:w-9 sm:h-9 rounded-full object-cover shrink-0 shadow-sm border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800">

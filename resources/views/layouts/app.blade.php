@@ -464,14 +464,25 @@
                 background-image: none !important;
                 border-color: rgba(30, 58, 138, 0.6) !important;
             }
-            html.dark table thead th,
-            html.dark table thead th span,
-            html.dark table thead th div,
-            html[data-theme="dark"] table thead th,
-            html[data-theme="dark"] table thead th span,
-            html[data-theme="dark"] table thead th div {
+            html.dark table thead th:not(.sticky):not([class*="sticky"]),
+            html.dark table thead th:not(.sticky):not([class*="sticky"]) span,
+            html.dark table thead th:not(.sticky):not([class*="sticky"]) div,
+            html[data-theme="dark"] table thead th:not(.sticky):not([class*="sticky"]),
+            html[data-theme="dark"] table thead th:not(.sticky):not([class*="sticky"]) span,
+            html[data-theme="dark"] table thead th:not(.sticky):not([class*="sticky"]) div {
                 background: transparent !important;
                 background-color: transparent !important;
+                background-image: none !important;
+                color: #dbeafe !important;
+                border-color: rgba(30, 58, 138, 0.6) !important;
+            }
+
+            /* Sticky table header cells in dark mode must have solid background to prevent scrolling content from showing through */
+            html.dark table thead th.sticky,
+            html.dark table thead th[class*="sticky"],
+            html[data-theme="dark"] table thead th.sticky,
+            html[data-theme="dark"] table thead th[class*="sticky"] {
+                background-color: #0f172a !important;
                 background-image: none !important;
                 color: #dbeafe !important;
                 border-color: rgba(30, 58, 138, 0.6) !important;
