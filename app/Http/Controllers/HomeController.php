@@ -2194,7 +2194,7 @@ class HomeController extends Controller
                 'duration_text' => $t->duration_text ?: '-',
                 'created_at_formatted' => $t->created_at ? \Carbon\Carbon::parse($t->created_at)->format('d/m/Y H:i') : '-',
                 'closed_at_formatted' => ($t->status === 'CLOSED' && $t->closed_at) ? \Carbon\Carbon::parse($t->closed_at)->format('d/m/Y H:i') : null,
-                'detail_url' => route('detailrequest', ['id' => $t->id]),
+                'detail_url' => route('detailticket', ['id' => $t->id]),
             ];
         });
 

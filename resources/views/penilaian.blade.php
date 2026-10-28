@@ -872,10 +872,12 @@
                                                 
                                                 <!-- Tiket & Client -->
                                                 <td class="py-3 px-3">
-                                                    <div class="font-mono font-bold text-slate-800 dark:text-slate-100 text-xs flex items-center gap-1.5">
+                                                    <a :href="t.detail_url" target="_blank"
+                                                       class="font-mono font-bold text-slate-800 dark:text-slate-100 hover:text-blue-600 dark:hover:text-blue-400 text-xs flex items-center gap-1.5 transition-colors cursor-pointer group"
+                                                       title="Buka Detail Tiket">
                                                         <i class="fa-solid fa-ticket text-blue-500 text-[11px]"></i>
-                                                        <span x-text="t.ticket_number"></span>
-                                                    </div>
+                                                        <span class="group-hover:underline" x-text="t.ticket_number"></span>
+                                                    </a>
                                                     <template x-if="t.module_name && t.module_name !== '-'">
                                                         <div class="mt-1">
                                                             <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9.5px] font-bold bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-200/60 dark:border-blue-900/40">
@@ -926,8 +928,13 @@
 
                                                 <!-- Pekerjaan / Solusi -->
                                                 <td class="py-3 px-3">
-                                                    <!-- Judul Tiket -->
-                                                    <div class="font-bold text-slate-800 dark:text-slate-100 text-xs mb-1" x-text="t.title"></div>
+                                                    <!-- Judul Tiket (Bisa diklik mengarah ke detail ticket) -->
+                                                    <a :href="t.detail_url" target="_blank"
+                                                       class="font-bold text-slate-800 dark:text-slate-100 hover:text-blue-600 dark:hover:text-blue-400 text-xs mb-1 inline-flex items-center gap-1.5 transition-colors group cursor-pointer"
+                                                       title="Buka Detail Tiket">
+                                                        <span class="group-hover:underline" x-text="t.title"></span>
+                                                        <i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-slate-400 group-hover:text-blue-500 transition-colors shrink-0"></i>
+                                                    </a>
                                                     
                                                     <!-- Deskripsi jika ada -->
                                                     <template x-if="t.description">
