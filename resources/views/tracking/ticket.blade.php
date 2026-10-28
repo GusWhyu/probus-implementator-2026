@@ -21,21 +21,21 @@
     <div class="bg-white dark:bg-[#151f38] rounded-3xl p-5 sm:p-6 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-4">
         
         <!-- 1. Orang yang Mengerjakan (Paling Atas) -->
-        <div class="bg-slate-50/90 dark:bg-slate-900/60 rounded-2xl p-3.5 sm:p-4 border border-slate-200/80 dark:border-slate-800/80 flex items-center justify-between gap-3">
-            <div class="flex items-center gap-3 sm:gap-3.5 min-w-0">
-                <!-- Foto Profil / Avatar Petugas (Ukuran Pas & Proporsional 48px) -->
-                <div class="relative shrink-0" style="width: 48px; height: 48px; min-width: 48px; min-height: 48px;">
-                    <div class="w-12 h-12 rounded-2xl overflow-hidden ring-2 ring-blue-500/25 dark:ring-blue-500/40 shadow-xs bg-slate-200 dark:bg-slate-800 flex items-center justify-center" style="width: 48px; height: 48px;">
+        <div class="bg-slate-50/90 dark:bg-slate-900/60 rounded-2xl p-4 sm:p-4.5 border border-slate-200/80 dark:border-slate-800/80 flex items-center justify-between gap-3.5">
+            <div class="flex items-center gap-3.5 sm:gap-4 min-w-0">
+                <!-- Foto Profil / Avatar Petugas (Ukuran Lebih Jelas & Proporsional 64px) -->
+                <div class="relative shrink-0" style="width: 64px; height: 64px; min-width: 64px; min-height: 64px;">
+                    <div class="w-16 h-16 rounded-2xl overflow-hidden ring-2 ring-blue-500/25 dark:ring-blue-500/40 shadow-xs bg-slate-200 dark:bg-slate-800 flex items-center justify-center" style="width: 64px; height: 64px;">
                         @if ($ticket->user)
                             <img src="{{ $ticket->user->avatar_url }}" alt="{{ $ticket->user->name }}" class="w-full h-full object-cover">
                         @else
                             <div class="w-full h-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400">
-                                <i class="fa-solid fa-user-clock text-lg"></i>
+                                <i class="fa-solid fa-user-clock text-xl"></i>
                             </div>
                         @endif
                     </div>
                     @if ($ticket->user)
-                    <span class="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full {{ $isClosed ? 'bg-emerald-500' : ($statusUpper === 'PROGRESS' ? 'bg-amber-500' : 'bg-blue-500') }} border-2 border-white dark:border-[#151f38] flex items-center justify-center text-[8px] text-white shadow-xs" title="{{ $isClosed ? 'Tiket Telah Selesai' : ($statusUpper === 'PROGRESS' ? 'Sedang Dikerjakan' : 'Tiket Diterima') }}">
+                    <span class="absolute -bottom-1 -right-1 w-5 h-5 rounded-full {{ $isClosed ? 'bg-emerald-500' : ($statusUpper === 'PROGRESS' ? 'bg-amber-500' : 'bg-blue-500') }} border-2 border-white dark:border-[#151f38] flex items-center justify-center text-[9px] text-white shadow-xs" title="{{ $isClosed ? 'Tiket Telah Selesai' : ($statusUpper === 'PROGRESS' ? 'Sedang Dikerjakan' : 'Tiket Diterima') }}">
                         @if ($isClosed)
                             <i class="fa-solid fa-check"></i>
                         @elseif ($statusUpper === 'PROGRESS')
@@ -49,7 +49,7 @@
 
                 <!-- Informasi Petugas Penanganan -->
                 <div class="min-w-0 flex-1">
-                    <div class="flex items-center gap-1.5 sm:gap-2 flex-wrap mb-0.5">
+                    <div class="flex items-center gap-1.5 sm:gap-2 flex-wrap mb-1">
                         <span class="inline-flex items-center gap-1 text-[10px] font-extrabold uppercase tracking-wider text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/70 px-2 py-0.5 rounded-md border border-blue-200/80 dark:border-blue-800/80">
                             <i class="fa-solid fa-user-gear text-[9px]"></i> Petugas Penanganan
                         </span>
@@ -68,20 +68,20 @@
                         @endif
                     </div>
 
-                    <h2 class="text-sm sm:text-base font-black text-slate-900 dark:text-white truncate" title="{{ $ticket->user->name ?? 'Belum Ditugaskan' }}">
+                    <h2 class="text-base sm:text-lg font-black text-slate-900 dark:text-white truncate" title="{{ $ticket->user->name ?? 'Belum Ditugaskan' }}">
                         {{ $ticket->user->name ?? 'Belum Ditugaskan' }}
                     </h2>
 
-                    <div class="flex items-center gap-2 sm:gap-2.5 flex-wrap text-[11px] sm:text-xs text-slate-500 dark:text-slate-400">
+                    <div class="flex items-center gap-2 sm:gap-3 flex-wrap mt-0.5 text-xs text-slate-500 dark:text-slate-400">
                         <span class="inline-flex items-center gap-1 font-medium">
-                            <i class="fa-solid fa-briefcase text-slate-400 text-[10px]"></i>
+                            <i class="fa-solid fa-briefcase text-slate-400 text-[11px]"></i>
                             {{ $ticket->user->departemen->name ?? 'Tim Support Probus' }}
                         </span>
 
                         @if ($ticket->advisor)
                         <span class="text-slate-300 dark:text-slate-700 hidden sm:inline">&bull;</span>
                         <span class="inline-flex items-center gap-1 font-medium">
-                            <i class="fa-solid fa-user-tie text-indigo-400 text-[10px]"></i>
+                            <i class="fa-solid fa-user-tie text-indigo-400 text-[11px]"></i>
                             Advisor: <strong class="text-slate-700 dark:text-slate-300 font-semibold">{{ $ticket->advisor->name }}</strong>
                         </span>
                         @endif

@@ -138,7 +138,7 @@
                         <!-- Petugas Penanggung Jawab (PIC) Lengkap dengan Foto -->
                         <div class="flex items-center justify-between gap-3 p-3.5 bg-slate-50/90 dark:bg-slate-800/40 rounded-2xl border border-slate-200/80 dark:border-slate-800 mb-5">
                             <div class="flex items-center gap-3 min-w-0">
-                                <div class="w-11 h-11 rounded-xl overflow-hidden ring-2 ring-blue-500/20 shadow-xs shrink-0 bg-slate-200 dark:bg-slate-700 flex items-center justify-center" style="width: 44px; height: 44px; min-width: 44px; min-height: 44px;">
+                                <div class="w-14 h-14 rounded-2xl overflow-hidden ring-2 ring-blue-500/20 shadow-xs shrink-0 bg-slate-200 dark:bg-slate-700 flex items-center justify-center" style="width: 56px; height: 56px; min-width: 56px; min-height: 56px;">
                                     <img src="{{ $datarq->user ? $datarq->user->avatar_url : 'https://ui-avatars.com/api/?name=Staf' }}" alt="{{ $datarq->user->name ?? 'User' }}" class="w-full h-full object-cover">
                                 </div>
                                 <div class="min-w-0">
