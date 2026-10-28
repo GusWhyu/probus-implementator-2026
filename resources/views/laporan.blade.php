@@ -572,18 +572,18 @@
             <!-- Main Table Card -->
             <div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-sm overflow-hidden mb-6">
                 <div class="overflow-x-auto custom-scrollbar">
-                    <table class="w-full text-left border-collapse min-w-[1180px]">
+                    <table class="w-full text-left border-collapse min-w-[940px] xl:min-w-full">
                         <thead class="thead-themed bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-600 dark:from-slate-900 dark:via-blue-950 dark:to-indigo-950/90 border-b border-blue-700 dark:border-blue-800/80">
                             <tr class="text-white dark:text-blue-100">
-                                <th class="py-3.5 px-4 text-[11px] font-black uppercase tracking-wider text-center w-14 whitespace-nowrap">No</th>
-                                <th class="py-3.5 px-6 text-[11px] font-black uppercase tracking-wider whitespace-nowrap">Staff</th>
-                                <th class="py-3.5 px-4 text-[11px] font-black uppercase tracking-wider text-center whitespace-nowrap">Periode</th>
-                                <th class="py-3.5 px-4 text-[11px] font-black uppercase tracking-wider text-center whitespace-nowrap">Tiket Selesai</th>
-                                <th class="py-3.5 px-4 text-[11px] font-black uppercase tracking-wider text-center whitespace-nowrap">Tiket Di-Advice</th>
-                                <th class="py-3.5 px-5 text-[11px] font-black uppercase tracking-wider text-center whitespace-nowrap">Kepuasan Klien</th>
-                                <th class="py-3.5 px-5 text-[11px] font-black uppercase tracking-wider text-center whitespace-nowrap">Nilai Akhir</th>
-                                <th class="py-3.5 px-5 text-[11px] font-black uppercase tracking-wider text-center whitespace-nowrap">Status Penilaian</th>
-                                <th class="py-3.5 px-6 text-[11px] font-black uppercase tracking-wider text-center whitespace-nowrap">Aksi</th>
+                                <th class="py-3 px-2 text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-center w-11 min-w-[44px] max-w-[44px] whitespace-nowrap sticky left-0 z-20 bg-blue-600 dark:bg-slate-900">No</th>
+                                <th class="py-3 px-3.5 sm:px-4 text-[10px] sm:text-[11px] font-black uppercase tracking-wider whitespace-nowrap sticky left-[44px] z-20 bg-blue-600 dark:bg-slate-900 border-r border-blue-700/80 dark:border-slate-700 shadow-[3px_0_6px_-2px_rgba(0,0,0,0.15)]">Staff</th>
+                                <th class="py-3 px-2 text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-center whitespace-nowrap">Periode</th>
+                                <th class="py-3 px-2 text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-center whitespace-nowrap">Tiket Selesai</th>
+                                <th class="py-3 px-2 text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-center whitespace-nowrap">Tiket Di-Advice</th>
+                                <th class="py-3 px-2.5 text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-center whitespace-nowrap">Kepuasan Klien</th>
+                                <th class="py-3 px-2.5 text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-center whitespace-nowrap">Nilai Akhir</th>
+                                <th class="py-3 px-2.5 text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-center whitespace-nowrap">Status Penilaian</th>
+                                <th class="py-3 px-3 text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-center whitespace-nowrap">Aksi</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100 dark:divide-slate-700/60">
@@ -612,66 +612,66 @@
                                     $csatRating = 4.5;
                                 }
                             @endphp
-                            <tr class="hover:bg-blue-50/40 dark:hover:bg-slate-700/30 transition-colors">
-                                <td class="py-3.5 px-4 text-sm font-semibold text-slate-400 dark:text-slate-400 text-center whitespace-nowrap">{{ $index + 1 }}</td>
-                                <td class="py-3.5 px-6 whitespace-nowrap">
-                                    <div class="flex items-center gap-3">
+                            <tr class="group hover:bg-blue-50/40 dark:hover:bg-slate-700/30 transition-colors">
+                                <td class="py-3 px-2 text-xs sm:text-sm font-semibold text-slate-400 dark:text-slate-400 text-center whitespace-nowrap sticky left-0 z-10 w-11 min-w-[44px] max-w-[44px] bg-white dark:bg-slate-800 group-hover:bg-blue-50/60 dark:group-hover:bg-slate-700/60 transition-colors">{{ $index + 1 }}</td>
+                                <td class="py-3 px-3.5 sm:px-4 whitespace-nowrap sticky left-[44px] z-10 bg-white dark:bg-slate-800 group-hover:bg-blue-50/60 dark:group-hover:bg-slate-700/60 transition-colors border-r border-slate-200/80 dark:border-slate-700 shadow-[3px_0_6px_-2px_rgba(0,0,0,0.06)] dark:shadow-[3px_0_6px_-2px_rgba(0,0,0,0.25)]">
+                                    <div class="flex items-center gap-2.5 sm:gap-3">
                                         @if($u->profile_image)
-                                             <img src="{{ asset('storage/' . $u->profile_image) }}" alt="Avatar" class="w-9 h-9 rounded-full object-cover shrink-0 shadow-sm border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800">
+                                             <img src="{{ asset('storage/' . $u->profile_image) }}" alt="Avatar" class="w-8 h-8 sm:w-9 sm:h-9 rounded-full object-cover shrink-0 shadow-sm border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800">
                                         @else
-                                             <img src="{{ asset($isFemale ? 'img/avatar-female.png' : 'img/avatar-default.png') }}" alt="Avatar" class="w-9 h-9 rounded-full object-cover shrink-0 shadow-sm border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800" style="{{ $isFemale ? 'object-position: top;' : '' }}">
+                                             <img src="{{ asset($isFemale ? 'img/avatar-female.png' : 'img/avatar-default.png') }}" alt="Avatar" class="w-8 h-8 sm:w-9 sm:h-9 rounded-full object-cover shrink-0 shadow-sm border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800" style="{{ $isFemale ? 'object-position: top;' : '' }}">
                                         @endif
-                                        <div>
-                                            <span class="text-sm font-semibold text-slate-800 dark:text-slate-100 block">{{ $u->name }}</span>
-                                            <span class="text-[11px] text-slate-400 dark:text-slate-400 font-medium block">{{ $u->email }}</span>
+                                        <div class="min-w-0">
+                                            <span class="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-100 block truncate max-w-[140px] sm:max-w-[180px] xl:max-w-none" title="{{ $u->name }}">{{ $u->name }}</span>
+                                            <span class="text-[10px] text-slate-400 dark:text-slate-400 font-medium block truncate max-w-[140px] sm:max-w-[180px] xl:max-w-none" title="{{ $u->email }}">{{ $u->email }}</span>
                                         </div>
                                     </div>
                                 </td>
-                                <td class="py-3.5 px-4 text-sm font-semibold text-center whitespace-nowrap {{ $penilaian ? 'text-slate-600 dark:text-slate-300' : 'text-slate-400 dark:text-slate-400' }}">{{ \Carbon\Carbon::createFromDate($year, $month, 1)->translatedFormat('M Y') }}</td>
+                                <td class="py-3 px-2 text-xs font-semibold text-center whitespace-nowrap {{ $penilaian ? 'text-slate-600 dark:text-slate-300' : 'text-slate-400 dark:text-slate-400' }}">{{ \Carbon\Carbon::createFromDate($year, $month, 1)->translatedFormat('M Y') }}</td>
                                 
                                 {{-- Tiket Selesai --}}
-                                <td class="py-3.5 px-4 text-center whitespace-nowrap">
+                                <td class="py-3 px-2 text-center whitespace-nowrap">
                                     @if($ticketClosedCount > 0)
-                                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-black bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-800/60 shadow-2xs whitespace-nowrap">
-                                            <i class="fa-solid fa-circle-check text-emerald-500 text-[11px]"></i>
+                                        <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-xl text-xs font-black bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-800/60 shadow-2xs whitespace-nowrap">
+                                            <i class="fa-solid fa-circle-check text-emerald-500 text-[10px]"></i>
                                             <span>{{ $ticketClosedCount }} Tiket</span>
                                         </span>
                                     @else
-                                        <span class="inline-flex items-center px-3 py-1 rounded-xl text-xs font-bold text-slate-400 dark:text-slate-400 bg-slate-100/80 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 shadow-2xs whitespace-nowrap">
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-xl text-xs font-bold text-slate-400 dark:text-slate-400 bg-slate-100/80 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 shadow-2xs whitespace-nowrap">
                                             0 Tiket
                                         </span>
                                     @endif
                                 </td>
 
                                 {{-- Tiket Di-Advice --}}
-                                <td class="py-3.5 px-4 text-center whitespace-nowrap">
+                                <td class="py-3 px-2 text-center whitespace-nowrap">
                                     @if($ticketAdviceCount > 0)
-                                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-black bg-indigo-50 dark:bg-indigo-950/50 text-indigo-700 dark:text-indigo-300 border border-indigo-200/80 dark:border-indigo-800/60 shadow-2xs whitespace-nowrap" title="Mendampingi {{ $ticketAdviceCount }} tiket rekan">
-                                            <i class="fa-solid fa-handshake-angle text-indigo-500 text-[11px]"></i>
+                                        <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-xl text-xs font-black bg-indigo-50 dark:bg-indigo-950/50 text-indigo-700 dark:text-indigo-300 border border-indigo-200/80 dark:border-indigo-800/60 shadow-2xs whitespace-nowrap" title="Mendampingi {{ $ticketAdviceCount }} tiket rekan">
+                                            <i class="fa-solid fa-handshake-angle text-indigo-500 text-[10px]"></i>
                                             <span>{{ $ticketAdviceCount }} Tiket</span>
                                         </span>
                                     @else
-                                        <span class="inline-flex items-center px-3 py-1 rounded-xl text-xs font-bold text-slate-400 dark:text-slate-400 bg-slate-100/80 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 shadow-2xs whitespace-nowrap">
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-xl text-xs font-bold text-slate-400 dark:text-slate-400 bg-slate-100/80 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 shadow-2xs whitespace-nowrap">
                                             0 Tiket
                                         </span>
                                     @endif
                                 </td>
 
                                 {{-- Kepuasan Klien (CSAT) --}}
-                                <td class="py-3.5 px-5 text-center whitespace-nowrap">
+                                <td class="py-3 px-2.5 text-center whitespace-nowrap">
                                     @if($csatRating > 0)
-                                        <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-black bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-200/80 dark:border-amber-800/60 shadow-2xs whitespace-nowrap" title="Rating: {{ number_format($csatRating, 1) }} / 5.0 (Kepuasan: {{ round($csatScore) }}%)">
-                                            <i class="fa-solid fa-star text-amber-400 text-xs"></i>
+                                        <div class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-xl text-xs font-black bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-200/80 dark:border-amber-800/60 shadow-2xs whitespace-nowrap" title="Rating: {{ number_format($csatRating, 1) }} / 5.0 (Kepuasan: {{ round($csatScore) }}%)">
+                                            <i class="fa-solid fa-star text-amber-400 text-[11px]"></i>
                                             <span class="font-extrabold">{{ number_format($csatRating, 1) }}</span>
                                             <span class="text-[10px] text-amber-600/90 dark:text-amber-300/80 font-medium">({{ round($csatScore) }}%)</span>
                                         </div>
                                     @else
-                                        <span class="inline-flex items-center justify-center px-3 py-1 rounded-xl text-xs font-bold text-slate-400 dark:text-slate-400 bg-slate-100/80 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 shadow-2xs whitespace-nowrap min-w-[52px]" title="Belum ada survey kepuasan">-</span>
+                                        <span class="inline-flex items-center justify-center px-2.5 py-0.5 rounded-xl text-xs font-bold text-slate-400 dark:text-slate-400 bg-slate-100/80 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 shadow-2xs whitespace-nowrap min-w-[44px]" title="Belum ada survey kepuasan">-</span>
                                     @endif
                                 </td>
 
                                 {{-- Nilai Akhir --}}
-                                <td class="py-3.5 px-5 text-center whitespace-nowrap">
+                                <td class="py-3 px-2.5 text-center whitespace-nowrap">
                                     @if($isFinal)
                                         @php
                                              $score = (float)$penilaian->total_score;
@@ -701,58 +701,58 @@
                                                  $scoreLabel = 'Perlu Perhatian Khusus';
                                              }
                                         @endphp
-                                        <div class="flex items-center justify-center gap-2 whitespace-nowrap">
-                                            <div class="flex items-baseline gap-1 font-mono">
-                                                <span class="{{ $scoreColorClass }} font-black text-base">{{ $penilaian->total_score }}</span>
-                                                <span class="text-xs text-slate-400 dark:text-slate-500 font-bold">/100</span>
+                                        <div class="flex items-center justify-center gap-1.5 whitespace-nowrap">
+                                            <div class="flex items-baseline gap-0.5 font-mono">
+                                                <span class="{{ $scoreColorClass }} font-black text-sm sm:text-base">{{ $penilaian->total_score }}</span>
+                                                <span class="text-[10px] text-slate-400 dark:text-slate-500 font-bold">/100</span>
                                             </div>
-                                            <span class="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border shadow-2xs whitespace-nowrap {{ $badgeClass }}">
+                                            <span class="text-[10px] font-extrabold px-2 py-0.5 rounded-full border shadow-2xs whitespace-nowrap {{ $badgeClass }}">
                                                 {{ $scoreLabel }}
                                             </span>
                                         </div>
                                     @elseif($isDraft)
-                                        <div class="flex items-center justify-center gap-2 text-xs font-semibold whitespace-nowrap">
-                                            <span class="inline-flex items-center gap-1 font-mono font-bold text-indigo-600 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-950/60 px-2.5 py-1 rounded-xl border border-indigo-200/80 dark:border-indigo-800/80 shadow-2xs whitespace-nowrap">
-                                                <i class="fa-solid fa-ticket text-[10px] text-indigo-500 dark:text-indigo-400"></i>
-                                                <span>Tiket: {{ $penilaian->module_score ?? 0 }}</span>
+                                        <div class="flex items-center justify-center gap-1.5 text-xs font-semibold whitespace-nowrap">
+                                            <span class="inline-flex items-center gap-1 font-mono font-bold text-indigo-600 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-950/60 px-2 py-0.5 rounded-lg border border-indigo-200/80 dark:border-indigo-800/80 shadow-2xs whitespace-nowrap">
+                                                <i class="fa-solid fa-ticket text-[9px] text-indigo-500 dark:text-indigo-400"></i>
+                                                <span>{{ $penilaian->module_score ?? 0 }}</span>
                                             </span>
-                                            <span class="inline-flex items-center gap-1 text-[10px] font-extrabold bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800/80 px-2.5 py-1 rounded-xl shadow-2xs whitespace-nowrap">
+                                            <span class="inline-flex items-center gap-1 text-[10px] font-extrabold bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800/80 px-2 py-0.5 rounded-lg shadow-2xs whitespace-nowrap">
                                                 <i class="fa-solid fa-file-pen text-[9px] text-amber-500 dark:text-amber-400"></i> Draft Soft Skill
                                             </span>
                                         </div>
                                     @else
-                                        <span class="inline-flex items-center justify-center px-3 py-1 rounded-xl text-xs font-bold text-slate-400 dark:text-slate-400 bg-slate-100/80 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 shadow-2xs whitespace-nowrap min-w-[52px]">&ndash;</span>
+                                        <span class="inline-flex items-center justify-center px-2.5 py-0.5 rounded-xl text-xs font-bold text-slate-400 dark:text-slate-400 bg-slate-100/80 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 shadow-2xs whitespace-nowrap min-w-[44px]">&ndash;</span>
                                     @endif
                                 </td>
 
                                 {{-- Status Penilaian --}}
-                                <td class="py-3.5 px-5 text-center whitespace-nowrap">
+                                <td class="py-3 px-2.5 text-center whitespace-nowrap">
                                     @if($isFinal)
-                                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/80 shadow-2xs whitespace-nowrap">
-                                            <i class="fa-solid fa-circle-check text-[10px] text-emerald-500 dark:text-emerald-400"></i> Sudah Dinilai (Final)
+                                        <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/80 shadow-2xs whitespace-nowrap" title="Sudah Dinilai (Final)">
+                                            <i class="fa-solid fa-circle-check text-[10px] text-emerald-500 dark:text-emerald-400"></i> Sudah Dinilai
                                         </span>
                                     @elseif($isDraft)
-                                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800/80 shadow-2xs whitespace-nowrap">
-                                            <i class="fa-solid fa-file-pen text-[10px] text-amber-500 dark:text-amber-400"></i> Terproses (Draft)
+                                        <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800/80 shadow-2xs whitespace-nowrap" title="Terproses (Draft Soft Skill)">
+                                            <i class="fa-solid fa-file-pen text-[10px] text-amber-500 dark:text-amber-400"></i> Terproses
                                         </span>
                                     @else
-                                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-slate-100 dark:bg-slate-800/90 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700 shadow-2xs whitespace-nowrap">
+                                        <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-slate-100 dark:bg-slate-800/90 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700 shadow-2xs whitespace-nowrap" title="Belum Diproses">
                                             <i class="fa-solid fa-clock text-[10px] text-slate-400"></i> Belum Diproses
                                         </span>
                                     @endif
                                 </td>
 
                                 {{-- Aksi --}}
-                                <td class="py-3.5 px-6 text-center whitespace-nowrap">
-                                    <div class="flex items-center justify-center gap-2 whitespace-nowrap">
+                                <td class="py-3 px-3 text-center whitespace-nowrap">
+                                    <div class="flex items-center justify-center gap-1.5 whitespace-nowrap">
                                         @if($isFinal)
-                                            <a href="{{ route('rapor', ['id' => $u->id, 'period' => $period, 'period_type' => $periodType]) }}" class="px-3.5 py-1.5 text-xs font-bold text-blue-600 dark:text-blue-300 bg-blue-50/80 dark:bg-blue-950/50 border border-blue-200/90 dark:border-blue-800/80 rounded-xl hover:bg-blue-100 dark:hover:bg-blue-900/60 transition-all shadow-2xs whitespace-nowrap">Lihat Rapor</a>
-                                            <a href="{{ route('penilaian', ['id' => $u->id, 'period' => $period, 'period_type' => $periodType]) }}" class="px-2.5 py-1.5 text-xs font-semibold text-slate-500 dark:text-slate-300 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700/70 transition-all shadow-2xs whitespace-nowrap" title="Edit Nilai">
-                                                <i class="fa-solid fa-pencil"></i>
+                                            <a href="{{ route('rapor', ['id' => $u->id, 'period' => $period, 'period_type' => $periodType]) }}" class="px-3 py-1.5 text-xs font-bold text-blue-600 dark:text-blue-300 bg-blue-50/80 dark:bg-blue-950/50 border border-blue-200/90 dark:border-blue-800/80 rounded-xl hover:bg-blue-100 dark:hover:bg-blue-900/60 transition-all shadow-2xs whitespace-nowrap">Lihat Rapor</a>
+                                            <a href="{{ route('penilaian', ['id' => $u->id, 'period' => $period, 'period_type' => $periodType]) }}" class="w-7 h-7 flex items-center justify-center text-xs font-semibold text-slate-500 dark:text-slate-300 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700/70 transition-all shadow-2xs shrink-0" title="Edit Nilai">
+                                                <i class="fa-solid fa-pencil text-[11px]"></i>
                                             </a>
                                         @elseif($isDraft)
                                             <!-- Tombol Nilai untuk mengisi soft skill staff yang sudah di-sum (Proses hanya sekali) -->
-                                            <a href="{{ route('penilaian', ['id' => $u->id, 'period' => $period, 'period_type' => $periodType]) }}" class="px-4 py-1.5 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-sm shadow-blue-500/25 transition-all active:scale-95 flex items-center gap-1.5 cursor-pointer whitespace-nowrap" title="Lengkapi Evaluasi Soft Skill">
+                                            <a href="{{ route('penilaian', ['id' => $u->id, 'period' => $period, 'period_type' => $periodType]) }}" class="px-3.5 py-1.5 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-sm shadow-blue-500/25 transition-all active:scale-95 flex items-center gap-1.5 cursor-pointer whitespace-nowrap" title="Lengkapi Evaluasi Soft Skill">
                                                 <i class="fa-solid fa-star text-[10px]"></i> Nilai
                                             </a>
                                         @else
@@ -764,7 +764,7 @@
                                                 <input type="hidden" name="period" value="{{ $period }}">
                                                 <input type="hidden" name="period_type" value="{{ $periodType }}">
                                                 <input type="hidden" name="department_id" value="{{ $selectedDeptId }}">
-                                                <button type="button" onclick="konfirmasiProsesNilai({{ $u->id }}, '{{ addslashes($u->name) }}')" class="px-3.5 py-1.5 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl shadow-sm shadow-indigo-500/25 transition-all active:scale-95 flex items-center gap-1.5 cursor-pointer whitespace-nowrap" title="Proses dan hitung agregat tiket staff">
+                                                <button type="button" onclick="konfirmasiProsesNilai({{ $u->id }}, '{{ addslashes($u->name) }}')" class="px-3 py-1.5 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl shadow-sm shadow-indigo-500/25 transition-all active:scale-95 flex items-center gap-1.5 cursor-pointer whitespace-nowrap" title="Proses dan hitung agregat tiket staff">
                                                     <i class="fa-solid fa-calculator text-[10px]"></i> Proses Nilai
                                                 </button>
                                             </form>
