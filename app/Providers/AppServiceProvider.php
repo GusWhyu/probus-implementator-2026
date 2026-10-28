@@ -26,6 +26,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
+        if (config('app.env') === 'production' || request()->header('X-Forwarded-Proto') === 'https' || request()->isSecure()) {
+            \Illuminate\Support\Facades\URL::forceScheme('https');
+        }
+
         Paginator::useTailwind();
 
         Gate::define('admin', function(User $user){
