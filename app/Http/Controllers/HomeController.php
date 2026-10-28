@@ -1186,16 +1186,23 @@ class HomeController extends Controller
 
         $periodInfo = PeriodService::parse($request->input('period'), $request->input('month'), $request->input('year'), $request->input('period_type'));
 
+        $hasPeriodKey = \Illuminate\Support\Facades\Schema::hasColumn('performance_reviews', 'period_key');
+        $hasPeriodType = \Illuminate\Support\Facades\Schema::hasColumn('performance_reviews', 'period_type');
+
         $review = PerformanceReview::where('user_id', $id)
-            ->where(function($q) use ($periodInfo) {
-                $q->where('period_key', $periodInfo['period_key']);
-                if ($periodInfo['period_type'] === '1m') {
-                    $q->orWhere(function($sub) use ($periodInfo) {
+            ->where(function($q) use ($periodInfo, $hasPeriodKey, $hasPeriodType) {
+                if ($hasPeriodKey) {
+                    $q->where('period_key', $periodInfo['period_key']);
+                }
+                if ($periodInfo['period_type'] === '1m' || !$hasPeriodKey) {
+                    $q->orWhere(function($sub) use ($periodInfo, $hasPeriodType) {
                         $sub->whereMonth('periode', $periodInfo['month'])
-                             ->whereYear('periode', $periodInfo['year'])
-                             ->where(function($sub3) {
-                                 $sub3->where('period_type', '1m')->orWhereNull('period_type');
-                             });
+                             ->whereYear('periode', $periodInfo['year']);
+                        if ($hasPeriodType) {
+                            $sub->where(function($sub3) {
+                                $sub3->where('period_type', '1m')->orWhereNull('period_type');
+                            });
+                        }
                     });
                 }
             })
@@ -1205,7 +1212,14 @@ class HomeController extends Controller
             return redirect()->back()->with('error', 'Data penilaian tidak ditemukan.');
         }
 
-        $review->update(['status' => 'DRAFT']);
+        $updatePayload = ['status' => 'DRAFT'];
+        if ($hasPeriodKey && empty($review->period_key)) {
+            $updatePayload['period_key'] = $periodInfo['period_key'];
+        }
+        if ($hasPeriodType && empty($review->period_type)) {
+            $updatePayload['period_type'] = $periodInfo['period_type'];
+        }
+        $review->update($updatePayload);
 
         return redirect()->route('laporan', [
             'period' => $periodInfo['period_key'],

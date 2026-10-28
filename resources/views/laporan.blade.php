@@ -752,9 +752,15 @@
                                 {{-- Status Penilaian --}}
                                 <td class="py-3 px-2.5 text-center whitespace-nowrap">
                                     @if($isFinal)
-                                        <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/80 shadow-2xs whitespace-nowrap" title="Sudah Dinilai (Final Terkunci)">
-                                            <i class="fa-solid fa-lock text-[10px] text-emerald-500 dark:text-emerald-400"></i> Final (Terkunci)
-                                        </span>
+                                        @if(in_array(auth()->user()->usertype ?? '', ['admin', 'supervisor']))
+                                            <button type="button" onclick="konfirmasiUnlock({{ $u->id }}, '{{ addslashes($u->name) }}')" class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/60 dark:hover:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/80 shadow-2xs whitespace-nowrap cursor-pointer transition-all hover:scale-105 active:scale-95" title="Klik untuk membuka kunci penilaian staf ini">
+                                                <i class="fa-solid fa-lock text-[10px] text-emerald-500 dark:text-emerald-400"></i> Final (Terkunci)
+                                            </button>
+                                        @else
+                                            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/80 shadow-2xs whitespace-nowrap" title="Sudah Dinilai (Final Terkunci)">
+                                                <i class="fa-solid fa-lock text-[10px] text-emerald-500 dark:text-emerald-400"></i> Final (Terkunci)
+                                            </span>
+                                        @endif
                                     @elseif($isDraft)
                                         <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800/80 shadow-2xs whitespace-nowrap" title="Terproses (Draft Soft Skill)">
                                             <i class="fa-solid fa-file-pen text-[10px] text-amber-500 dark:text-amber-400"></i> Terproses
@@ -1312,6 +1318,13 @@
         const th = getSwalTheme();
         const periodeStr = @json($periodInfo['label'] ?? '');
 
+        if (!window.Swal) {
+            if (confirm("Penilaian untuk staf " + userName + " saat ini berstatus FINAL (TERKUNCI).\n\nApakah Anda yakin ingin membuka kunci penilaian menjadi DRAFT sehingga dapat diedit kembali?")) {
+                form.submit();
+            }
+            return;
+        }
+
         Swal.fire({
             title: 'Buka Kunci Penilaian?',
             html: `
@@ -1363,6 +1376,13 @@
         if (!form) return;
         const th = getSwalTheme();
         const periodeStr = @json($periodInfo['label'] ?? '');
+
+        if (!window.Swal) {
+            if (confirm("Apakah Anda yakin ingin menyinkronkan ulang data tiket staf " + userName + " untuk periode " + periodeStr + "?")) {
+                form.submit();
+            }
+            return;
+        }
 
         Swal.fire({
             title: 'Sinkronkan Tiket?',

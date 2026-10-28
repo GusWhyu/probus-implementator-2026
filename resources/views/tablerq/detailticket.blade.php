@@ -1269,6 +1269,9 @@
                 </div>
             </form>
         </div>
+        <form method="dialog" class="modal-backdrop bg-slate-900/60 backdrop-blur-sm"><button>close</button></form>
+    </dialog>
+
     {{-- Modal Minta Konfirmasi Klien --}}
     <dialog id="waitingConfirmationModal" class="modal">
         <div class="modal-box w-11/12 max-w-lg rounded-3xl p-6 md:p-8 bg-white dark:bg-[#1e293b] border border-slate-100 dark:border-slate-700 shadow-2xl relative">
@@ -1416,7 +1419,7 @@
     </dialog>
 
     <!-- Image Reviewer Modal (Lightbox) -->
-    <div id="imageReviewerModal" class="fixed inset-0 z-50 hidden flex-col bg-slate-950/95 backdrop-blur-md select-none transition-opacity duration-300 opacity-0" tabindex="-1" role="dialog" aria-modal="true">
+    <div id="imageReviewerModal" class="fixed inset-0 z-[9999] hidden flex-col bg-slate-950/95 backdrop-blur-md select-none transition-opacity duration-300 opacity-0" tabindex="-1" role="dialog" aria-modal="true">
         
         <!-- Top Bar -->
         <div class="flex items-center justify-between px-4 sm:px-6 py-4 text-white border-b border-white/10 z-20 bg-slate-900/60 backdrop-blur-sm">
@@ -1506,6 +1509,7 @@
             updateReviewerDisplay();
             
             const modal = document.getElementById('imageReviewerModal');
+            if (!modal) return;
             modal.classList.remove('hidden');
             modal.classList.add('flex');
             void modal.offsetWidth;
@@ -1645,6 +1649,15 @@
                 }
             });
         }
+
+        window.openImageReviewer = openImageReviewer;
+        window.closeImageReviewer = closeImageReviewer;
+        window.reviewerNext = reviewerNext;
+        window.reviewerPrev = reviewerPrev;
+        window.reviewerZoomIn = reviewerZoomIn;
+        window.reviewerZoomOut = reviewerZoomOut;
+        window.reviewerResetZoom = reviewerResetZoom;
+        window.reviewerRotate = reviewerRotate;
 
         // Keyboard navigation
         document.addEventListener('keydown', function(e) {
