@@ -120,7 +120,8 @@ class TicketController extends Controller
         $clients = \App\Models\Outlet::orderBy('nm_out')->get();
         // Advisor: Mengambil semua user selain user pembuat tiket
         $advisors = \App\Models\User::where('id', '!=', Auth::id())->orderBy('name')->get();
-        return view('tablerq.createticket', compact('tag', 'kategori', 'clients', 'advisors'));
+        $tipePenanganans = \App\Models\TipePenanganan::where('is_active', true)->orderBy('nama')->get();
+        return view('tablerq.createticket', compact('tag', 'kategori', 'clients', 'advisors', 'tipePenanganans'));
     }
 
     public function editticket($id){
@@ -148,8 +149,9 @@ class TicketController extends Controller
         $advisors = \App\Models\User::where('id', '!=', $datarq->user_id)->orderBy('name')->get();
                                     
         $img = \App\Models\DataImage::where('ticket_id', $id)->get();
+        $tipePenanganans = \App\Models\TipePenanganan::where('is_active', true)->orderBy('nama')->get();
                                     
-        return view('tablerq.editticket', compact('datarq', 'tag', 'kategori', 'clients', 'advisors', 'img'));
+        return view('tablerq.editticket', compact('datarq', 'tag', 'kategori', 'clients', 'advisors', 'img', 'tipePenanganans'));
     }
 
     public function storeticket(Request $request){
@@ -162,7 +164,7 @@ class TicketController extends Controller
             'tag' => 'required',
             'category' => 'required',
             'client' => 'required', // client from form is now client_id (moutlet)
-            'tipe_penanganan' => 'required|in:On Site,Office,Piket,Online,Remote,Remote / Online,TRAINING / Retraining ONLINE,Training 4 Traner,Training 4 Trainer',
+            'tipe_penanganan' => 'required|string|max:100',
             'advisor' => 'nullable', // advisor is optional
             'start_date' => ['required', 'date', 'after_or_equal:' . $minDate, 'before_or_equal:' . $maxDate],
             'due_date' => 'required|date|after_or_equal:start_date',
@@ -255,10 +257,29 @@ class TicketController extends Controller
             return redirect()->route('daftartiket');
         }
 
-        // Prevent regular user from editing closed tickets (supervisor & admin allowed)
-        if ($datarq->status == 'CLOSED' && !$isAdminOrSupervisor) {
-            Alert::error('Akses Ditolak', 'Tiket yang sudah selesai (CLOSED) tidak dapat diedit lagi oleh user.');
-            return redirect()->route('detailticket', ['id' => $id]);
+        // Prevent editing closed tickets if the monthly evaluation is already FINAL (locked)
+        if ($datarq->status == 'CLOSED') {
+            $ticketDate = $datarq->created_at ? \Carbon\Carbon::parse($datarq->created_at) : now();
+            $isPeriodLocked = \App\Models\PerformanceReview::where('user_id', $datarq->user_id)
+                ->where(function($q) use ($ticketDate) {
+                    $q->where('period_key', $ticketDate->format('Y-m'))
+                      ->orWhere(function($sub) use ($ticketDate) {
+                          $sub->whereMonth('periode', $ticketDate->month)
+                              ->whereYear('periode', $ticketDate->year);
+                      });
+                })
+                ->where('status', 'FINAL')
+                ->exists();
+
+            if ($isPeriodLocked) {
+                Alert::warning('Tiket Terkunci', 'Tiket ini telah masuk ke dalam penilaian kinerja bulanan (' . $ticketDate->locale('id')->translatedFormat('F Y') . ') yang berstatus FINAL (TERKUNCI). Tiket tidak dapat diubah agar data penilaian tetap akurat.');
+                return redirect()->route('detailticket', ['id' => $id]);
+            }
+
+            if (!$isAdminOrSupervisor) {
+                Alert::error('Akses Ditolak', 'Tiket yang sudah selesai (CLOSED) tidak dapat diedit lagi oleh user.');
+                return redirect()->route('detailticket', ['id' => $id]);
+            }
         }
 
         $baseDate = $datarq->created_at ? \Carbon\Carbon::parse($datarq->created_at) : now();
@@ -274,7 +295,7 @@ class TicketController extends Controller
             'tag' => 'required',
             'category' => 'required',
             'client' => 'required',
-            'tipe_penanganan' => 'required|in:On Site,Office,Piket,Online,Remote,Remote / Online,TRAINING / Retraining ONLINE,Training 4 Traner,Training 4 Trainer',
+            'tipe_penanganan' => 'required|string|max:100',
             'advisor' => 'nullable',
             'start_date' => ['required', 'date', 'after_or_equal:' . $minDate, 'before_or_equal:' . $maxDate],
             'due_date' => 'required|date|after_or_equal:start_date',
@@ -431,6 +452,26 @@ class TicketController extends Controller
         if ($data->user_id != $user->id && !in_array($user->usertype, ['admin', 'supervisor'])) {
             Alert::error('Akses Ditolak', 'Advisor tidak memiliki wewenang untuk memproses atau mengubah status tiket ini. Hanya pembuat tiket yang berhak.');
             return redirect()->back();
+        }
+
+        // Cegah membuka kembali tiket closed jika sudah masuk penilaian FINAL (Terkunci)
+        if ($data->status == 'CLOSED' && $stid != 'CLOSED') {
+            $ticketDate = $data->created_at ? \Carbon\Carbon::parse($data->created_at) : now();
+            $isPeriodLocked = \App\Models\PerformanceReview::where('user_id', $data->user_id)
+                ->where(function($q) use ($ticketDate) {
+                    $q->where('period_key', $ticketDate->format('Y-m'))
+                      ->orWhere(function($sub) use ($ticketDate) {
+                          $sub->whereMonth('periode', $ticketDate->month)
+                              ->whereYear('periode', $ticketDate->year);
+                      });
+                })
+                ->where('status', 'FINAL')
+                ->exists();
+
+            if ($isPeriodLocked) {
+                Alert::warning('Tiket Terkunci', 'Tiket ini telah masuk ke dalam penilaian kinerja bulanan (' . $ticketDate->locale('id')->translatedFormat('F Y') . ') yang berstatus FINAL (TERKUNCI). Status tidak dapat dibuka kembali.');
+                return redirect()->back();
+            }
         }
 
         // SPV / Admin tidak memproses (OPEN -> PROGRESS) atau menyelesaikan tiket (PROGRESS -> CLOSED) secara langsung
@@ -679,7 +720,27 @@ class TicketController extends Controller
                 Alert::error('Akses Ditolak', 'Anda tidak memiliki hak untuk menghapus tiket ini.');
                 return redirect()->route('daftartiket');
             }
-            if ($ticket->status == 'CLOSED') {
+        }
+
+        if ($ticket->status == 'CLOSED') {
+            $ticketDate = $ticket->created_at ? \Carbon\Carbon::parse($ticket->created_at) : now();
+            $isPeriodLocked = \App\Models\PerformanceReview::where('user_id', $ticket->user_id)
+                ->where(function($q) use ($ticketDate) {
+                    $q->where('period_key', $ticketDate->format('Y-m'))
+                      ->orWhere(function($sub) use ($ticketDate) {
+                          $sub->whereMonth('periode', $ticketDate->month)
+                              ->whereYear('periode', $ticketDate->year);
+                      });
+                })
+                ->where('status', 'FINAL')
+                ->exists();
+
+            if ($isPeriodLocked) {
+                Alert::warning('Tiket Terkunci', 'Tiket ini telah masuk ke dalam penilaian kinerja bulanan (' . $ticketDate->locale('id')->translatedFormat('F Y') . ') yang telah disahkan (FINAL/Terkunci). Tiket tidak dapat dihapus.');
+                return redirect()->back();
+            }
+
+            if (!$isAdminOrSupervisor) {
                 Alert::error('Akses Ditolak', 'Tiket yang sudah selesai (CLOSED) tidak dapat dihapus oleh user.');
                 return redirect()->route('daftartiket');
             }

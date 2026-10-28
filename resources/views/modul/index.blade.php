@@ -1,18 +1,23 @@
 <x-app-layout>
-    <div class="w-full pb-12">
+    <div class="py-8 px-6 md:px-10">
         <!-- Breadcrumb & Header Section -->
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-            <div>
-                <div class="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider mb-1 flex items-center gap-1.5">
-                    <span>Ticketing System</span>
-                    <i class="fa-solid fa-chevron-right text-[8px] text-slate-300"></i>
-                    <span class="text-blue-600">Master Data Modul</span>
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+            <div class="flex items-center gap-4">
+                <a href="{{ url()->previous() }}" class="w-10 h-10 bg-white border border-slate-200 hover:bg-slate-50 flex items-center justify-center rounded-xl text-slate-600 transition-colors shadow-sm shrink-0">
+                    <i class="fa-solid fa-arrow-left"></i>
+                </a>
+                <div>
+                    <div class="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider mb-1 flex items-center gap-1.5">
+                        <span>Advanced Settings</span>
+                        <i class="fa-solid fa-chevron-right text-[8px] text-slate-300"></i>
+                        <span class="text-blue-600">Master Data Modul</span>
+                    </div>
+                    <h2 class="text-2xl font-bold text-slate-800 flex items-center gap-2.5">
+                        <i class="fa-solid fa-layer-group text-blue-600"></i>
+                        Master Data: Modul
+                    </h2>
+                    <p class="text-slate-500 text-sm mt-1">Kelola master nama modul dan bobot poin untuk sistem penilaian kinerja CS.</p>
                 </div>
-                <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-800 tracking-tight flex items-center gap-2.5">
-                    <i class="fa-solid fa-layer-group text-blue-600 text-xl sm:text-2xl"></i>
-                    Daftar Modul
-                </h1>
-                <p class="text-slate-500 text-xs sm:text-sm mt-1">Kelola master nama modul dan bobot poin untuk sistem penilaian kinerja CS.</p>
             </div>
             <div class="shrink-0 flex items-center gap-2">
                 <a href="{{ route('createmodul') }}" class="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 active:scale-95 text-white px-4 sm:px-5 py-2.5 rounded-xl text-sm font-bold flex items-center justify-center gap-2 shadow-sm shadow-blue-500/20 transition-all hover:shadow-md">
@@ -28,44 +33,44 @@
             $totalTicketsCount = $moduls->sum('tickets_count');
         @endphp
         <div class="grid grid-cols-3 gap-2.5 sm:gap-4 mb-6">
-            <div class="bg-white rounded-2xl p-3.5 sm:p-5 border border-slate-200/80 shadow-sm flex items-center justify-between">
+            <div class="bg-white rounded-2xl p-3.5 sm:p-5 border border-slate-100 dark:border-transparent shadow-sm flex items-center justify-between">
                 <div>
                     <span class="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider block">Total Modul</span>
                     <span class="text-lg sm:text-2xl font-extrabold text-slate-800 mt-0.5 block">{{ $totalCount }}</span>
                 </div>
-                <div class="w-8 h-8 sm:w-11 sm:h-11 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-xs sm:text-base shrink-0 border border-blue-100">
+                <div class="w-8 h-8 sm:w-11 sm:h-11 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-xs sm:text-base shrink-0 border border-blue-100 dark:border-transparent">
                     <i class="fa-solid fa-cubes"></i>
                 </div>
             </div>
 
-            <div class="bg-white rounded-2xl p-3.5 sm:p-5 border border-slate-200/80 shadow-sm flex items-center justify-between">
+            <div class="bg-white rounded-2xl p-3.5 sm:p-5 border border-slate-100 dark:border-transparent shadow-sm flex items-center justify-between">
                 <div>
                     <span class="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider block">Terbobot</span>
                     <span class="text-lg sm:text-2xl font-extrabold text-emerald-600 mt-0.5 block">{{ $weightedCount }}</span>
                 </div>
-                <div class="w-8 h-8 sm:w-11 sm:h-11 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xs sm:text-base shrink-0 border border-emerald-100">
+                <div class="w-8 h-8 sm:w-11 sm:h-11 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xs sm:text-base shrink-0 border border-emerald-100 dark:border-transparent">
                     <i class="fa-solid fa-star"></i>
                 </div>
             </div>
 
-            <div class="bg-white rounded-2xl p-3.5 sm:p-5 border border-slate-200/80 shadow-sm flex items-center justify-between">
+            <div class="bg-white rounded-2xl p-3.5 sm:p-5 border border-slate-100 dark:border-transparent shadow-sm flex items-center justify-between">
                 <div>
                     <span class="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider block">Tiket Terkait</span>
                     <span class="text-lg sm:text-2xl font-extrabold text-slate-800 mt-0.5 block">{{ $totalTicketsCount }}</span>
                 </div>
-                <div class="w-8 h-8 sm:w-11 sm:h-11 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-xs sm:text-base shrink-0 border border-indigo-100">
+                <div class="w-8 h-8 sm:w-11 sm:h-11 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-xs sm:text-base shrink-0 border border-indigo-100 dark:border-transparent">
                     <i class="fa-solid fa-ticket"></i>
                 </div>
             </div>
         </div>
 
         <!-- Main Card Section -->
-        <div class="bg-white rounded-2xl border border-slate-200/90 shadow-sm overflow-hidden">
+        <div class="bg-white rounded-2xl border border-slate-100 dark:border-transparent shadow-sm overflow-hidden">
             <!-- Search & Filter Bar -->
-            <div class="p-4 sm:p-5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white">
+            <div class="p-4 sm:p-5 border-b border-slate-100 dark:border-slate-700/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white">
                 <div class="flex items-center gap-2.5">
                     <h3 class="font-extrabold text-slate-800 text-sm sm:text-base">Daftar Modul Sistem</h3>
-                    <span id="module-counter" class="bg-blue-50 text-blue-600 text-[11px] font-bold px-2.5 py-0.5 rounded-full border border-blue-100">
+                    <span id="module-counter" class="bg-blue-50 text-blue-600 text-[11px] font-bold px-2.5 py-0.5 rounded-full border border-blue-100 dark:border-transparent">
                         {{ $totalCount }} modul
                     </span>
                 </div>
@@ -82,7 +87,7 @@
             <div class="hidden sm:block overflow-x-auto">
                 <table class="w-full text-left border-collapse" id="modul-table">
                     <thead>
-                        <tr class="bg-slate-50/70 border-b border-slate-100 text-[11px] uppercase tracking-wider text-slate-500 font-extrabold">
+                        <tr class="bg-slate-50/70 border-b border-slate-100 dark:border-slate-700/60 text-[11px] uppercase tracking-wider text-slate-500 font-extrabold">
                             <th class="px-6 py-3.5 w-16 text-center">No</th>
                             <th class="px-6 py-3.5">Nama Modul</th>
                             <th class="px-6 py-3.5">Bobot Poin</th>
@@ -90,7 +95,7 @@
                             <th class="px-6 py-3.5 text-right w-28">Aksi</th>
                         </tr>
                     </thead>
-                    <tbody class="text-sm divide-y divide-slate-100" id="modul-tbody">
+                    <tbody class="text-sm divide-y divide-slate-100 dark:divide-slate-700/60" id="modul-tbody">
                         @forelse ($moduls as $index => $item)
                         <tr class="hover:bg-slate-50/70 transition-colors group modul-item modul-row" data-name="{{ strtolower($item->name) }}">
                             <td class="px-6 py-4 text-center text-xs font-semibold text-slate-400">
@@ -98,7 +103,7 @@
                             </td>
                             <td class="px-6 py-4">
                                 <div class="flex items-center gap-3">
-                                    <div class="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-xs font-bold shrink-0 border border-blue-100/60 group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                                    <div class="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-xs font-bold shrink-0 border border-blue-100 dark:border-transparent group-hover:bg-blue-600 group-hover:text-white transition-colors">
                                         <i class="fa-solid fa-layer-group"></i>
                                     </div>
                                     <div>
@@ -108,13 +113,13 @@
                                 </div>
                             </td>
                             <td class="px-6 py-4">
-                                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold {{ $item->bobot > 0 ? 'bg-emerald-50 text-emerald-700 border border-emerald-200/60' : 'bg-slate-100 text-slate-500 border border-slate-200/60' }}">
+                                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold {{ $item->bobot > 0 ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 dark:border-transparent' : 'bg-slate-100 text-slate-500 border border-slate-200 dark:border-transparent' }}">
                                     <i class="fa-solid {{ $item->bobot > 0 ? 'fa-star text-amber-500' : 'fa-circle-dot text-slate-400' }} mr-1.5 text-[10px]"></i>
                                     {{ $item->bobot }} Poin
                                 </span>
                             </td>
                             <td class="px-6 py-4">
-                                <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-medium bg-slate-50 text-slate-600 border border-slate-200/80">
+                                <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-medium bg-slate-50 text-slate-600 border border-slate-100 dark:border-transparent">
                                     <i class="fa-solid fa-ticket mr-1.5 text-slate-400 text-[10px]"></i>
                                     {{ $item->tickets_count ?? 0 }} Tiket
                                 </span>
@@ -148,12 +153,12 @@
             </div>
 
             <!-- Mobile Card View (Visible only on Mobile < sm) -->
-            <div class="block sm:hidden divide-y divide-slate-100" id="modul-mobile-list">
+            <div class="block sm:hidden divide-y divide-slate-100 dark:divide-slate-700/60" id="modul-mobile-list">
                 @forelse ($moduls as $index => $item)
                 <div class="p-4 hover:bg-slate-50/70 transition-colors modul-item modul-card" data-name="{{ strtolower($item->name) }}">
                     <div class="flex items-start justify-between gap-3 mb-2.5">
                         <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-sm font-bold shrink-0 border border-blue-100">
+                            <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-sm font-bold shrink-0 border border-blue-100 dark:border-transparent">
                                 <i class="fa-solid fa-layer-group"></i>
                             </div>
                             <div>
@@ -161,13 +166,13 @@
                                 <span class="text-[11px] text-slate-400 font-mono">No. {{ $index + 1 }} • ID: #{{ $item->id }}</span>
                             </div>
                         </div>
-                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold shrink-0 {{ $item->bobot > 0 ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-slate-100 text-slate-500' }}">
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold shrink-0 {{ $item->bobot > 0 ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 dark:border-transparent' : 'bg-slate-100 text-slate-500' }}">
                             <i class="fa-solid {{ $item->bobot > 0 ? 'fa-star text-amber-500' : 'fa-circle-dot text-slate-400' }} mr-1 text-[9px]"></i>
                             {{ $item->bobot }} Poin
                         </span>
                     </div>
 
-                    <div class="flex items-center justify-between pt-2 border-t border-slate-100/70 text-xs">
+                    <div class="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-slate-700/60 text-xs">
                         <span class="inline-flex items-center text-slate-500 text-[11px]">
                             <i class="fa-solid fa-ticket text-slate-400 mr-1.5 text-[10px]"></i>
                             {{ $item->tickets_count ?? 0 }} Tiket Terkait
@@ -203,7 +208,7 @@
             </div>
 
             <!-- Footer Summary -->
-            <div class="p-4 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-slate-500 bg-slate-50/50">
+            <div class="p-4 border-t border-slate-100 dark:border-slate-700/60 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-slate-500 bg-slate-50/50">
                 <div>Menampilkan <span id="visible-count" class="font-bold text-slate-700">{{ $totalCount }}</span> dari {{ $totalCount }} modul</div>
                 <div class="text-[11px] text-slate-400">Tersinkronisasi dengan database <code class="bg-slate-200 px-1 py-0.5 rounded text-slate-600">module_systems</code></div>
             </div>

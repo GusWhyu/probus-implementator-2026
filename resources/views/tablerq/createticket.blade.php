@@ -87,13 +87,19 @@
                                 <div>
                                     <label class="block text-[11px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Tipe Penanganan <span class="text-rose-500">*</span></label>
                                     <select name="tipe_penanganan" class="w-full bg-slate-50/50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-sm font-semibold rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 block p-3.5 transition-all outline-none appearance-none cursor-pointer" style="background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2394a3b8%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E'); background-repeat: no-repeat; background-position: right 1rem top 50%; background-size: 0.65rem auto;" required>
-                                        <option value="" disabled selected>Pilih tipe...</option>
-                                        <option value="On Site" {{ old('tipe_penanganan') == 'On Site' ? 'selected' : '' }}>On Site</option>
-                                        <option value="Office" {{ old('tipe_penanganan') == 'Office' ? 'selected' : '' }}>Office</option>
-                                        <option value="Online" {{ in_array(old('tipe_penanganan'), ['Online', 'Remote', 'Remote / Online']) ? 'selected' : '' }}>Online</option>
-                                        <option value="Piket" {{ old('tipe_penanganan') == 'Piket' ? 'selected' : '' }}>Piket</option>
-                                        <option value="TRAINING / Retraining ONLINE" {{ old('tipe_penanganan') == 'TRAINING / Retraining ONLINE' ? 'selected' : '' }}>TRAINING / Retraining ONLINE</option>
-                                        <option value="Training 4 Traner" {{ in_array(old('tipe_penanganan'), ['Training 4 Traner', 'Training 4 Trainer']) ? 'selected' : '' }}>Training 4 Traner</option>
+                                        <option value="" disabled {{ old('tipe_penanganan') ? '' : 'selected' }}>Pilih tipe...</option>
+                                        @if(isset($tipePenanganans) && $tipePenanganans->count() > 0)
+                                            @foreach($tipePenanganans as $tp)
+                                                <option value="{{ $tp->nama }}" {{ old('tipe_penanganan') == $tp->nama ? 'selected' : '' }}>{{ $tp->nama }}</option>
+                                            @endforeach
+                                        @else
+                                            <option value="On Site" {{ old('tipe_penanganan') == 'On Site' ? 'selected' : '' }}>On Site</option>
+                                            <option value="Office" {{ old('tipe_penanganan') == 'Office' ? 'selected' : '' }}>Office</option>
+                                            <option value="Online" {{ in_array(old('tipe_penanganan'), ['Online', 'Remote', 'Remote / Online']) ? 'selected' : '' }}>Online</option>
+                                            <option value="Piket" {{ old('tipe_penanganan') == 'Piket' ? 'selected' : '' }}>Piket</option>
+                                            <option value="TRAINING / Retraining ONLINE" {{ old('tipe_penanganan') == 'TRAINING / Retraining ONLINE' ? 'selected' : '' }}>TRAINING / Retraining ONLINE</option>
+                                            <option value="Training 4 Traner" {{ in_array(old('tipe_penanganan'), ['Training 4 Traner', 'Training 4 Trainer']) ? 'selected' : '' }}>Training 4 Traner</option>
+                                        @endif
                                     </select>
                                 </div>
 

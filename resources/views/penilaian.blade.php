@@ -22,6 +22,20 @@
                     </div>';
         }
     }
+    
+    $initialSoftFilled = 0;
+    $initialSoftSum = 0;
+    foreach($categories as $cat) {
+        if (isset($catScores[$cat->id]) && (float)$catScores[$cat->id] > 0) {
+            $initialSoftFilled++;
+            $initialSoftSum += (float)$catScores[$cat->id];
+        }
+    }
+    $initialSoftAvg = $initialSoftFilled > 0 ? round($initialSoftSum / $initialSoftFilled, 2) : 0;
+    $initialSoftKalkulasi = round($initialSoftAvg * (($weights['soft_skill'] ?? 40) / 100), 2);
+    $initialTicketKalkulasi = round((float)$nilai_tiket * (($weights['ticket'] ?? 30) / 100), 2);
+    $initialClientKalkulasi = round((float)$client_score * (($weights['client_review'] ?? 30) / 100), 2);
+    $initialNilaiAkhir = round($initialTicketKalkulasi + $initialSoftKalkulasi + $initialClientKalkulasi, 2);
 @endphp
 
 <x-app-layout>
@@ -36,24 +50,29 @@
                 {{ $cat->id }}: {{ (isset($catScores[$cat->id]) && (float)$catScores[$cat->id] > 0) ? round((float)$catScores[$cat->id] / 20) : 0 }},
             @endforeach
         },
+        hasSoftSkills() {
+            let vals = Object.values(this.softSkills).map(Number);
+            return vals.some(v => v > 0);
+        },
         softSkillAvg() {
             let vals = Object.values(this.softSkills).map(Number);
             let filled = vals.filter(v => v > 0);
             if (filled.length === 0) return 0;
             let sum = filled.reduce((a, b) => a + b, 0);
-            return (sum / (filled.length * 5)) * 100;
+            return Number(((sum / (filled.length * 5)) * 100).toFixed(2));
         },
-        kontribusiTiket() {
+        kalkulasiTiket() {
             return Number(((Number(this.nilaiTiket) || 0) * (this.wTicket / 100)).toFixed(2));
         },
-        kontribusiSoftSkill() {
+        kalkulasiSoftSkill() {
+            if (!this.hasSoftSkills()) return 0;
             return Number((this.softSkillAvg() * (this.wSoftSkill / 100)).toFixed(2));
         },
-        kontribusiClient() {
+        kalkulasiClient() {
             return Number(((Number(this.clientScore) || 0) * (this.wClient / 100)).toFixed(2));
         },
         nilaiAkhir() {
-            return (this.kontribusiTiket() + this.kontribusiSoftSkill() + this.kontribusiClient()).toFixed(2);
+            return Number((this.kalkulasiTiket() + this.kalkulasiSoftSkill() + this.kalkulasiClient()).toFixed(2));
         },
         validateFinal(e) {
             let vals = Object.values(this.softSkills).map(Number);
@@ -64,7 +83,8 @@
                 return false;
             }
             @if($periodInfo['is_current'] ?? false)
-            if (!confirm("Konfirmasi Finalisasi:\n\nPeriode {{ $periodInfo['label'] }} saat ini masih berjalan (cut-off tanggal {{ $periodInfo['cutoff_label'] }}).\n\nApakah Anda yakin ingin menyimpan penilaian staf ini sebagai FINAL sekarang?\n\n(Catatan: Jika nanti ada tiket baru yang selesai sebelum akhir bulan, Anda tetap dapat melakukan Sinkronkan Tiket di halaman laporan).")) {
+            const confirmMsg = {{ json_encode("Konfirmasi Finalisasi:\n\nPeriode " . ($periodInfo['label'] ?? '') . " saat ini masih berjalan (cut-off tanggal " . ($periodInfo['cutoff_label'] ?? '') . ").\n\nApakah Anda yakin ingin menyimpan penilaian staf ini sebagai FINAL sekarang?\n\n(Catatan: Jika nanti ada tiket baru yang selesai sebelum akhir bulan, Anda tetap dapat melakukan Sinkronkan Tiket di halaman laporan).") }};
+            if (!confirm(confirmMsg)) {
                 e.preventDefault();
                 return false;
             }
@@ -100,6 +120,20 @@
                     @foreach($errors->all() as $err)
                         <p>{{ $err }}</p>
                     @endforeach
+                </div>
+            </div>
+            @endif
+
+            @if($existingReview && $existingReview->status === 'FINAL')
+            <div class="p-4 rounded-2xl bg-emerald-50/90 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/80 text-emerald-800 dark:text-emerald-200 text-xs sm:text-sm font-semibold flex items-center justify-between shadow-xs">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-xl bg-emerald-100 dark:bg-emerald-900/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+                        <i class="fa-solid fa-lock text-sm"></i>
+                    </div>
+                    <div>
+                        <span class="font-bold">Penilaian Ini Telah Berstatus FINAL (Terkunci):</span>
+                        <span class="text-slate-600 dark:text-slate-300 ml-1">Nilai kinerja dan data tiket untuk staf ini telah disahkan dan dibekukan. Jika Anda menyimpan kembali sebagai Final, status akan tetap terkunci.</span>
+                    </div>
                 </div>
             </div>
             @endif
@@ -168,8 +202,8 @@
                                     <span class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Aktivitas Bulanan</span>
                                 </div>
 
-                                <!-- Mini Metrics Grid (2x2) -->
-                                <div class="grid grid-cols-2 gap-3 mb-4">
+                                <!-- Mini Metrics Grid (5 Items) -->
+                                <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-4">
                                     <!-- Tiket Ditangani -->
                                     <div class="bg-slate-50/80 dark:bg-slate-900/60 p-3 rounded-xl border border-slate-100 dark:border-slate-800/80">
                                         <div class="flex items-center gap-2 text-slate-400 dark:text-slate-400 mb-1">
@@ -192,6 +226,17 @@
                                         </div>
                                     </div>
 
+                                    <!-- Tiket Di-Advice -->
+                                    <div class="bg-slate-50/80 dark:bg-slate-900/60 p-3 rounded-xl border border-slate-100 dark:border-slate-800/80">
+                                        <div class="flex items-center gap-2 text-slate-400 dark:text-slate-400 mb-1">
+                                            <i class="fa-solid fa-handshake-angle text-xs text-indigo-500"></i>
+                                            <span class="text-[11px] font-medium truncate">Tiket Di-Advice</span>
+                                        </div>
+                                        <div class="text-lg font-black text-indigo-600 dark:text-indigo-400 leading-tight">
+                                            {{ $tiket_di_advice }}
+                                        </div>
+                                    </div>
+
                                     <!-- Rata-rata Respon -->
                                     <div class="bg-slate-50/80 dark:bg-slate-900/60 p-3 rounded-xl border border-slate-100 dark:border-slate-800/80">
                                         <div class="flex items-center gap-2 text-slate-400 dark:text-slate-400 mb-1">
@@ -207,9 +252,9 @@
                                     @php
                                         $completionRate = $tiket_ditangani > 0 ? round(($tiket_selesai / $tiket_ditangani) * 100, 1) : 0;
                                     @endphp
-                                    <div class="bg-slate-50/80 dark:bg-slate-900/60 p-3 rounded-xl border border-slate-100 dark:border-slate-800/80 flex flex-col justify-between">
+                                    <div class="col-span-2 sm:col-span-2 bg-slate-50/80 dark:bg-slate-900/60 p-3 rounded-xl border border-slate-100 dark:border-slate-800/80 flex flex-col justify-between">
                                         <div class="flex items-center justify-between text-slate-400 dark:text-slate-400 mb-1">
-                                            <span class="text-[11px] font-medium truncate">Penyelesaian</span>
+                                            <span class="text-[11px] font-medium truncate">Penyelesaian Tiket Ditangani</span>
                                             <span class="text-xs font-black text-slate-900 dark:text-white">{{ $completionRate }}%</span>
                                         </div>
                                         <div class="w-full bg-slate-200 dark:bg-slate-700/60 h-1.5 rounded-full overflow-hidden mt-1">
@@ -247,15 +292,16 @@
                                     </h3>
                                     <span class="px-2.5 py-1 rounded-lg text-xs font-extrabold uppercase tracking-wide border shadow-xs inline-flex items-center gap-1.5 shrink-0"
                                         :class="{
-                                            'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800': Number(nilaiAkhir()) >= 90,
-                                            'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/60 dark:text-blue-300 dark:border-blue-800': Number(nilaiAkhir()) >= 80 && Number(nilaiAkhir()) < 90,
-                                            'bg-sky-50 text-sky-700 border-sky-200 dark:bg-sky-950/60 dark:text-sky-300 dark:border-sky-800': Number(nilaiAkhir()) >= 70 && Number(nilaiAkhir()) < 80,
-                                            'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-800': Number(nilaiAkhir()) >= 60 && Number(nilaiAkhir()) < 70,
-                                            'bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-950/60 dark:text-orange-300 dark:border-orange-800': Number(nilaiAkhir()) >= 50 && Number(nilaiAkhir()) < 60,
-                                            'bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/60 dark:text-rose-300 dark:border-rose-800': Number(nilaiAkhir()) < 50
+                                            'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-800': !hasSoftSkills(),
+                                            'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800': hasSoftSkills() && Number(nilaiAkhir()) >= 90,
+                                            'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/60 dark:text-blue-300 dark:border-blue-800': hasSoftSkills() && Number(nilaiAkhir()) >= 80 && Number(nilaiAkhir()) < 90,
+                                            'bg-sky-50 text-sky-700 border-sky-200 dark:bg-sky-950/60 dark:text-sky-300 dark:border-sky-800': hasSoftSkills() && Number(nilaiAkhir()) >= 70 && Number(nilaiAkhir()) < 80,
+                                            'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-800': hasSoftSkills() && Number(nilaiAkhir()) >= 60 && Number(nilaiAkhir()) < 70,
+                                            'bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-950/60 dark:text-orange-300 dark:border-orange-800': hasSoftSkills() && Number(nilaiAkhir()) >= 50 && Number(nilaiAkhir()) < 60,
+                                            'bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/60 dark:text-rose-300 dark:border-rose-800': hasSoftSkills() && Number(nilaiAkhir()) < 50
                                         }">
-                                        <i class="fa-solid fa-award text-xs"></i>
-                                        <span x-text="Number(nilaiAkhir()) >= 90 ? 'Sangat Memuaskan' : (Number(nilaiAkhir()) >= 80 ? 'Memuaskan' : (Number(nilaiAkhir()) >= 70 ? 'Cukup Memuaskan' : (Number(nilaiAkhir()) >= 60 ? 'Perlu Peningkatan' : (Number(nilaiAkhir()) >= 50 ? 'Perlu Pembinaan' : 'Perlu Perhatian Khusus'))))"></span>
+                                        <i class="fa-solid" :class="hasSoftSkills() ? 'fa-award text-xs' : 'fa-hourglass-half text-xs'"></i>
+                                        <span x-text="!hasSoftSkills() ? 'Menunggu Soft Skill' : (Number(nilaiAkhir()) >= 90 ? 'Sangat Memuaskan' : (Number(nilaiAkhir()) >= 80 ? 'Memuaskan' : (Number(nilaiAkhir()) >= 70 ? 'Cukup Memuaskan' : (Number(nilaiAkhir()) >= 60 ? 'Perlu Peningkatan' : (Number(nilaiAkhir()) >= 50 ? 'Perlu Pembinaan' : 'Perlu Perhatian Khusus')))))"></span>
                                     </span>
                                 </div>
 
@@ -266,35 +312,103 @@
                                                 <th class="py-2.5 px-3 text-[11px] sm:text-xs font-black text-slate-800 dark:text-slate-100 uppercase tracking-wider">Komponen</th>
                                                 <th class="py-2.5 px-2 text-[11px] sm:text-xs font-black text-slate-800 dark:text-slate-100 uppercase tracking-wider text-center">Bobot (%)</th>
                                                 <th class="py-2.5 px-2 text-[11px] sm:text-xs font-black text-slate-800 dark:text-slate-100 uppercase tracking-wider text-center">Nilai (100)</th>
-                                                <th class="py-2.5 px-3 text-[11px] sm:text-xs font-black text-slate-800 dark:text-slate-100 uppercase tracking-wider text-right">Kontribusi</th>
+                                                <th class="py-2.5 px-3 text-[11px] sm:text-xs font-black text-slate-800 dark:text-slate-100 uppercase tracking-wider text-right">Kalkulasi</th>
                                             </tr>
                                         </thead>
                                         <tbody class="divide-y divide-slate-100 dark:divide-slate-800 text-xs">
+                                            {{-- Baris 1: Nilai Tiket --}}
                                             <tr>
                                                 <td class="py-3.5 font-semibold text-slate-700 dark:text-slate-200">Nilai Tiket (Σ bobot × qty)</td>
                                                 <td class="py-3.5 font-bold text-slate-700 dark:text-slate-300 text-center">{{ $weights['ticket'] ?? 30 }}%</td>
-                                                <td class="py-3.5 font-bold text-slate-700 dark:text-slate-300 text-center">{{ (float)$nilai_tiket > 0 ? round((float)$nilai_tiket, 2) : 0 }}</td>
-                                                <td class="py-3.5 font-bold text-emerald-500 dark:text-emerald-400 text-right" x-text="kontribusiTiket() > 0 ? kontribusiTiket().toFixed(2) : 0">{{ (float)$nilai_tiket * (($weights['ticket'] ?? 30) / 100) > 0 ? round((float)$nilai_tiket * (($weights['ticket'] ?? 30) / 100), 2) : 0 }}</td>
+                                                <td class="py-3.5 font-bold text-slate-700 dark:text-slate-300 text-center font-mono" x-text="Number(nilaiTiket).toFixed(2)">{{ number_format((float)$nilai_tiket, 2) }}</td>
+                                                <td class="py-3.5 font-bold text-emerald-600 dark:text-emerald-400 text-right font-mono" x-text="kalkulasiTiket().toFixed(2)">{{ number_format($initialTicketKalkulasi, 2) }}</td>
                                             </tr>
+
+                                            {{-- Baris 2: Nilai Soft Skill --}}
                                             <tr>
-                                                <td class="py-3.5 font-semibold text-slate-700 dark:text-slate-200">Nilai Soft Skill</td>
+                                                <td class="py-3.5 font-semibold text-slate-700 dark:text-slate-200">
+                                                    <span>Nilai Soft Skill</span>
+                                                </td>
                                                 <td class="py-3.5 font-bold text-slate-700 dark:text-slate-300 text-center">{{ $weights['soft_skill'] ?? 40 }}%</td>
-                                                <td class="py-3.5 font-bold text-slate-700 dark:text-slate-300 text-center" x-text="softSkillAvg() > 0 ? softSkillAvg().toFixed(2) : 0"></td>
-                                                <td class="py-3.5 font-bold text-emerald-500 dark:text-emerald-400 text-right" x-text="kontribusiSoftSkill() > 0 ? kontribusiSoftSkill().toFixed(2) : 0"></td>
+                                                <td class="py-3.5 text-center">
+                                                    <div class="flex items-center justify-center">
+                                                        <template x-if="hasSoftSkills()">
+                                                            <span class="font-bold text-slate-700 dark:text-slate-300 font-mono" x-text="softSkillAvg().toFixed(2)"></span>
+                                                        </template>
+                                                        <template x-if="!hasSoftSkills()">
+                                                            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-200 dark:border-amber-800/80 shadow-2xs">
+                                                                <i class="fa-solid fa-circle-exclamation text-[10px]"></i> Belum diisi
+                                                            </span>
+                                                        </template>
+                                                        @if($initialSoftFilled == 0)
+                                                        <span x-cloak x-show="false" class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                                                            <i class="fa-solid fa-circle-exclamation text-[10px]"></i> Belum diisi
+                                                        </span>
+                                                        @else
+                                                        <span x-cloak x-show="false" class="font-bold text-slate-700 font-mono">{{ number_format($initialSoftAvg, 2) }}</span>
+                                                        @endif
+                                                    </div>
+                                                </td>
+                                                <td class="py-3.5 text-right font-mono">
+                                                    <div class="flex items-center justify-end">
+                                                        <template x-if="hasSoftSkills()">
+                                                            <span class="font-bold text-emerald-600 dark:text-emerald-400 font-mono" x-text="kalkulasiSoftSkill().toFixed(2)"></span>
+                                                        </template>
+                                                        <template x-if="!hasSoftSkills()">
+                                                            <span class="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-400 dark:text-slate-500 italic">
+                                                                <i class="fa-regular fa-clock text-[10px]"></i> Menunggu input
+                                                            </span>
+                                                        </template>
+                                                        @if($initialSoftFilled == 0)
+                                                        <span x-cloak x-show="false" class="text-[11px] font-semibold text-slate-400 italic">Menunggu input</span>
+                                                        @else
+                                                        <span x-cloak x-show="false" class="font-bold text-emerald-600 font-mono">{{ number_format($initialSoftKalkulasi, 2) }}</span>
+                                                        @endif
+                                                    </div>
+                                                </td>
                                             </tr>
+
+                                            {{-- Baris 3: Kepuasan Klien (Survey) --}}
                                             <tr>
                                                 <td class="py-3.5 font-semibold text-slate-700 dark:text-slate-200">Kepuasan Klien (Survey)</td>
                                                 <td class="py-3.5 font-bold text-slate-700 dark:text-slate-300 text-center">{{ $weights['client_review'] ?? 30 }}%</td>
-                                                <td class="py-3.5 font-bold text-slate-700 dark:text-slate-300 text-center" x-text="clientScore > 0 ? clientScore.toFixed(2) : 0"></td>
-                                                <td class="py-3.5 font-bold text-emerald-500 dark:text-emerald-400 text-right" x-text="kontribusiClient() > 0 ? kontribusiClient().toFixed(2) : 0"></td>
+                                                <td class="py-3.5 font-bold text-slate-700 dark:text-slate-300 text-center font-mono" x-text="Number(clientScore).toFixed(2)">{{ number_format((float)$client_score, 2) }}</td>
+                                                <td class="py-3.5 font-bold text-emerald-600 dark:text-emerald-400 text-right font-mono" x-text="kalkulasiClient().toFixed(2)">{{ number_format($initialClientKalkulasi, 2) }}</td>
                                             </tr>
                                         </tbody>
                                         <tfoot>
                                             <tr class="border-t-2 border-slate-200 dark:border-slate-700">
                                                 <td class="py-3.5 text-xs font-bold text-slate-800 dark:text-white">Nilai Akhir</td>
                                                 <td class="py-3.5 text-xs font-bold text-slate-800 dark:text-white text-center">{{ (float)($weights['ticket'] ?? 30) + (float)($weights['soft_skill'] ?? 40) + (float)($weights['client_review'] ?? 30) }}%</td>
-                                                <td class="py-3.5 text-xs font-bold text-slate-800 dark:text-white text-center" x-text="Number(nilaiAkhir()) > 0 ? nilaiAkhir() : 0"></td>
-                                                <td class="py-3.5 text-sm sm:text-base font-black text-slate-900 dark:text-white text-right font-mono" x-text="Number(nilaiAkhir()) > 0 ? nilaiAkhir() : 0"></td>
+                                                <td class="py-3.5 text-center">
+                                                    <template x-if="hasSoftSkills()">
+                                                        <span class="text-xs font-bold text-slate-800 dark:text-white font-mono" x-text="nilaiAkhir().toFixed(2)"></span>
+                                                    </template>
+                                                    <template x-if="!hasSoftSkills()">
+                                                        <span class="text-[10px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wide">Skala 100</span>
+                                                    </template>
+                                                    @if($initialSoftFilled > 0)
+                                                    <span x-cloak x-show="false" class="text-xs font-bold text-slate-800 font-mono">{{ number_format($initialNilaiAkhir, 2) }}</span>
+                                                    @endif
+                                                </td>
+                                                <td class="py-3.5 text-right font-mono">
+                                                    <div class="flex flex-col items-end">
+                                                        <div class="flex items-baseline gap-1">
+                                                            <span class="text-sm sm:text-base font-black text-slate-900 dark:text-white font-mono" x-text="nilaiAkhir().toFixed(2)">
+                                                                {{ number_format($initialNilaiAkhir, 2) }}
+                                                            </span>
+                                                            <span class="text-[10px] font-bold text-slate-400">/ 100</span>
+                                                        </div>
+                                                        <template x-if="!hasSoftSkills()">
+                                                            <span class="text-[9px] font-semibold text-amber-600 dark:text-amber-400">
+                                                                (Tiket + Klien)
+                                                            </span>
+                                                        </template>
+                                                        @if($initialSoftFilled == 0)
+                                                        <span x-cloak x-show="false" class="text-[9px] font-semibold text-amber-600">(Tiket + Klien)</span>
+                                                        @endif
+                                                    </div>
+                                                </td>
                                             </tr>
                                         </tfoot>
                                     </table>
@@ -571,7 +685,7 @@
                             <i class="fa-regular fa-file-lines"></i> Simpan Draft
                         </button>
                         <button type="submit" name="action" value="final" @click="if(!validateFinal($event)) return false;" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-semibold flex items-center gap-2 transition-all shadow-sm cursor-pointer">
-                            <i class="fa-regular fa-floppy-disk"></i> Simpan Nilai
+                            <i class="fa-solid fa-lock text-xs"></i> Simpan Nilai (Kunci Final)
                         </button>
                     </div>
 

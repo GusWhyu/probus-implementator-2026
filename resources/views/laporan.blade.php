@@ -28,47 +28,21 @@
                         @endif
                         <input type="hidden" name="period_type" value="{{ $periodType ?? '1m' }}">
 
-                        {{-- Unified Compact Period Bar (Responsive: stacks seamlessly on mobile, pill on desktop) --}}
-                        <div class="period-capsule flex flex-col sm:inline-flex sm:flex-row sm:items-center p-1.5 sm:p-1 rounded-2xl border shadow-xs w-full sm:w-auto gap-1.5 sm:gap-0">
-                            {{-- Interval Switcher (1 Bulan / 3 Bulan / 6 Bulan) --}}
-                            <div class="period-capsule-switcher grid grid-cols-3 sm:inline-flex items-center p-0.5 rounded-xl border w-full sm:w-auto shrink-0">
-                                <a href="{{ route('laporan', array_merge(request()->except(['period', 'period_type', 'month', 'year']), ['period_type' => '1m'])) }}" 
-                                   class="px-2.5 sm:px-3 py-1.5 text-xs font-bold rounded-lg text-center transition-all whitespace-nowrap {{ ($periodType ?? '1m') === '1m' ? 'period-capsule-btn-active font-extrabold' : 'period-capsule-btn-inactive' }}">
-                                    1 Bulan
-                                </a>
-                                <a href="{{ route('laporan', array_merge(request()->except(['period', 'period_type', 'month', 'year']), ['period_type' => '3m'])) }}" 
-                                   class="px-2.5 sm:px-3 py-1.5 text-xs font-bold rounded-lg text-center transition-all whitespace-nowrap {{ ($periodType ?? '1m') === '3m' ? 'period-capsule-btn-active font-extrabold' : 'period-capsule-btn-inactive' }}">
-                                    3 Bulan
-                                </a>
-                                <a href="{{ route('laporan', array_merge(request()->except(['period', 'period_type', 'month', 'year']), ['period_type' => '6m'])) }}" 
-                                   class="px-2.5 sm:px-3 py-1.5 text-xs font-bold rounded-lg text-center transition-all whitespace-nowrap {{ ($periodType ?? '1m') === '6m' ? 'period-capsule-btn-active font-extrabold' : 'period-capsule-btn-inactive' }}">
-                                    6 Bulan
-                                </a>
+                        {{-- Monthly Period Selector --}}
+                        <div class="period-capsule inline-flex items-center px-3.5 py-1.5 rounded-2xl border shadow-xs w-full sm:w-auto justify-between sm:justify-start gap-2 bg-white dark:bg-slate-900 border-slate-200/80 dark:border-slate-800">
+                            <div class="flex items-center gap-2 min-w-0">
+                                <i class="fa-regular fa-calendar text-blue-500 dark:text-blue-400 text-sm ml-0.5 pointer-events-none shrink-0"></i>
+                                <span class="text-xs font-semibold text-slate-400 dark:text-slate-400 shrink-0 hidden sm:inline">Periode:</span>
+                                <select name="period" onchange="this.form.submit()" 
+                                    class="period-select-clean bg-transparent border-0 text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-100 py-1 pl-0 pr-6 focus:ring-0 cursor-pointer w-full sm:w-auto">
+                                    @foreach($periodOptions['monthly'] ?? [] as $opt)
+                                        <option value="{{ $opt['value'] }}" {{ $opt['value'] === ($period ?? '') ? 'selected' : '' }} class="bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 py-1.5 font-semibold">
+                                            {{ $opt['label'] }}
+                                        </option>
+                                    @endforeach
+                                </select>
                             </div>
-
-                            {{-- Divider --}}
-                            <div class="hidden sm:block h-5 w-px bg-slate-200 dark:bg-slate-700 mx-2 shrink-0"></div>
-
-                            {{-- Dropdown for active interval --}}
-                            <div class="relative flex sm:inline-flex items-center justify-between sm:justify-start px-2.5 sm:px-0 sm:pr-2 w-full sm:w-auto min-w-0 bg-slate-100/60 dark:bg-slate-900/50 sm:bg-transparent dark:sm:bg-transparent rounded-xl sm:rounded-none py-1 sm:py-0 border border-slate-200/60 dark:border-slate-800/80 sm:border-0">
-                                <div class="flex items-center gap-1.5 min-w-0">
-                                    <i class="fa-regular fa-calendar text-blue-500 dark:text-blue-400 text-sm ml-0.5 sm:ml-1 mr-1 sm:mr-2 pointer-events-none shrink-0"></i>
-                                    @php
-                                        $activeOptions = ($periodType === '3m') 
-                                            ? ($periodOptions['quarterly'] ?? []) 
-                                            : (($periodType === '6m') ? ($periodOptions['semester'] ?? []) : ($periodOptions['monthly'] ?? []));
-                                    @endphp
-                                    <select name="period" onchange="this.form.submit()" 
-                                        class="period-select-clean bg-transparent border-0 text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-100 py-1 sm:py-1.5 pl-0 pr-6 focus:ring-0 cursor-pointer w-full sm:w-auto">
-                                        @foreach($activeOptions as $opt)
-                                            <option value="{{ $opt['value'] }}" {{ $opt['value'] === ($period ?? '') ? 'selected' : '' }} class="bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 py-1.5 font-semibold">
-                                                {{ $opt['label'] }}
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                                <i class="fa-solid fa-chevron-down absolute right-2.5 sm:right-2 top-1/2 -translate-y-1/2 text-slate-400 text-xs pointer-events-none"></i>
-                            </div>
+                            <i class="fa-solid fa-chevron-down text-slate-400 text-xs pointer-events-none mr-1"></i>
                         </div>
                     </form>
                 </div>
@@ -487,10 +461,8 @@
             <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 mb-6">
                 <form action="{{ route('laporan') }}" method="GET" class="flex flex-col sm:flex-row gap-4 flex-1">
                     <input type="hidden" name="period" value="{{ $period }}">
-                    <input type="hidden" name="period_type" value="{{ $periodType }}">
-                    <input type="hidden" name="period" value="{{ $period }}">
-                                                <input type="hidden" name="period_type" value="{{ $periodType }}">
-                                                <input type="hidden" name="department_id" value="{{ $selectedDeptId }}">
+                    <input type="hidden" name="period_type" value="1m">
+                    <input type="hidden" name="department_id" value="{{ $selectedDeptId }}">
                     <!-- Search -->
                     <div class="relative flex-1">
                         <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
@@ -647,8 +619,8 @@
                                 $isFinal = $penilaian && strtoupper($penilaian->status) === 'FINAL';
                                 $isDraft = $penilaian && strtoupper($penilaian->status) === 'DRAFT';
 
-                                $ticketClosedCount = $penilaian ? $penilaian->total_ticket : ($monthClosedTickets[$u->id] ?? 0);
-                                $ticketAdviceCount = $monthAdvisedTickets[$u->id] ?? ($penilaian->total_ticket_yang_di_advice ?? 0);
+                                $ticketClosedCount = $monthClosedTickets[$u->id] ?? ($penilaian ? (int)$penilaian->total_ticket : 0);
+                                $ticketAdviceCount = $monthAdvisedTickets[$u->id] ?? ($penilaian ? (int)$penilaian->total_ticket_yang_di_advice : 0);
 
                                 // Kepuasan Klien / CSAT Rating
                                 $csatScore = null;
@@ -780,8 +752,8 @@
                                 {{-- Status Penilaian --}}
                                 <td class="py-3 px-2.5 text-center whitespace-nowrap">
                                     @if($isFinal)
-                                        <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/80 shadow-2xs whitespace-nowrap" title="Sudah Dinilai (Final)">
-                                            <i class="fa-solid fa-circle-check text-[10px] text-emerald-500 dark:text-emerald-400"></i> Sudah Dinilai
+                                        <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/80 shadow-2xs whitespace-nowrap" title="Sudah Dinilai (Final Terkunci)">
+                                            <i class="fa-solid fa-lock text-[10px] text-emerald-500 dark:text-emerald-400"></i> Final (Terkunci)
                                         </span>
                                     @elseif($isDraft)
                                         <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800/80 shadow-2xs whitespace-nowrap" title="Terproses (Draft Soft Skill)">
@@ -798,15 +770,40 @@
                                 <td class="py-3 px-3 text-center whitespace-nowrap">
                                     <div class="flex items-center justify-center gap-1.5 whitespace-nowrap">
                                         @if($isFinal)
-                                            <a href="{{ route('rapor', ['id' => $u->id, 'period' => $period, 'period_type' => $periodType]) }}" class="px-3 py-1.5 text-xs font-bold text-blue-600 dark:text-blue-300 bg-blue-50/80 dark:bg-blue-950/50 border border-blue-200/90 dark:border-blue-800/80 rounded-xl hover:bg-blue-100 dark:hover:bg-blue-900/60 transition-all shadow-2xs whitespace-nowrap">Lihat Rapor</a>
-                                            <a href="{{ route('penilaian', ['id' => $u->id, 'period' => $period, 'period_type' => $periodType]) }}" class="w-7 h-7 flex items-center justify-center text-xs font-semibold text-slate-500 dark:text-slate-300 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700/70 transition-all shadow-2xs shrink-0" title="Edit Nilai">
-                                                <i class="fa-solid fa-pencil text-[11px]"></i>
+                                            <a href="{{ route('rapor', ['id' => $u->id, 'period' => $period, 'period_type' => $periodType]) }}" class="px-3 py-1.5 text-xs font-bold text-blue-600 dark:text-blue-300 bg-blue-50/80 dark:bg-blue-950/50 border border-blue-200/90 dark:border-blue-800/80 rounded-xl hover:bg-blue-100 dark:hover:bg-blue-900/60 transition-all shadow-2xs whitespace-nowrap flex items-center gap-1.5">
+                                                <i class="fa-regular fa-file-lines text-[10px]"></i> Lihat Rapor
                                             </a>
+                                            <!-- Tombol Buka Kunci (Unlock) khusus Admin/Supervisor -->
+                                            @if(in_array(auth()->user()->usertype ?? '', ['admin', 'supervisor']))
+                                            <form id="form-unlock-cs-{{ $u->id }}" action="{{ route('laporan.unlock', $u->id) }}" method="POST" class="inline">
+                                                @csrf
+                                                <input type="hidden" name="period" value="{{ $period }}">
+                                                <input type="hidden" name="period_type" value="{{ $periodType }}">
+                                                <input type="hidden" name="month" value="{{ $month }}">
+                                                <input type="hidden" name="year" value="{{ $year }}">
+                                                <button type="button" onclick="konfirmasiUnlock({{ $u->id }}, '{{ addslashes($u->name) }}')" class="p-1.5 text-xs font-semibold text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/50 border border-amber-200 dark:border-amber-800 rounded-xl hover:bg-amber-100 dark:hover:bg-amber-900/60 transition-all shadow-2xs whitespace-nowrap cursor-pointer" title="Buka Kunci Penilaian (Kembalikan ke status Draft untuk diedit/disinkronkan)">
+                                                    <i class="fa-solid fa-lock-open text-xs"></i>
+                                                </button>
+                                            </form>
+                                            @endif
                                         @elseif($isDraft)
-                                            <!-- Tombol Nilai untuk mengisi soft skill staff yang sudah di-sum (Proses hanya sekali) -->
+                                            <!-- Tombol Nilai untuk mengisi soft skill staff yang sudah di-sum -->
                                             <a href="{{ route('penilaian', ['id' => $u->id, 'period' => $period, 'period_type' => $periodType]) }}" class="px-3.5 py-1.5 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-sm shadow-blue-500/25 transition-all active:scale-95 flex items-center gap-1.5 cursor-pointer whitespace-nowrap" title="Lengkapi Evaluasi Soft Skill">
                                                 <i class="fa-solid fa-star text-[10px]"></i> Nilai
                                             </a>
+                                            <!-- Tombol Sinkronkan Tiket (per staf draft) -->
+                                            <form id="form-sync-cs-{{ $u->id }}" action="{{ route('laporan.proses_nilai', $u->id) }}" method="POST" class="inline">
+                                                @csrf
+                                                <input type="hidden" name="month" value="{{ $month }}">
+                                                <input type="hidden" name="year" value="{{ $year }}">
+                                                <input type="hidden" name="period" value="{{ $period }}">
+                                                <input type="hidden" name="period_type" value="{{ $periodType }}">
+                                                <input type="hidden" name="department_id" value="{{ $selectedDeptId }}">
+                                                <input type="hidden" name="force_sync" value="1">
+                                                <button type="button" onclick="konfirmasiSinkronUlangStaff({{ $u->id }}, '{{ addslashes($u->name) }}')" class="p-1.5 text-xs font-semibold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/50 border border-blue-200 dark:border-blue-800 rounded-xl hover:bg-blue-100 dark:hover:bg-blue-900/60 transition-all shadow-2xs whitespace-nowrap cursor-pointer" title="Sinkronkan Ulang Tiket Terbaru">
+                                                    <i class="fa-solid fa-rotate text-xs"></i>
+                                                </button>
+                                            </form>
                                         @else
                                             <!-- Tombol Proses Nilai untuk staff yang belum di-sum -->
                                             <form id="form-proses-cs-{{ $u->id }}" action="{{ route('laporan.proses_nilai', $u->id) }}" method="POST">
@@ -1303,6 +1300,109 @@
                         Swal.showLoading();
                     }
                 });
+                form.submit();
+            }
+        });
+    }
+
+    // --- Pop-up Konfirmasi Buka Kunci Penilaian (Kembali ke Draft) ---
+    function konfirmasiUnlock(userId, userName) {
+        const form = document.getElementById('form-unlock-cs-' + userId);
+        if (!form) return;
+        const th = getSwalTheme();
+        const periodeStr = @json($periodInfo['label'] ?? '');
+
+        Swal.fire({
+            title: 'Buka Kunci Penilaian?',
+            html: `
+                <div class="text-left space-y-3 mt-2 text-xs sm:text-sm leading-relaxed">
+                    <p style="color: ${th.isDark ? '#cbd5e1' : '#475569'}">
+                        Penilaian untuk staf ini saat ini berstatus <strong>FINAL (TERKUNCI)</strong>.
+                    </p>
+                    <div style="background: ${th.isDark ? '#0f172a' : '#f8fafc'}; border: 1px solid ${th.isDark ? '#334155' : '#e2e8f0'};" class="p-3.5 rounded-xl space-y-1.5 text-xs">
+                        <div class="flex justify-between items-center">
+                            <span style="color: #94a3b8;">Staff:</span>
+                            <span class="font-extrabold text-amber-500">${userName}</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span style="color: #94a3b8;">Periode:</span>
+                            <span class="font-bold" style="color: ${th.isDark ? '#f8fafc' : '#0f172a'};">${periodeStr}</span>
+                        </div>
+                    </div>
+                    <div class="p-2.5 rounded-xl text-xs flex items-center gap-2" style="background: ${th.isDark ? 'rgba(245, 158, 11, 0.15)' : '#fffbeb'}; border: 1px solid ${th.isDark ? 'rgba(245, 158, 11, 0.3)' : '#fde68a'}; color: ${th.isDark ? '#fbbf24' : '#b45309'};">
+                        <i class="fa-solid fa-lock-open text-base shrink-0"></i>
+                        <span>Membuka kunci akan mengubah status menjadi <strong>DRAFT</strong> sehingga nilai dapat direvisi atau disinkronkan kembali.</span>
+                    </div>
+                </div>
+            `,
+            icon: 'warning',
+            iconColor: '#f59e0b',
+            showCancelButton: true,
+            confirmButtonColor: '#d97706',
+            cancelButtonColor: th.cancelButtonColor,
+            confirmButtonText: '<i class="fa-solid fa-lock-open mr-1"></i> Ya, Buka Kunci',
+            cancelButtonText: 'Batal',
+            background: th.background,
+            color: th.color,
+            reverseButtons: true,
+            customClass: {
+                popup: 'rounded-2xl border border-slate-200 dark:border-slate-700 shadow-2xl p-6',
+                confirmButton: 'px-5 py-2.5 rounded-xl font-bold shadow-md shadow-amber-500/25 text-sm',
+                cancelButton: 'px-4 py-2.5 rounded-xl font-semibold text-sm'
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                form.submit();
+            }
+        });
+    }
+
+    // --- Pop-up Konfirmasi Sinkronisasi Ulang Tiket per Staff (Draft) ---
+    function konfirmasiSinkronUlangStaff(userId, userName) {
+        const form = document.getElementById('form-sync-cs-' + userId);
+        if (!form) return;
+        const th = getSwalTheme();
+        const periodeStr = @json($periodInfo['label'] ?? '');
+
+        Swal.fire({
+            title: 'Sinkronkan Tiket?',
+            html: `
+                <div class="text-left space-y-3 mt-2 text-xs sm:text-sm leading-relaxed">
+                    <p style="color: ${th.isDark ? '#cbd5e1' : '#475569'}">
+                        Tarik dan perbarui akumulasi tiket staf:
+                    </p>
+                    <div style="background: ${th.isDark ? '#0f172a' : '#f8fafc'}; border: 1px solid ${th.isDark ? '#334155' : '#e2e8f0'};" class="p-3.5 rounded-xl space-y-1.5 text-xs">
+                        <div class="flex justify-between items-center">
+                            <span style="color: #94a3b8;">Staff:</span>
+                            <span class="font-extrabold text-blue-500">${userName}</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span style="color: #94a3b8;">Periode:</span>
+                            <span class="font-bold" style="color: ${th.isDark ? '#f8fafc' : '#0f172a'};">${periodeStr}</span>
+                        </div>
+                    </div>
+                    <p class="text-[11px] text-slate-400">
+                        * Nilai soft skill yang pernah Anda input akan tetap dipertahankan.
+                    </p>
+                </div>
+            `,
+            icon: 'question',
+            iconColor: '#3b82f6',
+            showCancelButton: true,
+            confirmButtonColor: '#2563eb',
+            cancelButtonColor: th.cancelButtonColor,
+            confirmButtonText: '<i class="fa-solid fa-rotate mr-1"></i> Ya, Sinkronkan',
+            cancelButtonText: 'Batal',
+            background: th.background,
+            color: th.color,
+            reverseButtons: true,
+            customClass: {
+                popup: 'rounded-2xl border border-slate-200 dark:border-slate-700 shadow-2xl p-6',
+                confirmButton: 'px-5 py-2.5 rounded-xl font-bold shadow-md shadow-blue-500/25 text-sm',
+                cancelButton: 'px-4 py-2.5 rounded-xl font-semibold text-sm'
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
                 form.submit();
             }
         });

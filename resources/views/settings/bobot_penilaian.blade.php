@@ -39,19 +39,24 @@
             
             <!-- Header Section -->
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div>
-                    <div class="flex items-center gap-1.5 text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">
-                        <span class="text-slate-400 dark:text-slate-500">Advanced Settings</span>
-                        <i class="fa-solid fa-chevron-right text-[8px] text-slate-400 dark:text-slate-500"></i>
-                        <span class="text-blue-600 dark:text-blue-400">Master Bobot Penilaian</span>
+                <div class="flex items-center gap-4">
+                    <a href="{{ url()->previous() }}" class="w-10 h-10 bg-white border border-slate-200 hover:bg-slate-50 flex items-center justify-center rounded-xl text-slate-600 transition-colors shadow-sm shrink-0">
+                        <i class="fa-solid fa-arrow-left"></i>
+                    </a>
+                    <div>
+                        <div class="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider mb-1 flex items-center gap-1.5">
+                            <span>Advanced Settings</span>
+                            <i class="fa-solid fa-chevron-right text-[8px] text-slate-300"></i>
+                            <span class="text-blue-600">Bobot Penilaian</span>
+                        </div>
+                        <h2 class="text-2xl font-bold text-slate-800 flex items-center gap-2.5">
+                            <i class="fa-solid fa-scale-balanced text-blue-600"></i>
+                            Master Data: Bobot Penilaian
+                        </h2>
+                        <p class="text-sm text-slate-500 font-medium mt-1">
+                            Kelola persentase bobot komponen penilaian kinerja staff untuk form penilaian dan rapor kinerja.
+                        </p>
                     </div>
-                    <h1 class="text-2xl font-extrabold text-slate-800 dark:text-slate-100 tracking-tight flex items-center gap-2.5">
-                        <i class="fa-solid fa-scale-balanced text-blue-600 dark:text-blue-400"></i>
-                        <span>Rincian Perhitungan Nilai Berdasarkan Bobot</span>
-                    </h1>
-                    <p class="text-sm text-slate-500 dark:text-slate-400 font-medium mt-1">
-                        Kelola persentase bobot komponen penilaian kinerja staff. Nilai bobot ini digunakan secara otomatis pada form penilaian, rekap laporan, dan rapor kinerja.
-                    </p>
                 </div>
 
                 <div class="flex items-center gap-2 self-start sm:self-auto">
@@ -324,7 +329,7 @@
                                         <th class="py-3 px-3 text-[10px] sm:text-[11px] font-black uppercase tracking-wider">KOMPONEN</th>
                                         <th class="py-3 px-2 text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-center">BOBOT</th>
                                         <th class="py-3 px-2 text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-center">NILAI</th>
-                                        <th class="py-3 px-3 text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-right">KONTRIBUSI</th>
+                                        <th class="py-3 px-3 text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-right">KALKULASI</th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-slate-100 dark:divide-slate-800 text-xs">

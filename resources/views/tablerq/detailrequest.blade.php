@@ -885,12 +885,30 @@
                             </label>
                             <div class="relative">
                                 <select name="tipe_penanganan" required class="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 p-3 pl-3.5 pr-8 outline-none font-bold appearance-none shadow-sm cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
-                                    <option value="Office" {{ ($datarq->tipe_penanganan ?? 'Office') == 'Office' ? 'selected' : '' }}>Office</option>
-                                    <option value="On Site" {{ ($datarq->tipe_penanganan ?? '') == 'On Site' ? 'selected' : '' }}>On Site</option>
-                                    <option value="Online" {{ in_array($datarq->tipe_penanganan ?? '', ['Online', 'Remote', 'Remote / Online']) ? 'selected' : '' }}>Online</option>
-                                    <option value="Piket" {{ ($datarq->tipe_penanganan ?? '') == 'Piket' ? 'selected' : '' }}>Piket</option>
-                                    <option value="TRAINING / Retraining ONLINE" {{ ($datarq->tipe_penanganan ?? '') == 'TRAINING / Retraining ONLINE' ? 'selected' : '' }}>TRAINING / Retraining ONLINE</option>
-                                    <option value="Training 4 Traner" {{ in_array($datarq->tipe_penanganan ?? '', ['Training 4 Traner', 'Training 4 Trainer']) ? 'selected' : '' }}>Training 4 Traner</option>
+                                    @php
+                                        $selectedTipeModal = $datarq->tipe_penanganan ?? 'Office';
+                                        $tpList = $tipePenanganans ?? \App\Models\TipePenanganan::where('is_active', true)->orderBy('nama')->get();
+                                        $foundModalSelected = false;
+                                    @endphp
+                                    @if(isset($tpList) && $tpList->count() > 0)
+                                        @foreach($tpList as $tp)
+                                            @php
+                                                $isMatch = ($selectedTipeModal == $tp->nama);
+                                                if ($isMatch) $foundModalSelected = true;
+                                            @endphp
+                                            <option value="{{ $tp->nama }}" {{ $isMatch ? 'selected' : '' }}>{{ $tp->nama }}</option>
+                                        @endforeach
+                                        @if(!$foundModalSelected && !empty($selectedTipeModal))
+                                            <option value="{{ $selectedTipeModal }}" selected>{{ $selectedTipeModal }}</option>
+                                        @endif
+                                    @else
+                                        <option value="Office" {{ $selectedTipeModal == 'Office' ? 'selected' : '' }}>Office</option>
+                                        <option value="On Site" {{ $selectedTipeModal == 'On Site' ? 'selected' : '' }}>On Site</option>
+                                        <option value="Online" {{ in_array($selectedTipeModal, ['Online', 'Remote', 'Remote / Online']) ? 'selected' : '' }}>Online</option>
+                                        <option value="Piket" {{ $selectedTipeModal == 'Piket' ? 'selected' : '' }}>Piket</option>
+                                        <option value="TRAINING / Retraining ONLINE" {{ $selectedTipeModal == 'TRAINING / Retraining ONLINE' ? 'selected' : '' }}>TRAINING / Retraining ONLINE</option>
+                                        <option value="Training 4 Traner" {{ in_array($selectedTipeModal, ['Training 4 Traner', 'Training 4 Trainer']) ? 'selected' : '' }}>Training 4 Traner</option>
+                                    @endif
                                 </select>
                                 <i class="fa-solid fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-[10px] pointer-events-none"></i>
                             </div>

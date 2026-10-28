@@ -7,7 +7,15 @@
                     <i class="fa-solid fa-arrow-left"></i>
                 </a>
                 <div>
-                    <h2 class="text-2xl font-bold text-slate-800">Master Data: Tag</h2>
+                    <div class="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider mb-1 flex items-center gap-1.5">
+                        <span>Advanced Settings</span>
+                        <i class="fa-solid fa-chevron-right text-[8px] text-slate-300"></i>
+                        <span class="text-blue-600">Tag List</span>
+                    </div>
+                    <h2 class="text-2xl font-bold text-slate-800 flex items-center gap-2.5">
+                        <i class="fa-solid fa-tags text-blue-600"></i>
+                        Master Data: Tag
+                    </h2>
                     <p class="text-slate-500 text-sm mt-1">Kelola daftar tag yang digunakan dalam sistem.</p>
                 </div>
             </div>

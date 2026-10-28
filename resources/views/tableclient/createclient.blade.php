@@ -7,6 +7,11 @@
                     <i class="fa-solid fa-arrow-left"></i>
                 </a>
                 <div>
+                    <div class="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider mb-1 flex items-center gap-1.5">
+                        <a href="{{ route('client') }}" class="hover:text-blue-600 transition-colors">Outlet List</a>
+                        <i class="fa-solid fa-chevron-right text-[8px] text-slate-300"></i>
+                        <span class="text-blue-600">Tambah Baru</span>
+                    </div>
                     <h2 class="text-2xl font-bold text-slate-800">Tambah Outlet Baru</h2>
                     <p class="text-slate-500 text-sm mt-1">Buat data outlet (klien) baru dalam sistem.</p>
                 </div>

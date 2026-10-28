@@ -210,6 +210,9 @@
             <x-responsive-nav-link :href="route('client')" :active="request()->routeIs('client')">
                 {{ __('Outlet List') }}
             </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('tipepenanganan.index')" :active="request()->routeIs('tipepenanganan.*')">
+                {{ __('Tipe Penanganan') }}
+            </x-responsive-nav-link>
             @endcan
             @can('aspv')
             <x-responsive-nav-link :href="route('user')" :active="request()->routeIs('user')">

@@ -187,8 +187,21 @@
             html.dark .border-slate-50,
             html.dark .border-slate-100,
             html.dark .border-slate-200,
-            html.dark .border-slate-300 {
+            html.dark .border-slate-300,
+            html.dark [class*="border-slate-"],
+            html.dark [class*="border-gray-"],
+            html.dark [class*="border-blue-100"],
+            html.dark [class*="border-blue-200"],
+            html.dark [class*="border-emerald-100"],
+            html.dark [class*="border-emerald-200"],
+            html.dark [class*="border-indigo-100"],
+            html.dark [class*="border-indigo-200"] {
                 border-color: #334155 !important;
+            }
+            html.dark .dark\:border-transparent,
+            html.dark [class*="dark:border-transparent"],
+            html.dark [class*="dark:!border-transparent"] {
+                border-color: transparent !important;
             }
             html.dark .divide-slate-50 > :not([hidden]) ~ :not([hidden]),
             html.dark .divide-slate-100 > :not([hidden]) ~ :not([hidden]),

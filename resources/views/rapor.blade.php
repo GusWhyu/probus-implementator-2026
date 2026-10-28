@@ -35,6 +35,7 @@
         $tiketProgress = isset($tiket_progress) ? (int)$tiket_progress : 0;
         $rataRataWaktu = $rapor ? ($rapor->rata_rata_waktu ?: '-') : '-';
         $cRate = isset($completion_rate) ? $completion_rate : ($totalTicket > 0 ? round(($tiketSelesai / $totalTicket) * 100, 1) : 0);
+        $tiketAdvice = isset($tiket_di_advice) ? (int)$tiket_di_advice : ($rapor ? (int)($rapor->total_ticket_yang_di_advice ?: 0) : 0);
         if ($scoreTotal >= 90) {
             $predikat = 'Sangat Memuaskan';
             $badgeClass = 'bg-teal-50 text-teal-700 border-teal-200';
@@ -92,11 +93,8 @@
                         <div class="flex flex-col">
                             <div class="flex items-center gap-1.5">
                                 <span class="font-extrabold text-slate-800 dark:text-slate-100 text-xs sm:text-sm">{{ $periodInfo['label'] }}</span>
-                                @php
-                                    $intervalLabel = ($periodType === '3m') ? '3 Bulan' : (($periodType === '6m') ? '6 Bulan' : '1 Bulan');
-                                @endphp
                                 <span class="text-[10px] font-bold px-1.5 py-0.5 bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 rounded-md border border-blue-200/60 dark:border-blue-900/40">
-                                    {{ $intervalLabel }}
+                                    Bulanan
                                 </span>
                             </div>
                             <span class="text-[10px] text-slate-400 dark:text-slate-500 font-medium">Cut-off: {{ $periodInfo['cutoff_label'] ?? \Carbon\Carbon::createFromDate($year, $month, 1)->endOfMonth()->locale('id')->translatedFormat('d F Y') }}</span>
@@ -244,8 +242,8 @@
                 </div>
             </div>
 
-            <!-- Ticket Stats Row (Mobile-friendly 2x2 Grid on Mobile, 4 Columns on Desktop) -->
-            <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 mb-4">
+            <!-- Ticket Stats Row (Mobile-friendly Grid with Advised Tickets) -->
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 mb-4">
                 <div class="bg-white dark:bg-slate-800 rounded-2xl p-3.5 sm:p-5 border border-slate-200 dark:border-slate-700 shadow-sm flex items-center gap-2.5 sm:gap-4 overflow-hidden">
                     <div class="w-9 h-9 sm:w-12 sm:h-12 rounded-xl bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 border border-blue-100 dark:border-blue-900/50 flex items-center justify-center shrink-0">
                         <i class="fa-solid fa-ticket text-sm sm:text-lg"></i>
@@ -274,6 +272,17 @@
                     </div>
                 </div>
 
+                <!-- Tiket Di-Advice -->
+                <div class="bg-white dark:bg-slate-800 rounded-2xl p-3.5 sm:p-5 border border-slate-200 dark:border-slate-700 shadow-sm flex items-center gap-2.5 sm:gap-4 overflow-hidden">
+                    <div class="w-9 h-9 sm:w-12 sm:h-12 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 border border-indigo-100 dark:border-indigo-900/50 flex items-center justify-center shrink-0">
+                        <i class="fa-solid fa-handshake-angle text-sm sm:text-lg"></i>
+                    </div>
+                    <div class="min-w-0">
+                        <span class="text-[10px] sm:text-[11px] font-bold text-slate-400 uppercase tracking-wider block truncate">Tiket Di-Advice</span>
+                        <span class="text-lg sm:text-2xl font-extrabold text-slate-800 dark:text-slate-100 leading-tight">{{ $tiketAdvice }}</span>
+                    </div>
+                </div>
+
                 <div class="bg-white dark:bg-slate-800 rounded-2xl p-3.5 sm:p-5 border border-slate-200 dark:border-slate-700 shadow-sm flex items-center gap-2.5 sm:gap-4 overflow-hidden">
                     <div class="w-9 h-9 sm:w-12 sm:h-12 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 border border-amber-100 dark:border-amber-900/50 flex items-center justify-center shrink-0">
                         <i class="fa-solid fa-arrows-rotate text-sm sm:text-lg"></i>
@@ -285,7 +294,7 @@
                 </div>
 
                 <div class="bg-white dark:bg-slate-800 rounded-2xl p-3.5 sm:p-5 border border-slate-200 dark:border-slate-700 shadow-sm flex items-center gap-2.5 sm:gap-4 overflow-hidden">
-                    <div class="w-9 h-9 sm:w-12 sm:h-12 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 border border-indigo-100 dark:border-indigo-900/50 flex items-center justify-center shrink-0">
+                    <div class="w-9 h-9 sm:w-12 sm:h-12 rounded-xl bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 border border-purple-100 dark:border-purple-900/50 flex items-center justify-center shrink-0">
                         <i class="fa-regular fa-clock text-sm sm:text-lg"></i>
                     </div>
                     <div class="min-w-0">
@@ -400,7 +409,7 @@
                                     <th class="py-2.5 px-2.5 text-[11px] sm:text-xs font-black text-slate-800 dark:text-slate-100 uppercase tracking-wider">Komponen</th>
                                     <th class="py-2.5 px-1.5 text-[11px] sm:text-xs font-black text-slate-800 dark:text-slate-100 uppercase tracking-wider text-center">Bobot</th>
                                     <th class="py-2.5 px-1.5 text-[11px] sm:text-xs font-black text-slate-800 dark:text-slate-100 uppercase tracking-wider text-center">Nilai</th>
-                                    <th class="py-2.5 px-2 text-[11px] sm:text-xs font-black text-slate-800 dark:text-slate-100 uppercase tracking-wider text-right">Kontribusi</th>
+                                    <th class="py-2.5 px-2 text-[11px] sm:text-xs font-black text-slate-800 dark:text-slate-100 uppercase tracking-wider text-right">Kalkulasi</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-slate-100 dark:divide-slate-700/60">

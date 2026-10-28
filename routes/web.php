@@ -45,6 +45,7 @@ Route::get('/laporan', [HomeController::class, 'laporan'])->middleware(['auth'])
 Route::get('/laporan/export-excel', [HomeController::class, 'exportExcel'])->middleware(['auth'])->name('laporan.export_excel');
 Route::post('/laporan/{id}/proses-nilai', [HomeController::class, 'prosesNilai'])->middleware(['auth'])->name('laporan.proses_nilai');
 Route::post('/laporan/proses-semua-nilai', [HomeController::class, 'prosesSemuaNilai'])->middleware(['auth'])->name('laporan.proses_semua');
+Route::post('/laporan/{id}/unlock', [HomeController::class, 'unlockPenilaian'])->middleware(['auth'])->name('laporan.unlock');
 Route::get('/penilaian/{id}', [HomeController::class, 'penilaian'])->middleware(['auth'])->name('penilaian');
 Route::post('/penilaian/{id}', [HomeController::class, 'storePenilaian'])->middleware(['auth'])->name('penilaian.store');
 Route::get('/rapor/{id}', [HomeController::class, 'rapor'])->middleware(['auth'])->name('rapor');
@@ -211,6 +212,15 @@ Route::middleware(['auth', 'can:aspv'])->group(function () {
     Route::get('/pengaturan/bobot-penilaian', [\App\Http\Controllers\PerformanceWeightController::class, 'index'])->name('bobot-penilaian.index');
     Route::post('/pengaturan/bobot-penilaian', [\App\Http\Controllers\PerformanceWeightController::class, 'update'])->name('bobot-penilaian.update');
     Route::post('/pengaturan/bobot-penilaian/reset', [\App\Http\Controllers\PerformanceWeightController::class, 'resetDefault'])->name('bobot-penilaian.reset');
+
+    // Settings -> Master Data Tipe Penanganan
+    Route::get('/pengaturan/tipe-penanganan', [\App\Http\Controllers\TipePenangananController::class, 'index'])->name('tipepenanganan.index');
+    Route::get('/pengaturan/tipe-penanganan/create', [\App\Http\Controllers\TipePenangananController::class, 'create'])->name('tipepenanganan.create');
+    Route::post('/pengaturan/tipe-penanganan', [\App\Http\Controllers\TipePenangananController::class, 'store'])->name('tipepenanganan.store');
+    Route::get('/pengaturan/tipe-penanganan/{id}/edit', [\App\Http\Controllers\TipePenangananController::class, 'edit'])->name('tipepenanganan.edit');
+    Route::put('/pengaturan/tipe-penanganan/{id}', [\App\Http\Controllers\TipePenangananController::class, 'update'])->name('tipepenanganan.update');
+    Route::delete('/pengaturan/tipe-penanganan/{id}', [\App\Http\Controllers\TipePenangananController::class, 'destroy'])->name('tipepenanganan.destroy');
+    Route::post('/pengaturan/tipe-penanganan/{id}/toggle-status', [\App\Http\Controllers\TipePenangananController::class, 'toggleStatus'])->name('tipepenanganan.toggle');
 });
 
 // Review Routes (Public)
