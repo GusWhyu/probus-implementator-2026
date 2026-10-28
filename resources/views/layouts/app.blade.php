@@ -32,6 +32,7 @@
         <script type="text/javascript" src="https://unpkg.com/trix@2.0.8/dist/trix.umd.min.js"></script>
         <!-- Quill 2.0 Modern Rich Text Editor -->
         <link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css" rel="stylesheet">
+        <script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js"></script>
         <!-- SweetAlert2 Reliable Global CDN -->
         <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
         <script src="{{ asset('js/app.js') }}"></script>
@@ -1209,7 +1210,30 @@
                 }
 
                 if (typeof Quill === 'undefined') {
-                    console.error('Quill is not loaded');
+                    // Tampilkan fallback textarea sementara agar tidak kosong/blank
+                    if (!container.querySelector('textarea')) {
+                        const fallbackTa = document.createElement('textarea');
+                        fallbackTa.className = 'w-full h-full min-h-[220px] p-4 bg-transparent text-slate-800 dark:text-slate-100 outline-none border border-slate-200 dark:border-slate-700 rounded-xl font-sans text-sm resize-y leading-relaxed';
+                        fallbackTa.placeholder = placeholder || 'Tuliskan deskripsi lengkap di sini...';
+                        fallbackTa.value = hiddenInput.value || '';
+                        fallbackTa.addEventListener('input', () => {
+                            hiddenInput.value = fallbackTa.value;
+                        });
+                        container.innerHTML = '';
+                        container.appendChild(fallbackTa);
+                    }
+
+                    // Muat Quill secara dinamis jika belum ada
+                    if (!document.getElementById('quill-dynamic-cdn')) {
+                        const s = document.createElement('script');
+                        s.id = 'quill-dynamic-cdn';
+                        s.src = 'https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js';
+                        s.onload = function() {
+                            container.innerHTML = '';
+                            window.setupEnhancedEditor(containerId, inputId, placeholder);
+                        };
+                        document.head.appendChild(s);
+                    }
                     return null;
                 }
 
