@@ -377,9 +377,14 @@
                                 </div>
                             </div>
                             @if ($datarq->advisor)
-                            <div class="text-right shrink-0 hidden sm:block">
-                                <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Advisor</span>
-                                <span class="text-xs font-bold text-slate-700 dark:text-slate-200">{{ $datarq->advisor->name }}</span>
+                            <div class="hidden sm:flex items-center gap-2.5 bg-white dark:bg-slate-800/80 px-3 py-1.5 rounded-xl border border-slate-200/80 dark:border-slate-700/80 shadow-2xs shrink-0">
+                                <div class="w-8 h-8 rounded-lg bg-indigo-50 dark:bg-indigo-950/70 border border-indigo-200/60 dark:border-indigo-800/60 flex items-center justify-center text-indigo-600 dark:text-indigo-400 shrink-0 font-bold text-xs">
+                                    <i class="fa-solid fa-user-tie text-xs"></i>
+                                </div>
+                                <div class="text-left min-w-0">
+                                    <span class="text-[9px] font-black uppercase tracking-wider text-indigo-600 dark:text-indigo-400 block leading-tight">Advisor</span>
+                                    <span class="text-xs font-bold text-slate-700 dark:text-slate-200 block truncate max-w-[150px]">{{ $datarq->advisor->name }}</span>
+                                </div>
                             </div>
                             @endif
                         </div>
