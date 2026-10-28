@@ -130,7 +130,7 @@
     <footer class="mt-auto border-t border-slate-200/80 dark:border-slate-800/80 bg-white/50 dark:bg-[#0f172a]/50 py-6">
         <div class="w-full max-w-[1920px] mx-auto px-3 sm:px-5 md:px-8 lg:px-10 xl:px-12 2xl:px-16 text-center text-xs text-slate-500 dark:text-slate-400 space-y-1">
             <p class="font-semibold text-slate-700 dark:text-slate-300">
-                &copy; {{ date('Y') }} PT. Probus System. Seluruh Hak Cipta Dilindungi.
+                &copy; {{ date('Y') }} CV. Mitra Solusi Mandiri (Probussystem). Seluruh Hak Cipta Dilindungi.
             </p>
             <p class="text-[11px]">
                 Informasi status disinkronkan secara langsung dari sistem kerja tim implementator & support Probus.

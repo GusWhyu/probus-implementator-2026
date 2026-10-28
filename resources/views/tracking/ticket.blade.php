@@ -310,55 +310,6 @@
             </div>
             @endif
 
-            <!-- Read-Only Discussion History Card -->
-            <div class="bg-white dark:bg-[#151f38] rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 border border-slate-200/80 dark:border-slate-800 shadow-sm">
-                <div class="flex items-center justify-between mb-4">
-                    <div class="flex items-center gap-2.5">
-                        <div class="w-8 h-8 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
-                            <i class="fa-regular fa-comments text-sm"></i>
-                        </div>
-                        <h3 class="text-xs font-extrabold uppercase tracking-widest text-slate-400 dark:text-slate-500">Riwayat Diskusi</h3>
-                    </div>
-                    <span class="px-2.5 py-1 rounded-full text-[11px] font-extrabold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
-                        {{ count($komentar) }} Pesan
-                    </span>
-                </div>
-
-                <div class="space-y-4 max-h-[450px] overflow-y-auto pr-1">
-                    @if (count($komentar) > 0)
-                        @foreach ($komentar as $komen)
-                        <div class="flex gap-3 sm:gap-3.5 items-start">
-                            <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300 font-bold text-xs shrink-0 overflow-hidden shadow-2xs">
-                                <img src="{{ $komen->user ? $komen->user->avatar_url : 'https://ui-avatars.com/api/?name=' . urlencode($komen->user->name ?? 'User') }}" alt="{{ $komen->user->name ?? '' }}" class="w-full h-full object-cover">
-                            </div>
-                            <div class="flex-1 bg-slate-50 dark:bg-slate-900/60 rounded-xl sm:rounded-2xl p-3.5 sm:p-4 border border-slate-100 dark:border-slate-800">
-                                <div class="flex items-center justify-between gap-2 mb-1">
-                                    <span class="font-bold text-xs text-slate-900 dark:text-slate-100">{{ $komen->user->name ?? 'Petugas Support' }}</span>
-                                    <span class="text-[10px] text-slate-400">{{ $komen->created_at ? $komen->created_at->diffForHumans() : '-' }}</span>
-                                </div>
-                                <div class="text-xs text-slate-700 dark:text-slate-300 leading-relaxed break-words whitespace-pre-line">
-                                    {!! trim($komen->body ?? $komen->message) !!}
-                                </div>
-                            </div>
-                        </div>
-                        @endforeach
-                    @else
-                        <div class="text-center py-8">
-                            <div class="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 mx-auto mb-2">
-                                <i class="fa-regular fa-comment-dots text-lg"></i>
-                            </div>
-                            <p class="text-xs font-bold text-slate-500 dark:text-slate-400">Belum ada percakapan diskusi pada tiket ini.</p>
-                            <p class="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">Seluruh pembaruan langsung tercatat pada riwayat penanganan sistem.</p>
-                        </div>
-                    @endif
-                </div>
-
-                <!-- Read-only notice bar -->
-                <div class="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-center gap-2 text-[11px] text-slate-400">
-                    <i class="fa-solid fa-lock text-[10px]"></i>
-                    <span>Tampilan publik: Pesan diskusi hanya dapat dilihat oleh klien (read-only).</span>
-                </div>
-            </div>
 
         </div>
 
