@@ -64,7 +64,7 @@
                         class="px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/60 text-slate-700 dark:text-slate-200 font-bold rounded-xl text-sm shadow-xs flex items-center justify-center gap-2 transition-all active:scale-95 cursor-pointer" 
                         title="Salin template chat lengkap untuk dikirimkan ke client">
                         <i class="fa-regular fa-copy text-blue-500 dark:text-blue-400"></i>
-                        <span>Salin Link</span>
+                        <span>Salin Pesan</span>
                     </button>
                     <a href="{{ $waShareTrackingUrl }}" target="_blank" 
                         class="px-3.5 py-2.5 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/80 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 font-bold rounded-xl text-sm shadow-xs flex items-center justify-center gap-1.5 transition-all active:scale-95 cursor-pointer" 
@@ -2089,7 +2089,7 @@
                 if (isIconOnly) {
                     btn.innerHTML = '<i class="fa-solid fa-check text-[10px] text-emerald-500"></i>';
                 } else {
-                    btn.innerHTML = '<i class="fa-solid fa-check text-emerald-500"></i> <span class="text-emerald-600 dark:text-emerald-400">Template Disalin!</span>';
+                    btn.innerHTML = '<i class="fa-solid fa-check text-emerald-500"></i> <span class="text-emerald-600 dark:text-emerald-400">Pesan Disalin!</span>';
                 }
                 btn.classList.add('border-emerald-400', 'dark:border-emerald-600');
                 setTimeout(() => {
