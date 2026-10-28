@@ -25,19 +25,19 @@
             <div class="flex items-center justify-between gap-2.5 sm:gap-4">
                 <!-- Sisi Kiri: Petugas Penanganan -->
                 <div class="flex items-center gap-2.5 sm:gap-4 min-w-0 flex-1">
-                    <!-- Foto Profil / Avatar Petugas (48px di mobile, 60px di desktop) -->
-                    <div class="relative shrink-0 w-12 h-12 sm:w-15 sm:h-15">
-                        <div class="w-12 h-12 sm:w-15 sm:h-15 rounded-xl sm:rounded-2xl overflow-hidden ring-2 ring-blue-500/25 dark:ring-blue-500/40 shadow-xs bg-slate-200 dark:bg-slate-800 flex items-center justify-center">
+                    <!-- Foto Profil / Avatar Petugas (Proporsional dengan tinggi teks di sampingnya) -->
+                    <div class="relative shrink-0 w-14 h-14 sm:w-[68px] sm:h-[68px]">
+                        <div class="w-14 h-14 sm:w-[68px] sm:h-[68px] rounded-2xl overflow-hidden ring-2 ring-blue-500/25 dark:ring-blue-500/40 shadow-xs bg-slate-200 dark:bg-slate-800 flex items-center justify-center">
                             @if ($ticket->user)
                                 <img src="{{ $ticket->user->avatar_url }}" alt="{{ $ticket->user->name }}" class="w-full h-full object-cover">
                             @else
                                 <div class="w-full h-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400">
-                                    <i class="fa-solid fa-user-clock text-lg sm:text-xl"></i>
+                                    <i class="fa-solid fa-user-clock text-xl sm:text-2xl"></i>
                                 </div>
                             @endif
                         </div>
                         @if ($ticket->user)
-                        <span class="absolute -bottom-1 -right-1 w-4.5 h-4.5 sm:w-5 sm:h-5 rounded-full {{ $isClosed ? 'bg-emerald-500' : ($statusUpper === 'PROGRESS' ? 'bg-amber-500' : 'bg-blue-500') }} border-2 border-white dark:border-[#151f38] flex items-center justify-center text-[8px] sm:text-[9px] text-white shadow-xs" title="{{ $isClosed ? 'Tiket Telah Selesai' : ($statusUpper === 'PROGRESS' ? 'Sedang Dikerjakan' : 'Tiket Diterima') }}">
+                        <span class="absolute -bottom-1 -right-1 w-5 h-5 sm:w-5.5 sm:h-5.5 rounded-full {{ $isClosed ? 'bg-emerald-500' : ($statusUpper === 'PROGRESS' ? 'bg-amber-500' : 'bg-blue-500') }} border-2 border-white dark:border-[#151f38] flex items-center justify-center text-[9px] sm:text-[10px] text-white shadow-xs" title="{{ $isClosed ? 'Tiket Telah Selesai' : ($statusUpper === 'PROGRESS' ? 'Sedang Dikerjakan' : 'Tiket Diterima') }}">
                             @if ($isClosed)
                                 <i class="fa-solid fa-check"></i>
                             @elseif ($statusUpper === 'PROGRESS')
