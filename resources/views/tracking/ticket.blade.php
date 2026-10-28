@@ -15,17 +15,17 @@
     $progressPercent = $isClosed ? 100 : ($statusUpper === 'PROGRESS' ? 60 : 25);
 @endphp
 
-<div class="space-y-6">
+<div class="space-y-4 sm:space-y-6">
 
     <!-- Top Breadcrumb & Handler Header Card -->
-    <div class="bg-white dark:bg-[#151f38] rounded-3xl p-5 sm:p-6 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-4">
+    <div class="bg-white dark:bg-[#151f38] rounded-2xl sm:rounded-3xl p-4 sm:p-6 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-3.5 sm:space-y-4">
         
         <!-- 1. Orang yang Mengerjakan (Paling Atas) -->
-        <div class="bg-slate-50/90 dark:bg-slate-900/60 rounded-2xl p-4 sm:p-4.5 border border-slate-200/80 dark:border-slate-800/80 flex items-center justify-between gap-3.5">
-            <div class="flex items-center gap-3.5 sm:gap-4 min-w-0">
+        <div class="bg-slate-50/90 dark:bg-slate-900/60 rounded-xl sm:rounded-2xl p-3.5 sm:p-4.5 border border-slate-200/80 dark:border-slate-800/80 flex items-center justify-between gap-3 sm:gap-4">
+            <div class="flex items-center gap-3 sm:gap-4 min-w-0">
                 <!-- Foto Profil / Avatar Petugas (Ukuran Lebih Jelas & Proporsional 64px) -->
                 <div class="relative shrink-0" style="width: 64px; height: 64px; min-width: 64px; min-height: 64px;">
-                    <div class="w-16 h-16 rounded-2xl overflow-hidden ring-2 ring-blue-500/25 dark:ring-blue-500/40 shadow-xs bg-slate-200 dark:bg-slate-800 flex items-center justify-center" style="width: 64px; height: 64px;">
+                    <div class="w-16 h-16 rounded-xl sm:rounded-2xl overflow-hidden ring-2 ring-blue-500/25 dark:ring-blue-500/40 shadow-xs bg-slate-200 dark:bg-slate-800 flex items-center justify-center" style="width: 64px; height: 64px;">
                         @if ($ticket->user)
                             <img src="{{ $ticket->user->avatar_url }}" alt="{{ $ticket->user->name }}" class="w-full h-full object-cover">
                         @else
@@ -91,7 +91,7 @@
         </div>
 
         <!-- 2. Outlet & Ticket Number Breadcrumb / Badges (Di Bawah Orang yg Mengerjakan) -->
-        <div class="flex items-center justify-between gap-3 flex-wrap pt-0.5">
+        <div class="flex items-center justify-between gap-2.5 flex-wrap pt-0.5">
             <div class="flex items-center gap-2 flex-wrap">
                 <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
                     <i class="fa-solid fa-hotel text-slate-400"></i> {{ $clientName }}
@@ -112,7 +112,7 @@
             <span class="text-[10px] sm:text-[11px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-slate-500 block mb-1">
                 Judul Kendala / Tiket:
             </span>
-            <h1 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight leading-snug">
+            <h1 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight leading-snug break-words">
                 {{ $ticket->title }}
             </h1>
         </div>
@@ -120,11 +120,11 @@
     </div>
 
     <!-- Stepper / Progress Journey Card -->
-    <div class="bg-white dark:bg-[#151f38] rounded-3xl p-6 sm:p-8 border border-slate-200/80 dark:border-slate-800 shadow-sm">
-        <div class="flex items-center justify-between mb-6">
+    <div class="bg-white dark:bg-[#151f38] rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 border border-slate-200/80 dark:border-slate-800 shadow-sm">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
             <div>
-                <h2 class="text-xs font-extrabold uppercase tracking-widest text-slate-400 dark:text-slate-500">Status Penanganan Tiket</h2>
-                <div class="flex items-center gap-2.5 mt-1">
+                <h2 class="text-[11px] sm:text-xs font-extrabold uppercase tracking-widest text-slate-400 dark:text-slate-500">Status Penanganan Tiket</h2>
+                <div class="flex items-center gap-2 mt-1 flex-wrap">
                     @if ($isClosed)
                         <span class="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-black bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
                             <i class="fa-solid fa-circle-check"></i> CLOSED / SELESAI
@@ -149,9 +149,9 @@
                 </div>
             </div>
 
-            <div class="text-right hidden sm:block">
-                <span class="text-xs text-slate-400 font-medium">Durasi Pengerjaan</span>
-                <p class="text-sm font-extrabold text-slate-800 dark:text-slate-200">
+            <div class="text-left sm:text-right pt-2 sm:pt-0 border-t border-slate-100 sm:border-0 dark:border-slate-800/80">
+                <span class="text-[11px] sm:text-xs text-slate-400 font-medium">Durasi Pengerjaan</span>
+                <p class="text-xs sm:text-sm font-extrabold text-slate-800 dark:text-slate-200">
                     <i class="fa-solid fa-stopwatch text-blue-500 mr-1"></i> {{ $ticket->duration_text }}
                 </p>
             </div>
@@ -159,29 +159,29 @@
 
         <!-- Visual Stepper Progress Bar -->
         <div class="relative mt-8 mb-4">
-            <!-- Background Bar -->
-            <div class="h-2 bg-slate-100 dark:bg-slate-800 rounded-full w-full absolute top-1/2 -translate-y-1/2 left-0 z-0"></div>
+            <!-- Background Bar (Aligned with circle center top-5 sm:top-5.5) -->
+            <div class="h-2 bg-slate-100 dark:bg-slate-800 rounded-full w-full absolute top-5 sm:top-5.5 -translate-y-1/2 left-0 z-0"></div>
             <!-- Active Bar -->
-            <div class="h-2 bg-gradient-to-r from-blue-600 via-indigo-600 to-emerald-500 rounded-full absolute top-1/2 -translate-y-1/2 left-0 z-0 transition-all duration-700" style="width: {{ $progressPercent }}%;"></div>
+            <div class="h-2 bg-gradient-to-r from-blue-600 via-indigo-600 to-emerald-500 rounded-full absolute top-5 sm:top-5.5 -translate-y-1/2 left-0 z-0 transition-all duration-700" style="width: {{ $progressPercent }}%;"></div>
 
             <!-- Steps -->
             <div class="relative z-10 flex items-center justify-between">
                 <!-- Step 1: Open -->
-                <div class="flex flex-col items-center text-center">
-                    <div class="w-10 h-10 rounded-2xl flex items-center justify-center font-bold text-sm shadow-md transition-all {{ $isOpen ? 'bg-blue-600 text-white ring-4 ring-blue-100 dark:ring-blue-950/60' : 'bg-slate-200 dark:bg-slate-800 text-slate-500' }}">
+                <div class="flex flex-col items-center text-center max-w-[95px] sm:max-w-none">
+                    <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl flex items-center justify-center font-bold text-xs sm:text-sm shadow-md transition-all {{ $isOpen ? 'bg-blue-600 text-white ring-4 ring-blue-100 dark:ring-blue-950/60' : 'bg-slate-200 dark:bg-slate-800 text-slate-500' }}">
                         <i class="fa-solid fa-envelope-open-text"></i>
                     </div>
-                    <span class="text-xs font-bold text-slate-800 dark:text-slate-200 mt-2.5">1. Tiket Dibuat</span>
-                    <span class="text-[10px] text-slate-400 mt-0.5">{{ \Carbon\Carbon::parse($ticket->created_at)->translatedFormat('d M Y, H:i') }}</span>
+                    <span class="text-[11px] sm:text-xs font-bold text-slate-800 dark:text-slate-200 mt-2.5">1. Tiket Dibuat</span>
+                    <span class="text-[9px] sm:text-[10px] text-slate-400 mt-0.5">{{ \Carbon\Carbon::parse($ticket->created_at)->translatedFormat('d M Y, H:i') }}</span>
                 </div>
 
                 <!-- Step 2: Progress -->
-                <div class="flex flex-col items-center text-center">
-                    <div class="w-10 h-10 rounded-2xl flex items-center justify-center font-bold text-sm shadow-md transition-all {{ $isProgress ? ($isClosed ? 'bg-indigo-600 text-white ring-4 ring-indigo-100 dark:ring-indigo-950/60' : 'bg-amber-500 text-white ring-4 ring-amber-100 dark:ring-amber-950/60') : 'bg-slate-200 dark:bg-slate-800 text-slate-400' }}">
+                <div class="flex flex-col items-center text-center max-w-[95px] sm:max-w-none">
+                    <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl flex items-center justify-center font-bold text-xs sm:text-sm shadow-md transition-all {{ $isProgress ? ($isClosed ? 'bg-indigo-600 text-white ring-4 ring-indigo-100 dark:ring-indigo-950/60' : 'bg-amber-500 text-white ring-4 ring-amber-100 dark:ring-amber-950/60') : 'bg-slate-200 dark:bg-slate-800 text-slate-400' }}">
                         <i class="fa-solid {{ $isClosed ? 'fa-check' : ($statusUpper === 'PROGRESS' ? 'fa-screwdriver-wrench' : 'fa-hourglass-start') }}"></i>
                     </div>
-                    <span class="text-xs font-bold text-slate-800 dark:text-slate-200 mt-2.5">2. Penanganan</span>
-                    <span class="text-[10px] text-slate-400 mt-0.5">
+                    <span class="text-[11px] sm:text-xs font-bold text-slate-800 dark:text-slate-200 mt-2.5">2. Penanganan</span>
+                    <span class="text-[9px] sm:text-[10px] text-slate-400 mt-0.5">
                         @if ($ticket->handle_at)
                             {{ \Carbon\Carbon::parse($ticket->handle_at)->translatedFormat('d M Y, H:i') }}
                         @elseif ($isProgress)
@@ -193,12 +193,12 @@
                 </div>
 
                 <!-- Step 3: Closed -->
-                <div class="flex flex-col items-center text-center">
-                    <div class="w-10 h-10 rounded-2xl flex items-center justify-center font-bold text-sm shadow-md transition-all {{ $isClosed ? 'bg-emerald-600 text-white ring-4 ring-emerald-100 dark:ring-emerald-950/60' : 'bg-slate-200 dark:bg-slate-800 text-slate-400' }}">
+                <div class="flex flex-col items-center text-center max-w-[95px] sm:max-w-none">
+                    <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl flex items-center justify-center font-bold text-xs sm:text-sm shadow-md transition-all {{ $isClosed ? 'bg-emerald-600 text-white ring-4 ring-emerald-100 dark:ring-emerald-950/60' : 'bg-slate-200 dark:bg-slate-800 text-slate-400' }}">
                         <i class="fa-solid {{ $isClosed ? 'fa-circle-check' : 'fa-flag-checkered text-slate-400' }}"></i>
                     </div>
-                    <span class="text-xs font-bold text-slate-800 dark:text-slate-200 mt-2.5">3. Selesai</span>
-                    <span class="text-[10px] text-slate-400 mt-0.5">
+                    <span class="text-[11px] sm:text-xs font-bold text-slate-800 dark:text-slate-200 mt-2.5">3. Selesai</span>
+                    <span class="text-[9px] sm:text-[10px] text-slate-400 mt-0.5">
                         @if ($ticket->closed_at)
                             {{ \Carbon\Carbon::parse($ticket->closed_at)->translatedFormat('d M Y, H:i') }}
                         @else
@@ -211,13 +211,13 @@
     </div>
 
     <!-- Main Content Grid -->
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6 items-start">
 
-        <!-- Left Column: Details & Solution & Discussion (8 cols) -->
-        <div class="lg:col-span-8 space-y-6">
+        <!-- Left Column: Details & Solution & Discussion (7 cols on lg, 8 cols on xl+) -->
+        <div class="lg:col-span-7 xl:col-span-8 space-y-5 sm:space-y-6">
 
             <!-- Problem Description Card -->
-            <div class="bg-white dark:bg-[#151f38] rounded-3xl p-6 sm:p-8 border border-slate-200/80 dark:border-slate-800 shadow-sm">
+            <div class="bg-white dark:bg-[#151f38] rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 border border-slate-200/80 dark:border-slate-800 shadow-sm">
                 <div class="flex items-center gap-2.5 mb-4">
                     <div class="w-8 h-8 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center">
                         <i class="fa-regular fa-file-lines text-sm"></i>
@@ -239,7 +239,7 @@
                     <h4 class="text-xs font-extrabold uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-3 flex items-center gap-1.5">
                         <i class="fa-solid fa-paperclip text-slate-300 dark:text-slate-600"></i> Lampiran Kendala ({{ count($dataimg) }})
                     </h4>
-                    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5 sm:gap-3">
                         @foreach ($dataimg as $img)
                         <div class="group relative rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-700 aspect-video bg-slate-100 dark:bg-slate-800 cursor-pointer shadow-xs hover:border-blue-500 transition-all" onclick="openImageLightbox('/img/{{ $img->image }}')">
                             <img src="/img/{{ $img->image }}" alt="Lampiran" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
@@ -257,7 +257,7 @@
 
             <!-- Solution Card (If available) -->
             @if (!empty($ticket->solusi))
-            <div class="bg-gradient-to-br from-emerald-500/10 via-emerald-500/5 to-transparent dark:from-emerald-950/40 dark:via-[#151f38] dark:to-[#151f38] rounded-3xl p-6 sm:p-8 border border-emerald-300/60 dark:border-emerald-800/60 shadow-sm relative overflow-hidden">
+            <div class="bg-gradient-to-br from-emerald-500/10 via-emerald-500/5 to-transparent dark:from-emerald-950/40 dark:via-[#151f38] dark:to-[#151f38] rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 border border-emerald-300/60 dark:border-emerald-800/60 shadow-sm relative overflow-hidden">
                 <div class="flex items-start gap-4">
                     <div class="w-12 h-12 rounded-2xl bg-emerald-500 text-white flex items-center justify-center shrink-0 shadow-lg shadow-emerald-500/30">
                         <i class="fa-solid fa-lightbulb text-xl"></i>
@@ -289,7 +289,7 @@
             @endif
 
             <!-- Read-Only Discussion History Card -->
-            <div class="bg-white dark:bg-[#151f38] rounded-3xl p-6 sm:p-8 border border-slate-200/80 dark:border-slate-800 shadow-sm">
+            <div class="bg-white dark:bg-[#151f38] rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 border border-slate-200/80 dark:border-slate-800 shadow-sm">
                 <div class="flex items-center justify-between mb-4">
                     <div class="flex items-center gap-2.5">
                         <div class="w-8 h-8 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
@@ -305,11 +305,11 @@
                 <div class="space-y-4 max-h-[450px] overflow-y-auto pr-1">
                     @if (count($komentar) > 0)
                         @foreach ($komentar as $komen)
-                        <div class="flex gap-3.5 items-start">
-                            <div class="w-9 h-9 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300 font-bold text-xs shrink-0 overflow-hidden shadow-2xs">
+                        <div class="flex gap-3 sm:gap-3.5 items-start">
+                            <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300 font-bold text-xs shrink-0 overflow-hidden shadow-2xs">
                                 <img src="{{ $komen->user ? $komen->user->avatar_url : 'https://ui-avatars.com/api/?name=' . urlencode($komen->user->name ?? 'User') }}" alt="{{ $komen->user->name ?? '' }}" class="w-full h-full object-cover">
                             </div>
-                            <div class="flex-1 bg-slate-50 dark:bg-slate-900/60 rounded-2xl p-4 border border-slate-100 dark:border-slate-800">
+                            <div class="flex-1 bg-slate-50 dark:bg-slate-900/60 rounded-xl sm:rounded-2xl p-3.5 sm:p-4 border border-slate-100 dark:border-slate-800">
                                 <div class="flex items-center justify-between gap-2 mb-1">
                                     <span class="font-bold text-xs text-slate-900 dark:text-slate-100">{{ $komen->user->name ?? 'Petugas Support' }}</span>
                                     <span class="text-[10px] text-slate-400">{{ $komen->created_at ? $komen->created_at->diffForHumans() : '-' }}</span>
@@ -340,17 +340,17 @@
 
         </div>
 
-        <!-- Right Column: Metadata Details (4 cols) -->
-        <div class="lg:col-span-4 space-y-6">
+        <!-- Right Column: Metadata Details (5 cols on lg, 4 cols on xl+) -->
+        <div class="lg:col-span-5 xl:col-span-4 space-y-5 sm:space-y-6">
 
             <!-- Detail Information Card -->
-            <div class="bg-white dark:bg-[#151f38] rounded-3xl p-6 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-5">
-                <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
+            <div class="bg-white dark:bg-[#151f38] rounded-2xl sm:rounded-3xl p-4 sm:p-6 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-4 sm:space-y-5">
+                <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 sm:pb-4">
                     <h3 class="text-xs font-black uppercase tracking-widest text-slate-400 dark:text-slate-500">Informasi Tiket</h3>
                     <span class="font-mono font-extrabold text-xs text-blue-600 dark:text-blue-400">#{{ $ticket->ticket_number }}</span>
                 </div>
 
-                <div class="space-y-4 text-xs">
+                <div class="space-y-3.5 sm:space-y-4 text-xs">
                     <!-- Client -->
                     <div>
                         <span class="text-slate-400 font-semibold block text-[10px] uppercase tracking-wider">Client / Outlet</span>
@@ -358,7 +358,7 @@
                     </div>
 
                     <!-- System & Module Grid -->
-                    <div class="grid grid-cols-2 gap-3 pt-1">
+                    <div class="grid grid-cols-2 gap-2.5 sm:gap-3 pt-1">
                         <div>
                             <span class="text-slate-400 font-semibold block text-[10px] uppercase tracking-wider">System</span>
                             <span class="font-bold text-slate-700 dark:text-slate-200 mt-0.5 block break-words leading-snug">{{ $ticket->kategoriSystem->name ?? ($ticket->system ?: '-') }}</span>
@@ -390,7 +390,7 @@
                     </div>
 
                     <!-- Petugas & Advisor -->
-                    <div class="grid grid-cols-2 gap-3 pt-1">
+                    <div class="grid grid-cols-2 gap-2.5 sm:gap-3 pt-1">
                         <div>
                             <span class="text-slate-400 font-semibold block text-[10px] uppercase tracking-wider">Penanggung Jawab</span>
                             <span class="font-bold text-slate-700 dark:text-slate-200 mt-0.5 block break-words leading-snug" title="{{ $ticket->user->name ?? '-' }}">
@@ -431,7 +431,7 @@
             </div>
 
             <!-- Customer Service / Support Card -->
-            <div class="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-3xl p-6 text-white shadow-lg shadow-blue-500/20">
+            <div class="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl sm:rounded-3xl p-4 sm:p-6 text-white shadow-lg shadow-blue-500/20">
                 <div class="flex items-center gap-3 mb-3">
                     <div class="w-10 h-10 rounded-2xl bg-white/20 flex items-center justify-center text-white backdrop-blur-sm">
                         <i class="fa-solid fa-headset text-lg"></i>

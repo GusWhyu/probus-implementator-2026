@@ -89,7 +89,7 @@
 
     <!-- Top Navigation -->
     <header class="sticky top-0 z-40 bg-white/80 dark:bg-[#0f172a]/80 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800/80 shadow-xs">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+        <div class="w-full max-w-[1920px] mx-auto px-3 sm:px-5 md:px-8 lg:px-10 xl:px-12 2xl:px-16 h-16 flex items-center justify-between gap-4">
             <!-- Brand Logo & Title -->
             <div class="flex items-center gap-3">
                 <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 p-0.5 shadow-md shadow-blue-500/20 flex items-center justify-center shrink-0">
@@ -121,14 +121,14 @@
         </div>
     </header>
 
-    <!-- Main Content Container -->
-    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+    <!-- Main Content Container (Fluid & Responsive to Screen Edges) -->
+    <main class="flex-1 w-full max-w-[1920px] mx-auto px-3 sm:px-5 md:px-8 lg:px-10 xl:px-12 2xl:px-16 py-4 sm:py-6 lg:py-8">
         @yield('content')
     </main>
 
     <!-- Footer -->
     <footer class="mt-auto border-t border-slate-200/80 dark:border-slate-800/80 bg-white/50 dark:bg-[#0f172a]/50 py-6">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-xs text-slate-500 dark:text-slate-400 space-y-1">
+        <div class="w-full max-w-[1920px] mx-auto px-3 sm:px-5 md:px-8 lg:px-10 xl:px-12 2xl:px-16 text-center text-xs text-slate-500 dark:text-slate-400 space-y-1">
             <p class="font-semibold text-slate-700 dark:text-slate-300">
                 &copy; {{ date('Y') }} PT. Probus System. Seluruh Hak Cipta Dilindungi.
             </p>
