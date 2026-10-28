@@ -511,6 +511,22 @@ class RequestController extends Controller
         $creator = Auth::user();
         $isCreatorAdminOrSpv = in_array($creator->usertype, ['admin', 'supervisor']);
 
+        // Cegah duplikasi request akibat double-submit / double-click cepat (dalam rentang 30 detik)
+        $duplicateReq = \App\Models\Request::where('user_id', Auth::id())
+            ->where('outlet_id', $outletId)
+            ->where('judul', $request->title)
+            ->where(function($query) {
+                $query->where('created_at', '>=', now()->subSeconds(30))
+                      ->orWhere('updated_at', '>=', now()->subSeconds(30));
+            })
+            ->latest('id')
+            ->first();
+
+        if ($duplicateReq) {
+            Alert::success('Create Request Success!');
+            return redirect()->route('detailrequest', ['id' => $duplicateReq->id]);
+        }
+
         $data = \App\Models\Request::create([
             'judul' => $request->title,
             'deskripsi' => $request->body,
@@ -886,6 +902,14 @@ class RequestController extends Controller
 
         DB::beginTransaction();
         try {
+            // Cek apakah request ini sudah pernah dialihkan ke tiket untuk mencegah double-convert
+            $existingTicket = Ticket::where('origin_request_number', 'RQ-' . $req->id)->first();
+            if ($existingTicket) {
+                DB::rollBack();
+                Alert::info('Info', 'Request ini sudah dialihkan ke tiket #' . $existingTicket->ticket_number);
+                return redirect()->route('detailticket', ['id' => $existingTicket->id]);
+            }
+
             // 1. Generate nomor tiket baru
             $latestTicket = Ticket::latest('id')->first();
             $nextId = $latestTicket ? $latestTicket->id + 1 : 1;

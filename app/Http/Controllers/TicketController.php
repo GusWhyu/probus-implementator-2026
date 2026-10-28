@@ -177,6 +177,22 @@ class TicketController extends Controller
             'due_date.after_or_equal' => 'Tenggat waktu tidak boleh lebih awal dari tanggal mulai.',
         ]);
 
+        // Cegah duplikasi tiket akibat double-submit / double-click cepat (dalam rentang 30 detik)
+        $duplicateTicket = Ticket::where('user_id', Auth::id())
+            ->where('client_id', $request->client)
+            ->where('title', $request->title)
+            ->where(function($query) {
+                $query->where('created_at', '>=', now()->subSeconds(30))
+                      ->orWhere('updated_at', '>=', now()->subSeconds(30));
+            })
+            ->latest('id')
+            ->first();
+
+        if ($duplicateTicket) {
+            Alert::success('Create Ticket Success!');
+            return redirect()->route('detailticket', ['id' => $duplicateTicket->id]);
+        }
+
         // Generate ticket number
         $latestTicket = \App\Models\Ticket::latest('id')->first();
         $nextId = $latestTicket ? $latestTicket->id + 1 : 1;

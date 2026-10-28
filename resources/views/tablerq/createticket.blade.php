@@ -21,7 +21,7 @@
 
             <x-auth-validation-errors class="mb-6" :errors="$errors" />
 
-            <form method="POST" action="/createticket" enctype="multipart/form-data" class="flex flex-col lg:flex-row gap-6 lg:items-stretch">
+            <form id="ticket-form" method="POST" action="/createticket" enctype="multipart/form-data" class="flex flex-col lg:flex-row gap-6 lg:items-stretch">
                 @csrf
                 
                 <!-- Left Column (Informasi Utama & Lampiran) -->
@@ -186,8 +186,8 @@
                     <!-- Submit Actions -->
                     <div class="flex items-center justify-end gap-3 mt-auto bg-white dark:bg-slate-800 p-4 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-700/80">
                         <a href="{{ route('daftartiket') }}" class="px-6 py-3 bg-slate-50 dark:bg-slate-700/60 border border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 font-bold text-sm rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">Batal</a>
-                        <button type="submit" class="px-8 py-3 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white font-bold text-sm rounded-xl shadow-lg shadow-blue-500/30 transition-all active:scale-95 flex items-center gap-2">
-                            <i class="fa-solid fa-paper-plane text-xs"></i> Buat Tiket
+                        <button type="submit" id="btn-submit-ticket" class="px-8 py-3 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white font-bold text-sm rounded-xl shadow-lg shadow-blue-500/30 transition-all active:scale-95 flex items-center gap-2">
+                            <i class="fa-solid fa-paper-plane text-xs" id="btn-icon"></i> <span id="btn-text">Buat Tiket</span>
                         </button>
                     </div>
                 </div>
@@ -489,6 +489,37 @@
                     });
                 }
             } catch (e) { console.error("TomSelect error:", e); }
+
+            // Prevent double submission on ticket form
+            const ticketForm = document.getElementById('ticket-form');
+            const submitBtn = document.getElementById('btn-submit-ticket');
+            const btnIcon = document.getElementById('btn-icon');
+            const btnText = document.getElementById('btn-text');
+
+            if (ticketForm && submitBtn) {
+                let isSubmitting = false;
+                ticketForm.addEventListener('submit', function(e) {
+                    if (isSubmitting) {
+                        e.preventDefault();
+                        return false;
+                    }
+                    isSubmitting = true;
+                    submitBtn.disabled = true;
+                    submitBtn.classList.add('opacity-75', 'cursor-not-allowed', 'pointer-events-none');
+                    if (btnIcon) btnIcon.className = 'fa-solid fa-circle-notch fa-spin text-xs';
+                    if (btnText) btnText.textContent = 'Menyimpan...';
+                });
+
+                window.addEventListener('pageshow', function(event) {
+                    if (event.persisted) {
+                        isSubmitting = false;
+                        submitBtn.disabled = false;
+                        submitBtn.classList.remove('opacity-75', 'cursor-not-allowed', 'pointer-events-none');
+                        if (btnIcon) btnIcon.className = 'fa-solid fa-paper-plane text-xs';
+                        if (btnText) btnText.textContent = 'Buat Tiket';
+                    }
+                });
+            }
         });
     </script>
     <style>

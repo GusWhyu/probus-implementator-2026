@@ -21,7 +21,7 @@
 
             <x-auth-validation-errors class="mb-6 bg-red-50 text-red-600 p-4 rounded-2xl border border-red-100" :errors="$errors" />
 
-            <form action="/createrq" method="POST" enctype="multipart/form-data" class="flex flex-col lg:flex-row gap-6 lg:items-stretch">
+            <form id="request-form" action="/createrq" method="POST" enctype="multipart/form-data" class="flex flex-col lg:flex-row gap-6 lg:items-stretch">
                 @csrf
                 <input type="hidden" name="return_url" value="{{ $returnUrl ?? '' }}">
                 
@@ -156,8 +156,8 @@
                     <!-- Submit Actions -->
                     <div class="flex items-center justify-end gap-3 mt-auto bg-white dark:bg-slate-800 p-4 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-700/80">
                         <a href="{{ $returnUrl ?? route('myreq') }}" class="px-6 py-3 bg-slate-50 dark:bg-slate-700/60 border border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 font-bold text-sm rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">Batalkan</a>
-                        <button type="submit" class="px-8 py-3 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white font-bold text-sm rounded-xl shadow-lg shadow-blue-500/30 transition-all active:scale-95 flex items-center gap-2">
-                            <i class="fa-solid fa-floppy-disk"></i> Simpan Request
+                        <button type="submit" id="btn-submit-rq" class="px-8 py-3 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white font-bold text-sm rounded-xl shadow-lg shadow-blue-500/30 transition-all active:scale-95 flex items-center gap-2">
+                            <i class="fa-solid fa-floppy-disk" id="btn-rq-icon"></i> <span id="btn-rq-text">Simpan Request</span>
                         </button>
                     </div>
                 </div>
@@ -386,6 +386,37 @@
 
                 startDateInput.addEventListener('change', updateEndFromStart);
                 startDateInput.addEventListener('input', updateEndFromStart);
+            }
+
+            // Prevent double submission on request form
+            const requestForm = document.getElementById('request-form');
+            const submitBtn = document.getElementById('btn-submit-rq');
+            const btnIcon = document.getElementById('btn-rq-icon');
+            const btnText = document.getElementById('btn-rq-text');
+
+            if (requestForm && submitBtn) {
+                let isSubmitting = false;
+                requestForm.addEventListener('submit', function(e) {
+                    if (isSubmitting) {
+                        e.preventDefault();
+                        return false;
+                    }
+                    isSubmitting = true;
+                    submitBtn.disabled = true;
+                    submitBtn.classList.add('opacity-75', 'cursor-not-allowed', 'pointer-events-none');
+                    if (btnIcon) btnIcon.className = 'fa-solid fa-circle-notch fa-spin text-xs';
+                    if (btnText) btnText.textContent = 'Menyimpan...';
+                });
+
+                window.addEventListener('pageshow', function(event) {
+                    if (event.persisted) {
+                        isSubmitting = false;
+                        submitBtn.disabled = false;
+                        submitBtn.classList.remove('opacity-75', 'cursor-not-allowed', 'pointer-events-none');
+                        if (btnIcon) btnIcon.className = 'fa-solid fa-floppy-disk';
+                        if (btnText) btnText.textContent = 'Simpan Request';
+                    }
+                });
             }
         });
 
