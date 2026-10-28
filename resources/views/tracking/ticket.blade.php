@@ -239,42 +239,58 @@
         <div class="lg:col-span-7 xl:col-span-8 space-y-5 sm:space-y-6">
 
             <!-- Problem Description Card -->
-            <div class="bg-white dark:bg-[#151f38] rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 border border-slate-200/80 dark:border-slate-800 shadow-sm">
-                <div class="flex items-center gap-2.5 mb-4">
-                    <div class="w-8 h-8 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center">
-                        <i class="fa-regular fa-file-lines text-sm"></i>
+            <div class="bg-gradient-to-br from-blue-500/10 via-blue-500/5 to-transparent dark:from-blue-950/40 dark:via-[#151f38] dark:to-[#151f38] rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 border border-blue-200/80 dark:border-blue-800/60 shadow-sm relative overflow-hidden">
+                <div class="flex items-start gap-4">
+                    <div class="w-12 h-12 rounded-2xl bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-lg shadow-blue-500/30">
+                        <i class="fa-solid fa-file-lines text-xl"></i>
                     </div>
-                    <h3 class="text-xs font-extrabold uppercase tracking-widest text-slate-400 dark:text-slate-500">Deskripsi Kendala</h3>
-                </div>
+                    <div class="flex-1">
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <h3 class="text-xs font-black uppercase tracking-widest text-blue-700 dark:text-blue-400">Deskripsi Kendala</h3>
+                            <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-blue-100 dark:bg-blue-900/80 text-blue-800 dark:text-blue-200">Laporan Kendala</span>
+                        </div>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Rincian kendala atau permasalahan sistem yang dilaporkan oleh klien:</p>
 
-                <div class="text-slate-700 dark:text-slate-200 text-sm font-medium leading-relaxed prose dark:prose-invert max-w-none break-words">
-                    @if (strip_tags($ticket->description) != $ticket->description)
-                        {!! $ticket->description !!}
-                    @else
-                        {!! nl2br(e($ticket->description)) !!}
-                    @endif
-                </div>
+                        <div class="mt-4 p-4 rounded-2xl bg-white/90 dark:bg-slate-900/90 border border-blue-200/80 dark:border-blue-900/60 text-slate-800 dark:text-slate-100 text-sm font-medium leading-relaxed prose dark:prose-invert max-w-none shadow-2xs">
+                            @if (strip_tags($ticket->description) != $ticket->description)
+                                {!! $ticket->description !!}
+                            @else
+                                {!! nl2br(e($ticket->description)) !!}
+                            @endif
+                        </div>
 
-                <!-- Attachments if any -->
-                @if (count($dataimg) > 0)
-                <div class="mt-6 pt-6 border-t border-slate-100 dark:border-slate-800">
-                    <h4 class="text-xs font-extrabold uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-3 flex items-center gap-1.5">
-                        <i class="fa-solid fa-paperclip text-slate-300 dark:text-slate-600"></i> Lampiran Kendala ({{ count($dataimg) }})
-                    </h4>
-                    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5 sm:gap-3">
-                        @foreach ($dataimg as $img)
-                        <div class="group relative rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-700 aspect-video bg-slate-100 dark:bg-slate-800 cursor-pointer shadow-xs hover:border-blue-500 transition-all" onclick="openImageLightbox('/img/{{ $img->image }}')">
-                            <img src="/img/{{ $img->image }}" alt="Lampiran" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
-                            <div class="absolute inset-0 bg-slate-900/0 group-hover:bg-slate-900/30 transition-colors flex items-center justify-center">
-                                <span class="w-8 h-8 rounded-full bg-white/90 text-slate-800 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-md">
-                                    <i class="fa-solid fa-magnifying-glass-plus text-xs"></i>
-                                </span>
+                        <div class="mt-3 flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 flex-wrap">
+                            <i class="fa-regular fa-user text-blue-500"></i>
+                            <span>Dilaporkan oleh: <strong>{{ $clientName }}</strong></span>
+                            <span>•</span>
+                            <span class="flex items-center gap-1">
+                                <i class="fa-regular fa-clock text-slate-400"></i>
+                                {{ \Carbon\Carbon::parse($ticket->created_at)->translatedFormat('d M Y, H:i') }}
+                            </span>
+                        </div>
+
+                        <!-- Attachments if any -->
+                        @if (count($dataimg) > 0)
+                        <div class="mt-6 pt-6 border-t border-blue-100 dark:border-slate-800/80">
+                            <h4 class="text-xs font-extrabold uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-3 flex items-center gap-1.5">
+                                <i class="fa-solid fa-paperclip text-slate-300 dark:text-slate-600"></i> Lampiran Kendala ({{ count($dataimg) }})
+                            </h4>
+                            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5 sm:gap-3">
+                                @foreach ($dataimg as $img)
+                                <div class="group relative rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-700 aspect-video bg-slate-100 dark:bg-slate-800 cursor-pointer shadow-xs hover:border-blue-500 transition-all" onclick="openImageLightbox('/img/{{ $img->image }}')">
+                                    <img src="/img/{{ $img->image }}" alt="Lampiran" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                                    <div class="absolute inset-0 bg-slate-900/0 group-hover:bg-slate-900/30 transition-colors flex items-center justify-center">
+                                        <span class="w-8 h-8 rounded-full bg-white/90 text-slate-800 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-md">
+                                            <i class="fa-solid fa-magnifying-glass-plus text-xs"></i>
+                                        </span>
+                                    </div>
+                                </div>
+                                @endforeach
                             </div>
                         </div>
-                        @endforeach
+                        @endif
                     </div>
                 </div>
-                @endif
             </div>
 
             <!-- Solution Card (If available) -->
