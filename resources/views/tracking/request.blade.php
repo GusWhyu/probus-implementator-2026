@@ -20,41 +20,24 @@
 <div class="space-y-6">
 
     <!-- Top Breadcrumb & Handler Header Card -->
-    <div class="bg-white dark:bg-[#151f38] rounded-3xl p-5 sm:p-6 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-4 sm:space-y-5">
+    <div class="bg-white dark:bg-[#151f38] rounded-3xl p-5 sm:p-6 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-4">
         
-        <!-- Outlet & Request Number Breadcrumb / Badges -->
-        <div class="flex items-center justify-between gap-3 flex-wrap">
-            <div class="flex items-center gap-2 flex-wrap">
-                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
-                    <i class="fa-solid fa-hotel text-slate-400"></i> {{ $outletName }}
-                </span>
-                <span class="text-xs text-slate-400">&bull;</span>
-                <span class="font-mono text-xs font-extrabold text-blue-600 dark:text-blue-400 tracking-tight">#RQ-{{ $requestData->id }}</span>
-            </div>
-
-            @if ($requestData->kategori)
-            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-slate-100/90 dark:bg-slate-800/90 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
-                <i class="fa-solid fa-layer-group text-blue-500 text-[10px]"></i> {{ $requestData->kategori->name }}
-            </span>
-            @endif
-        </div>
-
-        <!-- Handler / Orang yang Mengerjakan Request (Lengkap dengan Foto & Info) -->
-        <div class="bg-slate-50/90 dark:bg-slate-900/60 rounded-2xl p-4 sm:p-4.5 border border-slate-200/80 dark:border-slate-800/80 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all">
-            <div class="flex items-center gap-3.5 sm:gap-4 min-w-0">
-                <!-- Foto Profil / Avatar Petugas -->
-                <div class="relative shrink-0">
-                    <div class="w-13 h-13 sm:w-15 sm:h-15 rounded-2xl overflow-hidden ring-2 ring-blue-500/20 dark:ring-blue-500/40 shadow-sm bg-slate-200 dark:bg-slate-800 flex items-center justify-center">
+        <!-- 1. Orang yang Mengerjakan (Paling Atas) -->
+        <div class="bg-slate-50/90 dark:bg-slate-900/60 rounded-2xl p-3.5 sm:p-4 border border-slate-200/80 dark:border-slate-800/80 flex items-center justify-between gap-3">
+            <div class="flex items-center gap-3 sm:gap-3.5 min-w-0">
+                <!-- Foto Profil / Avatar Petugas (Ukuran Pas & Proporsional 48px) -->
+                <div class="relative shrink-0" style="width: 48px; height: 48px; min-width: 48px; min-height: 48px;">
+                    <div class="w-12 h-12 rounded-2xl overflow-hidden ring-2 ring-blue-500/25 dark:ring-blue-500/40 shadow-xs bg-slate-200 dark:bg-slate-800 flex items-center justify-center" style="width: 48px; height: 48px;">
                         @if ($requestData->user)
                             <img src="{{ $requestData->user->avatar_url }}" alt="{{ $requestData->user->name }}" class="w-full h-full object-cover">
                         @else
                             <div class="w-full h-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400">
-                                <i class="fa-solid fa-user-clock text-2xl"></i>
+                                <i class="fa-solid fa-user-clock text-lg"></i>
                             </div>
                         @endif
                     </div>
                     @if ($requestData->user)
-                    <span class="absolute -bottom-1 -right-1 w-4.5 h-4.5 rounded-full {{ $isClosed ? 'bg-emerald-500' : ($isProgress ? 'bg-amber-500' : 'bg-blue-500') }} border-2 border-white dark:border-[#151f38] flex items-center justify-center text-[9px] text-white shadow-xs" title="{{ $isClosed ? 'Request Telah Selesai' : ($isProgress ? 'Sedang Dikerjakan' : 'Request Diterima') }}">
+                    <span class="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full {{ $isClosed ? 'bg-emerald-500' : ($isProgress ? 'bg-amber-500' : 'bg-blue-500') }} border-2 border-white dark:border-[#151f38] flex items-center justify-center text-[8px] text-white shadow-xs" title="{{ $isClosed ? 'Request Telah Selesai' : ($isProgress ? 'Sedang Dikerjakan' : 'Request Diterima') }}">
                         @if ($isClosed)
                             <i class="fa-solid fa-check"></i>
                         @elseif ($isProgress)
@@ -68,7 +51,7 @@
 
                 <!-- Informasi Petugas Penanggung Jawab -->
                 <div class="min-w-0 flex-1">
-                    <div class="flex items-center gap-2 flex-wrap mb-1">
+                    <div class="flex items-center gap-1.5 sm:gap-2 flex-wrap mb-0.5">
                         <span class="inline-flex items-center gap-1 text-[10px] font-extrabold uppercase tracking-wider text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/70 px-2 py-0.5 rounded-md border border-blue-200/80 dark:border-blue-800/80">
                             <i class="fa-solid fa-user-gear text-[9px]"></i> Penanggung Jawab (PIC)
                         </span>
@@ -87,41 +70,47 @@
                         @endif
                     </div>
 
-                    <h2 class="text-base sm:text-lg font-black text-slate-900 dark:text-white truncate" title="{{ $requestData->user->name ?? 'Belum Ditugaskan' }}">
+                    <h2 class="text-sm sm:text-base font-black text-slate-900 dark:text-white truncate" title="{{ $requestData->user->name ?? 'Belum Ditugaskan' }}">
                         {{ $requestData->user->name ?? 'Belum Ditugaskan' }}
                     </h2>
 
-                    <div class="flex items-center gap-2 sm:gap-3 flex-wrap mt-0.5 text-xs text-slate-500 dark:text-slate-400">
-                        <span class="inline-flex items-center gap-1.5 font-medium">
-                            <i class="fa-solid fa-briefcase text-slate-400 text-[11px]"></i>
+                    <div class="flex items-center gap-2 sm:gap-2.5 flex-wrap text-[11px] sm:text-xs text-slate-500 dark:text-slate-400">
+                        <span class="inline-flex items-center gap-1 font-medium">
+                            <i class="fa-solid fa-briefcase text-slate-400 text-[10px]"></i>
                             {{ $requestData->user->departemen->name ?? 'Tim Developer Probus' }}
                         </span>
 
                         @if ($requestData->approver)
                         <span class="text-slate-300 dark:text-slate-700 hidden sm:inline">&bull;</span>
-                        <span class="inline-flex items-center gap-1.5 font-medium">
-                            <i class="fa-solid fa-user-check text-emerald-500 text-[11px]"></i>
+                        <span class="inline-flex items-center gap-1 font-medium">
+                            <i class="fa-solid fa-user-check text-emerald-500 text-[10px]"></i>
                             Disetujui: <strong class="text-slate-700 dark:text-slate-300 font-semibold">{{ $requestData->approver->name }}</strong>
                         </span>
                         @endif
                     </div>
                 </div>
             </div>
+        </div>
 
-            <!-- Kartu Approver Tambahan (Desktop) -->
-            @if ($requestData->approver && $requestData->approver->id !== ($requestData->user->id ?? null))
-            <div class="sm:border-l sm:border-slate-200 dark:sm:border-slate-800 sm:pl-4 flex sm:flex-col justify-between sm:justify-center items-start shrink-0 pt-2 sm:pt-0 border-t border-slate-200/50 dark:border-slate-800/50 sm:border-t-0">
-                <span class="text-[10px] uppercase font-bold tracking-wider text-slate-400">Persetujuan / Supervisor</span>
-                <span class="text-xs font-bold text-slate-700 dark:text-slate-200 flex items-center gap-1.5 mt-0.5">
-                    <img src="{{ $requestData->approver->avatar_url }}" alt="{{ $requestData->approver->name }}" class="w-4.5 h-4.5 rounded-full object-cover">
-                    <span class="truncate max-w-[150px]">{{ $requestData->approver->name }}</span>
+        <!-- 2. Outlet & Request Number Breadcrumb / Badges (Di Bawah Orang yg Mengerjakan) -->
+        <div class="flex items-center justify-between gap-3 flex-wrap pt-0.5">
+            <div class="flex items-center gap-2 flex-wrap">
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+                    <i class="fa-solid fa-hotel text-slate-400"></i> {{ $outletName }}
                 </span>
+                <span class="text-xs text-slate-400">&bull;</span>
+                <span class="font-mono text-xs font-extrabold text-blue-600 dark:text-blue-400 tracking-tight">#RQ-{{ $requestData->id }}</span>
             </div>
+
+            @if ($requestData->kategori)
+            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-slate-100/90 dark:bg-slate-800/90 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+                <i class="fa-solid fa-layer-group text-blue-500 text-[10px]"></i> {{ $requestData->kategori->name }}
+            </span>
             @endif
         </div>
 
-        <!-- Judul Request Sistem (Di bawah informasi orang yg mengerjakan) -->
-        <div class="pt-2 sm:pt-2.5 border-t border-slate-100 dark:border-slate-800/70">
+        <!-- 3. Judul Request Sistem (Lanjut Di Bawahnya) -->
+        <div class="pt-2 border-t border-slate-100 dark:border-slate-800/70">
             <span class="text-[10px] sm:text-[11px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-slate-500 block mb-1">
                 Judul Request Sistem:
             </span>

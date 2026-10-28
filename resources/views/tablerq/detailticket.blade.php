@@ -368,7 +368,7 @@
                         <!-- Petugas Penanganan (PIC) Lengkap dengan Foto -->
                         <div class="flex items-center justify-between gap-3 p-3.5 bg-slate-50/90 dark:bg-slate-800/40 rounded-2xl border border-slate-200/80 dark:border-slate-800 mb-5">
                             <div class="flex items-center gap-3 min-w-0">
-                                <div class="w-11 h-11 rounded-xl overflow-hidden ring-2 ring-blue-500/20 shadow-xs shrink-0 bg-slate-200 dark:bg-slate-700 flex items-center justify-center">
+                                <div class="w-11 h-11 rounded-xl overflow-hidden ring-2 ring-blue-500/20 shadow-xs shrink-0 bg-slate-200 dark:bg-slate-700 flex items-center justify-center" style="width: 44px; height: 44px; min-width: 44px; min-height: 44px;">
                                     <img src="{{ $datarq->user ? $datarq->user->avatar_url : 'https://ui-avatars.com/api/?name=Teknisi' }}" alt="{{ $datarq->user->name ?? 'User' }}" class="w-full h-full object-cover">
                                 </div>
                                 <div class="min-w-0">
