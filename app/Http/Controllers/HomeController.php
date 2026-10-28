@@ -1656,10 +1656,110 @@ class HomeController extends Controller
         $tiket_progress = (clone $tiketQuery)->whereRaw('UPPER(status) = ?', ['PROGRESS'])->count();
         $completion_rate = $tiket_ditangani > 0 ? round(($tiket_selesai / $tiket_ditangani) * 100, 1) : 0;
 
-        // 2. Modul Terbanyak Ditangani
+        // Rata-rata waktu & durasi pengerjaan tiket selesai
+        $closedTickets = (clone $tiketQuery)->whereRaw('UPPER(status) = ?', ['CLOSED'])
+            ->whereNotNull('closed_at')
+            ->get();
+
+        $totalMins = 0;
+        $validClosedCount = 0;
+        foreach ($closedTickets as $ct) {
+            $start = $ct->handle_at ?? $ct->created_at;
+            if ($start && $ct->closed_at) {
+                if ($ct->duration_minutes !== null) {
+                    $totalMins += (int)$ct->duration_minutes;
+                } else {
+                    $totalMins += \Carbon\Carbon::parse($ct->closed_at)->diffInMinutes(\Carbon\Carbon::parse($start));
+                }
+                $validClosedCount++;
+            }
+        }
+
+        $rata_rata_waktu = ($validClosedCount > 0) ? round($totalMins / $validClosedCount) . ' menit' : '-';
+        $total_lama_waktu = ($totalMins > 0) ? "{$totalMins} menit" : ($validClosedCount > 0 ? "< 1 menit" : '-');
+
+        // 2. Data Modul untuk Tabel Rincian (Menampilkan Semua Modul dengan Opsi Filter)
+        $allModules = ModuleSystem::orderBy('id', 'asc')->get();
+        $moduleTableData = [];
+        $savedDetailsMap = ($rapor && $rapor->moduleDetails) ? $rapor->moduleDetails->keyBy('module_id') : collect([]);
+        $savedTotalQty = $savedDetailsMap->sum('total_ticket');
+
+        // Selalu sinkronkan dengan data tiket riil jika:
+        // - Rapor belum ada
+        // - Status rapor belum FINAL (masih DRAFT / PROCESSED)
+        // - Periode yang dipilih adalah periode yang sedang berjalan
+        // - Total tiket di detail modul tersimpan tidak sama dengan jumlah tiket riil ($tiket_ditangani)
+        $shouldRecalculateLive = (!$rapor || $rapor->status !== 'FINAL' || ($periodInfo['is_current'] ?? false) || $savedTotalQty != $tiket_ditangani);
+
+        $moduleDetailsToSave = [];
+        $rawScoreLive = 0;
+
+        foreach ($allModules as $mod) {
+            $bobot = (int)($mod->bobot ?? 0);
+
+            if ($shouldRecalculateLive) {
+                $mTickets = (clone $tiketQuery)->where('module_system_id', $mod->id)->get();
+                $modCount = $mTickets->count();
+                $modScore = $bobot * $modCount;
+                $clTickets = $mTickets->filter(function($t) { return strtoupper($t->status) === 'CLOSED' && $t->closed_at; });
+                $mTotalMins = 0; $mValidCount = 0;
+                foreach ($clTickets as $ct) {
+                    $start = $ct->handle_at ?? $ct->created_at;
+                    if ($start && $ct->closed_at) {
+                        $mTotalMins += $ct->duration_minutes !== null ? (int)$ct->duration_minutes : \Carbon\Carbon::parse($ct->closed_at)->diffInMinutes(\Carbon\Carbon::parse($start));
+                        $mValidCount++;
+                    }
+                }
+                $modAvg = '-';
+                $modLama = '-';
+                if ($mValidCount > 0) {
+                    $avgM = round($mTotalMins / $mValidCount);
+                    $modAvg = $avgM > 0 ? "{$avgM} menit" : "< 1 menit";
+                    $modLama = $mTotalMins > 0 ? "{$mTotalMins} menit" : "< 1 menit";
+                }
+
+                $rawScoreLive += $modScore;
+
+                if ($modCount > 0) {
+                    $moduleDetailsToSave[] = [
+                        'module_id' => $mod->id,
+                        'score' => $modScore,
+                        'bobot' => $bobot,
+                        'total_ticket' => $modCount,
+                        'lama_waktu' => $modLama,
+                        'rata_rata_waktu' => $modAvg,
+                    ];
+                }
+            } else {
+                $saved = $savedDetailsMap->get($mod->id);
+                $modCount = $saved ? (int)$saved->total_ticket : 0;
+                $modScore = $saved ? (float)$saved->score : 0;
+                $modLama = $saved ? $saved->lama_waktu : '-';
+                $modAvg = $saved ? $saved->rata_rata_waktu : '-';
+                $bobot = (int)($saved ? $saved->bobot : ($mod->bobot ?? 0));
+            }
+
+            $moduleTableData[] = [
+                'id' => $mod->id,
+                'name' => $mod->name,
+                'bobot' => $bobot,
+                'total_ticket' => $modCount,
+                'lama_waktu' => $modLama,
+                'rata_rata_waktu' => $modAvg,
+                'score' => $modScore,
+            ];
+        }
+
+        // 3. Modul Terbanyak Ditangani
         $topHandledModuleName = '-';
         $topHandledModuleCount = 0;
-        if ($rapor && $rapor->moduleDetails && $rapor->moduleDetails->count() > 0) {
+        if ($shouldRecalculateLive) {
+            $topHandled = collect($moduleTableData)->where('total_ticket', '>', 0)->sortByDesc('total_ticket')->first();
+            if ($topHandled) {
+                $topHandledModuleName = $topHandled['name'];
+                $topHandledModuleCount = (int)$topHandled['total_ticket'];
+            }
+        } elseif ($rapor && $rapor->moduleDetails && $rapor->moduleDetails->count() > 0) {
             $topHandled = $rapor->moduleDetails->where('total_ticket', '>', 0)->sortByDesc('total_ticket')->first();
             if ($topHandled) {
                 $topHandledModuleName = $topHandled->moduleSystem->name ?? $topHandled->module->name ?? '-';
@@ -1678,7 +1778,7 @@ class HomeController extends Controller
             }
         }
 
-        // 3. Rating Bintang Kepuasan Klien (Skala 5.0)
+        // 4. Rating Bintang Kepuasan Klien (Skala 5.0)
         if ($rapor && $rapor->review_score !== null) {
             $client_rating = round((float)$rapor->review_score / 20, 1);
         } else {
@@ -1690,78 +1790,79 @@ class HomeController extends Controller
             $client_rating = $surveyRatings->count() > 0 ? round($surveyRatings->avg(), 1) : ($tiket_selesai > 0 ? 5.0 : 0.0);
         }
 
-        // 4. Data Modul untuk Tabel Rincian (Menampilkan Semua Modul dengan Opsi Filter)
-        $allModules = ModuleSystem::all();
-        $moduleTableData = [];
-        $savedDetailsMap = ($rapor && $rapor->moduleDetails) ? $rapor->moduleDetails->keyBy('module_id') : collect([]);
-
-        foreach ($allModules as $mod) {
-            $saved = $savedDetailsMap->get($mod->id);
-            $modCount = $saved ? (int)$saved->total_ticket : 0;
-            $modScore = $saved ? (float)$saved->score : 0;
-            $modLama = $saved ? $saved->lama_waktu : '-';
-            $modAvg = $saved ? $saved->rata_rata_waktu : '-';
-            $bobot = (int)($saved ? $saved->bobot : ($mod->bobot ?? 0));
-
-            if (!$rapor) {
-                $mTickets = (clone $tiketQuery)->where('module_system_id', $mod->id)->get();
-                $modCount = $mTickets->count();
-                $modScore = $bobot * $modCount;
-                $clTickets = $mTickets->filter(function($t) { return strtoupper($t->status) === 'CLOSED' && $t->closed_at; });
-                $mTotalMins = 0; $mValidCount = 0;
-                foreach ($clTickets as $ct) {
-                    $start = $ct->handle_at ?? $ct->created_at;
-                    if ($start && $ct->closed_at) {
-                        $mTotalMins += $ct->duration_minutes !== null ? (int)$ct->duration_minutes : \Carbon\Carbon::parse($ct->closed_at)->diffInMinutes(\Carbon\Carbon::parse($start));
-                        $mValidCount++;
-                    }
-                }
-                if ($mValidCount > 0) {
-                    $avgM = round($mTotalMins / $mValidCount);
-                    $modAvg = $avgM > 0 ? "{$avgM} menit" : "< 1 menit";
-                    $modLama = $mTotalMins > 0 ? "{$mTotalMins} menit" : "< 1 menit";
-                }
-            }
-
-            $moduleTableData[] = [
-                'id' => $mod->id,
-                'name' => $mod->name,
-                'bobot' => $bobot,
-                'total_ticket' => $modCount,
-                'lama_waktu' => $modLama,
-                'rata_rata_waktu' => $modAvg,
-                'score' => $modScore,
-            ];
-        }
-
         // 5. Benchmark Info
-        $max_ticket_score = $rapor ? (float)($rapor->max_ticket_score ?? 0) : 0;
-        $raw_ticket_score = $rapor ? (float)($rapor->raw_ticket_score ?? 0) : array_sum(array_column($moduleTableData, 'score'));
-        $team_portion = $rapor ? (float)($rapor->team_portion ?? 0) : 0;
+        $weights = PerformanceWeight::getWeightsMap();
+        $raw_ticket_score = $shouldRecalculateLive ? $rawScoreLive : ($rapor ? (float)($rapor->raw_ticket_score ?? 0) : array_sum(array_column($moduleTableData, 'score')));
+        
+        $allUsers = User::where('usertype', 'user')
+            ->where('departemen_id', $user->departemen_id)
+            ->where('is_active', true)
+            ->get();
+        $max_ticket_score = 0;
+        $total_team_score = 0;
         $top_performer_name = null;
-        if ($max_ticket_score > 0) {
-            if ($raw_ticket_score >= $max_ticket_score) {
-                $top_performer_name = $user->name;
-            } else {
-                $topRev = PerformanceReview::where('period_key', $periodKey)
-                    ->whereHas('user', function($q) use ($user) {
-                        $q->where('departemen_id', $user->departemen_id)
-                          ->where('usertype', 'user');
-                    })
-                    ->where('raw_ticket_score', '>=', $max_ticket_score)
-                    ->orderByDesc('raw_ticket_score')
-                    ->with('user')
-                    ->first();
-                if ($topRev && $topRev->user) {
-                    $top_performer_name = $topRev->user->name;
+        $moduleBobotMap = $allModules->pluck('bobot', 'id');
+
+        $allMonthTickets = Ticket::whereBetween('created_at', [$startDate, $endDate])
+            ->get(['id', 'user_id', 'advisor_id', 'module_system_id']);
+
+        foreach ($allUsers as $u) {
+            $uTickets = $allMonthTickets->filter(fn($t) => $t->user_id == $u->id);
+            if ($uTickets->count() > 0) {
+                $uScore = 0;
+                foreach ($uTickets as $ut) {
+                    $uScore += (int)($moduleBobotMap[$ut->module_system_id] ?? 0);
+                }
+                $total_team_score += $uScore;
+                if ($uScore > $max_ticket_score) {
+                    $max_ticket_score = $uScore;
+                    $top_performer_name = $u->name;
                 }
             }
-            if (empty($top_performer_name) && $raw_ticket_score >= $max_ticket_score) {
-                $top_performer_name = $user->name;
+        }
+
+        if ($raw_ticket_score >= $max_ticket_score || empty($top_performer_name)) {
+            $max_ticket_score = max($raw_ticket_score, $max_ticket_score);
+            $top_performer_name = $user->name;
+        }
+
+        $team_portion = ($total_team_score > 0) ? round(($raw_ticket_score / $total_team_score) * 100, 2) : ($raw_ticket_score > 0 ? 100.00 : 0.00);
+        $nilai_tiket = ($max_ticket_score > 0) ? round(($raw_ticket_score / $max_ticket_score) * 100, 2) : 0;
+
+        // Jika ada rapor yang statusnya belum FINAL dan data perlu disinkronkan, update database secara otomatis
+        if ($rapor && $rapor->status !== 'FINAL' && $shouldRecalculateLive) {
+            $wTicket = ($weights['ticket'] ?? 30.0) / 100;
+            $wSoftSkill = ($weights['soft_skill'] ?? 40.0) / 100;
+            $wClient = ($weights['client_review'] ?? 30.0) / 100;
+            $softScore = (float)($rapor->performance_score ?? 0);
+            $clientScore = $rapor->review_score !== null ? (float)$rapor->review_score : ($client_rating * 20);
+            $totalScoreRecalc = round(($nilai_tiket * $wTicket) + ($softScore * $wSoftSkill) + ($clientScore * $wClient), 2);
+
+            $rapor->update([
+                'total_ticket' => $tiket_ditangani,
+                'raw_ticket_score' => $raw_ticket_score,
+                'max_ticket_score' => $max_ticket_score,
+                'module_score' => $nilai_tiket,
+                'team_portion' => $team_portion,
+                'total_score' => $totalScoreRecalc,
+                'lama_waktu' => $total_lama_waktu,
+                'rata_rata_waktu' => $rata_rata_waktu,
+            ]);
+
+            $rapor->moduleDetails()->delete();
+            foreach ($moduleDetailsToSave as $mdData) {
+                PerformanceReviewModuleDetail::create([
+                    'p_rev_id' => $rapor->id,
+                    'module_id' => $mdData['module_id'],
+                    'score' => $mdData['score'],
+                    'bobot' => $mdData['bobot'],
+                    'total_ticket' => $mdData['total_ticket'],
+                    'lama_waktu' => $mdData['lama_waktu'] ?? '-',
+                    'rata_rata_waktu' => $mdData['rata_rata_waktu'] ?? '-',
+                ]);
             }
         }
-        
-        $weights = PerformanceWeight::getWeightsMap();
+
         $periodOptions = PeriodService::getOptions();
 
         return view('rapor', compact(
@@ -1777,6 +1878,8 @@ class HomeController extends Controller
             'tiket_progress',
             'tiket_di_advice',
             'completion_rate',
+            'total_lama_waktu',
+            'rata_rata_waktu',
             'topHandledModuleName',
             'topHandledModuleCount',
             'client_rating',
@@ -1846,23 +1949,39 @@ class HomeController extends Controller
         $tiket_progress = (clone $tiketQuery)->whereRaw('UPPER(status) = ?', ['PROGRESS'])->count();
         $completion_rate = $tiket_ditangani > 0 ? round(($tiket_selesai / $tiket_ditangani) * 100, 1) : 0;
 
+        $closedTickets = (clone $tiketQuery)->whereRaw('UPPER(status) = ?', ['CLOSED'])
+            ->whereNotNull('closed_at')
+            ->get();
+
+        $totalMins = 0;
+        $validClosedCount = 0;
+        foreach ($closedTickets as $ct) {
+            $start = $ct->handle_at ?? $ct->created_at;
+            if ($start && $ct->closed_at) {
+                if ($ct->duration_minutes !== null) {
+                    $totalMins += (int)$ct->duration_minutes;
+                } else {
+                    $totalMins += \Carbon\Carbon::parse($ct->closed_at)->diffInMinutes(\Carbon\Carbon::parse($start));
+                }
+                $validClosedCount++;
+            }
+        }
+
+        $rata_rata_waktu = ($validClosedCount > 0) ? round($totalMins / $validClosedCount) . ' menit' : '-';
+        $total_lama_waktu = ($totalMins > 0) ? "{$totalMins} menit" : ($validClosedCount > 0 ? "< 1 menit" : '-');
+
         $allModules = ModuleSystem::orderBy('id', 'asc')->get();
         $total_bobot = $allModules->sum('bobot');
-        $total_qty = 0;
-        if ($rapor && $rapor->moduleDetails) {
-            $total_qty = $rapor->moduleDetails->sum('total_ticket');
-        }
+        $savedDetailsMap = ($rapor && $rapor->moduleDetails) ? $rapor->moduleDetails->keyBy('module_id') : collect([]);
+        $savedTotalQty = $savedDetailsMap->sum('total_ticket');
+
+        $shouldRecalculateLive = (!$rapor || $rapor->status !== 'FINAL' || ($periodInfo['is_current'] ?? false) || $savedTotalQty != $tiket_ditangani);
+        $total_qty = $shouldRecalculateLive ? $tiket_ditangani : ($rapor && $rapor->moduleDetails ? $rapor->moduleDetails->sum('total_ticket') : $tiket_ditangani);
 
         // Modul terbanyak ditangani
         $topHandledModuleName = '-';
         $topHandledModuleCount = 0;
-        if ($rapor && $rapor->moduleDetails && $rapor->moduleDetails->count() > 0) {
-            $topHandled = $rapor->moduleDetails->where('total_ticket', '>', 0)->sortByDesc('total_ticket')->first();
-            if ($topHandled) {
-                $topHandledModuleName = $topHandled->moduleSystem->name ?? $topHandled->module->name ?? '-';
-                $topHandledModuleCount = (int)$topHandled->total_ticket;
-            }
-        } else {
+        if ($shouldRecalculateLive || !$rapor || !$rapor->moduleDetails || $rapor->moduleDetails->isEmpty()) {
             $topMod = (clone $tiketQuery)->whereNotNull('module_system_id')
                 ->select('module_system_id', \Illuminate\Support\Facades\DB::raw('count(*) as total'))
                 ->groupBy('module_system_id')
@@ -1872,6 +1991,12 @@ class HomeController extends Controller
                 $mSys = ModuleSystem::find($topMod->module_system_id);
                 $topHandledModuleName = $mSys ? $mSys->name : '-';
                 $topHandledModuleCount = (int)$topMod->total;
+            }
+        } else {
+            $topHandled = $rapor->moduleDetails->where('total_ticket', '>', 0)->sortByDesc('total_ticket')->first();
+            if ($topHandled) {
+                $topHandledModuleName = $topHandled->moduleSystem->name ?? $topHandled->module->name ?? '-';
+                $topHandledModuleCount = (int)$topHandled->total_ticket;
             }
         }
 
@@ -1920,6 +2045,8 @@ class HomeController extends Controller
             'tiket_progress', 
             'tiket_di_advice', 
             'completion_rate', 
+            'total_lama_waktu',
+            'rata_rata_waktu',
             'topHandledModuleName', 
             'topHandledModuleCount', 
             'total_bobot', 

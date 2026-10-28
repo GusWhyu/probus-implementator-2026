@@ -624,8 +624,8 @@
                                     <span class="text-xs text-slate-400 font-medium">0</span>
                                     @endif
                                 </td>
-                                <td class="py-3.5 px-4 text-center">{!! renderDurationBadge($rapor->lama_waktu ?? '-') !!}</td>
-                                <td class="py-3.5 px-4 text-center">{!! renderDurationBadge($rapor->rata_rata_waktu ?? '-') !!}</td>
+                                <td class="py-3.5 px-4 text-center">{!! renderDurationBadge($total_lama_waktu ?? ($rapor->lama_waktu ?? '-')) !!}</td>
+                                <td class="py-3.5 px-4 text-center">{!! renderDurationBadge($rata_rata_waktu ?? ($rapor->rata_rata_waktu ?? '-')) !!}</td>
                                 <td class="py-3.5 px-4 text-right font-mono font-black text-blue-700 dark:text-blue-400 text-sm">{{ number_format($totalSumScore, 0, ',', '.') }} poin</td>
                             </tr>
                         </tfoot>
