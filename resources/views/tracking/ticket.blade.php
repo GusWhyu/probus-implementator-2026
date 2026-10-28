@@ -21,9 +21,9 @@
     <div class="bg-white dark:bg-[#151f38] rounded-2xl sm:rounded-3xl p-4 sm:p-6 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-3.5 sm:space-y-4">
         
         <!-- 1. Orang yang Mengerjakan (Paling Atas) -->
-        <div class="bg-slate-50/90 dark:bg-slate-900/60 rounded-xl sm:rounded-2xl p-3.5 sm:p-4.5 border border-slate-200/80 dark:border-slate-800/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
-            <!-- Sisi Kiri: Petugas Penanganan (PIC) -->
-            <div class="flex items-center gap-3 sm:gap-4 min-w-0">
+        <div class="bg-slate-50/90 dark:bg-slate-900/60 rounded-xl sm:rounded-2xl p-3.5 sm:p-4.5 border border-slate-200/80 dark:border-slate-800/80 flex items-center justify-between gap-3 sm:gap-4">
+            <!-- Sisi Kiri: Petugas Penanganan & Advisor -->
+            <div class="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
                 <!-- Foto Profil / Avatar Petugas (Ukuran Lebih Jelas & Proporsional 64px) -->
                 <div class="relative shrink-0" style="width: 64px; height: 64px; min-width: 64px; min-height: 64px;">
                     <div class="w-16 h-16 rounded-xl sm:rounded-2xl overflow-hidden ring-2 ring-blue-500/25 dark:ring-blue-500/40 shadow-xs bg-slate-200 dark:bg-slate-800 flex items-center justify-center" style="width: 64px; height: 64px;">
@@ -48,7 +48,7 @@
                     @endif
                 </div>
 
-                <!-- Informasi Petugas Penanganan -->
+                <!-- Informasi Petugas & Advisor -->
                 <div class="min-w-0 flex-1">
                     <span class="inline-flex items-center gap-1 text-[10px] font-extrabold uppercase tracking-wider text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/70 px-2 py-0.5 rounded-md border border-blue-200/80 dark:border-blue-800/80 mb-1">
                         <i class="fa-solid fa-user-gear text-[9px]"></i> Petugas Penanganan
@@ -58,52 +58,38 @@
                         {{ $ticket->user->name ?? 'Belum Ditugaskan' }}
                     </h2>
 
-                    <div class="flex items-center gap-1.5 mt-0.5 text-xs text-slate-500 dark:text-slate-400">
-                        <i class="fa-solid fa-briefcase text-slate-400 text-[11px]"></i>
-                        <span class="font-medium">{{ $ticket->user->departemen->name ?? 'Tim Support Probus' }}</span>
+                    <div class="flex items-center gap-2 sm:gap-3 flex-wrap mt-0.5 text-xs text-slate-500 dark:text-slate-400">
+                        <span class="inline-flex items-center gap-1 font-medium">
+                            <i class="fa-solid fa-briefcase text-slate-400 text-[11px]"></i>
+                            {{ $ticket->user->departemen->name ?? 'Tim Support Probus' }}
+                        </span>
+
+                        @if ($ticket->advisor)
+                        <span class="text-slate-300 dark:text-slate-700 hidden sm:inline">&bull;</span>
+                        <span class="inline-flex items-center gap-1 font-medium">
+                            <i class="fa-solid fa-user-tie text-indigo-400 text-[11px]"></i>
+                            Advisor: <strong class="text-slate-700 dark:text-slate-300 font-semibold">{{ $ticket->advisor->name }}</strong>
+                        </span>
+                        @endif
                     </div>
                 </div>
             </div>
 
-            <!-- Sisi Kanan: Advisor & Status Tiket (Proporsional & Seimbang) -->
-            <div class="flex items-center flex-wrap sm:flex-nowrap gap-2.5 sm:gap-3.5 shrink-0 pt-2.5 sm:pt-0 border-t sm:border-t-0 border-slate-200/60 dark:border-slate-800/70 justify-between sm:justify-end">
-                @if ($ticket->advisor)
-                <!-- Kartu Khusus Advisor Tiket -->
-                <div class="flex items-center gap-2.5 bg-white/80 dark:bg-slate-800/70 px-3 py-1.5 sm:py-2 rounded-xl border border-slate-200/80 dark:border-slate-700/70 shadow-2xs">
-                    <div class="w-8 h-8 rounded-xl bg-indigo-50 dark:bg-indigo-950/70 border border-indigo-200/60 dark:border-indigo-800/60 flex items-center justify-center text-indigo-600 dark:text-indigo-400 shrink-0 font-bold text-xs">
-                        @if ($ticket->advisor->avatar_url)
-                            <img src="{{ $ticket->advisor->avatar_url }}" alt="{{ $ticket->advisor->name }}" class="w-full h-full object-cover rounded-xl">
-                        @else
-                            <i class="fa-solid fa-user-tie text-xs"></i>
-                        @endif
-                    </div>
-                    <div class="min-w-0 text-left">
-                        <span class="text-[9px] font-black uppercase tracking-wider text-indigo-600 dark:text-indigo-400 block leading-tight">
-                            <i class="fa-solid fa-user-tie text-[9px] mr-0.5"></i> Advisor Tiket
-                        </span>
-                        <span class="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-200 block truncate max-w-[130px] sm:max-w-[180px]" title="{{ $ticket->advisor->name }}">
-                            {{ $ticket->advisor->name }}
-                        </span>
-                    </div>
-                </div>
+            <!-- Sisi Kanan: Hanya Status Tiket (Closed / Progress / Open) -->
+            <div class="shrink-0 self-center">
+                @if ($isClosed)
+                    <span class="inline-flex items-center gap-1.5 px-3 sm:px-3.5 py-1.5 sm:py-2 rounded-xl text-xs font-black text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/70 border border-emerald-200/90 dark:border-emerald-800/80 shadow-2xs">
+                        <i class="fa-solid fa-circle-check text-[11px]"></i> Selesai
+                    </span>
+                @elseif ($statusUpper === 'PROGRESS')
+                    <span class="inline-flex items-center gap-1.5 px-3 sm:px-3.5 py-1.5 sm:py-2 rounded-xl text-xs font-black text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/70 border border-amber-200/90 dark:border-amber-800/80 shadow-2xs">
+                        <span class="w-2 h-2 rounded-full bg-amber-500 animate-ping"></span> Sedang Dikerjakan
+                    </span>
+                @else
+                    <span class="inline-flex items-center gap-1.5 px-3 sm:px-3.5 py-1.5 sm:py-2 rounded-xl text-xs font-black text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/70 border border-blue-200/90 dark:border-blue-800/80 shadow-2xs">
+                        <i class="fa-regular fa-clock text-[11px]"></i> Tiket Diterima
+                    </span>
                 @endif
-
-                <!-- Status Tiket Pill -->
-                <div class="shrink-0">
-                    @if ($isClosed)
-                        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 sm:py-2 rounded-xl text-xs font-black text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/70 border border-emerald-200/90 dark:border-emerald-800/80 shadow-2xs">
-                            <i class="fa-solid fa-circle-check text-[11px]"></i> Selesai
-                        </span>
-                    @elseif ($statusUpper === 'PROGRESS')
-                        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 sm:py-2 rounded-xl text-xs font-black text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/70 border border-amber-200/90 dark:border-amber-800/80 shadow-2xs">
-                            <span class="w-2 h-2 rounded-full bg-amber-500 animate-ping"></span> Sedang Dikerjakan
-                        </span>
-                    @else
-                        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 sm:py-2 rounded-xl text-xs font-black text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/70 border border-blue-200/90 dark:border-blue-800/80 shadow-2xs">
-                            <i class="fa-regular fa-clock text-[11px]"></i> Tiket Diterima
-                        </span>
-                    @endif
-                </div>
             </div>
         </div>
 
