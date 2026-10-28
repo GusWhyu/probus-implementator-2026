@@ -310,7 +310,152 @@
             </div>
             @endif
 
+            <!-- Timeline Riwayat Penanganan Card -->
+            <div class="bg-white dark:bg-[#151f38] rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 border border-slate-200/80 dark:border-slate-800 shadow-sm">
+                <div class="flex items-center justify-between mb-6 pb-4 border-b border-slate-100 dark:border-slate-800/80">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-8 h-8 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center">
+                            <i class="fa-solid fa-clock-rotate-left text-sm"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-xs font-extrabold uppercase tracking-widest text-slate-400 dark:text-slate-500">Riwayat Aktivitas Penanganan</h3>
+                            <p class="text-[11px] text-slate-400 dark:text-slate-500 hidden sm:block">Kronologi pembaruan dan progres penanganan kendala secara real-time.</p>
+                        </div>
+                    </div>
+                    <span class="px-2.5 py-1 rounded-full text-[11px] font-extrabold bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 border border-blue-200/50 dark:border-blue-900/50 flex items-center gap-1.5">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                        {{ isset($ticketLogs) && $ticketLogs->count() > 0 ? $ticketLogs->count() . ' Aktivitas' : 'Live Sync' }}
+                    </span>
+                </div>
 
+                @if (isset($ticketLogs) && $ticketLogs->count() > 0)
+                <div class="relative pl-6 sm:pl-8 space-y-5 before:content-[''] before:absolute before:left-3 sm:before:left-4 before:top-3 before:bottom-3 before:w-0.5 before:bg-slate-200 dark:before:bg-slate-700/80 max-h-[500px] overflow-y-auto pr-1">
+                    @foreach ($ticketLogs as $log)
+                        @php
+                            $logIcon = 'fa-circle-dot';
+                            $logColor = 'text-blue-500 bg-blue-50 dark:bg-blue-950/50 border-blue-200 dark:border-blue-900/60';
+                            $actionLower = strtolower($log->action ?? '');
+                            $descLower = strtolower($log->description ?? '');
+
+                            if ($actionLower === 'created' || str_contains($descLower, 'berhasil dibuat')) {
+                                $logIcon = 'fa-ticket';
+                                $logColor = 'text-blue-500 bg-blue-50 dark:bg-blue-950/50 border-blue-200 dark:border-blue-900/60';
+                            } elseif ($actionLower === 'closed' || str_contains($descLower, 'selesai') || str_contains($descLower, 'closed')) {
+                                $logIcon = 'fa-circle-check';
+                                $logColor = 'text-emerald-500 bg-emerald-50 dark:bg-emerald-950/50 border-emerald-200 dark:border-emerald-900/60';
+                            } elseif ($actionLower === 'handled' || str_contains($descLower, 'mulai penanganan') || str_contains($descLower, 'progress')) {
+                                $logIcon = 'fa-screwdriver-wrench';
+                                $logColor = 'text-sky-500 bg-sky-50 dark:bg-sky-950/50 border-sky-200 dark:border-sky-900/60';
+                            } elseif (str_contains($actionLower, 'advisor') || str_contains($descLower, 'advisor')) {
+                                $logIcon = 'fa-user-gear';
+                                $logColor = 'text-indigo-500 bg-indigo-50 dark:bg-indigo-950/50 border-indigo-200 dark:border-indigo-900/60';
+                            } elseif (str_contains($actionLower, 'solution') || str_contains($descLower, 'solusi')) {
+                                $logIcon = 'fa-lightbulb';
+                                $logColor = 'text-amber-500 bg-amber-50 dark:bg-amber-950/50 border-amber-200 dark:border-amber-900/60';
+                            } elseif ($actionLower === 'status_changed' || str_contains($actionLower, 'status')) {
+                                $logIcon = 'fa-arrows-rotate';
+                                $logColor = 'text-violet-500 bg-violet-50 dark:bg-violet-950/50 border-violet-200 dark:border-violet-900/60';
+                            }
+                        @endphp
+                        <div class="relative group">
+                            <!-- Bullet Indicator -->
+                            <div class="absolute -left-6 sm:-left-8 top-1 w-6 h-6 rounded-full bg-white dark:bg-[#151f38] ring-4 ring-white dark:ring-[#151f38] z-10 flex items-center justify-center">
+                                <div class="w-full h-full rounded-full {{ $logColor }} border flex items-center justify-center text-[10px] shadow-2xs">
+                                    <i class="fa-solid {{ $logIcon }}"></i>
+                                </div>
+                            </div>
+                            <!-- Log Content Card -->
+                            <div class="p-3.5 sm:p-4 rounded-xl sm:rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-100 dark:border-slate-800/80 hover:border-slate-300 dark:hover:border-slate-700 transition-colors">
+                                <p class="text-xs sm:text-sm font-semibold text-slate-800 dark:text-slate-100 leading-relaxed">
+                                    {{ $log->description }}
+                                </p>
+                                <div class="flex items-center gap-2 sm:gap-3 mt-2 text-[10px] sm:text-[11px] text-slate-400">
+                                    @if ($log->user)
+                                    <span class="flex items-center gap-1 font-semibold text-slate-600 dark:text-slate-300">
+                                        <i class="fa-regular fa-user text-[10px] text-blue-500"></i>
+                                        {{ $log->user->name }}
+                                    </span>
+                                    <span>•</span>
+                                    @endif
+                                    <span class="flex items-center gap-1 font-medium">
+                                        <i class="fa-regular fa-clock text-[10px]"></i>
+                                        {{ $log->created_at ? $log->created_at->translatedFormat('d M Y, H:i') : '-' }}
+                                    </span>
+                                    @if ($log->created_at)
+                                    <span class="hidden sm:inline text-slate-400">({{ $log->created_at->diffForHumans() }})</span>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+                @else
+                <!-- Fallback Milestones if logs are empty -->
+                <div class="relative pl-6 sm:pl-8 space-y-4 before:content-[''] before:absolute before:left-3 sm:before:left-4 before:top-3 before:bottom-3 before:w-0.5 before:bg-slate-200 dark:before:bg-slate-700/80">
+                    <!-- Milestone 1: Dibuat -->
+                    <div class="relative">
+                        <div class="absolute -left-6 sm:-left-8 top-1 w-6 h-6 rounded-full bg-white dark:bg-[#151f38] ring-4 ring-white dark:ring-[#151f38] z-10 flex items-center justify-center">
+                            <div class="w-full h-full rounded-full bg-blue-50 dark:bg-blue-950/50 text-blue-600 border border-blue-200 dark:border-blue-900/60 flex items-center justify-center text-[10px]">
+                                <i class="fa-solid fa-ticket"></i>
+                            </div>
+                        </div>
+                        <div class="p-3.5 rounded-xl sm:rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-100 dark:border-slate-800/80">
+                            <p class="text-xs sm:text-sm font-semibold text-slate-800 dark:text-slate-100">Tiket kendala berhasil didaftarkan ke sistem.</p>
+                            <div class="flex items-center gap-2 mt-1.5 text-[10px] sm:text-[11px] text-slate-400">
+                                <span class="font-semibold text-slate-600 dark:text-slate-300">{{ $ticket->user ? $ticket->user->name : 'Sistem' }}</span>
+                                <span>•</span>
+                                <span>{{ \Carbon\Carbon::parse($ticket->created_at)->translatedFormat('d M Y, H:i') }}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    @if ($ticket->handle_at || $isProgress || $isClosed)
+                    <!-- Milestone 2: Penanganan -->
+                    <div class="relative">
+                        <div class="absolute -left-6 sm:-left-8 top-1 w-6 h-6 rounded-full bg-white dark:bg-[#151f38] ring-4 ring-white dark:ring-[#151f38] z-10 flex items-center justify-center">
+                            <div class="w-full h-full rounded-full bg-sky-50 dark:bg-sky-950/50 text-sky-600 border border-sky-200 dark:border-sky-900/60 flex items-center justify-center text-[10px]">
+                                <i class="fa-solid fa-screwdriver-wrench"></i>
+                            </div>
+                        </div>
+                        <div class="p-3.5 rounded-xl sm:rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-100 dark:border-slate-800/80">
+                            <p class="text-xs sm:text-sm font-semibold text-slate-800 dark:text-slate-100">Tim teknis memulai penanganan kendala sistem.</p>
+                            <div class="flex items-center gap-2 mt-1.5 text-[10px] sm:text-[11px] text-slate-400">
+                                <span class="font-semibold text-slate-600 dark:text-slate-300">{{ $ticket->user->name ?? 'Petugas Support' }}</span>
+                                <span>•</span>
+                                <span>{{ $ticket->handle_at ? \Carbon\Carbon::parse($ticket->handle_at)->translatedFormat('d M Y, H:i') : 'Sedang berjalan' }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    @endif
+
+                    @if ($isClosed)
+                    <!-- Milestone 3: Selesai -->
+                    <div class="relative">
+                        <div class="absolute -left-6 sm:-left-8 top-1 w-6 h-6 rounded-full bg-white dark:bg-[#151f38] ring-4 ring-white dark:ring-[#151f38] z-10 flex items-center justify-center">
+                            <div class="w-full h-full rounded-full bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 border border-emerald-200 dark:border-emerald-900/60 flex items-center justify-center text-[10px]">
+                                <i class="fa-solid fa-circle-check"></i>
+                            </div>
+                        </div>
+                        <div class="p-3.5 rounded-xl sm:rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-100 dark:border-slate-800/80">
+                            <p class="text-xs sm:text-sm font-semibold text-slate-800 dark:text-slate-100">Kendala telah selesai ditangani dan diverifikasi.</p>
+                            <div class="flex items-center gap-2 mt-1.5 text-[10px] sm:text-[11px] text-slate-400">
+                                <span>{{ $ticket->closed_at ? \Carbon\Carbon::parse($ticket->closed_at)->translatedFormat('d M Y, H:i') : '-' }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    @endif
+                </div>
+                @endif
+
+                <!-- Card Footer Info -->
+                <div class="mt-5 pt-4 border-t border-slate-100 dark:border-slate-800/80 flex flex-wrap items-center justify-between gap-2 text-[11px] text-slate-400">
+                    <span class="flex items-center gap-1.5">
+                        <i class="fa-solid fa-shield-halved text-blue-500"></i>
+                        <span>Disinkronkan langsung dari riwayat kerja teknisi</span>
+                    </span>
+                    <span class="text-[10px] text-slate-400 font-mono">Real-Time Activity Log</span>
+                </div>
+            </div>
         </div>
 
         <!-- Right Column: Metadata Details (5 cols on lg, 4 cols on xl+) -->
