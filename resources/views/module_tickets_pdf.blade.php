@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>Laporan Tiket {{ ($module->id ?? '') === 'all' ? 'Keseluruhan' : 'Modul ' . $module->name }} - {{ $user->name }}</title>
+    <title>Laporan Tiket {{ ($module->id ?? '') === 'all' ? 'Keseluruhan' : (($module->id ?? '') === 'advice' ? 'Di-Advice' : 'Modul ' . $module->name) }} - {{ $user->name }}</title>
     <style>
         @page {
             margin: 26px 44px 24px 44px;
@@ -253,12 +253,22 @@
     {{-- 3. JUDUL DI TENGAH: RIWAYAT TIKET & PERIODE (Di Bawah Profile User) --}}
     <div style="text-align: center; margin: 2px 0 7px 0; border-top: 1px dashed #cbd5e1; padding-top: 4px;">
         <div style="font-size: 13px; font-weight: bold; color: #004880; letter-spacing: 0.8px; text-transform: uppercase;">
-            {{ ($module->id ?? '') === 'all' ? 'LAPORAN RIWAYAT TIKET KESELURUHAN' : 'LAPORAN RIWAYAT TIKET PER MODUL' }}
+            @if(($module->id ?? '') === 'advice')
+                LAPORAN RIWAYAT TIKET DI-ADVICE
+            @elseif(($module->id ?? '') === 'all')
+                LAPORAN RIWAYAT TIKET KESELURUHAN
+            @else
+                LAPORAN RIWAYAT TIKET PER MODUL
+            @endif
         </div>
         <div style="font-size: 9.5px; color: #475569; margin-top: 1.5px;">
-            MODUL: <strong style="color: #004880;">{{ strtoupper($module->name) }}</strong>
-            @if(!empty($module->bobot) && $module->bobot !== '-')
-                <span style="color: #64748b; font-weight: normal;">(Bobot: {{ $module->bobot }})</span>
+            @if(($module->id ?? '') === 'advice')
+                PERAN: <strong style="color: #004880;">ADVISOR (PENDAMPING TIKET)</strong>
+            @else
+                MODUL: <strong style="color: #004880;">{{ strtoupper($module->name) }}</strong>
+                @if(!empty($module->bobot) && $module->bobot !== '-')
+                    <span style="color: #64748b; font-weight: normal;">(Bobot: {{ $module->bobot }})</span>
+                @endif
             @endif
             &bull; Periode: <strong style="color: #0f172a;">{{ $periodeText }}</strong>
         </div>
@@ -269,7 +279,9 @@
         <tr>
             <td style="width: 25%; padding: 0;">
                 <div style="background-color: #f5f3ff; border: 1.5px solid #c4b5fd; border-radius: 6px; padding: 5px 8px; text-align: center;">
-                    <div style="font-size: 8px; font-weight: bold; color: #6b21a8; text-transform: uppercase; letter-spacing: 0.4px;">TOTAL TICKETS</div>
+                    <div style="font-size: 8px; font-weight: bold; color: #6b21a8; text-transform: uppercase; letter-spacing: 0.4px;">
+                        {{ ($module->id ?? '') === 'advice' ? 'TOTAL DI-ADVICE' : 'TOTAL TICKETS' }}
+                    </div>
                     <div style="font-size: 16px; font-weight: bold; color: #6b21a8; margin-top: 1px; line-height: 1.1;">{{ $totalCount }}</div>
                 </div>
             </td>
@@ -300,7 +312,7 @@
             <tr>
                 <th style="width: 4%;">NO</th>
                 <th style="width: 14%;">NO. TIKET & STATUS</th>
-                <th style="width: 15%;">CLIENT / OUTLET</th>
+                <th style="width: 15%;">{{ ($module->id ?? '') === 'advice' ? 'CLIENT & PETUGAS' : 'CLIENT / OUTLET' }}</th>
                 <th style="width: 8.5%;">PENANGANAN</th>
                 <th style="width: 24.5%;">KENDALA / MASALAH DILAPORKAN</th>
                 <th style="width: 23%;">APA YANG DIKERJAKAN (SOLUSI)</th>
@@ -322,7 +334,7 @@
                     <td style="text-align: center; font-weight: bold; font-size: 10px;">{{ $index + 1 }}</td>
                     <td>
                         <div style="font-weight: bold; font-family: monospace; font-size: 10px; color: #0f172a;">{{ $t->ticket_number }}</div>
-                        @if(($module->id ?? '') === 'all' && !empty($t->moduleSystem->name))
+                        @if((($module->id ?? '') === 'all' || ($module->id ?? '') === 'advice') && !empty($t->moduleSystem->name))
                             <div style="font-size: 8px; color: #1e40af; font-weight: bold; margin-top: 1px;">
                                 [{{ $t->moduleSystem->name }}]
                             </div>
@@ -339,13 +351,19 @@
                     </td>
                     <td>
                         <div style="font-weight: bold; color: #0f172a; font-size: 10px;">{{ $clientName }}</div>
-                        @php
-                            $advName = $t->advisor ? $t->advisor->name : ($t->pendingAdvisor ? $t->pendingAdvisor->name : null);
-                        @endphp
-                        @if($advName)
-                            <div style="font-size: 8px; color: #b45309; font-weight: bold; margin-top: 2px;">
-                                Adv: {{ $advName }}
+                        @if(($module->id ?? '') === 'advice')
+                            <div style="font-size: 8px; color: #4338ca; font-weight: bold; margin-top: 2px;">
+                                Petugas: {{ $t->user->name ?? '-' }}
                             </div>
+                        @else
+                            @php
+                                $advName = $t->advisor ? $t->advisor->name : ($t->pendingAdvisor ? $t->pendingAdvisor->name : null);
+                            @endphp
+                            @if($advName)
+                                <div style="font-size: 8px; color: #b45309; font-weight: bold; margin-top: 2px;">
+                                    Adv: {{ $advName }}
+                                </div>
+                            @endif
                         @endif
                     </td>
                     <td style="text-align: center;">

@@ -225,10 +225,15 @@
                                     </div>
 
                                     <!-- Tiket Di-Advice -->
-                                    <div class="bg-slate-50/80 dark:bg-slate-900/60 p-3 rounded-xl border border-slate-100 dark:border-slate-800/80">
-                                        <div class="flex items-center gap-2 text-slate-400 dark:text-slate-400 mb-1">
-                                            <i class="fa-solid fa-handshake-angle text-xs text-indigo-500"></i>
-                                            <span class="text-[11px] font-medium truncate">Tiket Di-Advice</span>
+                                    <div @click="$dispatch('open-module-modal', { id: 'advice', name: 'Tiket Di-Advice', total: {{ (int)$tiket_di_advice }} })"
+                                         class="bg-slate-50/80 dark:bg-slate-900/60 p-3 rounded-xl border border-slate-100 dark:border-slate-800/80 hover:border-indigo-400 dark:hover:border-indigo-600 hover:bg-indigo-50/40 dark:hover:bg-indigo-950/30 transition-all cursor-pointer group shadow-2xs hover:shadow-sm"
+                                         title="Klik untuk melihat riwayat tiket yang di-advice">
+                                        <div class="flex items-center justify-between mb-1">
+                                            <div class="flex items-center gap-2 text-slate-400 dark:text-slate-400">
+                                                <i class="fa-solid fa-handshake-angle text-xs text-indigo-500 group-hover:scale-110 transition-transform"></i>
+                                                <span class="text-[11px] font-medium truncate group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">Tiket Di-Advice</span>
+                                            </div>
+                                            <i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-slate-300 dark:text-slate-600 group-hover:text-indigo-500 transition-colors"></i>
                                         </div>
                                         <div class="text-lg font-black text-indigo-600 dark:text-indigo-400 leading-tight">
                                             {{ $tiket_di_advice }}
@@ -769,19 +774,24 @@
                         <!-- Header Modal -->
                         <div class="px-5 py-4 border-b border-slate-100 dark:border-slate-700/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-50/50 dark:bg-slate-800/40">
                             <div class="flex items-center gap-3 min-w-0">
-                                <div class="w-10 h-10 rounded-xl bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
-                                    <i class="fa-solid fa-layer-group text-lg"></i>
+                                <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-2xs"
+                                     :class="moduleId === 'advice' ? 'bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400' : 'bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400'">
+                                    <i class="text-lg" :class="moduleId === 'advice' ? 'fa-solid fa-handshake-angle' : 'fa-solid fa-layer-group'"></i>
                                 </div>
                                 <div class="min-w-0">
                                     <div class="flex items-center gap-2 flex-wrap">
                                         <h3 class="text-base sm:text-lg font-black text-slate-800 dark:text-slate-100 truncate">
-                                            <span x-text="moduleId === 'all' ? 'Riwayat Seluruh Tiket: ' : 'Riwayat Tiket Modul: '"></span>
-                                            <span class="text-blue-600 dark:text-blue-400" x-text="moduleName"></span>
+                                            <span x-text="moduleId === 'all' ? 'Riwayat Seluruh Tiket: ' : (moduleId === 'advice' ? 'Riwayat Tiket Di-Advice' : 'Riwayat Tiket Modul: ')"></span>
+                                            <span :class="moduleId === 'advice' ? 'text-indigo-600 dark:text-indigo-400' : 'text-blue-600 dark:text-blue-400'"
+                                                  x-text="moduleId === 'advice' ? '' : moduleName"></span>
                                         </h3>
-                                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800" x-text="periodLabel"></span>
+                                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-full border shadow-2xs"
+                                              :class="moduleId === 'advice' ? 'bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border-indigo-200 dark:border-indigo-800' : 'bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800'"
+                                              x-text="periodLabel"></span>
                                     </div>
                                     <p class="text-xs text-slate-500 dark:text-slate-400 font-medium truncate mt-0.5">
-                                        Staff: <strong class="text-slate-700 dark:text-slate-200">{{ $user->name }}</strong> &bull; Total: <span x-text="summary.total"></span> Tiket
+                                        <span x-text="moduleId === 'advice' ? 'Advisor: ' : 'Staff: '"></span>
+                                        <strong class="text-slate-700 dark:text-slate-200">{{ $user->name }}</strong> &bull; Total: <span x-text="summary.total"></span> Tiket
                                     </p>
                                 </div>
                             </div>
@@ -791,7 +801,7 @@
                                 <!-- Download Excel -->
                                 <a :href="excelUrl"
                                    class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs hover:shadow transition-all cursor-pointer"
-                                   title="Download data riwayat tiket modul dalam format Excel (.xlsx)">
+                                   :title="moduleId === 'advice' ? 'Download data riwayat tiket di-advice dalam format Excel (.xlsx)' : 'Download data riwayat tiket modul dalam format Excel (.xlsx)'">
                                     <i class="fa-solid fa-file-excel text-sm"></i>
                                     <span>Download Excel</span>
                                 </a>
@@ -799,7 +809,7 @@
                                 <!-- Download PDF -->
                                 <a :href="pdfUrl" target="_blank"
                                    class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-rose-600 hover:bg-rose-700 text-white shadow-xs hover:shadow transition-all cursor-pointer"
-                                   title="Download data riwayat tiket modul dalam format PDF (.pdf)">
+                                   :title="moduleId === 'advice' ? 'Download data riwayat tiket di-advice dalam format PDF (.pdf)' : 'Download data riwayat tiket modul dalam format PDF (.pdf)'">
                                     <i class="fa-solid fa-file-pdf text-sm"></i>
                                     <span>Download PDF</span>
                                 </a>
@@ -836,8 +846,9 @@
                         <div class="p-5 overflow-y-auto custom-scrollbar flex-1">
                             <!-- Loading State -->
                             <div x-show="isLoading" class="py-12 flex flex-col items-center justify-center gap-3">
-                                <div class="w-8 h-8 border-3 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-                                <p class="text-xs font-bold text-slate-500 dark:text-slate-400">Memuat riwayat pengerjaan tiket modul...</p>
+                                <div class="w-8 h-8 border-3 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+                                <p class="text-xs font-bold text-slate-500 dark:text-slate-400"
+                                   x-text="moduleId === 'advice' ? 'Memuat riwayat tiket di-advice...' : 'Memuat riwayat pengerjaan tiket modul...'"></p>
                             </div>
 
                             <!-- Empty State -->
@@ -845,8 +856,10 @@
                                 <div class="w-14 h-14 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 flex items-center justify-center mb-3">
                                     <i class="fa-solid fa-inbox text-2xl"></i>
                                 </div>
-                                <h4 class="text-sm font-bold text-slate-700 dark:text-slate-200 mb-1">Tidak Ada Riwayat Tiket</h4>
-                                <p class="text-xs text-slate-400 max-w-sm">Belum ada tiket yang dikerjakan pada modul ini untuk periode yang dipilih.</p>
+                                <h4 class="text-sm font-bold text-slate-700 dark:text-slate-200 mb-1"
+                                    x-text="moduleId === 'advice' ? 'Tidak Ada Tiket Di-Advice' : 'Tidak Ada Riwayat Tiket'"></h4>
+                                <p class="text-xs text-slate-400 max-w-sm"
+                                   x-text="moduleId === 'advice' ? 'Belum ada tiket yang di-advice oleh staf ini untuk periode yang dipilih.' : 'Belum ada tiket yang dikerjakan pada modul ini untuk periode yang dipilih.'"></p>
                             </div>
 
                             <!-- Tickets List Table -->
@@ -859,7 +872,7 @@
                                             <th class="py-2.5 px-3">Tipe & Status</th>
                                             <th class="py-2.5 px-3">Apa Yang Dikerjakan & Solusi</th>
                                             <th class="py-2.5 px-3 text-center">Waktu & Durasi</th>
-                                            <th class="py-2.5 px-3 text-center min-w-[130px]">Advisor</th>
+                                            <th class="py-2.5 px-3 text-center min-w-[130px]" x-text="moduleId === 'advice' ? 'Petugas' : 'Advisor'">Advisor</th>
                                         </tr>
                                     </thead>
                                     <tbody class="divide-y divide-slate-100 dark:divide-slate-800 text-xs">
@@ -978,18 +991,28 @@
                                                     </template>
                                                 </td>
 
-                                                <!-- Advisor Tiket (Menggantikan Kolom Aksi) -->
+                                                <!-- Advisor Tiket / Petugas (Menggantikan Kolom Aksi) -->
                                                 <td class="py-3 px-3 text-center whitespace-nowrap">
-                                                    <template x-if="t.advisor_name">
-                                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-bold bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200/80 dark:border-amber-900/60 shadow-xs" title="Advisor Tiket">
-                                                            <i class="fa-solid fa-user-gear text-[10px] text-amber-600 dark:text-amber-400"></i>
-                                                            <span x-text="t.advisor_name"></span>
+                                                    <template x-if="moduleId === 'advice'">
+                                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-bold bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200/80 dark:border-indigo-900/60 shadow-xs" title="Petugas yang Menangani Tiket">
+                                                            <i class="fa-solid fa-user-pen text-[10px] text-indigo-600 dark:text-indigo-400"></i>
+                                                            <span x-text="t.handler_name || '-'"></span>
                                                         </span>
                                                     </template>
-                                                    <template x-if="!t.advisor_name">
-                                                        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-medium bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 border border-slate-200/60 dark:border-slate-700/60" title="Tanpa Advisor">
-                                                            <i class="fa-solid fa-user-gear text-[10px]"></i>
-                                                            <span>-</span>
+                                                    <template x-if="moduleId !== 'advice'">
+                                                        <span>
+                                                            <template x-if="t.advisor_name">
+                                                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-bold bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200/80 dark:border-amber-900/60 shadow-xs" title="Advisor Tiket">
+                                                                    <i class="fa-solid fa-user-gear text-[10px] text-amber-600 dark:text-amber-400"></i>
+                                                                    <span x-text="t.advisor_name"></span>
+                                                                </span>
+                                                            </template>
+                                                            <template x-if="!t.advisor_name">
+                                                                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-medium bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 border border-slate-200/60 dark:border-slate-700/60" title="Tanpa Advisor">
+                                                                    <i class="fa-solid fa-user-gear text-[10px]"></i>
+                                                                    <span>-</span>
+                                                                </span>
+                                                            </template>
                                                         </span>
                                                     </template>
                                                 </td>
@@ -1004,7 +1027,7 @@
                         <div class="px-5 py-3 bg-slate-50 dark:bg-slate-800/60 border-t border-slate-100 dark:border-slate-700/80 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
                             <div class="flex items-center gap-1.5">
                                 <i class="fa-solid fa-circle-info text-blue-500 text-[11px]"></i>
-                                <span>Klik <strong>Download Excel</strong> atau <strong>Download PDF</strong> untuk mengunduh rekap riwayat modul ini.</span>
+                                <span>Klik <strong>Download Excel</strong> atau <strong>Download PDF</strong> untuk mengunduh rekap riwayat <span x-text="moduleId === 'advice' ? 'tiket di-advice ini.' : 'modul ini.'"></span></span>
                             </div>
                             <button @click="close()" type="button" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-white dark:bg-slate-700 hover:bg-slate-100 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-600 shadow-2xs transition-colors cursor-pointer">
                                 Tutup

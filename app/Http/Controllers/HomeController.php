@@ -2167,10 +2167,18 @@ class HomeController extends Controller
         }
 
         $isAll = ($moduleId === 'all' || $moduleId == '0');
+        $isAdvice = ($moduleId === 'advice');
+
         if ($isAll) {
             $module = (object)[
                 'id' => 'all',
                 'name' => 'Total Keseluruhan',
+                'bobot' => '-',
+            ];
+        } elseif ($isAdvice) {
+            $module = (object)[
+                'id' => 'advice',
+                'name' => 'Tiket Di-Advice',
                 'bobot' => '-',
             ];
         } else {
@@ -2179,18 +2187,25 @@ class HomeController extends Controller
 
         $periodInfo = PeriodService::parse($request->query('period'), $request->query('month'), $request->query('year'), $request->query('period_type'));
 
-        $query = Ticket::where('user_id', $id)
-            ->whereBetween('created_at', [$periodInfo['start_date'], $periodInfo['end_date']])
-            ->with(['client', 'user', 'advisor', 'pendingAdvisor', 'moduleSystem', 'kategoriSystem'])
-            ->orderBy('created_at', 'desc');
+        if ($isAdvice) {
+            $query = Ticket::where('advisor_id', $id)
+                ->whereBetween('created_at', [$periodInfo['start_date'], $periodInfo['end_date']])
+                ->with(['client', 'user', 'advisor', 'pendingAdvisor', 'moduleSystem', 'kategoriSystem'])
+                ->orderBy('created_at', 'desc');
+        } else {
+            $query = Ticket::where('user_id', $id)
+                ->whereBetween('created_at', [$periodInfo['start_date'], $periodInfo['end_date']])
+                ->with(['client', 'user', 'advisor', 'pendingAdvisor', 'moduleSystem', 'kategoriSystem'])
+                ->orderBy('created_at', 'desc');
 
-        if (!$isAll) {
-            $query->where('module_system_id', $moduleId);
+            if (!$isAll) {
+                $query->where('module_system_id', $moduleId);
+            }
         }
 
         $tickets = $query->get();
 
-        $ticketsData = $tickets->map(function($t) {
+        $ticketsData = $tickets->map(function($t) use ($isAdvice) {
             $clientName = $t->client->nm_out ?? $t->client->name ?? '-';
             if (!empty($t->client->lokasi)) {
                 $clientName .= ' (' . $t->client->lokasi . ')';
@@ -2203,7 +2218,9 @@ class HomeController extends Controller
                 'description' => $t->description ? trim(strip_tags($t->description)) : null,
                 'solusi' => $t->solusi ? trim(strip_tags($t->solusi)) : null,
                 'client_name' => $clientName,
+                'handler_name' => $t->user ? $t->user->name : '-',
                 'advisor_name' => $t->advisor ? $t->advisor->name : ($t->pendingAdvisor ? $t->pendingAdvisor->name : null),
+                'is_advice' => $isAdvice,
                 'tipe_penanganan' => $t->tipe_penanganan ?: '-',
                 'status' => strtoupper($t->status ?? 'OPEN'),
                 'duration_text' => $t->duration_text ?: '-',
@@ -2220,6 +2237,7 @@ class HomeController extends Controller
 
         return response()->json([
             'success' => true,
+            'is_advice' => $isAdvice,
             'module' => [
                 'id' => $module->id,
                 'name' => $module->name,
@@ -2264,10 +2282,18 @@ class HomeController extends Controller
         }
 
         $isAll = ($moduleId === 'all' || $moduleId == '0');
+        $isAdvice = ($moduleId === 'advice');
+
         if ($isAll) {
             $module = (object)[
                 'id' => 'all',
                 'name' => 'Semua Modul (Total Keseluruhan)',
+                'bobot' => '-',
+            ];
+        } elseif ($isAdvice) {
+            $module = (object)[
+                'id' => 'advice',
+                'name' => 'Tiket Di-Advice',
                 'bobot' => '-',
             ];
         } else {
@@ -2276,13 +2302,20 @@ class HomeController extends Controller
 
         $periodInfo = PeriodService::parse($request->query('period'), $request->query('month'), $request->query('year'), $request->query('period_type'));
 
-        $query = Ticket::where('user_id', $id)
-            ->whereBetween('created_at', [$periodInfo['start_date'], $periodInfo['end_date']])
-            ->with(['client', 'user', 'advisor', 'pendingAdvisor', 'moduleSystem', 'kategoriSystem'])
-            ->orderBy('created_at', 'desc');
+        if ($isAdvice) {
+            $query = Ticket::where('advisor_id', $id)
+                ->whereBetween('created_at', [$periodInfo['start_date'], $periodInfo['end_date']])
+                ->with(['client', 'user', 'advisor', 'pendingAdvisor', 'moduleSystem', 'kategoriSystem'])
+                ->orderBy('created_at', 'desc');
+        } else {
+            $query = Ticket::where('user_id', $id)
+                ->whereBetween('created_at', [$periodInfo['start_date'], $periodInfo['end_date']])
+                ->with(['client', 'user', 'advisor', 'pendingAdvisor', 'moduleSystem', 'kategoriSystem'])
+                ->orderBy('created_at', 'desc');
 
-        if (!$isAll) {
-            $query->where('module_system_id', $moduleId);
+            if (!$isAll) {
+                $query->where('module_system_id', $moduleId);
+            }
         }
 
         $tickets = $query->get();
@@ -2291,6 +2324,7 @@ class HomeController extends Controller
             'staff_name' => $user->name,
             'module_name' => $module->name,
             'is_all_modules' => $isAll,
+            'is_advice' => $isAdvice,
             'period_label' => $periodInfo['label'],
             'cutoff_label' => $periodInfo['cutoff_label'],
             'printed_by' => auth()->user()->name ?? 'User',
@@ -2301,7 +2335,7 @@ class HomeController extends Controller
         $cleanStaff = preg_replace('/[^A-Za-z0-9_-]/', '_', $user->name);
         $cleanModule = preg_replace('/[^A-Za-z0-9_-]/', '_', $module->name);
         $cleanPeriodSlug = str_replace(['-', ' '], '_', $periodInfo['period_key']);
-        $filename = "Tiket_Modul_{$cleanModule}_{$cleanStaff}_{$cleanPeriodSlug}.xlsx";
+        $filename = $isAdvice ? "Tiket_Di_Advice_{$cleanStaff}_{$cleanPeriodSlug}.xlsx" : "Tiket_Modul_{$cleanModule}_{$cleanStaff}_{$cleanPeriodSlug}.xlsx";
 
         return response()->download($tempFile, $filename, [
             'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
@@ -2323,10 +2357,18 @@ class HomeController extends Controller
         }
 
         $isAll = ($moduleId === 'all' || $moduleId == '0');
+        $isAdvice = ($moduleId === 'advice');
+
         if ($isAll) {
             $module = (object)[
                 'id' => 'all',
                 'name' => 'Semua Modul (Total Keseluruhan)',
+                'bobot' => '-',
+            ];
+        } elseif ($isAdvice) {
+            $module = (object)[
+                'id' => 'advice',
+                'name' => 'Tiket Di-Advice',
                 'bobot' => '-',
             ];
         } else {
@@ -2338,13 +2380,20 @@ class HomeController extends Controller
         $year = $periodInfo['year'];
         $periodeText = $periodInfo['label'];
 
-        $query = Ticket::where('user_id', $id)
-            ->whereBetween('created_at', [$periodInfo['start_date'], $periodInfo['end_date']])
-            ->with(['client', 'user', 'advisor', 'pendingAdvisor', 'moduleSystem', 'kategoriSystem'])
-            ->orderBy('created_at', 'desc');
+        if ($isAdvice) {
+            $query = Ticket::where('advisor_id', $id)
+                ->whereBetween('created_at', [$periodInfo['start_date'], $periodInfo['end_date']])
+                ->with(['client', 'user', 'advisor', 'pendingAdvisor', 'moduleSystem', 'kategoriSystem'])
+                ->orderBy('created_at', 'desc');
+        } else {
+            $query = Ticket::where('user_id', $id)
+                ->whereBetween('created_at', [$periodInfo['start_date'], $periodInfo['end_date']])
+                ->with(['client', 'user', 'advisor', 'pendingAdvisor', 'moduleSystem', 'kategoriSystem'])
+                ->orderBy('created_at', 'desc');
 
-        if (!$isAll) {
-            $query->where('module_system_id', $moduleId);
+            if (!$isAll) {
+                $query->where('module_system_id', $moduleId);
+            }
         }
 
         $tickets = $query->get();
@@ -2362,7 +2411,7 @@ class HomeController extends Controller
         $cleanStaff = preg_replace('/[^A-Za-z0-9_-]/', '_', $user->name);
         $cleanModule = preg_replace('/[^A-Za-z0-9_-]/', '_', $module->name);
         $cleanPeriodSlug = str_replace(['-', ' '], '_', $periodInfo['period_key']);
-        $filename = "Tiket_Modul_{$cleanModule}_{$cleanStaff}_{$cleanPeriodSlug}.pdf";
+        $filename = $isAdvice ? "Tiket_Di_Advice_{$cleanStaff}_{$cleanPeriodSlug}.pdf" : "Tiket_Modul_{$cleanModule}_{$cleanStaff}_{$cleanPeriodSlug}.pdf";
 
         return $pdf->stream($filename);
     }
