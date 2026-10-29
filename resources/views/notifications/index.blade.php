@@ -1,6 +1,5 @@
 <x-app-layout>
-    <div class="py-8 bg-slate-50/50 min-h-screen">
-        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="w-full pb-8">
             
             <!-- Header section -->
             <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-8 gap-4">
@@ -130,7 +129,5 @@
                 {{ $notifications->links() }}
             </div>
             @endif
-
-        </div>
     </div>
 </x-app-layout>

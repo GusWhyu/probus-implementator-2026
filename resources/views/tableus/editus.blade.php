@@ -4,8 +4,7 @@
     $rentang = ($req && $req->start_date && $req->end_date) ? Carbon::parse($req->start_date)->diffInDays(Carbon::parse($req->end_date)) : 0;
 @endphp
 <x-app-layout>
-    <div class="py-8 bg-slate-50/50 min-h-screen">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="w-full pb-8">
             
             <x-auth-validation-errors class="mb-4" :errors="$errors" />
 
@@ -235,7 +234,6 @@
                     </div>
                 </form>
             </div>
-        </div>
     </div>
     
     <style>
