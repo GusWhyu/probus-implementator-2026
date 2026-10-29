@@ -4672,11 +4672,11 @@ details.collapse summary::-webkit-details-marker {
 .min-w-\[700px\] {
   min-width: 700px;
 }
-.min-w-\[720px\] {
-  min-width: 720px;
-}
 .min-w-\[800px\] {
   min-width: 800px;
+}
+.min-w-\[820px\] {
+  min-width: 820px;
 }
 .min-w-\[940px\] {
   min-width: 940px;
@@ -5426,10 +5426,6 @@ details.collapse summary::-webkit-details-marker {
 .border-gray-300 {
   --tw-border-opacity: 1;
   border-color: rgb(209 213 219 / var(--tw-border-opacity));
-}
-.border-gray-400 {
-  --tw-border-opacity: 1;
-  border-color: rgb(156 163 175 / var(--tw-border-opacity));
 }
 .border-indigo-100 {
   --tw-border-opacity: 1;
