@@ -2181,7 +2181,7 @@ class HomeController extends Controller
 
         $query = Ticket::where('user_id', $id)
             ->whereBetween('created_at', [$periodInfo['start_date'], $periodInfo['end_date']])
-            ->with(['client', 'user', 'advisor', 'moduleSystem', 'kategoriSystem'])
+            ->with(['client', 'user', 'advisor', 'pendingAdvisor', 'moduleSystem', 'kategoriSystem'])
             ->orderBy('created_at', 'desc');
 
         if (!$isAll) {
@@ -2203,6 +2203,7 @@ class HomeController extends Controller
                 'description' => $t->description ? trim(strip_tags($t->description)) : null,
                 'solusi' => $t->solusi ? trim(strip_tags($t->solusi)) : null,
                 'client_name' => $clientName,
+                'advisor_name' => $t->advisor ? $t->advisor->name : ($t->pendingAdvisor ? $t->pendingAdvisor->name : null),
                 'tipe_penanganan' => $t->tipe_penanganan ?: '-',
                 'status' => strtoupper($t->status ?? 'OPEN'),
                 'duration_text' => $t->duration_text ?: '-',
@@ -2277,7 +2278,7 @@ class HomeController extends Controller
 
         $query = Ticket::where('user_id', $id)
             ->whereBetween('created_at', [$periodInfo['start_date'], $periodInfo['end_date']])
-            ->with(['client', 'user', 'advisor', 'moduleSystem', 'kategoriSystem'])
+            ->with(['client', 'user', 'advisor', 'pendingAdvisor', 'moduleSystem', 'kategoriSystem'])
             ->orderBy('created_at', 'desc');
 
         if (!$isAll) {
@@ -2339,7 +2340,7 @@ class HomeController extends Controller
 
         $query = Ticket::where('user_id', $id)
             ->whereBetween('created_at', [$periodInfo['start_date'], $periodInfo['end_date']])
-            ->with(['client', 'user', 'advisor', 'moduleSystem', 'kategoriSystem'])
+            ->with(['client', 'user', 'advisor', 'pendingAdvisor', 'moduleSystem', 'kategoriSystem'])
             ->orderBy('created_at', 'desc');
 
         if (!$isAll) {

@@ -972,11 +972,11 @@
 
                             <!-- Tickets List Table -->
                             <div x-show="!isLoading && tickets.length > 0" class="overflow-x-auto custom-scrollbar">
-                                <table class="w-full text-left border-collapse min-w-[720px]">
+                                <table class="w-full text-left border-collapse min-w-[820px]">
                                     <thead>
                                         <tr class="border-b border-slate-200 dark:border-slate-700 text-[11px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 bg-slate-50/70 dark:bg-slate-800/60">
                                             <th class="py-2.5 px-3 text-center w-10">No</th>
-                                            <th class="py-2.5 px-3">No. Tiket & Outlet</th>
+                                            <th class="py-2.5 px-3 min-w-[220px]">No. Tiket, Outlet & Advisor</th>
                                             <th class="py-2.5 px-3">Tipe & Status</th>
                                             <th class="py-2.5 px-3">Apa Yang Dikerjakan & Solusi</th>
                                             <th class="py-2.5 px-3 text-center">Waktu & Durasi</th>
@@ -989,25 +989,39 @@
                                                 <!-- No -->
                                                 <td class="py-3 px-3 text-center font-bold text-slate-400" x-text="idx + 1"></td>
                                                 
-                                                <!-- Tiket & Client -->
-                                                <td class="py-3 px-3">
+                                                <!-- Tiket, Client & Advisor -->
+                                                <td class="py-3 px-3 min-w-[220px]">
                                                     <a :href="t.detail_url" target="_blank"
                                                        class="font-mono font-bold text-slate-800 dark:text-slate-100 hover:text-blue-600 dark:hover:text-blue-400 text-xs flex items-center gap-1.5 transition-colors cursor-pointer group"
                                                        title="Buka Detail Tiket">
                                                         <i class="fa-solid fa-ticket text-blue-500 text-[11px]"></i>
                                                         <span class="group-hover:underline" x-text="t.ticket_number"></span>
                                                     </a>
-                                                    <template x-if="t.module_name && t.module_name !== '-'">
-                                                        <div class="mt-1">
+                                                    
+                                                    <div class="flex items-center gap-1.5 flex-wrap mt-1">
+                                                        <template x-if="t.module_name && t.module_name !== '-'">
                                                             <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9.5px] font-bold bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-200/60 dark:border-blue-900/40">
                                                                 <i class="fa-solid fa-layer-group text-[8px]"></i>
                                                                 <span x-text="t.module_name"></span>
                                                             </span>
-                                                        </div>
-                                                    </template>
-                                                    <div class="text-[11px] font-semibold text-slate-600 dark:text-slate-300 mt-1 flex items-center gap-1 truncate max-w-[200px]" :title="t.client_name">
-                                                        <i class="fa-solid fa-hotel text-slate-400 text-[10px]"></i>
-                                                        <span x-text="t.client_name"></span>
+                                                        </template>
+                                                        <template x-if="t.advisor_name">
+                                                            <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9.5px] font-bold bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200/60 dark:border-amber-900/40" title="Advisor Tiket">
+                                                                <i class="fa-solid fa-user-gear text-[8.5px] text-amber-600 dark:text-amber-400"></i>
+                                                                <span x-text="'Adv: ' + t.advisor_name"></span>
+                                                            </span>
+                                                        </template>
+                                                        <template x-if="!t.advisor_name">
+                                                            <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9.5px] font-medium bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 border border-slate-200/60 dark:border-slate-700/40" title="Tanpa Advisor">
+                                                                <i class="fa-solid fa-user-gear text-[8.5px]"></i>
+                                                                <span>Adv: -</span>
+                                                            </span>
+                                                        </template>
+                                                    </div>
+
+                                                    <div class="text-[11px] font-semibold text-slate-600 dark:text-slate-300 mt-1.5 flex items-start gap-1.5 leading-snug" :title="t.client_name">
+                                                        <i class="fa-solid fa-hotel text-slate-400 text-[10px] mt-0.5 shrink-0"></i>
+                                                        <span class="break-words" x-text="t.client_name"></span>
                                                     </div>
                                                 </td>
 

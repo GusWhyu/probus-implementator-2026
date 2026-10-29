@@ -339,6 +339,14 @@
                     </td>
                     <td>
                         <div style="font-weight: bold; color: #0f172a; font-size: 10px;">{{ $clientName }}</div>
+                        @php
+                            $advName = $t->advisor ? $t->advisor->name : ($t->pendingAdvisor ? $t->pendingAdvisor->name : null);
+                        @endphp
+                        @if($advName)
+                            <div style="font-size: 8px; color: #b45309; font-weight: bold; margin-top: 2px;">
+                                Adv: {{ $advName }}
+                            </div>
+                        @endif
                     </td>
                     <td style="text-align: center;">
                         <span class="badge {{ $isOnline ? 'badge-online' : 'badge-tipe' }}">
