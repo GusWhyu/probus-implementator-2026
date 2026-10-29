@@ -976,11 +976,11 @@
                                     <thead>
                                         <tr class="border-b border-slate-200 dark:border-slate-700 text-[11px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 bg-slate-50/70 dark:bg-slate-800/60">
                                             <th class="py-2.5 px-3 text-center w-10">No</th>
-                                            <th class="py-2.5 px-3 min-w-[220px]">No. Tiket, Outlet & Advisor</th>
+                                            <th class="py-2.5 px-3 min-w-[200px]">No. Tiket & Outlet</th>
                                             <th class="py-2.5 px-3">Tipe & Status</th>
                                             <th class="py-2.5 px-3">Apa Yang Dikerjakan & Solusi</th>
                                             <th class="py-2.5 px-3 text-center">Waktu & Durasi</th>
-                                            <th class="py-2.5 px-3 text-center w-16">Aksi</th>
+                                            <th class="py-2.5 px-3 text-center min-w-[130px]">Advisor</th>
                                         </tr>
                                     </thead>
                                     <tbody class="divide-y divide-slate-100 dark:divide-slate-800 text-xs">
@@ -989,8 +989,8 @@
                                                 <!-- No -->
                                                 <td class="py-3 px-3 text-center font-bold text-slate-400" x-text="idx + 1"></td>
                                                 
-                                                <!-- Tiket, Client & Advisor -->
-                                                <td class="py-3 px-3 min-w-[220px]">
+                                                <!-- Tiket & Client -->
+                                                <td class="py-3 px-3 min-w-[200px]">
                                                     <a :href="t.detail_url" target="_blank"
                                                        class="font-mono font-bold text-slate-800 dark:text-slate-100 hover:text-blue-600 dark:hover:text-blue-400 text-xs flex items-center gap-1.5 transition-colors cursor-pointer group"
                                                        title="Buka Detail Tiket">
@@ -998,26 +998,14 @@
                                                         <span class="group-hover:underline" x-text="t.ticket_number"></span>
                                                     </a>
                                                     
-                                                    <div class="flex items-center gap-1.5 flex-wrap mt-1">
-                                                        <template x-if="t.module_name && t.module_name !== '-'">
+                                                    <template x-if="t.module_name && t.module_name !== '-'">
+                                                        <div class="mt-1">
                                                             <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9.5px] font-bold bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-200/60 dark:border-blue-900/40">
                                                                 <i class="fa-solid fa-layer-group text-[8px]"></i>
                                                                 <span x-text="t.module_name"></span>
                                                             </span>
-                                                        </template>
-                                                        <template x-if="t.advisor_name">
-                                                            <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9.5px] font-bold bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200/60 dark:border-amber-900/40" title="Advisor Tiket">
-                                                                <i class="fa-solid fa-user-gear text-[8.5px] text-amber-600 dark:text-amber-400"></i>
-                                                                <span x-text="'Adv: ' + t.advisor_name"></span>
-                                                            </span>
-                                                        </template>
-                                                        <template x-if="!t.advisor_name">
-                                                            <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9.5px] font-medium bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 border border-slate-200/60 dark:border-slate-700/40" title="Tanpa Advisor">
-                                                                <i class="fa-solid fa-user-gear text-[8.5px]"></i>
-                                                                <span>Adv: -</span>
-                                                            </span>
-                                                        </template>
-                                                    </div>
+                                                        </div>
+                                                    </template>
 
                                                     <div class="text-[11px] font-semibold text-slate-600 dark:text-slate-300 mt-1.5 flex items-start gap-1.5 leading-snug" :title="t.client_name">
                                                         <i class="fa-solid fa-hotel text-slate-400 text-[10px] mt-0.5 shrink-0"></i>
@@ -1061,12 +1049,12 @@
 
                                                 <!-- Pekerjaan / Solusi -->
                                                 <td class="py-3 px-3">
-                                                    <!-- Judul Tiket (Bisa diklik mengarah ke detail ticket) -->
+                                                    <!-- Judul Tiket (Link Biru Jelas ke Detail Tiket) -->
                                                     <a :href="t.detail_url" target="_blank"
-                                                       class="font-bold text-slate-800 dark:text-slate-100 hover:text-blue-600 dark:hover:text-blue-400 text-xs mb-1 inline-flex items-center gap-1.5 transition-colors group cursor-pointer"
+                                                       class="font-bold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 hover:underline text-xs mb-1 inline-flex items-center gap-1.5 transition-colors group cursor-pointer"
                                                        title="Buka Detail Tiket">
-                                                        <span class="group-hover:underline" x-text="t.title"></span>
-                                                        <i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-slate-400 group-hover:text-blue-500 transition-colors shrink-0"></i>
+                                                        <span x-text="t.title"></span>
+                                                        <i class="fa-solid fa-arrow-up-right-from-square text-[9.5px] text-blue-500/80 dark:text-blue-400 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform shrink-0"></i>
                                                     </a>
                                                     
                                                     <!-- Deskripsi jika ada -->
@@ -1111,13 +1099,20 @@
                                                     </template>
                                                 </td>
 
-                                                <!-- Aksi Detail -->
+                                                <!-- Advisor Tiket (Menggantikan Kolom Aksi) -->
                                                 <td class="py-3 px-3 text-center whitespace-nowrap">
-                                                    <a :href="t.detail_url" target="_blank"
-                                                       class="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-slate-100 hover:bg-blue-50 dark:bg-slate-700 dark:hover:bg-blue-950/60 text-slate-600 hover:text-blue-600 dark:text-slate-300 dark:hover:text-blue-400 border border-slate-200 dark:border-slate-600 transition-colors"
-                                                       title="Buka Detail Tiket">
-                                                        <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
-                                                    </a>
+                                                    <template x-if="t.advisor_name">
+                                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-bold bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200/80 dark:border-amber-900/60 shadow-xs" title="Advisor Tiket">
+                                                            <i class="fa-solid fa-user-gear text-[10px] text-amber-600 dark:text-amber-400"></i>
+                                                            <span x-text="t.advisor_name"></span>
+                                                        </span>
+                                                    </template>
+                                                    <template x-if="!t.advisor_name">
+                                                        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-medium bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 border border-slate-200/60 dark:border-slate-700/60" title="Tanpa Advisor">
+                                                            <i class="fa-solid fa-user-gear text-[10px]"></i>
+                                                            <span>-</span>
+                                                        </span>
+                                                    </template>
                                                 </td>
                                             </tr>
                                         </template>
