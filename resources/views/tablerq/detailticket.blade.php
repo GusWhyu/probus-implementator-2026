@@ -29,8 +29,7 @@
 @endphp
 
 <x-app-layout>
-    <div class="py-8 bg-slate-50/50 min-h-screen">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="w-full pb-8">
             
             <!-- Header section -->
             <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-8 gap-4">
@@ -987,7 +986,6 @@
                 </div>
             </div>
         </div>
-    </div>
 
     <dialog id="takeOverModal" class="modal">
         <div class="modal-box w-11/12 max-w-md rounded-3xl p-6 md:p-8 bg-white dark:bg-[#1e293b] border border-slate-100 dark:border-slate-700 shadow-2xl">

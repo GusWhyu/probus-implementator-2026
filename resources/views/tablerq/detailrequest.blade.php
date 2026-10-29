@@ -33,8 +33,7 @@
 @endphp
 
 <x-app-layout>
-    <div class="py-8 bg-slate-50/50 min-h-screen">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="w-full pb-8">
             
             <!-- Header section -->
             <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-8 gap-4">
@@ -577,7 +576,6 @@
                 </div>
             </div>
         </div>
-    </div>
 
     <!-- Image Reviewer Modal (Lightbox) -->
     <div id="imageReviewerModal" class="fixed inset-0 z-50 hidden flex-col bg-slate-950/95 backdrop-blur-md select-none transition-opacity duration-300 opacity-0" tabindex="-1" role="dialog" aria-modal="true">
