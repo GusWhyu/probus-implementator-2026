@@ -23,72 +23,94 @@
     <div class="bg-white dark:bg-[#151f38] rounded-2xl sm:rounded-3xl p-4 sm:p-6 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-3.5 sm:space-y-4">
         
         <!-- 1. Orang yang Mengerjakan (Paling Atas) -->
-        <div class="bg-slate-50/90 dark:bg-slate-900/60 rounded-xl sm:rounded-2xl p-3.5 sm:p-4.5 border border-slate-200/80 dark:border-slate-800/80 flex items-center justify-between gap-3 sm:gap-4">
-            <div class="flex items-center gap-3 sm:gap-4 min-w-0">
-                <!-- Foto Profil / Avatar Petugas (Ukuran Lebih Jelas & Proporsional 64px) -->
-                <div class="relative shrink-0" style="width: 64px; height: 64px; min-width: 64px; min-height: 64px;">
-                    <div class="w-16 h-16 rounded-xl sm:rounded-2xl overflow-hidden ring-2 ring-blue-500/25 dark:ring-blue-500/40 shadow-xs bg-slate-200 dark:bg-slate-800 flex items-center justify-center" style="width: 64px; height: 64px;">
+        <div class="bg-slate-50/90 dark:bg-slate-900/60 rounded-xl sm:rounded-2xl p-3 sm:p-4.5 border border-slate-200/80 dark:border-slate-800/80">
+            <div class="flex items-center justify-between gap-2.5 sm:gap-4">
+                <!-- Sisi Kiri: Petugas Penanggung Jawab -->
+                <div class="flex items-center gap-2.5 sm:gap-4 min-w-0 flex-1">
+                    <!-- Foto Profil / Avatar Petugas (Proporsional dengan tinggi teks di sampingnya) -->
+                    <div class="relative shrink-0 w-14 h-14 sm:w-[68px] sm:h-[68px]">
+                        <div class="w-14 h-14 sm:w-[68px] sm:h-[68px] rounded-2xl overflow-hidden ring-2 ring-blue-500/25 dark:ring-blue-500/40 shadow-xs bg-slate-200 dark:bg-slate-800 flex items-center justify-center">
+                            @if ($requestData->user)
+                                <img src="{{ $requestData->user->avatar_url }}" alt="{{ $requestData->user->name }}" class="w-full h-full object-cover">
+                            @else
+                                <div class="w-full h-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400">
+                                    <i class="fa-solid fa-user-clock text-xl sm:text-2xl"></i>
+                                </div>
+                            @endif
+                        </div>
                         @if ($requestData->user)
-                            <img src="{{ $requestData->user->avatar_url }}" alt="{{ $requestData->user->name }}" class="w-full h-full object-cover">
-                        @else
-                            <div class="w-full h-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400">
-                                <i class="fa-solid fa-user-clock text-xl"></i>
-                            </div>
+                        <span class="absolute -bottom-1 -right-1 w-5 h-5 sm:w-5.5 sm:h-5.5 rounded-full {{ $isClosed ? 'bg-emerald-500' : (($statusId === 3 || ($isProgress && !$isClosed)) ? 'bg-amber-500' : 'bg-blue-500') }} border-2 border-white dark:border-[#151f38] flex items-center justify-center text-[9px] sm:text-[10px] text-white shadow-xs" title="{{ $isClosed ? 'Request Telah Selesai' : (($statusId === 3 || ($isProgress && !$isClosed)) ? 'Sedang Dikerjakan' : 'Request Diterima') }}">
+                            @if ($isClosed)
+                                <i class="fa-solid fa-check"></i>
+                            @elseif ($statusId === 3 || ($isProgress && !$isClosed))
+                                <i class="fa-solid fa-bolt"></i>
+                            @else
+                                <i class="fa-solid fa-user"></i>
+                            @endif
+                        </span>
                         @endif
                     </div>
-                    @if ($requestData->user)
-                    <span class="absolute -bottom-1 -right-1 w-5 h-5 rounded-full {{ $isClosed ? 'bg-emerald-500' : ($isProgress ? 'bg-amber-500' : 'bg-blue-500') }} border-2 border-white dark:border-[#151f38] flex items-center justify-center text-[9px] text-white shadow-xs" title="{{ $isClosed ? 'Request Telah Selesai' : ($isProgress ? 'Sedang Dikerjakan' : 'Request Diterima') }}">
-                        @if ($isClosed)
-                            <i class="fa-solid fa-check"></i>
-                        @elseif ($isProgress)
-                            <i class="fa-solid fa-bolt"></i>
-                        @else
-                            <i class="fa-solid fa-user"></i>
-                        @endif
-                    </span>
+
+                    <!-- Informasi Petugas Penanggung Jawab -->
+                    <div class="min-w-0 flex-1">
+                        <span class="inline-flex items-center gap-1 text-[9px] sm:text-[10px] font-extrabold uppercase tracking-wider text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/70 px-2 py-0.5 rounded-md border border-blue-200/80 dark:border-blue-800/80 mb-0.5 sm:mb-1">
+                            <i class="fa-solid fa-user-gear text-[8px] sm:text-[9px]"></i> Penanggung Jawab (PIC)
+                        </span>
+
+                        <h2 class="text-sm sm:text-lg font-black text-slate-900 dark:text-white truncate" title="{{ $requestData->user->name ?? 'Belum Ditugaskan' }}">
+                            {{ $requestData->user->name ?? 'Belum Ditugaskan' }}
+                        </h2>
+
+                        <!-- Info Departemen & Approver (Tampil di desktop sm: ke atas) -->
+                        <div class="hidden sm:flex items-center gap-2 sm:gap-3 flex-wrap mt-0.5 text-xs text-slate-500 dark:text-slate-400">
+                            <span class="inline-flex items-center gap-1 font-medium">
+                                <i class="fa-solid fa-briefcase text-slate-400 text-[11px]"></i>
+                                {{ $requestData->user->departemen->name ?? 'Tim Developer Probus' }}
+                            </span>
+
+                            @if ($requestData->approver)
+                            <span class="text-slate-300 dark:text-slate-700 hidden sm:inline">&bull;</span>
+                            <span class="inline-flex items-center gap-1 font-medium">
+                                <i class="fa-solid fa-user-check text-emerald-500 text-[11px]"></i>
+                                Disetujui: <strong class="text-slate-700 dark:text-slate-300 font-semibold">{{ $requestData->approver->name }}</strong>
+                            </span>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sisi Kanan: Hanya Status Request (Closed / Progress / Open) Sejajar seperti di Pantau Tiket -->
+                <div class="shrink-0 self-center">
+                    @if ($isClosed)
+                        <span class="inline-flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl text-[11px] sm:text-xs font-black text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/70 border border-emerald-200/90 dark:border-emerald-800/80 shadow-2xs">
+                            <i class="fa-solid fa-circle-check text-[10px] sm:text-[11px]"></i> Selesai
+                        </span>
+                    @elseif ($statusId === 3 || ($isProgress && !$isClosed))
+                        <span class="inline-flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl text-[11px] sm:text-xs font-black text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/70 border border-amber-200/90 dark:border-amber-800/80 shadow-2xs">
+                            <span class="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-amber-500 animate-ping"></span> Sedang Dikerjakan
+                        </span>
+                    @else
+                        <span class="inline-flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl text-[11px] sm:text-xs font-black text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/70 border border-blue-200/90 dark:border-blue-800/80 shadow-2xs">
+                            <i class="fa-regular fa-clock text-[10px] sm:text-[11px]"></i> Menunggu Pengerjaan
+                        </span>
                     @endif
                 </div>
+            </div>
 
-                <!-- Informasi Petugas Penanggung Jawab -->
-                <div class="min-w-0 flex-1">
-                    <div class="flex items-center gap-1.5 sm:gap-2 flex-wrap mb-1">
-                        <span class="inline-flex items-center gap-1 text-[10px] font-extrabold uppercase tracking-wider text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/70 px-2 py-0.5 rounded-md border border-blue-200/80 dark:border-blue-800/80">
-                            <i class="fa-solid fa-user-gear text-[9px]"></i> Penanggung Jawab (PIC)
-                        </span>
-                        @if ($isClosed)
-                            <span class="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-600 dark:text-emerald-400">
-                                <i class="fa-solid fa-circle-check text-[9px]"></i> Selesai
-                            </span>
-                        @elseif ($isProgress)
-                            <span class="inline-flex items-center gap-1 text-[10px] font-bold text-amber-600 dark:text-amber-400">
-                                <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-ping"></span> Sedang Dikerjakan
-                            </span>
-                        @else
-                            <span class="inline-flex items-center gap-1 text-[10px] font-bold text-blue-600 dark:text-blue-400">
-                                <i class="fa-regular fa-clock text-[9px]"></i> Menunggu Pengerjaan
-                            </span>
-                        @endif
-                    </div>
+            <!-- Khusus Mobile: Baris Departemen & Approver Full-Width yang Proporsional & Rapi -->
+            <div class="sm:hidden mt-2 pt-2 border-t border-slate-200/60 dark:border-slate-800/70 flex items-center justify-between gap-2 text-[11px] text-slate-500 dark:text-slate-400">
+                <span class="inline-flex items-center gap-1 font-medium truncate">
+                    <i class="fa-solid fa-briefcase text-slate-400 text-[10px]"></i>
+                    {{ $requestData->user->departemen->name ?? 'Tim Developer Probus' }}
+                </span>
 
-                    <h2 class="text-base sm:text-lg font-black text-slate-900 dark:text-white truncate" title="{{ $requestData->user->name ?? 'Belum Ditugaskan' }}">
-                        {{ $requestData->user->name ?? 'Belum Ditugaskan' }}
-                    </h2>
-
-                    <div class="flex items-center gap-2 sm:gap-3 flex-wrap mt-0.5 text-xs text-slate-500 dark:text-slate-400">
-                        <span class="inline-flex items-center gap-1 font-medium">
-                            <i class="fa-solid fa-briefcase text-slate-400 text-[11px]"></i>
-                            {{ $requestData->user->departemen->name ?? 'Tim Developer Probus' }}
-                        </span>
-
-                        @if ($requestData->approver)
-                        <span class="text-slate-300 dark:text-slate-700 hidden sm:inline">&bull;</span>
-                        <span class="inline-flex items-center gap-1 font-medium">
-                            <i class="fa-solid fa-user-check text-emerald-500 text-[11px]"></i>
-                            Disetujui: <strong class="text-slate-700 dark:text-slate-300 font-semibold">{{ $requestData->approver->name }}</strong>
-                        </span>
-                        @endif
-                    </div>
-                </div>
+                @if ($requestData->approver)
+                <span class="inline-flex items-center gap-1 font-medium bg-slate-100/90 dark:bg-slate-800/80 px-2 py-0.5 rounded-md border border-slate-200/70 dark:border-slate-700/60 shrink-0 max-w-[65%] truncate">
+                    <i class="fa-solid fa-user-check text-emerald-500 text-[10px]"></i>
+                    <span class="text-slate-400 font-semibold text-[10px]">Disetujui:</span>
+                    <strong class="text-slate-700 dark:text-slate-200 font-bold truncate">{{ $requestData->approver->name }}</strong>
+                </span>
+                @endif
             </div>
         </div>
 
