@@ -57,8 +57,7 @@
         }
     @endphp
 
-    <div class="pt-1 sm:pt-4 pb-8 min-h-screen w-full min-w-0">
-        <div class="max-w-7xl mx-auto w-full min-w-0">
+    <div class="w-full space-y-6 pb-8">
             
             <!-- Top Bar -->
             <div class="flex flex-col lg:flex-row lg:items-center justify-between mb-6 gap-4 w-full min-w-0">
@@ -811,7 +810,6 @@
                 </div>
             </div>
 
-        </div>
     </div>
 
             <!-- Modal Riwayat Tiket Modul & Download Excel/PDF -->
@@ -864,7 +862,8 @@
             @open-module-modal.window="open($event.detail.id, $event.detail.name, $event.detail.total)"
             x-cloak
             x-show="isOpen"
-            class="fixed inset-0 z-50 overflow-y-auto"
+            class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 overflow-hidden"
+            style="z-index: 9999;"
             aria-labelledby="modal-title" role="dialog" aria-modal="true">
                 <!-- Backdrop with blur -->
                 <div x-show="isOpen"
@@ -875,17 +874,17 @@
                      x-transition:leave-start="opacity-100"
                      x-transition:leave-end="opacity-0"
                      @click="close()"
-                     class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs transition-opacity"></div>
+                     class="fixed inset-0 bg-slate-900/70 backdrop-blur-xs transition-opacity"></div>
 
-                <div class="flex min-h-full items-center justify-center p-3 sm:p-4 text-center">
-                    <div x-show="isOpen"
-                         x-transition:enter="ease-out duration-300"
-                         x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-                         x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
-                         x-transition:leave="ease-in duration-200"
-                         x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
-                         x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-                         class="relative transform rounded-2xl bg-white dark:bg-slate-850 text-left shadow-2xl transition-all w-full max-w-5xl border border-slate-200 dark:border-slate-700/80 flex flex-col max-h-[92vh] overflow-hidden">
+                <!-- Modal Dialog Box (Centered) -->
+                <div x-show="isOpen"
+                     x-transition:enter="ease-out duration-300"
+                     x-transition:enter-start="opacity-0 scale-95"
+                     x-transition:enter-end="opacity-100 scale-100"
+                     x-transition:leave="ease-in duration-200"
+                     x-transition:leave-start="opacity-100 scale-100"
+                     x-transition:leave-end="opacity-0 scale-95"
+                     class="relative z-10 w-full max-w-5xl rounded-2xl bg-white dark:bg-[#1e293b] text-left shadow-2xl transition-all border border-slate-200 dark:border-slate-700/80 flex flex-col max-h-[85vh] sm:max-h-[88vh] overflow-hidden my-auto">
                          
                         <!-- Header Modal -->
                         <div class="px-5 py-4 border-b border-slate-100 dark:border-slate-700/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-50/50 dark:bg-slate-800/40">
@@ -1051,10 +1050,10 @@
                                                 <td class="py-3 px-3">
                                                     <!-- Judul Tiket (Link Biru Jelas ke Detail Tiket) -->
                                                     <a :href="t.detail_url" target="_blank"
-                                                       class="font-bold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 hover:underline text-xs mb-1 inline-flex items-center gap-1.5 transition-colors group cursor-pointer"
+                                                       class="font-extrabold text-blue-600 dark:text-sky-400 hover:text-blue-700 dark:hover:text-sky-300 underline underline-offset-2 decoration-blue-400/50 dark:decoration-sky-400/60 hover:decoration-blue-600 text-xs mb-1 inline-flex items-center gap-1.5 transition-colors group cursor-pointer"
                                                        title="Buka Detail Tiket">
                                                         <span x-text="t.title"></span>
-                                                        <i class="fa-solid fa-arrow-up-right-from-square text-[9.5px] text-blue-500/80 dark:text-blue-400 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform shrink-0"></i>
+                                                        <i class="fa-solid fa-arrow-up-right-from-square text-[9.5px] text-blue-500 dark:text-sky-400 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform shrink-0"></i>
                                                     </a>
                                                     
                                                     <!-- Deskripsi jika ada -->
@@ -1132,7 +1131,6 @@
                             </button>
                         </div>
                     </div>
-                </div>
             </div>
 
 </x-app-layout>
