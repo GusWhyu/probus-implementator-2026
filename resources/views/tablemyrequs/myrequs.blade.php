@@ -43,8 +43,8 @@
             {{-- Desktop / Tablet Table View (md:block) --}}
             <div class="hidden md:block overflow-x-auto custom-scrollbar">
                 <table class="w-full text-left border-collapse">
-                    <thead class="thead-themed bg-slate-50/70 dark:bg-gradient-to-r dark:from-slate-900 dark:via-blue-950 dark:to-indigo-950/90 border-b border-slate-200/80 dark:border-blue-800/80">
-                        <tr class="text-[11px] font-extrabold text-slate-500 dark:text-blue-100 uppercase tracking-wider">
+                    <thead class="thead-themed bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-700 dark:from-[#111c38] dark:via-[#132040] dark:to-[#16254c] border-b border-blue-700 dark:border-blue-900/60">
+                        <tr class="text-[11px] font-extrabold text-white dark:text-blue-100 uppercase tracking-wider">
                             <th class="py-3 px-5 w-24">ID</th>
                             <th class="py-3 px-5">Judul Request</th>
                             <th class="py-3 px-5 w-40 text-center">Status</th>
@@ -239,8 +239,8 @@
             {{-- Desktop / Tablet Table View (md:block) --}}
             <div class="hidden md:block overflow-x-auto custom-scrollbar">
                 <table class="w-full text-left border-collapse">
-                    <thead class="thead-themed bg-slate-50/70 dark:bg-gradient-to-r dark:from-slate-900 dark:via-blue-950 dark:to-indigo-950/90 border-b border-slate-200/80 dark:border-blue-800/80">
-                        <tr class="text-[11px] font-extrabold text-slate-500 dark:text-blue-100 uppercase tracking-wider">
+                    <thead class="thead-themed bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-700 dark:from-[#111c38] dark:via-[#132040] dark:to-[#16254c] border-b border-blue-700 dark:border-blue-900/60">
+                        <tr class="text-[11px] font-extrabold text-white dark:text-blue-100 uppercase tracking-wider">
                             <th class="py-3 px-5">Judul Update</th>
                             <th class="py-3 px-5 w-5/12">Terkait Request</th>
                             <th class="py-3 px-5 w-40">Tanggal</th>

@@ -18,12 +18,12 @@
             <div class="bg-white dark:bg-slate-800 rounded-2xl md:rounded-3xl shadow-sm border border-slate-200 dark:border-slate-700/80 overflow-hidden">
                 <div class="overflow-x-auto custom-scrollbar">
                     <table class="w-full text-left border-collapse min-w-[800px]">
-                        <thead class="thead-themed bg-slate-50/50 dark:bg-gradient-to-r dark:from-slate-900 dark:via-blue-950 dark:to-indigo-950/90 border-b border-slate-100 dark:border-blue-800/80">
-                            <tr class="text-[11px] font-extrabold text-slate-500 dark:text-blue-100 uppercase tracking-wider">
-                                <th class="py-4 px-6 text-[11px] font-extrabold text-slate-500 uppercase tracking-wider w-[40%]">Request Name</th>
-                                <th class="py-4 px-6 text-[11px] font-extrabold text-slate-500 uppercase tracking-wider text-center w-[20%]">Status Changes</th>
-                                <th class="py-4 px-6 text-[11px] font-extrabold text-slate-500 uppercase tracking-wider w-[25%]">By User</th>
-                                <th class="py-4 px-6 text-[11px] font-extrabold text-slate-500 uppercase tracking-wider text-right w-[15%]">Time</th>
+                        <thead class="thead-themed bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-700 dark:from-[#111c38] dark:via-[#132040] dark:to-[#16254c] border-b border-blue-700 dark:border-blue-900/60">
+                            <tr class="text-[11px] font-extrabold text-white dark:text-blue-100 uppercase tracking-wider">
+                                <th class="py-4 px-6 text-[11px] font-extrabold uppercase tracking-wider w-[40%]">Request Name</th>
+                                <th class="py-4 px-6 text-[11px] font-extrabold uppercase tracking-wider text-center w-[20%]">Status Changes</th>
+                                <th class="py-4 px-6 text-[11px] font-extrabold uppercase tracking-wider w-[25%]">By User</th>
+                                <th class="py-4 px-6 text-[11px] font-extrabold uppercase tracking-wider text-right w-[15%]">Time</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100 dark:divide-slate-700/60">

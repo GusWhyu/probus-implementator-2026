@@ -186,8 +186,8 @@
                         <col style="width: 105px;">
                         <col style="width: 45px;">
                     </colgroup>
-                    <thead class="thead-themed bg-slate-50/50 dark:bg-gradient-to-r dark:from-slate-900 dark:via-blue-950 dark:to-indigo-950/90 border-b border-slate-200 dark:border-blue-800/80">
-                        <tr class="text-slate-500 dark:text-blue-100">
+                    <thead class="thead-themed bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-700 dark:from-[#111c38] dark:via-[#132040] dark:to-[#16254c] border-b border-blue-700 dark:border-blue-900/60">
+                        <tr class="text-white dark:text-blue-100">
                             <th class="py-3 px-3 sm:px-4 text-[10px] font-extrabold uppercase tracking-widest whitespace-nowrap" style="width: 130px;">No. Tiket</th>
                             <th class="py-3 px-3 sm:px-4 text-[10px] font-extrabold uppercase tracking-widest" style="width: 155px;">User</th>
                             <th class="py-3 px-3 sm:px-4 text-[10px] font-extrabold uppercase tracking-widest">Judul</th>
