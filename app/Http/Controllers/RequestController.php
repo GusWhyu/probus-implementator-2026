@@ -1052,19 +1052,6 @@ class RequestController extends Controller
                 'user_id' => $user->id,
             ]);
 
-            // Kirim pesan temuan bugs ke diskusi / komentar
-            $commentBody = "<strong>⚠️ Masih Ada Bugs (Hasil Pengujian Trainer)</strong><br>" .
-                           "Status request dikembalikan ke <b>OPEN</b> oleh <b>" . e($user->name) . "</b> (Departemen Operasional).<br><br>" .
-                           "<strong>Rincian Temuan Bugs:</strong><br>" .
-                           nl2br(e($note));
-
-            Komentar::create([
-                'request_id' => $datarq->id,
-                'ticket_id' => null,
-                'user_id' => $user->id,
-                'body' => $commentBody,
-            ]);
-
             // Kirim notifikasi ke tim programmer / divisi pelaksana & pembuat request
             $targetUsers = User::where(function($query) use ($datarq) {
                 $query->where('tag_id', $datarq->tag_id)
@@ -1082,7 +1069,7 @@ class RequestController extends Controller
 
             \App\Services\NotificationSyncService::syncRequest($datarq);
 
-            Alert::warning('Request Dibuka Kembali', 'Status request telah diubah menjadi OPEN karena masih ditemukan bugs. Rincian telah dikirim ke diskusi tim.');
+            Alert::warning('Request Dibuka Kembali', 'Status request telah diubah menjadi OPEN karena masih ditemukan bugs.');
             return redirect()->route('detailrequest', ['id' => $datarq->id]);
 
         } elseif ($statusOption === 'trainer_testing') {
@@ -1092,17 +1079,6 @@ class RequestController extends Controller
             $datarq->tested_by = $user->id;
             $datarq->tested_at = $now;
             $datarq->save();
-
-            $noteFormatted = $note ? "<br><br><strong>Catatan:</strong><br>" . nl2br(e($note)) : "";
-            $commentBody = "<strong>🧪 Status Pengujian: Trainer Testing</strong><br>" .
-                           "Sedang dalam proses pengecekan & pengujian sistem oleh <b>" . e($user->name) . "</b> (Trainer Operasional)." . $noteFormatted;
-
-            Komentar::create([
-                'request_id' => $datarq->id,
-                'ticket_id' => null,
-                'user_id' => $user->id,
-                'body' => $commentBody,
-            ]);
 
             \App\Services\NotificationSyncService::syncRequest($datarq);
 
@@ -1116,17 +1092,6 @@ class RequestController extends Controller
             $datarq->tested_by = $user->id;
             $datarq->tested_at = $now;
             $datarq->save();
-
-            $noteFormatted = $note ? "<br><br><strong>Catatan:</strong><br>" . nl2br(e($note)) : "";
-            $commentBody = "<strong>✅ Pengujian Selesai (Testing Passed)</strong><br>" .
-                           "Diverifikasi dan selesai diuji oleh <b>" . e($user->name) . "</b> (Trainer Operasional). Modul tervalidasi berjalan baik." . $noteFormatted;
-
-            Komentar::create([
-                'request_id' => $datarq->id,
-                'ticket_id' => null,
-                'user_id' => $user->id,
-                'body' => $commentBody,
-            ]);
 
             \App\Services\NotificationSyncService::syncRequest($datarq);
 

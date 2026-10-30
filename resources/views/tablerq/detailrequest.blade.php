@@ -1744,7 +1744,7 @@
                             <label class="text-xs font-bold text-slate-700 dark:text-slate-300" id="testingNoteLabel">
                                 Catatan Pengujian (Opsional)
                             </label>
-                            <span class="text-[10.5px] text-slate-400 font-medium">Tersimpan ke riwayat & diskusi</span>
+                            <span class="text-[10.5px] text-slate-400 font-medium">Tersimpan pada data pengujian</span>
                         </div>
                         <textarea name="testing_note" id="testingNoteTextarea" rows="2" class="w-full bg-slate-50/70 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs sm:text-sm rounded-xl focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 p-2.5 sm:p-3 outline-none font-medium leading-relaxed transition-colors resize-none" placeholder="Tuliskan catatan hasil pengujian jika ada...">{{ $datarq->testing_note }}</textarea>
                     </div>
