@@ -164,15 +164,9 @@
                     @endif
 
                     @if ($ticket->is_waiting_confirmation)
-                        @if ($ticket->waiting_type === 'trainer')
-                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 border border-purple-200 dark:border-purple-800">
-                            <i class="fa-solid fa-graduation-cap"></i> Menunggu Trainer Testing
-                        </span>
-                        @else
-                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-800">
-                            <i class="fa-solid fa-clock-rotate-left"></i> Menunggu Konfirmasi Klien
-                        </span>
-                        @endif
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-800">
+                        <i class="fa-solid fa-clock-rotate-left"></i> Menunggu Konfirmasi Klien
+                    </span>
                     @endif
                 </div>
             </div>

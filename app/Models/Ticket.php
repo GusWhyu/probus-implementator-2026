@@ -147,10 +147,10 @@ class Ticket extends Model
         }
 
         $latestStateLog = $this->relationLoaded('logs') 
-            ? $this->logs->whereIn('action', ['WAITING_CONFIRMATION', 'WAITING_CLIENT', 'WAITING_TRAINER', 'RESUME_PROGRESS', 'CLOSED', 'STATUS_CHANGED'])->sortByDesc('id')->first()
-            : $this->logs()->whereIn('action', ['WAITING_CONFIRMATION', 'WAITING_CLIENT', 'WAITING_TRAINER', 'RESUME_PROGRESS', 'CLOSED', 'STATUS_CHANGED'])->latest('id')->first();
+            ? $this->logs->whereIn('action', ['WAITING_CONFIRMATION', 'RESUME_PROGRESS', 'CLOSED', 'STATUS_CHANGED'])->sortByDesc('id')->first()
+            : $this->logs()->whereIn('action', ['WAITING_CONFIRMATION', 'RESUME_PROGRESS', 'CLOSED', 'STATUS_CHANGED'])->latest('id')->first();
 
-        return $latestStateLog && in_array($latestStateLog->action, ['WAITING_CONFIRMATION', 'WAITING_CLIENT', 'WAITING_TRAINER']);
+        return $latestStateLog && $latestStateLog->action === 'WAITING_CONFIRMATION';
     }
 
     public function getWaitingConfirmationLogAttribute()
@@ -160,27 +160,8 @@ class Ticket extends Model
         }
 
         return $this->relationLoaded('logs')
-            ? $this->logs->whereIn('action', ['WAITING_CONFIRMATION', 'WAITING_CLIENT', 'WAITING_TRAINER'])->sortByDesc('id')->first()
-            : $this->logs()->whereIn('action', ['WAITING_CONFIRMATION', 'WAITING_CLIENT', 'WAITING_TRAINER'])->latest('id')->first();
-    }
-
-    public function getWaitingTypeAttribute()
-    {
-        $log = $this->waiting_confirmation_log;
-        if (!$log) {
-            return null;
-        }
-        return $log->action === 'WAITING_TRAINER' ? 'trainer' : 'client';
-    }
-
-    public function getWaitingLabelAttribute()
-    {
-        return $this->waiting_type === 'trainer' ? 'Menunggu Trainer Testing' : 'Menunggu Konfirmasi Klien';
-    }
-
-    public function getWaitingBadgeLabelAttribute()
-    {
-        return $this->waiting_type === 'trainer' ? 'TRAINER TESTING' : 'MENUNGGU KLIEN';
+            ? $this->logs->where('action', 'WAITING_CONFIRMATION')->sortByDesc('id')->first()
+            : $this->logs()->where('action', 'WAITING_CONFIRMATION')->latest('id')->first();
     }
 
     public function getLatestResumeLogAttribute()
@@ -190,8 +171,8 @@ class Ticket extends Model
         }
 
         $latestLog = $this->relationLoaded('logs')
-            ? $this->logs->whereIn('action', ['WAITING_CONFIRMATION', 'WAITING_CLIENT', 'WAITING_TRAINER', 'RESUME_PROGRESS', 'CLOSED', 'STATUS_CHANGED'])->sortByDesc('id')->first()
-            : $this->logs()->whereIn('action', ['WAITING_CONFIRMATION', 'WAITING_CLIENT', 'WAITING_TRAINER', 'RESUME_PROGRESS', 'CLOSED', 'STATUS_CHANGED'])->latest('id')->first();
+            ? $this->logs->whereIn('action', ['WAITING_CONFIRMATION', 'RESUME_PROGRESS', 'CLOSED', 'STATUS_CHANGED'])->sortByDesc('id')->first()
+            : $this->logs()->whereIn('action', ['WAITING_CONFIRMATION', 'RESUME_PROGRESS', 'CLOSED', 'STATUS_CHANGED'])->latest('id')->first();
 
         if ($latestLog && $latestLog->action === 'RESUME_PROGRESS') {
             return $latestLog;

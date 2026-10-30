@@ -652,45 +652,32 @@ class TicketController extends Controller
         // Authorization check: only ticket creator or supervisor/admin
         $isAdminOrSupervisor = in_array($user->usertype, ['admin', 'supervisor']);
         if ($ticket->user_id != $user->id && !$isAdminOrSupervisor) {
-            Alert::error('Akses Ditolak', 'Hanya penanggung jawab tiket yang dapat menandai status menunggu.');
+            Alert::error('Akses Ditolak', 'Hanya penanggung jawab tiket yang dapat menandai menunggu konfirmasi klien.');
             return redirect()->back();
         }
 
         if (strtoupper($ticket->status) !== 'PROGRESS') {
-            Alert::error('Gagal', 'Tiket harus dalam status PROGRESS untuk meminta konfirmasi/pengujian.');
+            Alert::error('Gagal', 'Tiket harus dalam status PROGRESS untuk meminta konfirmasi klien.');
             return redirect()->back();
         }
 
         $request->validate([
-            'waiting_type' => 'nullable|string|in:client,trainer',
             'message' => 'nullable|string|max:1000',
         ]);
 
-        $waitingType = $request->input('waiting_type', 'client');
         $clientName = $ticket->client ? $ticket->client->nm_out : 'Klien';
         $customMessage = trim($request->input('message', ''));
-
-        if ($waitingType === 'trainer') {
-            $action = 'WAITING_TRAINER';
-            $defaultDesc = 'Pengerjaan kendala telah selesai. Menunggu pengujian/validasi dari pihak Trainer (Trainer Testing).';
-            $alertMsg = 'Tiket ditandai Menunggu Trainer Testing.';
-        } else {
-            $action = 'WAITING_CLIENT';
-            $defaultDesc = 'Pengerjaan kendala telah selesai. Menunggu konfirmasi pengetesan dari pihak klien (' . $clientName . ').';
-            $alertMsg = 'Tiket ditandai Menunggu Konfirmasi Klien.';
-        }
-
-        $logDesc = $customMessage ?: $defaultDesc;
+        $logDesc = $customMessage ?: ('Pengerjaan kendala telah selesai. Menunggu konfirmasi pengetesan dari pihak klien (' . $clientName . ').');
 
         // Record to TicketLog (not posted to Komentar/Diskusi)
         TicketLog::create([
             'ticket_id' => $ticket->id,
             'user_id' => $user->id,
-            'action' => $action,
+            'action' => 'WAITING_CONFIRMATION',
             'description' => $logDesc,
         ]);
 
-        Alert::success('Berhasil!', $alertMsg)->showConfirmButton('Tutup', '#3b82f6')->autoClose(2500);
+        Alert::success('Berhasil!', 'Tiket ditandai Menunggu Konfirmasi Klien.')->showConfirmButton('Tutup', '#3b82f6')->autoClose(2500);
 
         return redirect()->back();
     }
@@ -722,7 +709,7 @@ class TicketController extends Controller
             'description' => $desc,
         ]);
 
-        Alert::info('Informasi', 'Status menunggu konfirmasi/pengujian telah dihapus.')->showConfirmButton('Tutup', '#3b82f6')->autoClose(2500);
+        Alert::info('Informasi', 'Status menunggu konfirmasi telah dihapus.')->showConfirmButton('Tutup', '#3b82f6')->autoClose(2500);
 
         return redirect()->back();
     }
