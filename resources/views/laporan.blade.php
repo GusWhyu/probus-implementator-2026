@@ -105,65 +105,131 @@
             @endif
 
             <!-- Stats Cards -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
+            @php
+                $queryParams = request()->query();
+                $allQuery = $queryParams; unset($allQuery['status']);
+                $dinilaiQuery = $queryParams;
+                if (($dinilaiQuery['status'] ?? null) === 'dinilai') { unset($dinilaiQuery['status']); } else { $dinilaiQuery['status'] = 'dinilai'; }
+                $belumQuery = $queryParams;
+                if (($belumQuery['status'] ?? null) === 'belum') { unset($belumQuery['status']); } else { $belumQuery['status'] = 'belum'; }
+                $sangatQuery = $queryParams;
+                if (($sangatQuery['status'] ?? null) === 'sangat_memuaskan') { unset($sangatQuery['status']); } else { $sangatQuery['status'] = 'sangat_memuaskan'; }
+            @endphp
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 mb-8">
                 <!-- Total Staff -->
-                <div class="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700 shadow-sm flex items-center gap-4">
-                    <div class="w-14 h-14 rounded-full bg-blue-50 dark:bg-blue-950/60 text-blue-500 dark:text-blue-400 flex items-center justify-center shrink-0">
-                        <i class="fa-solid fa-user-group text-lg"></i>
+                <a href="{{ route('laporan', $allQuery) }}"
+                   title="Tampilkan Semua Staff"
+                   class="bg-white dark:bg-[#151f30] rounded-2xl p-5 shadow-sm border {{ empty(request('status')) ? 'border-blue-200 dark:border-blue-500/40 shadow-blue-500/5' : 'border-blue-100/80 dark:border-blue-500/20' }} hover:border-blue-300 dark:hover:border-blue-400 hover:shadow-lg hover:shadow-blue-500/10 hover:-translate-y-0.5 transition-all duration-300 group relative overflow-hidden block">
+                    <!-- Top Accent Gradient Line -->
+                    <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 to-indigo-600 z-10"></div>
+                    <!-- Ambient Inner Gradient -->
+                    <div class="absolute inset-0 bg-gradient-to-br from-white via-white to-blue-50/80 dark:from-[#151f30] dark:via-[#151f30] dark:to-blue-950/40 pointer-events-none"></div>
+                    <!-- Glowing Blur Orb -->
+                    <div class="absolute -right-6 -bottom-6 w-32 h-32 bg-blue-500/10 dark:bg-blue-500/20 rounded-full blur-2xl pointer-events-none group-hover:scale-125 transition-transform duration-500"></div>
+
+                    <div class="flex items-center justify-between mb-3 relative z-10">
+                        <span class="text-xs font-extrabold text-blue-600 dark:text-blue-400 uppercase tracking-wider">Total Staff</span>
+                        <div class="w-11 h-11 bg-blue-50 dark:bg-blue-950/70 text-blue-600 dark:text-blue-400 shadow-sm border border-blue-100 dark:border-blue-900/50 rounded-xl flex items-center justify-center group-hover:scale-110 group-hover:bg-blue-600 group-hover:text-white transition-all duration-300">
+                            <i class="fa-solid fa-user-group text-base"></i>
+                        </div>
                     </div>
-                    <div>
-                        <p class="text-[11px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-wider mb-1">Total Staff</p>
-                        <h3 class="text-3xl font-extrabold text-slate-800 dark:text-slate-100 leading-none">{{ $totalCS ?? $users->count() }}</h3>
+                    <div class="flex items-end justify-between relative z-10">
+                        <h3 class="text-3xl sm:text-4xl font-extrabold text-slate-800 dark:text-slate-100 tracking-tight leading-none">{{ $totalCS ?? $users->count() }}</h3>
+                        <span class="text-[11px] font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/70 px-2.5 py-0.5 rounded-full border border-blue-200/80 dark:border-blue-800/80">
+                            Semua Staff
+                        </span>
                     </div>
-                </div>
+                </a>
 
                 <!-- Sudah Dinilai -->
-                <div class="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700 shadow-sm flex items-center gap-4">
-                    <div class="w-14 h-14 rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-emerald-500 dark:text-emerald-400 flex items-center justify-center shrink-0">
-                        <i class="fa-solid fa-circle-check text-lg"></i>
-                    </div>
-                    <div class="flex-1">
-                        <p class="text-[11px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-wider mb-1">Sudah Dinilai (Final)</p>
-                        <div class="flex items-end justify-between">
-                            <h3 class="text-3xl font-extrabold text-slate-800 dark:text-slate-100 leading-none">{{ $sudahDinilai ?? 0 }}</h3>
-                            <span class="text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded-full border border-emerald-200/60 dark:border-emerald-800/60">
-                                {{ ($totalCS ?? 0) > 0 ? round((($sudahDinilai ?? 0) / $totalCS) * 100, 1) : 0 }}%
-                            </span>
+                <a href="{{ route('laporan', $dinilaiQuery) }}"
+                   title="Filter: Sudah Dinilai (Final)"
+                   class="bg-white dark:bg-[#151f30] rounded-2xl p-5 shadow-sm border {{ request('status') === 'dinilai' ? 'border-emerald-500 ring-2 ring-emerald-500/50 dark:ring-emerald-400/50 shadow-emerald-500/10' : 'border-emerald-100/80 dark:border-emerald-500/20 hover:border-emerald-300 dark:hover:border-emerald-400' }} hover:shadow-lg hover:shadow-emerald-500/10 hover:-translate-y-0.5 transition-all duration-300 group relative overflow-hidden block">
+                    <!-- Top Accent Gradient Line -->
+                    <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-400 to-teal-500 z-10"></div>
+                    <!-- Ambient Inner Gradient -->
+                    <div class="absolute inset-0 bg-gradient-to-br from-white via-white to-emerald-50/80 dark:from-[#151f30] dark:via-[#151f30] dark:to-emerald-950/40 pointer-events-none"></div>
+                    <!-- Glowing Blur Orb -->
+                    <div class="absolute -right-6 -bottom-6 w-32 h-32 bg-emerald-500/10 dark:bg-emerald-500/20 rounded-full blur-2xl pointer-events-none group-hover:scale-125 transition-transform duration-500"></div>
+
+                    <div class="flex items-center justify-between mb-3 relative z-10">
+                        <span class="text-xs font-extrabold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider flex items-center gap-1.5">
+                            Sudah Dinilai (Final)
+                            @if(request('status') === 'dinilai')
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                            @endif
+                        </span>
+                        <div class="w-11 h-11 bg-emerald-50 dark:bg-emerald-950/70 text-emerald-600 dark:text-emerald-400 shadow-sm border border-emerald-100 dark:border-emerald-900/50 rounded-xl flex items-center justify-center group-hover:scale-110 group-hover:bg-emerald-500 group-hover:text-white transition-all duration-300">
+                            <i class="fa-solid fa-circle-check text-base"></i>
                         </div>
                     </div>
-                </div>
+                    <div class="flex items-end justify-between relative z-10">
+                        <h3 class="text-3xl sm:text-4xl font-extrabold text-slate-800 dark:text-slate-100 tracking-tight leading-none">{{ $sudahDinilai ?? 0 }}</h3>
+                        <span class="text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/70 px-2.5 py-0.5 rounded-full border border-emerald-200/80 dark:border-emerald-800/80">
+                            {{ ($totalCS ?? 0) > 0 ? round((($sudahDinilai ?? 0) / $totalCS) * 100, 1) : 0 }}%
+                        </span>
+                    </div>
+                </a>
 
                 <!-- Belum Dinilai -->
-                <div class="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700 shadow-sm flex items-center gap-4">
-                    <div class="w-14 h-14 rounded-full bg-amber-50 dark:bg-amber-950/60 text-amber-500 dark:text-amber-400 flex items-center justify-center shrink-0">
-                        <i class="fa-solid fa-user-clock text-lg"></i>
-                    </div>
-                    <div class="flex-1">
-                        <p class="text-[11px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-wider mb-1">Belum Dinilai</p>
-                        <div class="flex items-end justify-between">
-                            <h3 class="text-3xl font-extrabold text-slate-800 dark:text-slate-100 leading-none">{{ $belumDinilai ?? 0 }}</h3>
-                            <span class="text-xs font-bold text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/60 px-2 py-0.5 rounded-full border border-amber-200/60 dark:border-amber-800/60">
-                                {{ ($totalCS ?? 0) > 0 ? round((($belumDinilai ?? 0) / $totalCS) * 100, 1) : 0 }}%
-                            </span>
+                <a href="{{ route('laporan', $belumQuery) }}"
+                   title="Filter: Belum Dinilai"
+                   class="bg-white dark:bg-[#151f30] rounded-2xl p-5 shadow-sm border {{ request('status') === 'belum' ? 'border-amber-500 ring-2 ring-amber-500/50 dark:ring-amber-400/50 shadow-amber-500/10' : 'border-amber-100/80 dark:border-amber-500/20 hover:border-amber-300 dark:hover:border-amber-400' }} hover:shadow-lg hover:shadow-amber-500/10 hover:-translate-y-0.5 transition-all duration-300 group relative overflow-hidden block">
+                    <!-- Top Accent Gradient Line -->
+                    <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-400 to-orange-500 z-10"></div>
+                    <!-- Ambient Inner Gradient -->
+                    <div class="absolute inset-0 bg-gradient-to-br from-white via-white to-amber-50/80 dark:from-[#151f30] dark:via-[#151f30] dark:to-amber-950/40 pointer-events-none"></div>
+                    <!-- Glowing Blur Orb -->
+                    <div class="absolute -right-6 -bottom-6 w-32 h-32 bg-amber-500/10 dark:bg-amber-500/20 rounded-full blur-2xl pointer-events-none group-hover:scale-125 transition-transform duration-500"></div>
+
+                    <div class="flex items-center justify-between mb-3 relative z-10">
+                        <span class="text-xs font-extrabold text-amber-600 dark:text-amber-400 uppercase tracking-wider flex items-center gap-1.5">
+                            Belum Dinilai
+                            @if(request('status') === 'belum')
+                                <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                            @endif
+                        </span>
+                        <div class="w-11 h-11 bg-amber-50 dark:bg-amber-950/70 text-amber-600 dark:text-amber-400 shadow-sm border border-amber-100 dark:border-amber-900/50 rounded-xl flex items-center justify-center group-hover:scale-110 group-hover:bg-amber-500 group-hover:text-white transition-all duration-300">
+                            <i class="fa-solid fa-user-clock text-base"></i>
                         </div>
                     </div>
-                </div>
+                    <div class="flex items-end justify-between relative z-10">
+                        <h3 class="text-3xl sm:text-4xl font-extrabold text-slate-800 dark:text-slate-100 tracking-tight leading-none">{{ $belumDinilai ?? 0 }}</h3>
+                        <span class="text-xs font-bold text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/70 px-2.5 py-0.5 rounded-full border border-amber-200/80 dark:border-amber-800/80">
+                            {{ ($totalCS ?? 0) > 0 ? round((($belumDinilai ?? 0) / $totalCS) * 100, 1) : 0 }}%
+                        </span>
+                    </div>
+                </a>
 
                 <!-- Sangat Memuaskan -->
-                <div class="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700 shadow-sm flex items-center gap-4">
-                    <div class="w-14 h-14 rounded-full bg-teal-50 dark:bg-teal-950/60 text-teal-500 dark:text-teal-400 flex items-center justify-center shrink-0">
-                        <i class="fa-solid fa-ranking-star text-lg"></i>
-                    </div>
-                    <div class="flex-1">
-                        <p class="text-[11px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-wider mb-1">Sangat Memuaskan (≥90)</p>
-                        <div class="flex items-end justify-between">
-                            <h3 class="text-3xl font-extrabold text-slate-800 dark:text-slate-100 leading-none">{{ $sangatMemuaskan ?? $sangatBaik ?? 0 }}</h3>
-                            <span class="text-xs font-bold text-teal-600 dark:text-teal-400 bg-teal-50 dark:bg-teal-950/60 px-2 py-0.5 rounded-full border border-teal-200/60 dark:border-teal-800/60">
-                                {{ ($sudahDinilai ?? 0) > 0 ? round((($sangatMemuaskan ?? $sangatBaik ?? 0) / $sudahDinilai) * 100, 1) : 0 }}%
-                            </span>
+                <a href="{{ route('laporan', $sangatQuery) }}"
+                   title="Filter: Sangat Memuaskan (≥90)"
+                   class="bg-white dark:bg-[#151f30] rounded-2xl p-5 shadow-sm border {{ request('status') === 'sangat_memuaskan' ? 'border-teal-500 ring-2 ring-teal-500/50 dark:ring-teal-400/50 shadow-teal-500/10' : 'border-teal-100/80 dark:border-teal-500/20 hover:border-teal-300 dark:hover:border-teal-400' }} hover:shadow-lg hover:shadow-teal-500/10 hover:-translate-y-0.5 transition-all duration-300 group relative overflow-hidden block">
+                    <!-- Top Accent Gradient Line -->
+                    <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-teal-400 to-cyan-500 z-10"></div>
+                    <!-- Ambient Inner Gradient -->
+                    <div class="absolute inset-0 bg-gradient-to-br from-white via-white to-teal-50/80 dark:from-[#151f30] dark:via-[#151f30] dark:to-teal-950/40 pointer-events-none"></div>
+                    <!-- Glowing Blur Orb -->
+                    <div class="absolute -right-6 -bottom-6 w-32 h-32 bg-teal-500/10 dark:bg-teal-500/20 rounded-full blur-2xl pointer-events-none group-hover:scale-125 transition-transform duration-500"></div>
+
+                    <div class="flex items-center justify-between mb-3 relative z-10">
+                        <span class="text-xs font-extrabold text-teal-600 dark:text-teal-400 uppercase tracking-wider flex items-center gap-1.5">
+                            Sangat Memuaskan (≥90)
+                            @if(request('status') === 'sangat_memuaskan')
+                                <span class="w-1.5 h-1.5 rounded-full bg-teal-500 animate-pulse"></span>
+                            @endif
+                        </span>
+                        <div class="w-11 h-11 bg-teal-50 dark:bg-teal-950/70 text-teal-600 dark:text-teal-400 shadow-sm border border-teal-100 dark:border-teal-900/50 rounded-xl flex items-center justify-center group-hover:scale-110 group-hover:bg-teal-500 group-hover:text-white transition-all duration-300">
+                            <i class="fa-solid fa-ranking-star text-base"></i>
                         </div>
                     </div>
-                </div>
+                    <div class="flex items-end justify-between relative z-10">
+                        <h3 class="text-3xl sm:text-4xl font-extrabold text-slate-800 dark:text-slate-100 tracking-tight leading-none">{{ $sangatMemuaskan ?? $sangatBaik ?? 0 }}</h3>
+                        <span class="text-xs font-bold text-teal-600 dark:text-teal-400 bg-teal-50 dark:bg-teal-950/70 px-2.5 py-0.5 rounded-full border border-teal-200/80 dark:border-teal-800/80">
+                            {{ ($sudahDinilai ?? 0) > 0 ? round((($sangatMemuaskan ?? $sangatBaik ?? 0) / $sudahDinilai) * 100, 1) : 0 }}%
+                        </span>
+                    </div>
+                </a>
             </div>
 
             <!-- Top 3 CS Spotlight Section -->
@@ -477,6 +543,7 @@
                             <option value="">Semua Status</option>
                             <option value="dinilai" {{ request('status') == 'dinilai' ? 'selected' : '' }}>Sudah Dinilai (Final)</option>
                             <option value="belum" {{ request('status') == 'belum' ? 'selected' : '' }}>Belum Dinilai</option>
+                            <option value="sangat_memuaskan" {{ request('status') == 'sangat_memuaskan' ? 'selected' : '' }}>Sangat Memuaskan (≥90)</option>
                         </select>
                         <i class="fa-solid fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-xs text-slate-400 pointer-events-none"></i>
                     </div>

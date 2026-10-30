@@ -568,6 +568,11 @@ class HomeController extends Controller
                 $rev = $u->performanceReviews->first();
                 return !$rev || strtoupper($rev->status) !== 'FINAL';
             });
+        } elseif ($request->status == 'sangat_memuaskan') {
+            $users = $allUsers->filter(function($u) {
+                $rev = $u->performanceReviews->first();
+                return $rev && strtoupper($rev->status) === 'FINAL' && $rev->total_score >= 90;
+            });
         } else {
             $users = $allUsers;
         }
@@ -785,6 +790,11 @@ class HomeController extends Controller
                 $rev = $u->performanceReviews->first();
                 return !$rev || strtoupper($rev->status) !== 'FINAL';
             });
+        } elseif ($request->status == 'sangat_memuaskan') {
+            $users = $allUsers->filter(function($u) {
+                $rev = $u->performanceReviews->first();
+                return $rev && strtoupper($rev->status) === 'FINAL' && $rev->total_score >= 90;
+            });
         } else {
             $users = $allUsers;
         }
@@ -813,7 +823,7 @@ class HomeController extends Controller
         $periodSlug = str_replace(['-', ' '], '_', $periodInfo['period_key']);
         $fileName = "Laporan_Kinerja_Staff_{$deptSlug}_{$periodSlug}.xlsx";
 
-        $statusStr = $request->filled('status') ? ($request->status == 'dinilai' ? 'Sudah Dinilai (Final)' : ($request->status == 'belum' ? 'Belum Dinilai' : 'Semua Status')) : 'Semua Status';
+        $statusStr = $request->filled('status') ? ($request->status == 'dinilai' ? 'Sudah Dinilai (Final)' : ($request->status == 'belum' ? 'Belum Dinilai' : ($request->status == 'sangat_memuaskan' ? 'Sangat Memuaskan (≥90)' : 'Semua Status'))) : 'Semua Status';
         $currentUser = auth()->user();
 
         $meta = [
