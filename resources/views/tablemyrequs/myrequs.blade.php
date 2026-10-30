@@ -94,7 +94,7 @@
                                     </div>
                                 </td>
                                 <td class="py-4 px-5 align-middle text-center">
-                                    <div class="inline-flex items-center gap-1.5 justify-center">
+                                    <div class="inline-flex items-center gap-1.5 flex-wrap justify-center">
                                         @if($rq->is_new)
                                         <span class="inline-flex items-center gap-1 bg-gradient-to-r from-emerald-500 to-teal-500 text-white text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider shadow-sm shadow-emerald-500/25">
                                             <span class="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>NEW
@@ -104,6 +104,7 @@
                                             <span class="w-1.5 h-1.5 rounded-full {{ $dotClass }}"></span>
                                             {{ $displayStatus }}
                                         </span>
+                                        @include('partials.testing_status_badge', ['item' => $rq])
                                     </div>
                                 </td>
                                 <td class="py-4 px-5 align-middle">
@@ -158,12 +159,13 @@
                     <div class="bg-white dark:bg-slate-800 rounded-xl p-4 border border-slate-200/90 dark:border-slate-700/80 shadow-xs hover:border-blue-200 dark:hover:border-blue-500/50 transition-all">
                         <div class="flex items-center justify-between mb-2.5">
                             <span class="font-mono font-bold text-xs text-slate-400">#{{ $rq->id }}</span>
-                            <div class="flex items-center gap-1.5">
+                            <div class="flex items-center gap-1.5 flex-wrap justify-end">
                                 @if($rq->is_new)
                                 <span class="inline-flex items-center gap-1 bg-gradient-to-r from-emerald-500 to-teal-500 text-white text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider shadow-sm shadow-emerald-500/25">
                                     <span class="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>NEW
                                 </span>
                                 @endif
+                                @include('partials.testing_status_badge', ['item' => $rq])
                                 <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold border uppercase tracking-wider {{ $badgeClass }}">
                                     <span class="w-1.5 h-1.5 rounded-full {{ $dotClass }}"></span>
                                     {{ $displayStatus }}

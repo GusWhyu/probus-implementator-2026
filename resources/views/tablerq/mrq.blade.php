@@ -74,9 +74,17 @@
                 <a href="/detailrequest/{{ $rq->id }}?from=request" class="block bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200/90 dark:border-slate-700/80 shadow-sm hover:shadow-md hover:border-blue-200 dark:hover:border-blue-500/50 transition-all group relative overflow-hidden">
                     <div class="flex items-center justify-between mb-3">
                         <span class="text-xs font-bold text-slate-400 dark:text-slate-500 font-mono">#{{ $rq->id }}</span>
-                        <span class="px-2.5 py-0.5 rounded-md text-[10px] font-extrabold uppercase tracking-wide {{ $badgeClass }}">
-                            {{ $st }}
-                        </span>
+                        <div class="flex items-center gap-1.5 shrink-0 flex-wrap justify-end">
+                            @if($rq->is_new)
+                            <span class="inline-flex items-center gap-1 bg-gradient-to-r from-emerald-500 to-teal-500 text-white text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider shadow-sm shadow-emerald-500/25">
+                                <span class="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>NEW
+                            </span>
+                            @endif
+                            @include('partials.testing_status_badge', ['item' => $rq])
+                            <span class="px-2.5 py-0.5 rounded-md text-[10px] font-extrabold uppercase tracking-wide {{ $badgeClass }}">
+                                {{ $st }}
+                            </span>
+                        </div>
                     </div>
 
                     <h4 class="font-extrabold text-slate-800 dark:text-slate-100 text-[14px] leading-snug mb-3.5 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors line-clamp-2 uppercase">

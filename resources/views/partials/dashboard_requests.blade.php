@@ -48,6 +48,7 @@
             <span class="px-2.5 py-1 rounded-lg text-[10px] font-bold {{ $statusClass }}">
                 {{ $statusName }}
             </span>
+            @include('partials.testing_status_badge', ['item' => $req])
             @if($req->approval_status == 'pending')
                 <span class="px-2 py-0.5 rounded-md text-[9px] font-bold bg-amber-50 text-amber-700 border border-amber-200" title="Menunggu Approval">
                     Pending
