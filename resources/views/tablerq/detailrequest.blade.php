@@ -107,21 +107,21 @@
 
             <!-- Alert Banner: Khusus ditampilkan untuk Request hasil pengalihan dari Tiket -->
             @if($isFromTicket)
-            <div class="bg-amber-50 border border-amber-200/80 rounded-2xl p-4 mb-6 flex items-start sm:items-center gap-4 shadow-sm">
-                <div class="w-10 h-10 bg-amber-100 rounded-2xl flex items-center justify-center text-amber-600 shrink-0 mt-1 sm:mt-0 shadow-xs">
+            <div class="bg-amber-50/90 dark:bg-amber-950/40 border border-amber-200/90 dark:border-amber-700/60 rounded-2xl p-4 mb-6 flex items-start sm:items-center gap-4 shadow-xs">
+                <div class="w-10 h-10 bg-amber-100 dark:bg-amber-900/60 rounded-2xl flex items-center justify-center text-amber-600 dark:text-amber-400 shrink-0 mt-0.5 sm:mt-0 shadow-xs">
                     <i class="fa-solid fa-triangle-exclamation text-lg"></i>
                 </div>
                 <div class="flex-1">
                     <div class="flex items-center gap-2 flex-wrap">
-                        <p class="font-extrabold text-amber-900 text-sm">Perhatian</p>
+                        <p class="font-black text-amber-950 dark:text-amber-200 text-sm">Perhatian</p>
                         @if($fromTicketNumber)
-                        <span class="text-[10px] font-bold font-mono bg-amber-200/80 text-amber-900 px-2 py-0.5 rounded-lg border border-amber-300">
+                        <span class="text-[10px] font-extrabold font-mono bg-amber-200/90 dark:bg-amber-900/80 text-amber-950 dark:text-amber-200 px-2.5 py-0.5 rounded-lg border border-amber-300 dark:border-amber-700 shadow-2xs">
                             #{{ $fromTicketNumber }}
                         </span>
                         @endif
                     </div>
-                    <p class="text-[13px] font-medium text-amber-800/90 mt-0.5 leading-relaxed">
-                        Request ini merupakan <strong>tiket yang dialihkan menjadi request</strong>@if($fromTicketNumber) (Tiket Asal: <strong>#{{ $fromTicketNumber }}</strong>)@endif.
+                    <p class="text-[13px] font-medium text-amber-900 dark:text-amber-200/90 mt-1 leading-relaxed">
+                        Request ini merupakan <strong class="font-bold text-amber-950 dark:text-amber-100">tiket yang dialihkan menjadi request</strong>@if($fromTicketNumber) (Tiket Asal: <strong class="font-bold text-amber-950 dark:text-amber-100">#{{ $fromTicketNumber }}</strong>)@endif.
                     </p>
                 </div>
             </div>
@@ -213,13 +213,13 @@
                                 </div>
                             </div>
                             @elseif ($isPendingApproval)
-                            <div class="bg-amber-50 border border-amber-200 text-amber-800 p-5 rounded-2xl flex items-start gap-4">
-                                <div class="w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center text-amber-600 shrink-0 shadow-sm">
+                            <div class="bg-amber-50/90 dark:bg-amber-950/40 border border-amber-200/90 dark:border-amber-700/60 text-amber-900 dark:text-amber-200 p-5 rounded-2xl flex items-start gap-4 shadow-xs">
+                                <div class="w-10 h-10 bg-amber-100 dark:bg-amber-900/60 rounded-full flex items-center justify-center text-amber-600 dark:text-amber-400 shrink-0 shadow-xs">
                                     <i class="fa-solid fa-clock text-xl"></i>
                                 </div>
                                 <div>
-                                    <p class="font-extrabold text-sm text-amber-900">Menunggu Persetujuan (Approval)</p>
-                                    <p class="text-xs font-medium text-amber-700 mt-1">
+                                    <p class="font-black text-sm text-amber-950 dark:text-amber-200">Menunggu Persetujuan (Approval)</p>
+                                    <p class="text-xs font-medium text-amber-800 dark:text-amber-300 mt-1">
                                         @if ($isAdminOrSpv)
                                             Request ini diajukan oleh {{ $datarq->user->name ?? 'Staf' }} dan memerlukan persetujuan Supervisor / Admin sebelum dapat diproses.
                                         @else
@@ -808,19 +808,19 @@
 
     @if ($isAdminOrSpv && $stid != 4)
     <dialog id="convertToTicketModal" class="modal">
-        <div class="modal-box w-11/12 max-w-lg rounded-3xl p-6 md:p-8 bg-white dark:bg-[#1e293b] border border-slate-100 dark:border-slate-700 shadow-2xl relative">
+        <div class="modal-box w-11/12 max-w-3xl rounded-3xl p-6 md:p-7 bg-white dark:bg-[#1e293b] border border-slate-100 dark:border-slate-700 shadow-2xl relative">
             <form action="{{ route('request.convert_to_ticket', $datarq->id) }}" method="POST" onsubmit="const btn = this.querySelector('button[type=submit]'); btn.disabled = true; btn.innerHTML = '<i class=\'fa-solid fa-spinner fa-spin mr-1\'></i> Mengalihkan...';">
                 @csrf
                 
                 <!-- Header Modal -->
-                <div class="flex items-start justify-between mb-5">
+                <div class="flex items-start justify-between mb-4 pb-3 border-b border-slate-100 dark:border-slate-800">
                     <div class="flex items-center gap-3">
-                        <div class="w-12 h-12 rounded-2xl bg-amber-50 dark:bg-amber-950/50 text-amber-500 dark:text-amber-400 flex items-center justify-center border border-amber-100 dark:border-amber-800/60 shrink-0 text-xl shadow-xs">
+                        <div class="w-11 h-11 rounded-2xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center border border-amber-500/20 shrink-0 text-xl shadow-xs">
                             <i class="fa-solid fa-ticket"></i>
                         </div>
                         <div>
-                            <h3 class="font-extrabold text-lg text-slate-800 dark:text-slate-100">Alihkan Request Menjadi Tiket</h3>
-                            <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Konfirmasi pengalihan request ke antrean tiket bantuan</p>
+                            <h3 class="font-extrabold text-base md:text-lg text-slate-800 dark:text-slate-100">Alihkan Request Menjadi Tiket</h3>
+                            <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Pindahkan tugas ini ke antrean pengerjaan tiket bantuan</p>
                         </div>
                     </div>
                     <button type="button" class="w-8 h-8 rounded-xl bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-slate-400 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-100 dark:border-slate-700 transition-colors cursor-pointer" onclick="document.getElementById('convertToTicketModal').close()">
@@ -828,123 +828,255 @@
                     </button>
                 </div>
 
-                <!-- Disclaimer Card -->
-                <div class="bg-amber-50/80 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-700/60 rounded-2xl p-4 mb-5 flex items-start gap-3">
-                    <i class="fa-solid fa-circle-exclamation text-amber-600 dark:text-amber-400 text-base mt-0.5 shrink-0"></i>
-                    <div class="text-xs text-amber-900 dark:text-amber-200 leading-relaxed font-medium">
-                        <span class="font-black text-amber-700 dark:text-amber-400 uppercase tracking-wide block mb-1">PERHATIAN</span>
-                        Pastikan Anda yakin untuk mengalihkan request ini menjadi tiket. Request ini akan dihapus dari daftar request dan dipindahkan ke antrean tiket bantuan.
+                <!-- Sleek Context & Warning Strip (Compact) -->
+                <div class="bg-slate-50/90 dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-700/80 rounded-2xl p-3.5 mb-5 shadow-2xs">
+                    <div class="flex flex-wrap items-center justify-between gap-2 pb-2.5 mb-2.5 border-b border-slate-200/60 dark:border-slate-800 text-xs">
+                        <div class="flex items-center gap-2 min-w-0">
+                            <span class="px-2 py-0.5 rounded-md font-mono font-bold text-[11px] bg-blue-100 dark:bg-blue-950/70 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800/60 shrink-0">RQ-{{ $datarq->id }}</span>
+                            <span class="font-bold text-slate-800 dark:text-slate-200 text-xs truncate max-w-xs md:max-w-md" title="{{ $datarq->judul }}">{{ $datarq->judul }}</span>
+                        </div>
+                        <div class="inline-flex items-center gap-1.5 text-[11px] font-bold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/50 px-2.5 py-0.5 rounded-md border border-amber-200 dark:border-amber-800/60 shrink-0">
+                            <i class="fa-solid fa-circle-exclamation text-amber-500 text-[10px]"></i>
+                            <span>Akan dialihkan ke Tiket</span>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 md:grid-cols-3 gap-2 text-xs">
+                        <div>
+                            <span class="text-slate-400 text-[10px] block font-medium">Client / Outlet</span>
+                            <span class="font-bold text-slate-700 dark:text-slate-200 truncate block">{{ $datarq->outlet ? $datarq->outlet->nm_out : '-' }}</span>
+                        </div>
+                        <div>
+                            <span class="text-slate-400 text-[10px] block font-medium">Sistem</span>
+                            <span class="font-bold text-slate-700 dark:text-slate-200 truncate block">{{ $datarq->kategori ? $datarq->kategori->name : 'PRESTO' }}</span>
+                        </div>
+                        <div class="col-span-2 md:col-span-1">
+                            <span class="text-slate-400 text-[10px] block font-medium">Tipe / Modul Asal</span>
+                            <span class="font-bold text-slate-700 dark:text-slate-200 truncate block">{{ $datarq->module ?: '-' }}</span>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Ringkasan Request yang Dialihkan -->
-                <div class="bg-slate-50 dark:bg-slate-900/60 rounded-2xl p-4 border border-slate-200/70 dark:border-slate-700/80 mb-5 space-y-2.5">
-                    <div class="flex items-center justify-between text-xs">
-                        <span class="text-slate-500 dark:text-slate-400 font-medium">ID Request:</span>
-                        <span class="font-bold text-blue-600 dark:text-blue-400 font-mono">RQ-{{ $datarq->id }}</span>
-                    </div>
-                    <div class="flex items-start justify-between text-xs gap-3">
-                        <span class="text-slate-500 dark:text-slate-400 font-medium shrink-0">Judul Request:</span>
-                        <span class="font-bold text-slate-800 dark:text-slate-200 text-right line-clamp-2">{{ $datarq->judul }}</span>
-                    </div>
-                    <div class="flex items-center justify-between text-xs">
-                        <span class="text-slate-500 dark:text-slate-400 font-medium">Client / Outlet:</span>
-                        <span class="font-bold text-slate-800 dark:text-slate-200">{{ $datarq->outlet ? $datarq->outlet->nm_out : '-' }}</span>
-                    </div>
-                    <div class="flex items-center justify-between text-xs">
-                        <span class="text-slate-500 dark:text-slate-400 font-medium">System:</span>
-                        <span class="font-bold text-slate-800 dark:text-slate-200">{{ $datarq->kategori ? $datarq->kategori->name : 'PRESTO' }}</span>
-                    </div>
-                </div>
+                @php
+                    $userList = isset($assignableUsers) 
+                        ? $assignableUsers 
+                        : \App\Models\User::with(['departemen', 'tag'])
+                            ->whereIn('usertype', ['admin', 'supervisor', 'user'])
+                            ->where('is_active', true)
+                            ->orderBy('name')
+                            ->get();
 
-                <!-- Form Pilihan Pengalihan Tiket -->
-                <div class="space-y-4 mb-6">
-                    <!-- Petugas Penangan Tiket -->
-                    <div>
-                        <div class="flex items-center justify-between mb-1.5">
-                            <label class="flex items-center gap-1.5 text-xs font-bold text-slate-700 dark:text-slate-300">
-                                <i class="fa-solid fa-user-gear text-blue-500 dark:text-blue-400 text-xs"></i>
-                                <span>Petugas Penangan Tiket <span class="text-rose-500">*</span></span>
+                    $defaultAssigneeId = ($datarq->user_id && $userList->contains('id', $datarq->user_id)) 
+                        ? $datarq->user_id 
+                        : null;
+
+                    $countTotal = $userList->count();
+                    $countProduksi = $userList->filter(fn($u) => $u->departemen && strtolower($u->departemen->name) === 'produksi')->count();
+                    $countOperasional = $userList->filter(fn($u) => $u->departemen && strtolower($u->departemen->name) === 'operasional')->count();
+                    $countLainnya = $countTotal - $countProduksi - $countOperasional;
+
+                    $getDeptIcon = function($dept) {
+                        $d = strtoupper($dept);
+                        if (str_contains($d, 'PRODUKSI')) return '⚙️';
+                        if (str_contains($d, 'OPERASIONAL')) return '🏢';
+                        return '🌐';
+                    };
+
+                    $getTagIcon = function($tag) {
+                        $t = strtoupper($tag);
+                        if (str_contains($t, 'WEB PROGRAMMER')) return '🌐';
+                        if (str_contains($t, 'PROGRAMMER')) return '💻';
+                        if (str_contains($t, 'TRAINER')) return '🎓';
+                        if (str_contains($t, 'COMMERCE')) return '🛒';
+                        if (str_contains($t, 'SUPERVISOR')) return '👔';
+                        if (str_contains($t, 'ADMIN')) return '🛡️';
+                        return '👤';
+                    };
+
+                    // Kelompokkan petugas tiket berdasarkan Departemen dan Tag
+                    $groupedUsers = $userList->groupBy(function($u) {
+                        $dept = $u->departemen ? strtoupper($u->departemen->name) : 'LAINNYA';
+                        $tag = $u->tag ? strtoupper($u->tag->name) : 'UMUM';
+                        return $dept . ' — ' . $tag;
+                    })->sortBy(function($users, $key) {
+                        if (str_starts_with($key, 'PRODUKSI')) return '1_' . $key;
+                        if (str_starts_with($key, 'OPERASIONAL')) return '2_' . $key;
+                        return '3_' . $key;
+                    });
+                @endphp
+
+                <!-- 2-Column Form Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6">
+                    
+                    <!-- Kolom Kiri: Petugas Penangan & Tipe Penanganan / Due Date -->
+                    <div class="space-y-4">
+                        <!-- Petugas Penangan Tiket -->
+                        <div>
+                            <div class="flex items-center justify-between mb-1.5">
+                                <label class="flex items-center gap-1.5 text-xs font-bold text-slate-700 dark:text-slate-300">
+                                    <i class="fa-solid fa-user-gear text-blue-500 dark:text-blue-400 text-xs"></i>
+                                    <span>Petugas Penangan <span class="text-rose-500">*</span></span>
+                                </label>
+                                <span class="text-[10px] text-slate-400 font-medium">Filter Dept:</span>
+                            </div>
+
+                            <!-- Filter Departemen Pills -->
+                            <div id="petugasDeptFilter" class="flex flex-wrap items-center gap-1.5 mb-2">
+                                <button type="button" data-dept="all" class="dept-pill-btn px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all border bg-blue-600 text-white border-blue-600 shadow-xs cursor-pointer flex items-center gap-1.5 shrink-0">
+                                    <span>Semua</span>
+                                    <span class="dept-count-badge px-1.5 py-0.2 rounded-full text-[9px] bg-white/20 text-white font-extrabold">{{ $countTotal }}</span>
+                                </button>
+                                <button type="button" data-dept="PRODUKSI" class="dept-pill-btn px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all border bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700 cursor-pointer flex items-center gap-1.5 shrink-0">
+                                    <span>⚙️ Produksi</span>
+                                    <span class="dept-count-badge px-1.5 py-0.2 rounded-full text-[9px] bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 font-extrabold">{{ $countProduksi }}</span>
+                                </button>
+                                <button type="button" data-dept="OPERASIONAL" class="dept-pill-btn px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all border bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700 cursor-pointer flex items-center gap-1.5 shrink-0">
+                                    <span>🏢 Operasional</span>
+                                    <span class="dept-count-badge px-1.5 py-0.2 rounded-full text-[9px] bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 font-extrabold">{{ $countOperasional }}</span>
+                                </button>
+                                @if($countLainnya > 0)
+                                <button type="button" data-dept="LAINNYA" class="dept-pill-btn px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all border bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700 cursor-pointer flex items-center gap-1.5 shrink-0">
+                                    <span>🌐 Lainnya</span>
+                                    <span class="dept-count-badge px-1.5 py-0.2 rounded-full text-[9px] bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 font-extrabold">{{ $countLainnya }}</span>
+                                </button>
+                                @endif
+                            </div>
+
+                            <div class="relative">
+                                <select name="assigned_user_id" id="assignedUserSelect" required class="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 p-2.5 pl-3.5 pr-10 outline-none font-bold appearance-none shadow-sm cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                                    @if($userList->isEmpty())
+                                        <option value="" disabled selected>Tidak ada petugas yang tersedia</option>
+                                    @else
+                                        <option value="" disabled {{ is_null($defaultAssigneeId) ? 'selected' : '' }}>-- Pilih Petugas Penangan --</option>
+                                        @foreach($groupedUsers as $groupLabel => $usersInGroup)
+                                            @php
+                                                $parts = explode(' — ', $groupLabel);
+                                                $dName = $parts[0];
+                                                $tName = $parts[1] ?? 'UMUM';
+                                                $dIcon = $getDeptIcon($dName);
+                                                $tIcon = $getTagIcon($tName);
+                                                $prettyLabel = "{$dIcon} {$dName} ❯ {$tIcon} {$tName}";
+                                            @endphp
+                                            <optgroup label="{{ $prettyLabel }}" data-dept="{{ $dName }}" class="font-extrabold text-slate-900 dark:text-slate-100 bg-slate-100 dark:bg-slate-800">
+                                                @foreach($usersInGroup as $u)
+                                                    <option value="{{ $u->id }}" {{ $defaultAssigneeId == $u->id ? 'selected' : '' }} class="font-medium text-slate-800 dark:text-slate-100 bg-white dark:bg-slate-900">
+                                                        {{ $u->name }} ({{ ucfirst($u->usertype) }}){{ $u->id == Auth::id() ? ' ⭐ Anda' : '' }}
+                                                    </option>
+                                                @endforeach
+                                            </optgroup>
+                                        @endforeach
+                                    @endif
+                                </select>
+                                <i class="fa-solid fa-chevron-down absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-[10px] pointer-events-none"></i>
+                            </div>
+                        </div>
+
+                        <!-- Tipe Penanganan & Due Date -->
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="flex items-center gap-1.5 text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                                    <i class="fa-solid fa-screwdriver-wrench text-blue-500 dark:text-blue-400 text-xs"></i>
+                                    <span>Tipe <span class="text-rose-500">*</span></span>
+                                </label>
+                                <div class="relative">
+                                    <select name="tipe_penanganan" required class="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 p-2.5 pl-3 pr-8 outline-none font-bold appearance-none shadow-sm cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                                        @php
+                                            $selectedTipeModal = $datarq->tipe_penanganan ?? 'Office';
+                                            $tpList = $tipePenanganans ?? \App\Models\TipePenanganan::where('is_active', true)->orderBy('nama')->get();
+                                            $foundModalSelected = false;
+                                        @endphp
+                                        @if(isset($tpList) && $tpList->count() > 0)
+                                            @foreach($tpList as $tp)
+                                                @php
+                                                    $isMatch = ($selectedTipeModal == $tp->nama);
+                                                    if ($isMatch) $foundModalSelected = true;
+                                                @endphp
+                                                <option value="{{ $tp->nama }}" {{ $isMatch ? 'selected' : '' }}>{{ $tp->nama }}</option>
+                                            @endforeach
+                                            @if(!$foundModalSelected && !empty($selectedTipeModal))
+                                                <option value="{{ $selectedTipeModal }}" selected>{{ $selectedTipeModal }}</option>
+                                            @endif
+                                        @else
+                                            <option value="Office" {{ $selectedTipeModal == 'Office' ? 'selected' : '' }}>Office</option>
+                                            <option value="On Site" {{ $selectedTipeModal == 'On Site' ? 'selected' : '' }}>On Site</option>
+                                            <option value="Online" {{ in_array($selectedTipeModal, ['Online', 'Remote', 'Remote / Online']) ? 'selected' : '' }}>Online</option>
+                                            <option value="Piket" {{ $selectedTipeModal == 'Piket' ? 'selected' : '' }}>Piket</option>
+                                            <option value="TRAINING / Retraining ONLINE" {{ $selectedTipeModal == 'TRAINING / Retraining ONLINE' ? 'selected' : '' }}>TRAINING / Retraining ONLINE</option>
+                                            <option value="Training 4 Traner" {{ in_array($selectedTipeModal, ['Training 4 Traner', 'Training 4 Trainer']) ? 'selected' : '' }}>Training 4 Traner</option>
+                                        @endif
+                                    </select>
+                                    <i class="fa-solid fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-[10px] pointer-events-none"></i>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="flex items-center gap-1.5 text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                                    <i class="fa-regular fa-calendar-check text-blue-500 dark:text-blue-400 text-xs"></i>
+                                    <span>Due Date <span class="text-rose-500">*</span></span>
+                                </label>
+                                <input type="date" name="due_date" value="{{ $datarq->end_date ? \Carbon\Carbon::parse($datarq->end_date)->format('Y-m-d') : \Carbon\Carbon::now()->addDays(2)->format('Y-m-d') }}" min="{{ date('Y-m-d') }}" required class="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 p-2.5 outline-none font-semibold shadow-sm cursor-pointer">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Kolom Kanan: Modul Sistem & Advisor Tiket -->
+                    <div class="space-y-4">
+                        <!-- Modul Sistem -->
+                        <div>
+                            <label class="flex items-center gap-1.5 text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                                <i class="fa-solid fa-cubes text-blue-500 dark:text-blue-400 text-xs"></i>
+                                <span>Modul Sistem</span>
                             </label>
-                            <span class="text-[10px] text-slate-400 font-medium">Filter Departemen:</span>
+                            <div class="relative">
+                                <select name="module_system_id" class="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 p-2.5 pl-3.5 pr-10 outline-none font-bold appearance-none shadow-sm cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                                    <option value="">-- Pilih Modul (Opsional) --</option>
+                                    @php
+                                        $modList = isset($moduleSystems) ? $moduleSystems : \App\Models\ModuleSystem::orderBy('name')->get();
+                                    @endphp
+                                    @foreach($modList as $ms)
+                                        <option value="{{ $ms->id }}" {{ (strtolower($datarq->module ?? '') == strtolower($ms->name)) ? 'selected' : '' }}>
+                                            {{ $ms->name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                <i class="fa-solid fa-chevron-down absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-[10px] pointer-events-none"></i>
+                            </div>
                         </div>
 
-                        @php
-                            $userList = isset($assignableUsers) 
-                                ? $assignableUsers 
-                                : \App\Models\User::with(['departemen', 'tag'])
-                                    ->whereIn('usertype', ['admin', 'supervisor', 'user'])
-                                    ->where('is_active', true)
-                                    ->orderBy('name')
-                                    ->get();
+                        <!-- Advisor (Opsional) -->
+                        <div>
+                            <div class="flex items-center justify-between mb-1.5">
+                                <label class="flex items-center gap-1.5 text-xs font-bold text-slate-700 dark:text-slate-300">
+                                    <i class="fa-solid fa-headset text-blue-500 dark:text-blue-400 text-xs"></i>
+                                    <span>Advisor Tiket</span>
+                                </label>
+                                <span class="text-[10px] font-semibold text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-md">Opsional</span>
+                            </div>
 
-                            $defaultAssigneeId = ($datarq->user_id && $userList->contains('id', $datarq->user_id)) 
-                                ? $datarq->user_id 
-                                : null;
+                            <!-- Filter Departemen Advisor Pills -->
+                            <div id="advisorDeptFilter" class="flex flex-wrap items-center gap-1.5 mb-2">
+                                <button type="button" data-dept="all" class="dept-pill-btn px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all border bg-blue-600 text-white border-blue-600 shadow-xs cursor-pointer flex items-center gap-1.5 shrink-0">
+                                    <span>Semua</span>
+                                    <span class="dept-count-badge px-1.5 py-0.2 rounded-full text-[9px] bg-white/20 text-white font-extrabold">{{ $countTotal }}</span>
+                                </button>
+                                <button type="button" data-dept="PRODUKSI" class="dept-pill-btn px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all border bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700 cursor-pointer flex items-center gap-1.5 shrink-0">
+                                    <span>⚙️ Produksi</span>
+                                    <span class="dept-count-badge px-1.5 py-0.2 rounded-full text-[9px] bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 font-extrabold">{{ $countProduksi }}</span>
+                                </button>
+                                <button type="button" data-dept="OPERASIONAL" class="dept-pill-btn px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all border bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700 cursor-pointer flex items-center gap-1.5 shrink-0">
+                                    <span>🏢 Operasional</span>
+                                    <span class="dept-count-badge px-1.5 py-0.2 rounded-full text-[9px] bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 font-extrabold">{{ $countOperasional }}</span>
+                                </button>
+                                @if($countLainnya > 0)
+                                <button type="button" data-dept="LAINNYA" class="dept-pill-btn px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all border bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700 cursor-pointer flex items-center gap-1.5 shrink-0">
+                                    <span>🌐 Lainnya</span>
+                                    <span class="dept-count-badge px-1.5 py-0.2 rounded-full text-[9px] bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 font-extrabold">{{ $countLainnya }}</span>
+                                </button>
+                                @endif
+                            </div>
 
-                            $countTotal = $userList->count();
-                            $countProduksi = $userList->filter(fn($u) => $u->departemen && strtolower($u->departemen->name) === 'produksi')->count();
-                            $countOperasional = $userList->filter(fn($u) => $u->departemen && strtolower($u->departemen->name) === 'operasional')->count();
-                            $countLainnya = $countTotal - $countProduksi - $countOperasional;
-
-                            $getDeptIcon = function($dept) {
-                                $d = strtoupper($dept);
-                                if (str_contains($d, 'PRODUKSI')) return '⚙️';
-                                if (str_contains($d, 'OPERASIONAL')) return '🏢';
-                                return '🌐';
-                            };
-
-                            $getTagIcon = function($tag) {
-                                $t = strtoupper($tag);
-                                if (str_contains($t, 'WEB PROGRAMMER')) return '🌐';
-                                if (str_contains($t, 'PROGRAMMER')) return '💻';
-                                if (str_contains($t, 'TRAINER')) return '🎓';
-                                if (str_contains($t, 'COMMERCE')) return '🛒';
-                                if (str_contains($t, 'SUPERVISOR')) return '👔';
-                                if (str_contains($t, 'ADMIN')) return '🛡️';
-                                return '👤';
-                            };
-
-                            // Kelompokkan petugas tiket berdasarkan Departemen dan Tag
-                            $groupedUsers = $userList->groupBy(function($u) {
-                                $dept = $u->departemen ? strtoupper($u->departemen->name) : 'LAINNYA';
-                                $tag = $u->tag ? strtoupper($u->tag->name) : 'UMUM';
-                                return $dept . ' — ' . $tag;
-                            })->sortBy(function($users, $key) {
-                                if (str_starts_with($key, 'PRODUKSI')) return '1_' . $key;
-                                if (str_starts_with($key, 'OPERASIONAL')) return '2_' . $key;
-                                return '3_' . $key;
-                            });
-                        @endphp
-
-                        <!-- Filter Departemen Pills -->
-                        <div id="petugasDeptFilter" class="flex items-center gap-1.5 mb-2 overflow-x-auto pb-1 scrollbar-none">
-                            <button type="button" data-dept="all" class="dept-pill-btn px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all border bg-blue-600 text-white border-blue-600 shadow-xs cursor-pointer flex items-center gap-1.5 shrink-0">
-                                <span>Semua</span>
-                                <span class="dept-count-badge px-1.5 py-0.2 rounded-full text-[9px] bg-white/20 text-white font-extrabold">{{ $countTotal }}</span>
-                            </button>
-                            <button type="button" data-dept="PRODUKSI" class="dept-pill-btn px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all border bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700 cursor-pointer flex items-center gap-1.5 shrink-0">
-                                <span>⚙️ Produksi</span>
-                                <span class="dept-count-badge px-1.5 py-0.2 rounded-full text-[9px] bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 font-extrabold">{{ $countProduksi }}</span>
-                            </button>
-                            <button type="button" data-dept="OPERASIONAL" class="dept-pill-btn px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all border bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700 cursor-pointer flex items-center gap-1.5 shrink-0">
-                                <span>🏢 Operasional</span>
-                                <span class="dept-count-badge px-1.5 py-0.2 rounded-full text-[9px] bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 font-extrabold">{{ $countOperasional }}</span>
-                            </button>
-                            @if($countLainnya > 0)
-                            <button type="button" data-dept="LAINNYA" class="dept-pill-btn px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all border bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700 cursor-pointer flex items-center gap-1.5 shrink-0">
-                                <span>🌐 Lainnya</span>
-                                <span class="dept-count-badge px-1.5 py-0.2 rounded-full text-[9px] bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 font-extrabold">{{ $countLainnya }}</span>
-                            </button>
-                            @endif
-                        </div>
-
-                        <div class="relative">
-                            <select name="assigned_user_id" id="assignedUserSelect" required class="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 p-3 pl-4 pr-10 outline-none font-bold appearance-none shadow-sm cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
-                                @if($userList->isEmpty())
-                                    <option value="" disabled selected>Tidak ada petugas yang tersedia</option>
-                                @else
-                                    <option value="" disabled {{ is_null($defaultAssigneeId) ? 'selected' : '' }}>-- Pilih Petugas Penangan --</option>
+                            <div class="relative">
+                                <select name="advisor_id" id="advisorUserSelect" class="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 p-2.5 pl-3.5 pr-10 outline-none font-bold appearance-none shadow-sm cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                                    <option value="">-- Tanpa Advisor (Opsional) --</option>
                                     @foreach($groupedUsers as $groupLabel => $usersInGroup)
                                         @php
                                             $parts = explode(' — ', $groupLabel);
@@ -956,152 +1088,25 @@
                                         @endphp
                                         <optgroup label="{{ $prettyLabel }}" data-dept="{{ $dName }}" class="font-extrabold text-slate-900 dark:text-slate-100 bg-slate-100 dark:bg-slate-800">
                                             @foreach($usersInGroup as $u)
-                                                <option value="{{ $u->id }}" {{ $defaultAssigneeId == $u->id ? 'selected' : '' }} class="font-medium text-slate-800 dark:text-slate-100 bg-white dark:bg-slate-900">
+                                                <option value="{{ $u->id }}" class="font-medium text-slate-800 dark:text-slate-100 bg-white dark:bg-slate-900">
                                                     {{ $u->name }} ({{ ucfirst($u->usertype) }}){{ $u->id == Auth::id() ? ' ⭐ Anda' : '' }}
                                                 </option>
                                             @endforeach
                                         </optgroup>
                                     @endforeach
-                                @endif
-                            </select>
-                            <i class="fa-solid fa-chevron-down absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-[10px] pointer-events-none"></i>
-                        </div>
-                        <p class="text-[10px] text-slate-400 dark:text-slate-500 mt-1">Pilih petugas yang akan menangani dan mengerjakan tiket ini.</p>
-                    </div>
-
-                    <!-- Modul Sistem -->
-                    <div>
-                        <label class="flex items-center gap-1.5 text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
-                            <i class="fa-solid fa-cubes text-blue-500 dark:text-blue-400 text-xs"></i>
-                            <span>Modul Sistem</span>
-                        </label>
-                        <div class="relative">
-                            <select name="module_system_id" class="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 p-3 pl-4 pr-10 outline-none font-bold appearance-none shadow-sm cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
-                                <option value="">-- Pilih Modul (Opsional) --</option>
-                                @php
-                                    $modList = isset($moduleSystems) ? $moduleSystems : \App\Models\ModuleSystem::orderBy('name')->get();
-                                @endphp
-                                @foreach($modList as $ms)
-                                    <option value="{{ $ms->id }}" {{ (strtolower($datarq->module ?? '') == strtolower($ms->name)) ? 'selected' : '' }}>
-                                        {{ $ms->name }}
-                                    </option>
-                                @endforeach
-                            </select>
-                            <i class="fa-solid fa-chevron-down absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-[10px] pointer-events-none"></i>
-                        </div>
-                    </div>
-
-                    <!-- Tipe Penanganan & Target Selesai -->
-                    <div class="grid grid-cols-2 gap-3">
-                        <div>
-                            <label class="flex items-center gap-1.5 text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
-                                <i class="fa-solid fa-screwdriver-wrench text-blue-500 dark:text-blue-400 text-xs"></i>
-                                <span>Tipe Penanganan <span class="text-rose-500">*</span></span>
-                            </label>
-                            <div class="relative">
-                                <select name="tipe_penanganan" required class="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 p-3 pl-3.5 pr-8 outline-none font-bold appearance-none shadow-sm cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
-                                    @php
-                                        $selectedTipeModal = $datarq->tipe_penanganan ?? 'Office';
-                                        $tpList = $tipePenanganans ?? \App\Models\TipePenanganan::where('is_active', true)->orderBy('nama')->get();
-                                        $foundModalSelected = false;
-                                    @endphp
-                                    @if(isset($tpList) && $tpList->count() > 0)
-                                        @foreach($tpList as $tp)
-                                            @php
-                                                $isMatch = ($selectedTipeModal == $tp->nama);
-                                                if ($isMatch) $foundModalSelected = true;
-                                            @endphp
-                                            <option value="{{ $tp->nama }}" {{ $isMatch ? 'selected' : '' }}>{{ $tp->nama }}</option>
-                                        @endforeach
-                                        @if(!$foundModalSelected && !empty($selectedTipeModal))
-                                            <option value="{{ $selectedTipeModal }}" selected>{{ $selectedTipeModal }}</option>
-                                        @endif
-                                    @else
-                                        <option value="Office" {{ $selectedTipeModal == 'Office' ? 'selected' : '' }}>Office</option>
-                                        <option value="On Site" {{ $selectedTipeModal == 'On Site' ? 'selected' : '' }}>On Site</option>
-                                        <option value="Online" {{ in_array($selectedTipeModal, ['Online', 'Remote', 'Remote / Online']) ? 'selected' : '' }}>Online</option>
-                                        <option value="Piket" {{ $selectedTipeModal == 'Piket' ? 'selected' : '' }}>Piket</option>
-                                        <option value="TRAINING / Retraining ONLINE" {{ $selectedTipeModal == 'TRAINING / Retraining ONLINE' ? 'selected' : '' }}>TRAINING / Retraining ONLINE</option>
-                                        <option value="Training 4 Traner" {{ in_array($selectedTipeModal, ['Training 4 Traner', 'Training 4 Trainer']) ? 'selected' : '' }}>Training 4 Traner</option>
-                                    @endif
                                 </select>
-                                <i class="fa-solid fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-[10px] pointer-events-none"></i>
+                                <i class="fa-solid fa-chevron-down absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-[10px] pointer-events-none"></i>
                             </div>
-                        </div>
-
-                        <div>
-                            <label class="flex items-center gap-1.5 text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
-                                <i class="fa-regular fa-calendar-check text-blue-500 dark:text-blue-400 text-xs"></i>
-                                <span>Due Date <span class="text-rose-500">*</span></span>
-                            </label>
-                            <input type="date" name="due_date" value="{{ $datarq->end_date ? \Carbon\Carbon::parse($datarq->end_date)->format('Y-m-d') : \Carbon\Carbon::now()->addDays(2)->format('Y-m-d') }}" min="{{ date('Y-m-d') }}" required class="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 p-3 outline-none font-semibold shadow-sm cursor-pointer">
-                        </div>
-                    </div>
-
-                    <!-- Advisor (Opsional) -->
-                    <div>
-                        <div class="flex items-center justify-between mb-1.5">
-                            <label class="flex items-center gap-1.5 text-xs font-bold text-slate-700 dark:text-slate-300">
-                                <i class="fa-solid fa-headset text-blue-500 dark:text-blue-400 text-xs"></i>
-                                <span>Advisor Tiket</span>
-                            </label>
-                            <span class="text-[10px] font-semibold text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-md">Opsional</span>
-                        </div>
-
-                        <!-- Filter Departemen Advisor Pills -->
-                        <div id="advisorDeptFilter" class="flex items-center gap-1.5 mb-2 overflow-x-auto pb-1 scrollbar-none">
-                            <button type="button" data-dept="all" class="dept-pill-btn px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all border bg-blue-600 text-white border-blue-600 shadow-xs cursor-pointer flex items-center gap-1.5 shrink-0">
-                                <span>Semua</span>
-                                <span class="dept-count-badge px-1.5 py-0.2 rounded-full text-[9px] bg-white/20 text-white font-extrabold">{{ $countTotal }}</span>
-                            </button>
-                            <button type="button" data-dept="PRODUKSI" class="dept-pill-btn px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all border bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700 cursor-pointer flex items-center gap-1.5 shrink-0">
-                                <span>⚙️ Produksi</span>
-                                <span class="dept-count-badge px-1.5 py-0.2 rounded-full text-[9px] bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 font-extrabold">{{ $countProduksi }}</span>
-                            </button>
-                            <button type="button" data-dept="OPERASIONAL" class="dept-pill-btn px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all border bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700 cursor-pointer flex items-center gap-1.5 shrink-0">
-                                <span>🏢 Operasional</span>
-                                <span class="dept-count-badge px-1.5 py-0.2 rounded-full text-[9px] bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 font-extrabold">{{ $countOperasional }}</span>
-                            </button>
-                            @if($countLainnya > 0)
-                            <button type="button" data-dept="LAINNYA" class="dept-pill-btn px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all border bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700 cursor-pointer flex items-center gap-1.5 shrink-0">
-                                <span>🌐 Lainnya</span>
-                                <span class="dept-count-badge px-1.5 py-0.2 rounded-full text-[9px] bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 font-extrabold">{{ $countLainnya }}</span>
-                            </button>
-                            @endif
-                        </div>
-
-                        <div class="relative">
-                            <select name="advisor_id" id="advisorUserSelect" class="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 p-3 pl-4 pr-10 outline-none font-bold appearance-none shadow-sm cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
-                                <option value="">-- Tanpa Advisor (Opsional) --</option>
-                                @foreach($groupedUsers as $groupLabel => $usersInGroup)
-                                    @php
-                                        $parts = explode(' — ', $groupLabel);
-                                        $dName = $parts[0];
-                                        $tName = $parts[1] ?? 'UMUM';
-                                        $dIcon = $getDeptIcon($dName);
-                                        $tIcon = $getTagIcon($tName);
-                                        $prettyLabel = "{$dIcon} {$dName} ❯ {$tIcon} {$tName}";
-                                    @endphp
-                                    <optgroup label="{{ $prettyLabel }}" data-dept="{{ $dName }}" class="font-extrabold text-slate-900 dark:text-slate-100 bg-slate-100 dark:bg-slate-800">
-                                        @foreach($usersInGroup as $u)
-                                            <option value="{{ $u->id }}" class="font-medium text-slate-800 dark:text-slate-100 bg-white dark:bg-slate-900">
-                                                {{ $u->name }} ({{ ucfirst($u->usertype) }}){{ $u->id == Auth::id() ? ' ⭐ Anda' : '' }}
-                                            </option>
-                                        @endforeach
-                                    </optgroup>
-                                @endforeach
-                            </select>
-                            <i class="fa-solid fa-chevron-down absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-[10px] pointer-events-none"></i>
                         </div>
                     </div>
                 </div>
 
-                <!-- Modal Action Buttons -->
-                <div class="grid grid-cols-2 gap-3">
-                    <button type="button" class="py-3 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold text-xs rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-800 dark:hover:text-slate-100 transition-all shadow-sm cursor-pointer" onclick="document.getElementById('convertToTicketModal').close()">
+                <!-- Modal Action Buttons Footer -->
+                <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
+                    <button type="button" class="px-5 py-2.5 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold text-xs rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-800 dark:hover:text-slate-100 transition-all shadow-sm cursor-pointer" onclick="document.getElementById('convertToTicketModal').close()">
                         Batal
                     </button>
-                    <button type="submit" class="py-3 bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs rounded-xl transition-all shadow-sm shadow-amber-500/30 flex items-center justify-center gap-2 cursor-pointer active:scale-95">
+                    <button type="submit" class="px-5 py-2.5 bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs rounded-xl transition-all shadow-sm shadow-amber-500/30 flex items-center justify-center gap-2 cursor-pointer active:scale-95">
                         <i class="fa-solid fa-ticket"></i> Ya, Alihkan ke Tiket
                     </button>
                 </div>
