@@ -66,6 +66,7 @@ class PublicTrackingController extends Controller
             ->with([
                 'user.departemen',
                 'approver.departemen',
+                'tester.departemen',
                 'tag',
                 'status',
                 'outlet',
@@ -96,5 +97,32 @@ class PublicTrackingController extends Controller
                       . "Terima kasih. 🙏";
 
         return view('tracking.request', compact('requestData', 'dataimg', 'reqlogs', 'dataus', 'komentar', 'chatTemplate', 'trackingUrl'));
+    }
+    /**
+     * Endpoint API status real-time untuk halaman pemantauan request
+     */
+    public function liveRequestStatus($identifier)
+    {
+        $cleanId = preg_replace('/[^0-9]/', '', $identifier);
+
+        $requestData = RequestModel::where('id', $cleanId ?: $identifier)
+            ->with(['status', 'tester'])
+            ->first();
+
+        if (!$requestData) {
+            return response()->json(['success' => false, 'message' => 'Request not found'], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'id' => $requestData->id,
+            'status_id' => (int) $requestData->status_id,
+            'status_name' => $requestData->status ? $requestData->status->name : ($requestData->status_id == 4 ? 'Closed' : ($requestData->status_id == 3 ? 'Progress' : 'Open')),
+            'testing_status' => $requestData->testing_status,
+            'testing_note' => $requestData->testing_note,
+            'tested_by' => $requestData->tester ? $requestData->tester->name : null,
+            'updated_at' => (string) $requestData->updated_at,
+            'updated_timestamp' => $requestData->updated_at ? $requestData->updated_at->timestamp : 0,
+        ]);
     }
 }

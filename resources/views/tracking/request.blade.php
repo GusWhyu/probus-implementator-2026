@@ -13,8 +13,29 @@
     $isRejected = ($requestData->approval_status === 'rejected');
     $statusName = $requestData->status ? $requestData->status->name : ($isClosed ? 'Closed' : ($isProgress ? 'Progress' : 'Open'));
 
+    $testingStatus = $requestData->testing_status;
+    $isTrainerTesting = ($testingStatus === 'trainer_testing');
+    $isTestingPassed = ($testingStatus === 'testing_passed');
+    $hasBugs = ($testingStatus === 'has_bugs');
+
     // Progress stepper calculation
-    $progressPercent = $isClosed ? 100 : ($isProgress ? 70 : ($isApproved ? 40 : 15));
+    if ($isClosed) {
+        if ($isTrainerTesting) {
+            $progressPercent = 88; // Sedang diuji sebelum serah terima final
+        } else {
+            $progressPercent = 100;
+        }
+    } else {
+        if ($hasBugs) {
+            $progressPercent = 65; // Dibuka kembali untuk perbaikan bug
+        } elseif ($isProgress) {
+            $progressPercent = 70;
+        } elseif ($isApproved) {
+            $progressPercent = 40;
+        } else {
+            $progressPercent = 15;
+        }
+    }
 @endphp
 
 <div class="space-y-4 sm:space-y-6">
@@ -79,9 +100,21 @@
                     </div>
                 </div>
 
-                <!-- Sisi Kanan: Hanya Status Request (Closed / Progress / Open) Sejajar seperti di Pantau Tiket -->
-                <div class="shrink-0 self-center">
-                    @if ($isClosed)
+                <!-- Sisi Kanan: Status Request & Status Pengujian -->
+                <div class="shrink-0 self-center flex items-center gap-2">
+                    @if ($isTrainerTesting)
+                        <span class="inline-flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl text-[11px] sm:text-xs font-black text-violet-600 dark:text-violet-400 bg-violet-50 dark:bg-violet-950/70 border border-violet-200/90 dark:border-violet-800/80 shadow-2xs">
+                            <i class="fa-solid fa-flask-vial text-[10px] sm:text-[11px] animate-pulse"></i> Sedang Diuji
+                        </span>
+                    @elseif ($isTestingPassed)
+                        <span class="inline-flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl text-[11px] sm:text-xs font-black text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/70 border border-emerald-200/90 dark:border-emerald-800/80 shadow-2xs">
+                            <i class="fa-solid fa-circle-check text-[10px] sm:text-[11px]"></i> Terverifikasi OK
+                        </span>
+                    @elseif ($hasBugs)
+                        <span class="inline-flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl text-[11px] sm:text-xs font-black text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/70 border border-rose-200/90 dark:border-rose-800/80 shadow-2xs">
+                            <i class="fa-solid fa-triangle-exclamation text-[10px] sm:text-[11px]"></i> Perlu Perbaikan
+                        </span>
+                    @elseif ($isClosed)
                         <span class="inline-flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl text-[11px] sm:text-xs font-black text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/70 border border-emerald-200/90 dark:border-emerald-800/80 shadow-2xs">
                             <i class="fa-solid fa-circle-check text-[10px] sm:text-[11px]"></i> Selesai
                         </span>
@@ -149,7 +182,22 @@
             <div>
                 <h2 class="text-[11px] sm:text-xs font-extrabold uppercase tracking-widest text-slate-400 dark:text-slate-500">Status Pengerjaan Sistem</h2>
                 <div class="flex items-center gap-2 mt-1 flex-wrap">
-                    @if ($isClosed)
+                    @if ($isTrainerTesting)
+                        <span class="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-black bg-violet-50 dark:bg-violet-950/60 text-violet-600 dark:text-violet-400 border border-violet-200 dark:border-violet-800">
+                            <span class="w-2 h-2 rounded-full bg-violet-500 animate-ping"></span>
+                            <span>TAHAP PENGUJIAN (TRAINER TESTING)</span>
+                        </span>
+                    @elseif ($isTestingPassed)
+                        <span class="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-black bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
+                            <i class="fa-solid fa-circle-check"></i>
+                            <span>PENGUJIAN SELESAI (TESTING PASSED)</span>
+                        </span>
+                    @elseif ($hasBugs)
+                        <span class="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-black bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-800">
+                            <i class="fa-solid fa-triangle-exclamation"></i>
+                            <span>RE-OPEN (PERLU PERBAIKAN BUGS)</span>
+                        </span>
+                    @elseif ($isClosed)
                         <span class="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-black bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
                             <i class="fa-solid fa-circle-check"></i> CLOSED / SELESAI
                         </span>
@@ -216,24 +264,27 @@
 
                 <!-- Step 3: Progress -->
                 <div class="flex flex-col items-center text-center max-w-[75px] sm:max-w-none">
-                    <div class="w-9 h-9 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl flex items-center justify-center font-bold text-xs sm:text-sm shadow-md transition-all {{ $isProgress ? ($isClosed ? 'bg-indigo-600 text-white ring-4 ring-indigo-100 dark:ring-indigo-950/60' : 'bg-amber-500 text-white ring-4 ring-amber-100 dark:ring-amber-950/60') : 'bg-slate-200 dark:bg-slate-800 text-slate-400' }}">
-                        <i class="fa-solid {{ $isClosed ? 'fa-check' : ($statusId === 3 ? 'fa-gears' : 'fa-code') }}"></i>
+                    <div class="w-9 h-9 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl flex items-center justify-center font-bold text-xs sm:text-sm shadow-md transition-all {{ $hasBugs ? 'bg-rose-500 text-white ring-4 ring-rose-100 dark:ring-rose-950/60' : ($isProgress ? ($isClosed ? 'bg-indigo-600 text-white ring-4 ring-indigo-100 dark:ring-indigo-950/60' : 'bg-amber-500 text-white ring-4 ring-amber-100 dark:ring-amber-950/60') : 'bg-slate-200 dark:bg-slate-800 text-slate-400') }}">
+                        <i class="fa-solid {{ $hasBugs ? 'fa-bug' : ($isClosed ? 'fa-check' : ($statusId === 3 ? 'fa-gears' : 'fa-code')) }}"></i>
                     </div>
                     <span class="text-[10px] sm:text-xs font-bold text-slate-800 dark:text-slate-200 mt-2 sm:mt-2.5">3. Pengerjaan</span>
-                    <span class="text-[8.5px] sm:text-[10px] text-slate-400 mt-0.5">
-                        {{ $isProgress ? 'Aktif' : 'Antrean' }}
+                    <span class="text-[8.5px] sm:text-[10px] {{ $hasBugs ? 'text-rose-600 dark:text-rose-400 font-bold' : 'text-slate-400' }} mt-0.5">
+                        {{ $hasBugs ? 'Perbaikan' : ($isProgress ? 'Aktif' : 'Antrean') }}
                     </span>
                 </div>
 
-                <!-- Step 4: Selesai -->
+                <!-- Step 4: Selesai / Pengujian -->
                 <div class="flex flex-col items-center text-center max-w-[75px] sm:max-w-none">
-                    <div class="w-9 h-9 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl flex items-center justify-center font-bold text-xs sm:text-sm shadow-md transition-all {{ $isClosed ? 'bg-emerald-600 text-white ring-4 ring-emerald-100 dark:ring-emerald-950/60' : 'bg-slate-200 dark:bg-slate-800 text-slate-400' }}">
-                        <i class="fa-solid {{ $isClosed ? 'fa-circle-check' : 'fa-flag-checkered text-slate-400' }}"></i>
+                    <div class="w-9 h-9 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl flex items-center justify-center font-bold text-xs sm:text-sm shadow-md transition-all {{ $isTrainerTesting ? 'bg-violet-600 text-white ring-4 ring-violet-100 dark:ring-violet-950/60' : ($isClosed ? 'bg-emerald-600 text-white ring-4 ring-emerald-100 dark:ring-emerald-950/60' : 'bg-slate-200 dark:bg-slate-800 text-slate-400') }}">
+                        <i class="fa-solid {{ $isTrainerTesting ? 'fa-flask-vial animate-pulse' : ($isClosed ? 'fa-circle-check' : 'fa-flag-checkered text-slate-400') }}"></i>
                     </div>
-                    <span class="text-[10px] sm:text-xs font-bold text-slate-800 dark:text-slate-200 mt-2 sm:mt-2.5">4. Selesai</span>
-                    <span class="text-[8.5px] sm:text-[10px] text-slate-400 mt-0.5">
-                        {{ $isClosed ? 'Rilis' : 'Estimasi' }}
+                    <span class="text-[10px] sm:text-xs font-bold text-slate-800 dark:text-slate-200 mt-2 sm:mt-2.5">
+                        {{ $isTrainerTesting ? '4. Pengujian' : '4. Selesai' }}
                     </span>
+                    <span class="text-[8.5px] sm:text-[10px] {{ $isTrainerTesting ? 'text-violet-600 dark:text-violet-400 font-bold' : ($isTestingPassed ? 'text-emerald-600 dark:text-emerald-400 font-bold' : 'text-slate-400') }} mt-0.5">
+                        {{ $isTrainerTesting ? 'Sedang Diuji' : ($isTestingPassed ? 'Terverifikasi' : ($isClosed ? 'Rilis' : 'Estimasi')) }}
+                    </span>
+                </div>
                 </div>
             </div>
         </div>
@@ -290,6 +341,89 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Testing Status Banner (Trainer Testing / Testing Passed / Bugs Found) -->
+            @if ($testingStatus)
+                @if ($isTrainerTesting)
+                <div class="bg-violet-50/90 dark:bg-violet-950/40 rounded-2xl sm:rounded-3xl p-4 sm:p-6 border border-violet-200/90 dark:border-violet-800/80 shadow-xs flex items-start gap-3.5 sm:gap-4">
+                    <div class="w-10 h-10 rounded-2xl bg-violet-600 text-white flex items-center justify-center shrink-0 shadow-md shadow-violet-500/20 text-lg">
+                        <i class="fa-solid fa-flask-vial"></i>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center justify-between gap-2 flex-wrap">
+                            <h3 class="text-sm font-extrabold text-violet-900 dark:text-violet-200">Sistem Sedang Dalam Pengujian (Trainer Testing)</h3>
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-violet-100 dark:bg-violet-900/60 text-violet-700 dark:text-violet-300">
+                                <span class="w-1.5 h-1.5 rounded-full bg-violet-500 animate-ping"></span>
+                                Testing In Progress
+                            </span>
+                        </div>
+                        <p class="text-xs text-violet-700 dark:text-violet-300 mt-1 leading-relaxed">
+                            Pengerjaan sistem telah selesai oleh programmer dan saat ini sedang dalam proses verifikasi & pengujian oleh
+                            <strong>{{ $requestData->tester->name ?? 'Tim Trainer' }}</strong> (Departemen Operasional)
+                            @if ($requestData->tested_at)
+                                pada {{ \Carbon\Carbon::parse($requestData->tested_at)->translatedFormat('d F Y, H:i') }} ({{ \Carbon\Carbon::parse($requestData->tested_at)->diffForHumans() }})
+                            @endif.
+                        </p>
+                        @if ($requestData->testing_note)
+                        <div class="mt-3 bg-white/80 dark:bg-slate-900/80 p-3 rounded-xl border border-violet-100 dark:border-violet-900/60 text-xs text-violet-900 dark:text-violet-200">
+                            <span class="font-bold text-violet-950 dark:text-violet-100 block mb-0.5">Catatan Pengujian:</span>
+                            {{ $requestData->testing_note }}
+                        </div>
+                        @endif
+                    </div>
+                </div>
+                @elseif ($isTestingPassed)
+                <div class="bg-emerald-50/90 dark:bg-emerald-950/40 rounded-2xl sm:rounded-3xl p-4 sm:p-6 border border-emerald-200/90 dark:border-emerald-800/80 shadow-xs flex items-start gap-3.5 sm:gap-4">
+                    <div class="w-10 h-10 rounded-2xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-md shadow-emerald-500/20 text-lg">
+                        <i class="fa-solid fa-circle-check"></i>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center justify-between gap-2 flex-wrap">
+                            <h3 class="text-sm font-extrabold text-emerald-900 dark:text-emerald-200">Pengujian Selesai & Terverifikasi (Testing Passed)</h3>
+                            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 dark:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300">
+                                <i class="fa-solid fa-check-double text-[9px]"></i> Verified OK
+                            </span>
+                        </div>
+                        <p class="text-xs text-emerald-700 dark:text-emerald-300 mt-1 leading-relaxed">
+                            Fungsi sistem telah selesai diuji dan tervalidasi berjalan dengan normal oleh
+                            <strong>{{ $requestData->tester->name ?? 'Tim Trainer' }}</strong> (Departemen Operasional)
+                            @if ($requestData->tested_at)
+                                pada {{ \Carbon\Carbon::parse($requestData->tested_at)->translatedFormat('d F Y, H:i') }}
+                            @endif.
+                        </p>
+                        @if ($requestData->testing_note)
+                        <div class="mt-3 bg-white/80 dark:bg-slate-900/80 p-3 rounded-xl border border-emerald-100 dark:border-emerald-900/60 text-xs text-emerald-900 dark:text-emerald-200">
+                            <span class="font-bold text-emerald-950 dark:text-emerald-100 block mb-0.5">Catatan Hasil Pengujian:</span>
+                            {{ $requestData->testing_note }}
+                        </div>
+                        @endif
+                    </div>
+                </div>
+                @elseif ($hasBugs)
+                <div class="bg-rose-50/90 dark:bg-rose-950/40 rounded-2xl sm:rounded-3xl p-4 sm:p-6 border border-rose-200/90 dark:border-rose-800/80 shadow-xs flex items-start gap-3.5 sm:gap-4">
+                    <div class="w-10 h-10 rounded-2xl bg-rose-600 text-white flex items-center justify-center shrink-0 shadow-md shadow-rose-500/20 text-lg">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center justify-between gap-2 flex-wrap">
+                            <h3 class="text-sm font-extrabold text-rose-900 dark:text-rose-200">Request Dibuka Kembali (Masih Ada Bugs)</h3>
+                            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 dark:bg-rose-900/60 text-rose-700 dark:text-rose-300">
+                                Re-open
+                            </span>
+                        </div>
+                        <p class="text-xs text-rose-700 dark:text-rose-300 mt-1 leading-relaxed">
+                            Pada tahap verifikasi trainer ditemukan kendala/bugs sehingga status dikembalikan ke tahap perbaikan oleh programmer.
+                        </p>
+                        @if ($requestData->testing_note)
+                        <div class="mt-3 bg-white/80 dark:bg-slate-900/80 p-3 rounded-xl border border-rose-100 dark:border-rose-900/60 text-xs text-rose-900 dark:text-rose-200">
+                            <span class="font-bold text-rose-950 dark:text-rose-100 block mb-0.5">Rincian Temuan Bugs:</span>
+                            {{ $requestData->testing_note }}
+                        </div>
+                        @endif
+                    </div>
+                </div>
+                @endif
+            @endif
 
             <!-- Approval Banner -->
             @if ($isApproved)
@@ -392,6 +526,33 @@
                         </span>
                     </div>
 
+                    @if ($testingStatus)
+                    <!-- Status Pengujian Trainer -->
+                    <div class="pt-2 border-t border-slate-100 dark:border-slate-800">
+                        <span class="text-slate-400 font-semibold block text-[10px] uppercase tracking-wider">Status Pengujian (Trainer)</span>
+                        <div class="mt-1">
+                            @if ($isTrainerTesting)
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-bold bg-violet-50 dark:bg-violet-950/60 text-violet-700 dark:text-violet-300 border border-violet-200 dark:border-violet-800/80">
+                                    <i class="fa-solid fa-flask-vial text-[10px]"></i> Trainer Testing
+                                </span>
+                            @elseif ($isTestingPassed)
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-bold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/80">
+                                    <i class="fa-solid fa-circle-check text-[10px]"></i> Selesai Testing (OK)
+                                </span>
+                            @else
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-bold bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800/80">
+                                    <i class="fa-solid fa-bug text-[10px]"></i> Ada Bugs (Re-open)
+                                </span>
+                            @endif
+                            @if ($requestData->tester)
+                                <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
+                                    Oleh: <strong>{{ $requestData->tester->name }}</strong>
+                                </p>
+                            @endif
+                        </div>
+                    </div>
+                    @endif
+
                     <!-- Timestamps -->
                     <div class="pt-3 border-t border-slate-100 dark:border-slate-800 space-y-2.5">
                         <div class="flex items-center justify-between text-[11px]">
@@ -426,5 +587,59 @@
 
     </div>
 
+    <!-- Real-time Live Sync Indicator Pill -->
+    <div id="realtime-status-pill" class="fixed bottom-4 left-4 z-40 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border border-slate-200/90 dark:border-slate-800 px-3 py-1.5 rounded-full shadow-lg flex items-center gap-2 text-xs font-bold text-slate-600 dark:text-slate-300 transition-all">
+        <span class="relative flex h-2 w-2">
+            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+            <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+        </span>
+        <span class="text-[11px]">Live Sync Aktif</span>
+    </div>
+
 </div>
+
+<!-- Realtime Polling Script -->
+<script>
+    (function() {
+        const liveUrl = "{{ route('public.track.request.live', $requestData->id) }}";
+        let currentStatusId = {{ (int) $requestData->status_id }};
+        let currentTestingStatus = "{{ $requestData->testing_status ?? '' }}";
+        let currentTimestamp = {{ $requestData->updated_at ? $requestData->updated_at->timestamp : 0 }};
+        let isReloading = false;
+
+        async function checkRealtimeUpdate() {
+            if (isReloading) return;
+            try {
+                const response = await fetch(liveUrl, {
+                    headers: { 'Accept': 'application/json' },
+                    cache: 'no-store'
+                });
+                if (!response.ok) return;
+
+                const data = await response.json();
+                if (!data.success) return;
+
+                // Cek apakah terjadi perubahan status pengerjaan atau status pengujian
+                const statusChanged = data.status_id !== currentStatusId;
+                const testingChanged = (data.testing_status || '') !== currentTestingStatus;
+                const timeChanged = data.updated_timestamp > currentTimestamp;
+
+                if (statusChanged || testingChanged || timeChanged) {
+                    isReloading = true;
+                    if (typeof showToast === 'function') {
+                        showToast('Status request diperbarui. Memuat pembaruan...');
+                    }
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 800);
+                }
+            } catch (err) {
+                // Silently ignore temporary network drops
+            }
+        }
+
+        // Cek update otomatis setiap 7 detik
+        setInterval(checkRealtimeUpdate, 7000);
+    })();
+</script>
 @endsection
