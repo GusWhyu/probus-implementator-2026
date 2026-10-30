@@ -280,9 +280,15 @@
                                 <div class="flex flex-col items-end gap-1.5 shrink-0">
                                     <span class="bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider border border-amber-100 dark:border-amber-800/40">{{ $rq->status }}</span>
                                     @if($rq->is_waiting_confirmation)
-                                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wider bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 border border-amber-300/80 dark:border-amber-700/60 shadow-2xs whitespace-nowrap">
-                                        <i class="fa-solid fa-hourglass-half text-[8px] text-amber-500"></i> MENUNGGU KLIEN
-                                    </span>
+                                        @if($rq->waiting_type === 'trainer')
+                                        <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wider bg-purple-50 dark:bg-purple-950/50 text-purple-700 dark:text-purple-300 border border-purple-300/80 dark:border-purple-700/60 shadow-2xs whitespace-nowrap">
+                                            <i class="fa-solid fa-graduation-cap text-[8px] text-purple-500"></i> TRAINER TESTING
+                                        </span>
+                                        @else
+                                        <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wider bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 border border-amber-300/80 dark:border-amber-700/60 shadow-2xs whitespace-nowrap">
+                                            <i class="fa-solid fa-hourglass-half text-[8px] text-amber-500"></i> MENUNGGU KLIEN
+                                        </span>
+                                        @endif
                                     @endif
                                 </div>
                             </div>

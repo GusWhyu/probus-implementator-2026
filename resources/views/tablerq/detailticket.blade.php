@@ -114,12 +114,51 @@
             </div>
             @endif
 
-            <!-- Banner Menunggu Konfirmasi Klien (Bisa Dihapus) -->
+            <!-- Banner Menunggu Konfirmasi Klien / Trainer Testing (Bisa Dihapus) -->
             @if ($datarq->is_waiting_confirmation)
             @php
                 $waitingLog = $datarq->waiting_confirmation_log;
                 $waitingNote = $waitingLog ? $waitingLog->description : null;
+                $isTrainerWaiting = $datarq->waiting_type === 'trainer';
             @endphp
+            @if ($isTrainerWaiting)
+            <div class="bg-purple-50/90 dark:bg-purple-950/40 border border-purple-300/80 dark:border-purple-800/60 rounded-2xl p-4 sm:p-4.5 mb-6 shadow-xs flex items-center justify-between gap-4">
+                <div class="flex items-center gap-3.5 min-w-0">
+                    <div class="w-10 h-10 rounded-xl bg-purple-100 dark:bg-purple-900/50 text-purple-600 dark:text-purple-400 flex items-center justify-center shrink-0 border border-purple-200 dark:border-purple-800/60 shadow-2xs">
+                        <i class="fa-solid fa-graduation-cap text-base"></i>
+                    </div>
+                    <div class="min-w-0">
+                        <div class="flex items-center gap-2">
+                            <h4 class="font-extrabold text-purple-950 dark:text-purple-100 text-xs sm:text-sm">
+                                Menunggu Trainer Testing
+                            </h4>
+                            <span class="text-[10px] text-purple-700/80 dark:text-purple-400 font-bold px-2 py-0.5 rounded-md bg-purple-100/70 dark:bg-purple-900/40 border border-purple-200 dark:border-purple-800/60">
+                                Pengujian Internal
+                            </span>
+                        </div>
+                        <p class="text-xs text-purple-900/90 dark:text-purple-200/90 mt-0.5 leading-relaxed">
+                            @if ($waitingNote)
+                                <span class="font-bold text-purple-950 dark:text-purple-100">Catatan:</span> {{ $waitingNote }}
+                            @else
+                                Pengerjaan kendala telah selesai. Sedang menunggu pengujian dan validasi fungsi oleh pihak Trainer.
+                            @endif
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Tombol Hapus status menunggu trainer -->
+                <div class="flex items-center gap-2 shrink-0">
+                    <form id="form-delete-waiting-confirmation" action="{{ route('ticket.resume_progress', $datarq->id) }}" method="POST">
+                        @csrf
+                        <input type="hidden" name="resume_notes" value="Menunggu trainer testing dihapus.">
+                        <button type="button" onclick="confirmDeleteWaitingConfirmation()" class="px-3 py-2 bg-white dark:bg-slate-800 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-slate-600 hover:text-rose-600 dark:text-slate-300 dark:hover:text-rose-400 rounded-xl text-xs font-bold transition-all border border-slate-200 dark:border-slate-700 hover:border-rose-300 dark:hover:border-rose-800 flex items-center gap-1.5 shadow-2xs cursor-pointer" title="Hapus status menunggu trainer testing">
+                            <i class="fa-solid fa-trash-can text-xs text-rose-500"></i>
+                            <span class="hidden sm:inline">Hapus</span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+            @else
             <div class="bg-amber-50/90 dark:bg-amber-950/40 border border-amber-300/80 dark:border-amber-800/60 rounded-2xl p-4 sm:p-4.5 mb-6 shadow-xs flex items-center justify-between gap-4">
                 <div class="flex items-center gap-3.5 min-w-0">
                     <div class="w-10 h-10 rounded-xl bg-amber-100 dark:bg-amber-900/50 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0 border border-amber-200 dark:border-amber-800/60 shadow-2xs">
@@ -156,6 +195,7 @@
                     </form>
                 </div>
             </div>
+            @endif
             @endif
 
             <!-- Takeover Notification Banners -->
@@ -710,9 +750,15 @@
                                     </button>
                                 </div>
                                 @if ($datarq->is_waiting_confirmation)
-                                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 border border-amber-300/80 dark:border-amber-700/60 shadow-2xs whitespace-nowrap">
-                                    <i class="fa-solid fa-hourglass-half text-[9px]"></i> MENUNGGU KLIEN
-                                </span>
+                                    @if ($datarq->waiting_type === 'trainer')
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-purple-50 dark:bg-purple-950/50 text-purple-700 dark:text-purple-300 border border-purple-300/80 dark:border-purple-700/60 shadow-2xs whitespace-nowrap">
+                                        <i class="fa-solid fa-graduation-cap text-[9px]"></i> TRAINER TESTING
+                                    </span>
+                                    @else
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 border border-amber-300/80 dark:border-amber-700/60 shadow-2xs whitespace-nowrap">
+                                        <i class="fa-solid fa-hourglass-half text-[9px]"></i> MENUNGGU KLIEN
+                                    </span>
+                                    @endif
                                 @endif
                             </div>
                         </div>
@@ -834,14 +880,17 @@
                                         </a>
                                     @else
                                         @if ($datarq->is_waiting_confirmation)
-                                            {{-- Tiket sedang menunggu konfirmasi klien --}}
+                                            {{-- Tiket sedang menunggu konfirmasi klien atau trainer testing --}}
+                                            @php
+                                                $waitingDoneText = $datarq->waiting_type === 'trainer' ? 'Trainer Sudah OK (Selesaikan)' : 'Klien Sudah OK (Selesaikan)';
+                                            @endphp
                                             @if(is_null($datarq->advisor_id))
                                                 <button type="button" onclick="document.getElementById('forceAdvisorModal').showModal()" class="w-full flex items-center justify-center bg-emerald-600 hover:bg-emerald-700 text-white py-3.5 rounded-xl font-bold text-sm shadow-md shadow-emerald-500/25 transition-all active:scale-95 gap-2 cursor-pointer">
-                                                    <i class="fa-solid fa-circle-check text-emerald-200"></i> Klien Sudah OK (Selesaikan)
+                                                    <i class="fa-solid fa-circle-check text-emerald-200"></i> {{ $waitingDoneText }}
                                                 </button>
                                             @else
                                                 <button type="button" onclick="document.getElementById('confirmCloseModal').showModal()" class="w-full flex items-center justify-center bg-emerald-600 hover:bg-emerald-700 text-white py-3.5 rounded-xl font-bold text-sm shadow-md shadow-emerald-500/25 transition-all active:scale-95 gap-2 cursor-pointer">
-                                                    <i class="fa-solid fa-circle-check text-emerald-200"></i> Klien Sudah OK (Selesaikan)
+                                                    <i class="fa-solid fa-circle-check text-emerald-200"></i> {{ $waitingDoneText }}
                                                 </button>
                                             @endif
 
@@ -857,8 +906,8 @@
                                                 </button>
                                             @endif
 
-                                            <button type="button" onclick="document.getElementById('waitingConfirmationModal').showModal()" class="w-full flex items-center justify-center bg-amber-500 hover:bg-amber-600 text-white py-3 rounded-xl font-bold text-xs shadow-sm shadow-amber-500/20 transition-all active:scale-95 gap-2 cursor-pointer">
-                                                <i class="fa-solid fa-hourglass-half text-amber-200"></i> Menunggu Konfirmasi Klien
+                                            <button type="button" onclick="document.getElementById('waitingConfirmationModal').showModal()" class="w-full flex items-center justify-center bg-amber-500 hover:bg-amber-600 text-white py-3 rounded-xl font-bold text-xs shadow-sm shadow-amber-500/20 transition-all active:scale-95 gap-2 cursor-pointer" title="Tandai tiket menunggu konfirmasi klien atau trainer testing">
+                                                <i class="fa-solid fa-hourglass-half text-amber-200"></i> Tandai Menunggu (Waiting)
                                             </button>
                                         @endif
                                     @endif
@@ -1270,19 +1319,19 @@
         <form method="dialog" class="modal-backdrop bg-slate-900/60 backdrop-blur-sm"><button>close</button></form>
     </dialog>
 
-    {{-- Modal Minta Konfirmasi Klien --}}
+    {{-- Modal Minta Konfirmasi Klien / Trainer Testing --}}
     <dialog id="waitingConfirmationModal" class="modal">
         <div class="modal-box w-11/12 max-w-lg rounded-3xl p-6 md:p-8 bg-white dark:bg-[#1e293b] border border-slate-100 dark:border-slate-700 shadow-2xl relative">
             <form action="{{ route('ticket.waiting_confirmation', $datarq->id) }}" method="POST" onsubmit="const btn = this.querySelector('button[type=submit]'); btn.disabled = true; btn.innerHTML = '<i class=\'fa-solid fa-spinner fa-spin mr-1\'></i> Mengirim...';">
                 @csrf
                 <div class="flex justify-between items-start mb-5">
                     <div class="flex items-center gap-3">
-                        <div class="w-11 h-11 rounded-2xl bg-amber-50 dark:bg-amber-950/40 text-amber-500 dark:text-amber-400 flex items-center justify-center shrink-0 border border-amber-200 dark:border-amber-800/60 shadow-2xs">
-                            <i class="fa-solid fa-hourglass-half text-xl"></i>
+                        <div id="waitingModalIconBox" class="w-11 h-11 rounded-2xl bg-amber-50 dark:bg-amber-950/40 text-amber-500 dark:text-amber-400 flex items-center justify-center shrink-0 border border-amber-200 dark:border-amber-800/60 shadow-2xs transition-colors">
+                            <i id="waitingModalIcon" class="fa-solid fa-hourglass-half text-xl"></i>
                         </div>
                         <div>
-                            <h3 class="font-extrabold text-[17px] text-slate-800 dark:text-slate-100 mb-0.5">Menunggu Konfirmasi Klien</h3>
-                            <p class="text-[11px] text-slate-500 dark:text-slate-400 font-medium">Kirim notifikasi penyelesaian untuk diuji oleh klien</p>
+                            <h3 id="waitingModalTitle" class="font-extrabold text-[17px] text-slate-800 dark:text-slate-100 mb-0.5">Tandai Status Menunggu</h3>
+                            <p id="waitingModalSubtitle" class="text-[11px] text-slate-500 dark:text-slate-400 font-medium">Pilih pihak yang sedang ditunggu untuk pengujian</p>
                         </div>
                     </div>
                     <button type="button" class="w-8 h-8 rounded-xl bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-100 dark:border-slate-700 transition-colors cursor-pointer" onclick="document.getElementById('waitingConfirmationModal').close()">
@@ -1290,11 +1339,50 @@
                     </button>
                 </div>
 
-                <div class="mb-5 text-xs text-slate-600 dark:text-slate-300 leading-relaxed bg-amber-50/70 dark:bg-amber-950/30 border border-amber-200/70 dark:border-amber-800/50 rounded-2xl p-4 flex items-start gap-3">
-                    <i class="fa-solid fa-circle-info text-amber-500 mt-0.5 shrink-0 text-sm"></i>
+                <!-- Pilihan Tipe Waiting (Radio Cards) -->
+                <div class="mb-5">
+                    <label class="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-2 uppercase tracking-wider">
+                        Pilih Kategori Menunggu <span class="text-rose-500">*</span>
+                    </label>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <!-- Opsi 1: Menunggu Konfirmasi Klien -->
+                        <label class="waiting-type-card relative flex flex-col p-3.5 rounded-2xl border-2 cursor-pointer transition-all border-amber-500 bg-amber-50/40 dark:bg-amber-950/20" id="card-waiting-client">
+                            <input type="radio" name="waiting_type" value="client" checked class="hidden" onchange="onWaitingTypeChange(this.value)">
+                            <div class="flex items-center justify-between mb-1.5">
+                                <div class="w-7 h-7 rounded-lg bg-amber-100 dark:bg-amber-900/50 text-amber-600 dark:text-amber-400 flex items-center justify-center text-xs">
+                                    <i class="fa-solid fa-building-user"></i>
+                                </div>
+                                <div class="w-4 h-4 rounded-full border-2 border-amber-500 flex items-center justify-center radio-indicator">
+                                    <div class="w-2 h-2 rounded-full bg-amber-500"></div>
+                                </div>
+                            </div>
+                            <h4 class="font-bold text-xs text-slate-800 dark:text-slate-100 mb-0.5">Menunggu Klien</h4>
+                            <p class="text-[10px] text-slate-500 dark:text-slate-400 leading-snug">Menunggu pengujian & konfirmasi dari pihak outlet/klien.</p>
+                        </label>
+
+                        <!-- Opsi 2: Menunggu Trainer Testing -->
+                        <label class="waiting-type-card relative flex flex-col p-3.5 rounded-2xl border-2 cursor-pointer transition-all border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900/60 hover:border-purple-300" id="card-waiting-trainer">
+                            <input type="radio" name="waiting_type" value="trainer" class="hidden" onchange="onWaitingTypeChange(this.value)">
+                            <div class="flex items-center justify-between mb-1.5">
+                                <div class="w-7 h-7 rounded-lg bg-purple-100 dark:bg-purple-900/50 text-purple-600 dark:text-purple-400 flex items-center justify-center text-xs">
+                                    <i class="fa-solid fa-graduation-cap"></i>
+                                </div>
+                                <div class="w-4 h-4 rounded-full border-2 border-slate-300 dark:border-slate-600 flex items-center justify-center radio-indicator">
+                                    <div class="w-2 h-2 rounded-full bg-transparent"></div>
+                                </div>
+                            </div>
+                            <h4 class="font-bold text-xs text-slate-800 dark:text-slate-100 mb-0.5">Trainer Testing</h4>
+                            <p class="text-[10px] text-slate-500 dark:text-slate-400 leading-snug">Menunggu pengujian/validasi oleh tim Trainer internal.</p>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Info Box Dinamis -->
+                <div id="waitingInfoBox" class="mb-5 text-xs text-slate-600 dark:text-slate-300 leading-relaxed bg-amber-50/70 dark:bg-amber-950/30 border border-amber-200/70 dark:border-amber-800/50 rounded-2xl p-4 flex items-start gap-3 transition-colors">
+                    <i id="waitingInfoIcon" class="fa-solid fa-circle-info text-amber-500 mt-0.5 shrink-0 text-sm"></i>
                     <div>
-                        <p class="font-bold text-amber-900 dark:text-amber-200 mb-0.5">Penandaan Selesai Dikerjakan</p>
-                        <p>Tandai bahwa perbaikan teknis telah selesai dan sedang menunggu konfirmasi pengujian dari pihak <strong>{{ $datarq->client->nm_out ?? 'klien' }}</strong>. Informasi status ini akan ditampilkan di bagian atas tiket dan dapat dihapus kembali.</p>
+                        <p id="waitingInfoTitle" class="font-bold text-amber-900 dark:text-amber-200 mb-0.5">Penandaan Selesai Dikerjakan</p>
+                        <p id="waitingInfoDesc">Tandai bahwa perbaikan teknis telah selesai dan sedang menunggu konfirmasi pengujian dari pihak <strong>{{ $datarq->client->nm_out ?? 'klien' }}</strong>. Informasi status ini akan ditampilkan di bagian atas tiket dan dapat dihapus kembali.</p>
                     </div>
                 </div>
 
@@ -1302,12 +1390,12 @@
                     <label class="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1.5">
                         Catatan Tambahan (Opsional)
                     </label>
-                    <textarea name="message" rows="3" class="w-full bg-slate-50/50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs rounded-xl focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 p-3.5 outline-none font-medium leading-relaxed shadow-2xs transition-colors" placeholder="Tuliskan catatan perbaikan jika ada..."></textarea>
+                    <textarea name="message" id="waitingMessageInput" rows="3" class="w-full bg-slate-50/50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs rounded-xl focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 p-3.5 outline-none font-medium leading-relaxed shadow-2xs transition-colors" placeholder="Tuliskan catatan perbaikan atau instruksi pengujian jika ada..."></textarea>
                 </div>
 
                 <div class="grid grid-cols-2 gap-3">
                     <button type="button" class="py-3 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold text-xs rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-800 dark:hover:text-slate-100 transition-all shadow-sm cursor-pointer" onclick="document.getElementById('waitingConfirmationModal').close()">Batal</button>
-                    <button type="submit" class="py-3 bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs rounded-xl transition-all shadow-sm shadow-amber-500/30 flex items-center justify-center gap-1.5 cursor-pointer">
+                    <button type="submit" id="waitingSubmitBtn" class="py-3 bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs rounded-xl transition-all shadow-sm shadow-amber-500/30 flex items-center justify-center gap-1.5 cursor-pointer">
                         <i class="fa-solid fa-hourglass-half text-xs"></i> Tandai Menunggu Klien
                     </button>
                 </div>
@@ -1970,9 +2058,100 @@
             };
         }
 
+        function onWaitingTypeChange(type) {
+            const cardClient = document.getElementById('card-waiting-client');
+            const cardTrainer = document.getElementById('card-waiting-trainer');
+            const infoBox = document.getElementById('waitingInfoBox');
+            const infoIcon = document.getElementById('waitingInfoIcon');
+            const infoTitle = document.getElementById('waitingInfoTitle');
+            const infoDesc = document.getElementById('waitingInfoDesc');
+            const submitBtn = document.getElementById('waitingSubmitBtn');
+            const iconBox = document.getElementById('waitingModalIconBox');
+            const icon = document.getElementById('waitingModalIcon');
+            const inputMsg = document.getElementById('waitingMessageInput');
+
+            if (!cardClient || !cardTrainer) return;
+
+            const clientRadioDot = cardClient.querySelector('.radio-indicator div');
+            const trainerRadioDot = cardTrainer.querySelector('.radio-indicator div');
+            const clientRadioBorder = cardClient.querySelector('.radio-indicator');
+            const trainerRadioBorder = cardTrainer.querySelector('.radio-indicator');
+
+            const clientName = {!! json_encode($datarq->client->nm_out ?? 'klien') !!};
+
+            if (type === 'trainer') {
+                // Trainer selected
+                cardClient.className = 'waiting-type-card relative flex flex-col p-3.5 rounded-2xl border-2 cursor-pointer transition-all border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900/60 hover:border-purple-300';
+                cardTrainer.className = 'waiting-type-card relative flex flex-col p-3.5 rounded-2xl border-2 cursor-pointer transition-all border-purple-500 bg-purple-50/40 dark:bg-purple-950/20';
+
+                if (clientRadioDot) clientRadioDot.className = 'w-2 h-2 rounded-full bg-transparent';
+                if (clientRadioBorder) clientRadioBorder.className = 'w-4 h-4 rounded-full border-2 border-slate-300 dark:border-slate-600 flex items-center justify-center radio-indicator';
+                if (trainerRadioDot) trainerRadioDot.className = 'w-2 h-2 rounded-full bg-purple-500';
+                if (trainerRadioBorder) trainerRadioBorder.className = 'w-4 h-4 rounded-full border-2 border-purple-500 flex items-center justify-center radio-indicator';
+
+                if (iconBox) iconBox.className = 'w-11 h-11 rounded-2xl bg-purple-50 dark:bg-purple-950/40 text-purple-600 dark:text-purple-400 flex items-center justify-center shrink-0 border border-purple-200 dark:border-purple-800/60 shadow-2xs transition-colors';
+                if (icon) icon.className = 'fa-solid fa-graduation-cap text-xl';
+
+                if (infoBox) infoBox.className = 'mb-5 text-xs text-slate-600 dark:text-slate-300 leading-relaxed bg-purple-50/70 dark:bg-purple-950/30 border border-purple-200/70 dark:border-purple-800/50 rounded-2xl p-4 flex items-start gap-3 transition-colors';
+                if (infoIcon) infoIcon.className = 'fa-solid fa-circle-info text-purple-500 mt-0.5 shrink-0 text-sm';
+                if (infoTitle) {
+                    infoTitle.className = 'font-bold text-purple-900 dark:text-purple-200 mb-0.5';
+                    infoTitle.innerText = 'Pengujian oleh Tim Trainer';
+                }
+                if (infoDesc) {
+                    infoDesc.innerHTML = 'Tandai bahwa perbaikan teknis telah selesai dan sedang menunggu pengujian validasi fungsional oleh pihak <strong>Trainer Internal</strong> sebelum disampaikan/dikonfirmasi ke klien.';
+                }
+
+                if (submitBtn) {
+                    submitBtn.className = 'py-3 bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs rounded-xl transition-all shadow-sm shadow-purple-500/30 flex items-center justify-center gap-1.5 cursor-pointer';
+                    submitBtn.innerHTML = '<i class="fa-solid fa-graduation-cap text-xs"></i> Tandai Trainer Testing';
+                }
+
+                if (inputMsg) {
+                    inputMsg.className = 'w-full bg-slate-50/50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs rounded-xl focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 p-3.5 outline-none font-medium leading-relaxed shadow-2xs transition-colors';
+                    inputMsg.placeholder = 'Tuliskan catatan atau instruksi pengujian untuk trainer...';
+                }
+            } else {
+                // Client selected
+                cardClient.className = 'waiting-type-card relative flex flex-col p-3.5 rounded-2xl border-2 cursor-pointer transition-all border-amber-500 bg-amber-50/40 dark:bg-amber-950/20';
+                cardTrainer.className = 'waiting-type-card relative flex flex-col p-3.5 rounded-2xl border-2 cursor-pointer transition-all border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900/60 hover:border-purple-300';
+
+                if (clientRadioDot) clientRadioDot.className = 'w-2 h-2 rounded-full bg-amber-500';
+                if (clientRadioBorder) clientRadioBorder.className = 'w-4 h-4 rounded-full border-2 border-amber-500 flex items-center justify-center radio-indicator';
+                if (trainerRadioDot) trainerRadioDot.className = 'w-2 h-2 rounded-full bg-transparent';
+                if (trainerRadioBorder) trainerRadioBorder.className = 'w-4 h-4 rounded-full border-2 border-slate-300 dark:border-slate-600 flex items-center justify-center radio-indicator';
+
+                if (iconBox) iconBox.className = 'w-11 h-11 rounded-2xl bg-amber-50 dark:bg-amber-950/40 text-amber-500 dark:text-amber-400 flex items-center justify-center shrink-0 border border-amber-200 dark:border-amber-800/60 shadow-2xs transition-colors';
+                if (icon) icon.className = 'fa-solid fa-hourglass-half text-xl';
+
+                if (infoBox) infoBox.className = 'mb-5 text-xs text-slate-600 dark:text-slate-300 leading-relaxed bg-amber-50/70 dark:bg-amber-950/30 border border-amber-200/70 dark:border-amber-800/50 rounded-2xl p-4 flex items-start gap-3 transition-colors';
+                if (infoIcon) infoIcon.className = 'fa-solid fa-circle-info text-amber-500 mt-0.5 shrink-0 text-sm';
+                if (infoTitle) {
+                    infoTitle.className = 'font-bold text-amber-900 dark:text-amber-200 mb-0.5';
+                    infoTitle.innerText = 'Penandaan Selesai Dikerjakan';
+                }
+                if (infoDesc) {
+                    infoDesc.innerHTML = 'Tandai bahwa perbaikan teknis telah selesai dan sedang menunggu konfirmasi pengujian dari pihak <strong>' + clientName + '</strong>. Informasi status ini akan ditampilkan di bagian atas tiket dan dapat dihapus kembali.';
+                }
+
+                if (submitBtn) {
+                    submitBtn.className = 'py-3 bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs rounded-xl transition-all shadow-sm shadow-amber-500/30 flex items-center justify-center gap-1.5 cursor-pointer';
+                    submitBtn.innerHTML = '<i class="fa-solid fa-hourglass-half text-xs"></i> Tandai Menunggu Klien';
+                }
+
+                if (inputMsg) {
+                    inputMsg.className = 'w-full bg-slate-50/50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs rounded-xl focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 p-3.5 outline-none font-medium leading-relaxed shadow-2xs transition-colors';
+                    inputMsg.placeholder = 'Tuliskan catatan perbaikan jika ada...';
+                }
+            }
+        }
+
         function confirmDeleteWaitingConfirmation() {
             const form = document.getElementById('form-delete-waiting-confirmation');
             if (!form) return;
+
+            const waitingLabel = {!! json_encode($datarq->waiting_label ?? 'Menunggu Konfirmasi') !!};
+            const labelColorClass = {!! json_encode(($datarq->waiting_type ?? '') === 'trainer' ? 'text-purple-600 dark:text-purple-400' : 'text-amber-600 dark:text-amber-400') !!};
 
             if (typeof Swal !== 'undefined') {
                 const th = getTicketSwalTheme();
@@ -1980,7 +2159,7 @@
                     title: 'Hapus Status Menunggu?',
                     html: `
                         <div class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 mt-2 leading-relaxed">
-                            Apakah Anda yakin ingin menghapus status <strong class="text-amber-600 dark:text-amber-400 font-bold">Menunggu Konfirmasi Klien</strong>?
+                            Apakah Anda yakin ingin menghapus status <strong class="${labelColorClass} font-bold">${waitingLabel}</strong>?
                         </div>
                     `,
                     icon: 'warning',
@@ -2004,7 +2183,7 @@
                     }
                 });
             } else {
-                if (confirm('Hapus status menunggu konfirmasi klien?')) {
+                if (confirm('Hapus status ' + waitingLabel + '?')) {
                     form.submit();
                 }
             }
