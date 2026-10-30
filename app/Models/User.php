@@ -62,6 +62,11 @@ class User extends Authenticatable
         return $this->departemen_id == 2 || (isset($this->departemen) && strtolower($this->departemen->name) === 'produksi');
     }
 
+    public function isOperasional()
+    {
+        return $this->departemen_id == 1 || (isset($this->departemen) && strtolower($this->departemen->name) === 'operasional');
+    }
+
     public function performanceReviews() {
         return $this->hasMany(PerformanceReview::class, 'user_id');
     }

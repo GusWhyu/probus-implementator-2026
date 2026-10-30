@@ -231,6 +231,85 @@
                             @endif
                         </div>
                         @endif
+
+                        <!-- Testing Status Details (Departemen Operasional / Trainer) -->
+                        @if ($datarq->testing_status)
+                        <div class="mt-4">
+                            @if ($datarq->testing_status == 'trainer_testing')
+                            <div class="bg-violet-50/80 dark:bg-violet-950/30 border border-violet-200 dark:border-violet-800/60 text-violet-900 dark:text-violet-200 p-5 rounded-2xl flex items-start gap-4 shadow-2xs">
+                                <div class="w-10 h-10 bg-violet-100 dark:bg-violet-900/60 rounded-full flex items-center justify-center text-violet-600 dark:text-violet-300 shrink-0 shadow-sm">
+                                    <i class="fa-solid fa-flask-vial text-xl"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <div class="flex items-center justify-between flex-wrap gap-2">
+                                        <p class="font-extrabold text-sm text-violet-900 dark:text-violet-100">Sedang Dalam Pengujian (Trainer Testing)</p>
+                                        <span class="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-violet-200/70 dark:bg-violet-900/70 text-violet-800 dark:text-violet-200">Testing In Progress</span>
+                                    </div>
+                                    <p class="text-xs font-medium text-violet-700 dark:text-violet-300 mt-1">
+                                        Penguji: <strong>{{ $datarq->tester->name ?? 'Tim Trainer' }}</strong> (Departemen Operasional)
+                                        @if ($datarq->tested_at)
+                                            — {{ Carbon::parse($datarq->tested_at)->translatedFormat('l, d M Y - H:i') }} ({{ Carbon::parse($datarq->tested_at)->diffForHumans() }})
+                                        @endif
+                                    </p>
+                                    @if ($datarq->testing_note)
+                                    <div class="mt-3 bg-white/70 dark:bg-slate-900/50 border border-violet-100 dark:border-violet-900/40 rounded-xl p-3 text-xs font-medium text-violet-800 dark:text-violet-200 shadow-sm">
+                                        <span class="font-bold text-violet-900 dark:text-violet-100 block mb-1">Catatan Pengujian:</span>
+                                        {{ $datarq->testing_note }}
+                                    </div>
+                                    @endif
+                                </div>
+                            </div>
+                            @elseif ($datarq->testing_status == 'testing_passed')
+                            <div class="bg-emerald-50/80 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/60 text-emerald-900 dark:text-emerald-200 p-5 rounded-2xl flex items-start gap-4 shadow-2xs">
+                                <div class="w-10 h-10 bg-emerald-100 dark:bg-emerald-900/60 rounded-full flex items-center justify-center text-emerald-600 dark:text-emerald-300 shrink-0 shadow-sm">
+                                    <i class="fa-solid fa-circle-check text-xl"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <div class="flex items-center justify-between flex-wrap gap-2">
+                                        <p class="font-extrabold text-sm text-emerald-900 dark:text-emerald-100">Pengujian Selesai (Testing Passed)</p>
+                                        <span class="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-200/70 dark:bg-emerald-900/70 text-emerald-800 dark:text-emerald-200">Verified OK</span>
+                                    </div>
+                                    <p class="text-xs font-medium text-emerald-700 dark:text-emerald-300 mt-1">
+                                        Diverifikasi oleh: <strong>{{ $datarq->tester->name ?? 'Tim Trainer' }}</strong> (Departemen Operasional)
+                                        @if ($datarq->tested_at)
+                                            — {{ Carbon::parse($datarq->tested_at)->translatedFormat('l, d M Y - H:i') }} ({{ Carbon::parse($datarq->tested_at)->diffForHumans() }})
+                                        @endif
+                                    </p>
+                                    @if ($datarq->testing_note)
+                                    <div class="mt-3 bg-white/70 dark:bg-slate-900/50 border border-emerald-100 dark:border-emerald-900/40 rounded-xl p-3 text-xs font-medium text-emerald-800 dark:text-emerald-200 shadow-sm">
+                                        <span class="font-bold text-emerald-900 dark:text-emerald-100 block mb-1">Catatan Pengujian:</span>
+                                        {{ $datarq->testing_note }}
+                                    </div>
+                                    @endif
+                                </div>
+                            </div>
+                            @elseif ($datarq->testing_status == 'has_bugs')
+                            <div class="bg-rose-50/90 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/60 text-rose-900 dark:text-rose-200 p-5 rounded-2xl flex items-start gap-4 shadow-2xs">
+                                <div class="w-10 h-10 bg-rose-100 dark:bg-rose-900/60 rounded-full flex items-center justify-center text-rose-600 dark:text-rose-300 shrink-0 shadow-sm">
+                                    <i class="fa-solid fa-triangle-exclamation text-xl"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <div class="flex items-center justify-between flex-wrap gap-2">
+                                        <p class="font-extrabold text-sm text-rose-900 dark:text-rose-100">Request Dibuka Kembali (Masih Ada Bugs)</p>
+                                        <span class="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-rose-200/70 dark:bg-rose-900/70 text-rose-800 dark:text-rose-200">Re-opened / Bugs Found</span>
+                                    </div>
+                                    <p class="text-xs font-medium text-rose-700 dark:text-rose-300 mt-1">
+                                        Dilaporkan oleh: <strong>{{ $datarq->tester->name ?? 'Tim Trainer' }}</strong> (Departemen Operasional)
+                                        @if ($datarq->tested_at)
+                                            — {{ Carbon::parse($datarq->tested_at)->translatedFormat('l, d M Y - H:i') }} ({{ Carbon::parse($datarq->tested_at)->diffForHumans() }})
+                                        @endif
+                                    </p>
+                                    @if ($datarq->testing_note)
+                                    <div class="mt-3 bg-white/80 dark:bg-slate-900/60 border border-rose-100 dark:border-rose-900/40 rounded-xl p-3 text-xs font-medium text-rose-800 dark:text-rose-200 shadow-sm">
+                                        <span class="font-bold text-rose-900 dark:text-rose-100 block mb-1">Rincian Temuan Bugs:</span>
+                                        {{ $datarq->testing_note }}
+                                    </div>
+                                    @endif
+                                </div>
+                            </div>
+                            @endif
+                        </div>
+                        @endif
                     </div>
 
                     <!-- Update System List -->
@@ -497,6 +576,44 @@
                                 <p class="text-center text-[11px] text-slate-400 dark:text-slate-400 font-medium">
                                     Ditutup oleh <span class="font-bold text-slate-600 dark:text-slate-200">{{ $closedLog->user->name }}</span>
                                 </p>
+                                @endif
+
+                                {{-- Status Pengujian Badge (Jika sudah diuji) --}}
+                                @if ($datarq->testing_status)
+                                    <div class="p-3 rounded-2xl border text-xs {{ $datarq->testing_status == 'testing_passed' ? 'bg-emerald-50/70 border-emerald-200 text-emerald-800 dark:bg-emerald-950/30 dark:border-emerald-800/60 dark:text-emerald-300' : ($datarq->testing_status == 'trainer_testing' ? 'bg-violet-50/70 border-violet-200 text-violet-800 dark:bg-violet-950/30 dark:border-violet-800/60 dark:text-violet-300' : 'bg-rose-50/70 border-rose-200 text-rose-800 dark:bg-rose-950/30 dark:border-rose-800/60 dark:text-rose-300') }}">
+                                        <div class="flex items-center gap-2 font-bold mb-1">
+                                            @if ($datarq->testing_status == 'testing_passed')
+                                                <i class="fa-solid fa-circle-check text-emerald-600 dark:text-emerald-400"></i>
+                                                <span>Selesai Testing (Passed)</span>
+                                            @elseif ($datarq->testing_status == 'trainer_testing')
+                                                <i class="fa-solid fa-flask-vial text-violet-600 dark:text-violet-400"></i>
+                                                <span>Sedang Trainer Testing</span>
+                                            @else
+                                                <i class="fa-solid fa-bug text-rose-600 dark:text-rose-400"></i>
+                                                <span>Ada Temuan Bugs</span>
+                                            @endif
+                                        </div>
+                                        @if ($datarq->tester)
+                                            <div class="text-[11px] opacity-80">
+                                                Oleh: <span class="font-semibold">{{ $datarq->tester->name }}</span>
+                                                @if ($datarq->tested_at)
+                                                    • {{ \Carbon\Carbon::parse($datarq->tested_at)->diffForHumans() }}
+                                                @endif
+                                            </div>
+                                        @endif
+                                        @if ($datarq->testing_note)
+                                            <div class="mt-1.5 pt-1.5 border-t border-current/10 text-[11px] italic line-clamp-2">
+                                                "{{ $datarq->testing_note }}"
+                                            </div>
+                                        @endif
+                                    </div>
+                                @endif
+
+                                {{-- Tombol KHUSUS Departemen Operasional --}}
+                                @if (Auth::check() && Auth::user()->isOperasional())
+                                    <button type="button" onclick="document.getElementById('testingStatusModal').showModal()" class="w-full flex items-center justify-center bg-violet-600 hover:bg-violet-700 text-white py-3 rounded-xl font-bold text-xs shadow-md shadow-violet-500/20 transition-all active:scale-95 gap-2 cursor-pointer mt-1">
+                                        <i class="fa-solid fa-flask-vial"></i> {{ $datarq->testing_status ? 'Ubah Status Pengujian' : 'Status Pengujian / Testing' }}
+                                    </button>
                                 @endif
 
                             @elseif ($stid == 3)
@@ -1470,7 +1587,57 @@
                 });
             }
         });
+    
+        window.onTestingOptionChange = function(val) {
+            const alertBox = document.getElementById('testingInfoAlert');
+            const noteLabel = document.getElementById('testingNoteLabel');
+            const noteTextarea = document.getElementById('testingNoteTextarea');
+            const submitBtn = document.getElementById('testingSubmitBtn');
+            if (!alertBox || !noteLabel || !noteTextarea || !submitBtn) return;
+
+            if (val === 'has_bugs') {
+                alertBox.className = "mb-5 p-3.5 rounded-2xl text-xs font-medium border flex items-start gap-2.5 bg-rose-50 dark:bg-rose-950/40 border-rose-200 dark:border-rose-800 text-rose-800 dark:text-rose-200";
+                alertBox.innerHTML = '<i class="fa-solid fa-triangle-exclamation text-rose-500 mt-0.5 shrink-0 text-sm"></i><div><p class="font-bold mb-0.5">Request Akan Dibuka Kembali (OPEN)</p><p>Status request akan diubah kembali menjadi <strong>OPEN</strong>. Deskripsi bug wajib diisi agar programmer mengetahui kendala yang perlu diperbaiki.</p></div>';
+                
+                noteLabel.innerHTML = 'Deskripsi Bugs Ditemukan <span class="text-rose-500">* (Wajib Diisi)</span>';
+                noteTextarea.required = true;
+                noteTextarea.placeholder = 'Jelaskan secara detail bug, error, atau ketidaksesuaian yang ditemukan saat pengujian...';
+                
+                submitBtn.className = "py-3 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-xl transition-all shadow-sm shadow-rose-500/30 flex items-center justify-center gap-1.5 cursor-pointer";
+                submitBtn.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> Buka Kembali (Ada Bugs)';
+            } else if (val === 'testing_passed') {
+                alertBox.className = "mb-5 p-3.5 rounded-2xl text-xs font-medium border flex items-start gap-2.5 bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-200";
+                alertBox.innerHTML = '<i class="fa-solid fa-circle-check text-emerald-500 mt-0.5 shrink-0 text-sm"></i><div><p class="font-bold mb-0.5">Pengujian Selesai & Terverifikasi OK</p><p>Status request tetap Closed dan akan ditandai bahwa modul telah teruji dengan sukses.</p></div>';
+                
+                noteLabel.innerHTML = 'Catatan Pengujian (Opsional)';
+                noteTextarea.required = false;
+                noteTextarea.placeholder = 'Tuliskan catatan apresiasi atau hasil pengujian jika ada...';
+                
+                submitBtn.className = "py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl transition-all shadow-sm shadow-emerald-500/30 flex items-center justify-center gap-1.5 cursor-pointer";
+                submitBtn.innerHTML = '<i class="fa-solid fa-circle-check"></i> Simpan: Selesai Testing';
+            } else {
+                // trainer_testing
+                alertBox.className = "mb-5 p-3.5 rounded-2xl text-xs font-medium border flex items-start gap-2.5 bg-violet-50 dark:bg-violet-950/40 border-violet-200 dark:border-violet-800 text-violet-800 dark:text-violet-200";
+                alertBox.innerHTML = '<i class="fa-solid fa-flask-vial text-violet-500 mt-0.5 shrink-0 text-sm"></i><div><p class="font-bold mb-0.5">Sedang Dalam Pengujian Trainer</p><p>Status request tetap Closed dan akan ditandai bahwa tim Trainer sedang aktif melakukan pengujian.</p></div>';
+                
+                noteLabel.innerHTML = 'Catatan Pengujian (Opsional)';
+                noteTextarea.required = false;
+                noteTextarea.placeholder = 'Tuliskan catatan lingkup pengujian yang sedang dilakukan...';
+                
+                submitBtn.className = "py-3 bg-violet-600 hover:bg-violet-700 text-white font-bold text-xs rounded-xl transition-all shadow-sm shadow-violet-500/30 flex items-center justify-center gap-1.5 cursor-pointer";
+                submitBtn.innerHTML = '<i class="fa-solid fa-flask"></i> Simpan: Trainer Testing';
+            }
+        };
+
+        // Inisialisasi radio saat modal dibuka atau DOM siap
+        document.addEventListener('DOMContentLoaded', function() {
+            const checkedOption = document.querySelector('input[name="testing_status"]:checked');
+            if (checkedOption) {
+                window.onTestingOptionChange(checkedOption.value);
+            }
+        });
     </script>
+
 
     
     <style>
@@ -1487,4 +1654,108 @@
         .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 20px; }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background-color: #94a3b8; }
     </style>
+
+    {{-- Modal Status Pengujian / Testing (Khusus Departemen Operasional saat Closed) --}}
+    @if ($stid == 4 && Auth::check() && Auth::user()->isOperasional())
+    <dialog id="testingStatusModal" class="modal">
+        <div class="modal-box w-11/12 max-w-lg rounded-3xl p-6 md:p-8 bg-white dark:bg-[#1e293b] border border-slate-100 dark:border-slate-700 shadow-2xl relative">
+            <form action="{{ route('request.testing_status', $datarq->id) }}" method="POST" id="testingStatusForm" onsubmit="const btn = this.querySelector('button[type=submit]'); btn.disabled = true; btn.innerHTML = '<i class=\'fa-solid fa-spinner fa-spin mr-1\'></i> Memproses...';">
+                @csrf
+                
+                <!-- Header Modal -->
+                <div class="flex items-start justify-between mb-5">
+                    <div class="flex items-center gap-3">
+                        <div class="w-12 h-12 rounded-2xl bg-violet-50 dark:bg-violet-950/50 text-violet-600 dark:text-violet-400 flex items-center justify-center border border-violet-100 dark:border-violet-800/60 shrink-0 text-xl shadow-xs">
+                            <i class="fa-solid fa-flask-vial"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-extrabold text-base text-slate-800 dark:text-slate-100">Status Pengujian / Testing</h3>
+                            <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Verifikasi hasil pengerjaan sistem oleh tim Trainer</p>
+                        </div>
+                    </div>
+                    <button type="button" class="w-8 h-8 rounded-xl bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-slate-400 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-100 dark:border-slate-700 transition-colors cursor-pointer" onclick="document.getElementById('testingStatusModal').close()">
+                        <i class="fa-solid fa-xmark text-sm"></i>
+                    </button>
+                </div>
+
+                <!-- 3 Pilihan Status Pengujian -->
+                <div class="mb-5">
+                    <label class="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-2">
+                        Pilih Status Pengujian <span class="text-rose-500">*</span>
+                    </label>
+                    <div class="space-y-2.5">
+                        <!-- Option 1: Trainer Testing -->
+                        <label class="flex items-start gap-3 p-3.5 rounded-2xl border-2 border-slate-200 dark:border-slate-700 cursor-pointer transition-all hover:bg-slate-50 dark:hover:bg-slate-800/60 has-[:checked]:border-violet-500 has-[:checked]:bg-violet-50/40 dark:has-[:checked]:bg-violet-950/30">
+                            <input type="radio" name="testing_status" value="trainer_testing" class="mt-1 w-4 h-4 text-violet-600 focus:ring-violet-500" {{ ($datarq->testing_status == 'trainer_testing' || !$datarq->testing_status) ? 'checked' : '' }} onchange="onTestingOptionChange(this.value)">
+                            <div class="flex-1">
+                                <div class="flex items-center gap-2">
+                                    <span class="w-6 h-6 rounded-lg bg-violet-100 dark:bg-violet-900/50 text-violet-600 dark:text-violet-400 flex items-center justify-center text-xs shrink-0">
+                                        <i class="fa-solid fa-flask"></i>
+                                    </span>
+                                    <span class="font-bold text-xs text-slate-800 dark:text-slate-100">1. Trainer testing</span>
+                                    <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-violet-100 dark:bg-violet-900/50 text-violet-700 dark:text-violet-300 ml-auto">Dalam Pengujian</span>
+                                </div>
+                                <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-1 pl-8">Tandai bahwa request sedang aktif diuji & dicek fungsi sistemnya oleh tim Trainer.</p>
+                            </div>
+                        </label>
+
+                        <!-- Option 2: Selesai Testing -->
+                        <label class="flex items-start gap-3 p-3.5 rounded-2xl border-2 border-slate-200 dark:border-slate-700 cursor-pointer transition-all hover:bg-slate-50 dark:hover:bg-slate-800/60 has-[:checked]:border-emerald-500 has-[:checked]:bg-emerald-50/40 dark:has-[:checked]:bg-emerald-950/30">
+                            <input type="radio" name="testing_status" value="testing_passed" class="mt-1 w-4 h-4 text-emerald-600 focus:ring-emerald-500" {{ $datarq->testing_status == 'testing_passed' ? 'checked' : '' }} onchange="onTestingOptionChange(this.value)">
+                            <div class="flex-1">
+                                <div class="flex items-center gap-2">
+                                    <span class="w-6 h-6 rounded-lg bg-emerald-100 dark:bg-emerald-900/50 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-xs shrink-0">
+                                        <i class="fa-solid fa-circle-check"></i>
+                                    </span>
+                                    <span class="font-bold text-xs text-slate-800 dark:text-slate-100">2. Selesai Testing</span>
+                                    <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-900/50 text-emerald-700 dark:text-emerald-300 ml-auto">Passed / OK</span>
+                                </div>
+                                <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-1 pl-8">Pengujian telah tuntas dan fungsi yang diperbaiki telah tervalidasi berjalan baik.</p>
+                            </div>
+                        </label>
+
+                        <!-- Option 3: Masih ada bugs -->
+                        <label class="flex items-start gap-3 p-3.5 rounded-2xl border-2 border-slate-200 dark:border-slate-700 cursor-pointer transition-all hover:bg-slate-50 dark:hover:bg-slate-800/60 has-[:checked]:border-rose-500 has-[:checked]:bg-rose-50/40 dark:has-[:checked]:bg-rose-950/30">
+                            <input type="radio" name="testing_status" value="has_bugs" class="mt-1 w-4 h-4 text-rose-600 focus:ring-rose-500" {{ $datarq->testing_status == 'has_bugs' ? 'checked' : '' }} onchange="onTestingOptionChange(this.value)">
+                            <div class="flex-1">
+                                <div class="flex items-center gap-2">
+                                    <span class="w-6 h-6 rounded-lg bg-rose-100 dark:bg-rose-900/50 text-rose-600 dark:text-rose-400 flex items-center justify-center text-xs shrink-0">
+                                        <i class="fa-solid fa-triangle-exclamation"></i>
+                                    </span>
+                                    <span class="font-bold text-xs text-slate-800 dark:text-slate-100">3. Masih ada bugs</span>
+                                    <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-rose-100 dark:bg-rose-900/50 text-rose-700 dark:text-rose-300 ml-auto">Re-open Request</span>
+                                </div>
+                                <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-1 pl-8"><span class="font-bold text-rose-600 dark:text-rose-400">PENTING:</span> Mengubah status request menjadi <span class="font-bold underline">OPEN kembali</span> agar tim programmer memperbaiki bug.</p>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Dynamic Info Alert -->
+                <div id="testingInfoAlert" class="mb-5 p-3.5 rounded-2xl text-xs font-medium border flex items-start gap-2.5">
+                    <!-- Dynamic text via JS -->
+                </div>
+
+                <!-- Catatan Tambahan Input -->
+                <div class="mb-5">
+                    <label class="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1.5" id="testingNoteLabel">
+                        Catatan Pengujian (Opsional)
+                    </label>
+                    <textarea name="testing_note" id="testingNoteTextarea" rows="3" class="w-full bg-slate-50/50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-xs rounded-xl focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 p-3.5 outline-none font-medium leading-relaxed shadow-2xs transition-colors" placeholder="Tuliskan catatan hasil pengujian jika ada...">{{ $datarq->testing_note }}</textarea>
+                    <p id="testingNoteHelp" class="text-[10px] text-slate-400 mt-1">Catatan ini akan tersimpan pada riwayat dan otomatis dikirimkan ke diskusi request.</p>
+                </div>
+
+                <!-- Footer Buttons -->
+                <div class="grid grid-cols-2 gap-3">
+                    <button type="button" class="py-3 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold text-xs rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-800 dark:hover:text-slate-100 transition-all shadow-sm cursor-pointer" onclick="document.getElementById('testingStatusModal').close()">Batal</button>
+                    <button type="submit" id="testingSubmitBtn" class="py-3 bg-violet-600 hover:bg-violet-700 text-white font-bold text-xs rounded-xl transition-all shadow-sm shadow-violet-500/30 flex items-center justify-center gap-1.5 cursor-pointer">
+                        <i class="fa-solid fa-flask"></i> Simpan Status
+                    </button>
+                </div>
+            </form>
+        </div>
+        <form method="dialog" class="modal-backdrop bg-slate-900/60 backdrop-blur-sm"><button>close</button></form>
+    </dialog>
+    @endif
+
 </x-app-layout>

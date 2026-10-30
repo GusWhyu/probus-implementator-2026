@@ -708,9 +708,14 @@ class RequestController extends Controller
             return redirect()->back();
         }
         $reqlog = RequestLog::class;
-        $data->update([
+        $updateData = [
             'status_id' => $stid
-        ]);
+        ];
+        if (($stid == 3 || $stid == 4) && $data->testing_status === 'has_bugs') {
+            $updateData['testing_status'] = null;
+            $updateData['testing_note'] = null;
+        }
+        $data->update($updateData);
         $reqlog::create([
             'request_id' => $id,
             'status_id' => $stid,
@@ -1001,5 +1006,134 @@ class RequestController extends Controller
             Alert::error('Gagal Mengalihkan', 'Terjadi kesalahan saat mengalihkan request: ' . $e->getMessage());
             return redirect()->back();
         }
+    }
+    public function updateTestingStatus(Request $request, $id)
+    {
+        $user = Auth::user();
+        if (!$user || !$user->isOperasional()) {
+            Alert::error('Akses Ditolak', 'Hanya Departemen Operasional yang memiliki hak untuk memperbarui status pengujian request.');
+            return redirect()->back();
+        }
+
+        $datarq = \App\Models\Request::find($id);
+        if (!$datarq) {
+            Alert::error('Request tidak ditemukan!');
+            return redirect()->route('request.board');
+        }
+
+        $request->validate([
+            'testing_status' => 'required|in:trainer_testing,testing_passed,has_bugs',
+            'testing_note' => 'nullable|string',
+        ]);
+
+        $statusOption = $request->testing_status;
+        $note = $request->testing_note ? trim($request->testing_note) : null;
+
+        if ($statusOption === 'has_bugs' && empty($note)) {
+            Alert::warning('Catatan Wajib Diisi', 'Silakan berikan rincian bugs atau kendala yang ditemukan agar tim programmer dapat memperbaikinya.');
+            return redirect()->back()->withInput();
+        }
+
+        $now = now();
+
+        if ($statusOption === 'has_bugs') {
+            // Ubah request menjadi OPEN (status_id = 2) dari yang sebelumnya CLOSED (4)
+            $datarq->status_id = 2;
+            $datarq->testing_status = 'has_bugs';
+            $datarq->testing_note = $note;
+            $datarq->tested_by = $user->id;
+            $datarq->tested_at = $now;
+            $datarq->save();
+
+            // Catat log pembukaan kembali status OPEN
+            RequestLog::create([
+                'request_id' => $datarq->id,
+                'status_id' => 2,
+                'user_id' => $user->id,
+            ]);
+
+            // Kirim pesan temuan bugs ke diskusi / komentar
+            $commentBody = "<strong>⚠️ Masih Ada Bugs (Hasil Pengujian Trainer)</strong><br>" .
+                           "Status request dikembalikan ke <b>OPEN</b> oleh <b>" . e($user->name) . "</b> (Departemen Operasional).<br><br>" .
+                           "<strong>Rincian Temuan Bugs:</strong><br>" .
+                           nl2br(e($note));
+
+            Komentar::create([
+                'request_id' => $datarq->id,
+                'ticket_id' => null,
+                'user_id' => $user->id,
+                'body' => $commentBody,
+            ]);
+
+            // Kirim notifikasi ke tim programmer / divisi pelaksana & pembuat request
+            $targetUsers = User::where(function($query) use ($datarq) {
+                $query->where('tag_id', $datarq->tag_id)
+                      ->orWhere('id', $datarq->user_id)
+                      ->orWhereIn('usertype', ['admin', 'superadmin', 'Superadministrator']);
+            })->where('id', '!=', $user->id)->get();
+
+            foreach ($targetUsers as $targetUser) {
+                $targetUser->notify(new RequestStatusChanged(
+                    $datarq,
+                    "Request '{$datarq->judul}' dibuka kembali (OPEN) oleh {$user->name} karena masih ditemukan bugs pada pengujian.",
+                    "Request Dibuka Kembali (Bugs Found)"
+                ));
+            }
+
+            \App\Services\NotificationSyncService::syncRequest($datarq);
+
+            Alert::warning('Request Dibuka Kembali', 'Status request telah diubah menjadi OPEN karena masih ditemukan bugs. Rincian telah dikirim ke diskusi tim.');
+            return redirect()->route('detailrequest', ['id' => $datarq->id]);
+
+        } elseif ($statusOption === 'trainer_testing') {
+            // Status request tetap, catat testing_status = trainer_testing
+            $datarq->testing_status = 'trainer_testing';
+            $datarq->testing_note = $note;
+            $datarq->tested_by = $user->id;
+            $datarq->tested_at = $now;
+            $datarq->save();
+
+            $noteFormatted = $note ? "<br><br><strong>Catatan:</strong><br>" . nl2br(e($note)) : "";
+            $commentBody = "<strong>🧪 Status Pengujian: Trainer Testing</strong><br>" .
+                           "Sedang dalam proses pengecekan & pengujian sistem oleh <b>" . e($user->name) . "</b> (Trainer Operasional)." . $noteFormatted;
+
+            Komentar::create([
+                'request_id' => $datarq->id,
+                'ticket_id' => null,
+                'user_id' => $user->id,
+                'body' => $commentBody,
+            ]);
+
+            \App\Services\NotificationSyncService::syncRequest($datarq);
+
+            Alert::success('Status Pengujian Diperbarui', 'Request ditandai sedang dalam tahap pengujian oleh Trainer.');
+            return redirect()->route('detailrequest', ['id' => $datarq->id]);
+
+        } elseif ($statusOption === 'testing_passed') {
+            // Selesai testing, tetap CLOSED
+            $datarq->testing_status = 'testing_passed';
+            $datarq->testing_note = $note;
+            $datarq->tested_by = $user->id;
+            $datarq->tested_at = $now;
+            $datarq->save();
+
+            $noteFormatted = $note ? "<br><br><strong>Catatan:</strong><br>" . nl2br(e($note)) : "";
+            $commentBody = "<strong>✅ Pengujian Selesai (Testing Passed)</strong><br>" .
+                           "Diverifikasi dan selesai diuji oleh <b>" . e($user->name) . "</b> (Trainer Operasional). Modul tervalidasi berjalan baik." . $noteFormatted;
+
+            Komentar::create([
+                'request_id' => $datarq->id,
+                'ticket_id' => null,
+                'user_id' => $user->id,
+                'body' => $commentBody,
+            ]);
+
+            \App\Services\NotificationSyncService::syncRequest($datarq);
+
+            Alert::success('Pengujian Selesai', 'Request telah diverifikasi OK dan selesai diuji oleh tim Trainer.');
+            return redirect()->route('detailrequest', ['id' => $datarq->id]);
+        }
+
+        return redirect()->back();
     }
 }
