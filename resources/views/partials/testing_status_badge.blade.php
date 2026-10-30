@@ -1,7 +1,6 @@
 @php
     $r = $item ?? $rq ?? $req ?? ($request ?? null);
     $tStatus = $r->testing_status ?? null;
-    $sId = $r->status_id ?? ($dataid ?? null);
 @endphp
 
 @if ($tStatus === 'trainer_testing')
@@ -18,10 +17,5 @@
     <span class="px-2 py-0.5 rounded-md text-[10px] font-extrabold uppercase tracking-wide inline-flex items-center gap-1 bg-rose-100 text-rose-700 border border-rose-200/90 dark:bg-rose-950/60 dark:text-rose-300 dark:border-rose-800/80 shadow-2xs shrink-0" title="Pengujian Menemukan Bug / Request Dibuka Kembali">
         <i class="fa-solid fa-triangle-exclamation text-[9px] text-rose-600 dark:text-rose-400"></i>
         <span>Bugs</span>
-    </span>
-@elseif ($sId == 4)
-    <span class="px-2 py-0.5 rounded-md text-[10px] font-extrabold uppercase tracking-wide inline-flex items-center gap-1 bg-amber-100 text-amber-800 border border-amber-200/90 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-800/80 shadow-2xs shrink-0" title="Request Closed tapi Belum Diuji oleh Trainer">
-        <i class="fa-regular fa-clock text-[9px] text-amber-600 dark:text-amber-400"></i>
-        <span>Belum Diuji</span>
     </span>
 @endif
