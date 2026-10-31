@@ -272,10 +272,10 @@ public static function createXlsx($tickets, array $meta = [])
     <xf numFmtId="0" fontId="15" fillId="0" borderId="1" xfId="0" applyFont="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>
     <!-- 19: Ticket Number Zebra (Bold, Center, Zebra) -->
     <xf numFmtId="0" fontId="15" fillId="3" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>
-    <!-- 20: Data Left Wrapped (White) -->
-    <xf numFmtId="0" fontId="0" fillId="0" borderId="1" xfId="0" applyBorder="1" applyAlignment="1"><alignment vertical="center" wrapText="1"/></xf>
-    <!-- 21: Data Left Wrapped Zebra (#F8FAFC) -->
-    <xf numFmtId="0" fontId="0" fillId="3" borderId="1" xfId="0" applyFill="1" applyBorder="1" applyAlignment="1"><alignment vertical="center" wrapText="1"/></xf>
+    <!-- 20: Data Left Wrapped (White, Top Alignment) -->
+    <xf numFmtId="0" fontId="0" fillId="0" borderId="1" xfId="0" applyBorder="1" applyAlignment="1"><alignment vertical="top" wrapText="1"/></xf>
+    <!-- 21: Data Left Wrapped Zebra (#F8FAFC, Top Alignment) -->
+    <xf numFmtId="0" fontId="0" fillId="3" borderId="1" xfId="0" applyFill="1" applyBorder="1" applyAlignment="1"><alignment vertical="top" wrapText="1"/></xf>
   </cellXfs>
 </styleSheet>';
     }
@@ -283,6 +283,50 @@ public static function createXlsx($tickets, array $meta = [])
     /**
      * Sanitasi dan escape teks untuk XML
      */
+    /**
+     * Membersihkan teks HTML (dari rich text editor) agar menjadi teks murni dengan baris rapi untuk Excel
+     */
+    private static function cleanTextForExcel($text)
+    {
+        if (empty($text)) return '-';
+        // Ubah tag break & penutup blok menjadi newline
+        $str = preg_replace('/<br\s*\/?>/i', "\n", $text);
+        $str = preg_replace('/<\/(p|div|li|tr|h[1-6])>/i', "\n", $str);
+        $str = str_replace('&nbsp;', ' ', $str);
+        $str = html_entity_decode(strip_tags($str), ENT_QUOTES, 'UTF-8');
+        // Bersihkan whitespace berlebih per baris
+        $lines = explode("\n", $str);
+        $cleanLines = [];
+        foreach ($lines as $l) {
+            $trimmed = trim(preg_replace('/[ \t]+/', ' ', $l));
+            if ($trimmed !== '') {
+                $cleanLines[] = $trimmed;
+            }
+        }
+        $result = implode("\n", $cleanLines);
+        return !empty($result) ? $result : '-';
+    }
+
+    /**
+     * Estimasi jumlah baris teks pada lebar kolom tertentu untuk kalkulasi tinggi baris dinamis
+     */
+    private static function estimateLines($text, $colWidth)
+    {
+        if (empty($text) || $text === '-') return 1;
+        $lines = explode("\n", $text);
+        $total = 0;
+        $charsPerLine = max(10, (int)($colWidth * 0.95));
+        foreach ($lines as $line) {
+            $len = mb_strlen($line);
+            if ($len === 0) {
+                $total += 1;
+            } else {
+                $total += (int)ceil($len / $charsPerLine);
+            }
+        }
+        return max(1, $total);
+    }
+
     private static function xmlEscape($str)
     {
         if ($str === null) return '';
@@ -325,23 +369,23 @@ public static function createXlsx($tickets, array $meta = [])
         $progressCount = $tickets->where('status', 'PROGRESS')->count();
         $closedCount = $tickets->where('status', 'CLOSED')->count();
 
-        // 15 Kolom dengan lebar yang luas dan proporsional (Staff / Pelapor dan Proses By digabung menjadi Staff Yang Mengerjakan)
+        // 15 Kolom dengan lebar yang luas, proporsional, dan adaptif agar tidak ada teks terpotong
         $cols = [
             ['title' => 'No', 'width' => 8],
             ['title' => 'No. Tiket', 'width' => 21],
-            ['title' => 'Judul Tiket', 'width' => 36],
-            ['title' => 'Deskripsi Masalah', 'width' => 45],
-            ['title' => 'Keterangan Solusi', 'width' => 45],
-            ['title' => 'Client / Outlet', 'width' => 36],
-            ['title' => 'Staff Yang Mengerjakan', 'width' => 26],
+            ['title' => 'Judul Tiket', 'width' => 38],
+            ['title' => 'Deskripsi Masalah', 'width' => 55],
+            ['title' => 'Keterangan Solusi', 'width' => 55],
+            ['title' => 'Client / Outlet', 'width' => 40],
+            ['title' => 'Staff Yang Mengerjakan', 'width' => 28],
             ['title' => 'Advisor', 'width' => 22],
-            ['title' => 'System', 'width' => 18],
+            ['title' => 'System', 'width' => 16],
             ['title' => 'Module', 'width' => 18],
-            ['title' => 'Tipe Penanganan', 'width' => 20],
-            ['title' => 'Status', 'width' => 16],
-            ['title' => 'Lama Pengerjaan', 'width' => 24],
-            ['title' => 'Waktu Masuk (Insert Time)', 'width' => 24],
-            ['title' => 'Waktu Selesai (Ending Time)', 'width' => 24],
+            ['title' => 'Tipe Penanganan', 'width' => 18],
+            ['title' => 'Status', 'width' => 15],
+            ['title' => 'Lama Pengerjaan', 'width' => 22],
+            ['title' => 'Waktu Masuk (Insert Time)', 'width' => 22],
+            ['title' => 'Waktu Selesai (Ending Time)', 'width' => 22],
         ];
 
         $xml = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' . "\n";
@@ -471,8 +515,8 @@ public static function createXlsx($tickets, array $meta = [])
             }
 
             // Bersihkan teks HTML dan decode entitas untuk Deskripsi & Solusi
-            $deskripsi = $t->description ? trim(html_entity_decode(strip_tags($t->description), ENT_QUOTES, 'UTF-8')) : '-';
-            $solusi = $t->solusi ? trim(html_entity_decode(strip_tags($t->solusi), ENT_QUOTES, 'UTF-8')) : '-';
+            $deskripsi = self::cleanTextForExcel($t->description);
+            $solusi = self::cleanTextForExcel($t->solusi);
 
             // Client / Property & Lokasi
             $prop = $t->client->nm_out ?? $t->client->name ?? '-';
@@ -480,11 +524,8 @@ public static function createXlsx($tickets, array $meta = [])
                 $prop .= ' (' . $t->client->lokasi . ')';
             }
 
-            // Staff / Pelapor
+            // Staff Yang Mengerjakan
             $staff = $t->user->name ?? '-';
-
-            // Petugas (Proses By)
-            $prosesBy = $t->user->name ?? '-';
 
             // Advisor
             $advisor = $t->advisor->name ?? '-';
@@ -503,17 +544,27 @@ public static function createXlsx($tickets, array $meta = [])
             $insertTime = $t->created_at ? Carbon::parse($t->created_at)->format('d/m/Y H:i:s') : '-';
             $endingTime = ($status === 'CLOSED' && $t->closed_at) ? Carbon::parse($t->closed_at)->format('d/m/Y H:i:s') : '-';
 
-            $xml .= '    <row r="' . $currentRow . '" ht="30" customHeight="1">' . "\n";
+            // Hitung estimasi tinggi baris dinamis agar seluruh baris teks tampil utuh
+            $maxLines = max(
+                self::estimateLines($t->title, 38),
+                self::estimateLines($deskripsi, 55),
+                self::estimateLines($solusi, 55),
+                self::estimateLines($prop, 40)
+            );
+            $rowHeight = max(26, ($maxLines * 16) + 6);
+
+            // ht menyediakan tinggi precalculated yang lega, dan tanpa customHeight="1" agar Excel juga bebas auto-fit penuh
+            $xml .= '    <row r="' . $currentRow . '" ht="' . $rowHeight . '">' . "\n";
             // A: No
             $xml .= '      <c r="A' . $currentRow . '" s="' . $sCenter . '"><v>' . $no . '</v></c>' . "\n";
             // B: No. Tiket
             $xml .= '      <c r="B' . $currentRow . '" s="' . $sTck . '" t="inlineStr"><is><t>' . self::xmlEscape($t->ticket_number) . '</t></is></c>' . "\n";
             // C: Judul Tiket
-            $xml .= '      <c r="C' . $currentRow . '" s="' . $sWrap . '" t="inlineStr"><is><t>' . self::xmlEscape($t->title) . '</t></is></c>' . "\n";
+            $xml .= '      <c r="C' . $currentRow . '" s="' . $sWrap . '" t="inlineStr"><is><t xml:space="preserve">' . self::xmlEscape($t->title) . '</t></is></c>' . "\n";
             // D: Deskripsi Masalah
-            $xml .= '      <c r="D' . $currentRow . '" s="' . $sWrap . '" t="inlineStr"><is><t>' . self::xmlEscape($deskripsi) . '</t></is></c>' . "\n";
+            $xml .= '      <c r="D' . $currentRow . '" s="' . $sWrap . '" t="inlineStr"><is><t xml:space="preserve">' . self::xmlEscape($deskripsi) . '</t></is></c>' . "\n";
             // E: Keterangan Solusi
-            $xml .= '      <c r="E' . $currentRow . '" s="' . $sWrap . '" t="inlineStr"><is><t>' . self::xmlEscape($solusi) . '</t></is></c>' . "\n";
+            $xml .= '      <c r="E' . $currentRow . '" s="' . $sWrap . '" t="inlineStr"><is><t xml:space="preserve">' . self::xmlEscape($solusi) . '</t></is></c>' . "\n";
             // F: Property / Pelanggan
             $xml .= '      <c r="F' . $currentRow . '" s="' . $sText . '" t="inlineStr"><is><t>' . self::xmlEscape($prop) . '</t></is></c>' . "\n";
             // G: Staff Yang Mengerjakan
