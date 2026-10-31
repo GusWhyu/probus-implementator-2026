@@ -144,25 +144,25 @@ public static function createXlsx($tickets, array $meta = [])
     <!-- 0: Normal 10pt Slate Dark -->
     <font><name val="Calibri"/><sz val="10"/><color rgb="FF0F172A"/></font>
     <!-- 1: Bold White 10.5pt (Header) -->
-    <font><name val="Calibri"/><sz val="10.5"/><b/><color rgb="FFFFFFFF"/></font>
+    <font><name val="Calibri"/><sz val="11"/><b/><color rgb="FFFFFFFF"/></font>
     <!-- 2: Title 17pt Bold Deep Royal Blue -->
     <font><name val="Calibri"/><sz val="17"/><b/><color rgb="FF1E40AF"/></font>
     <!-- 3: Subtitle/Meta 10pt Slate Darker -->
     <font><name val="Calibri"/><sz val="10"/><color rgb="FF334155"/></font>
     <!-- 4: KPI Total Label 8.5pt Bold -->
-    <font><name val="Calibri"/><sz val="8.5"/><b/><color rgb="FF475569"/></font>
+    <font><name val="Calibri"/><sz val="9"/><b/><color rgb="FF475569"/></font>
     <!-- 5: KPI Total Value 16pt Bold -->
     <font><name val="Calibri"/><sz val="16"/><b/><color rgb="FF0F172A"/></font>
     <!-- 6: KPI Open Label 8.5pt Bold Blue -->
-    <font><name val="Calibri"/><sz val="8.5"/><b/><color rgb="FF1D4ED8"/></font>
+    <font><name val="Calibri"/><sz val="9"/><b/><color rgb="FF1D4ED8"/></font>
     <!-- 7: KPI Open Value 16pt Bold Blue -->
     <font><name val="Calibri"/><sz val="16"/><b/><color rgb="FF1D4ED8"/></font>
     <!-- 8: KPI Progress Label 8.5pt Bold Amber -->
-    <font><name val="Calibri"/><sz val="8.5"/><b/><color rgb="FFB45309"/></font>
+    <font><name val="Calibri"/><sz val="9"/><b/><color rgb="FFB45309"/></font>
     <!-- 9: KPI Progress Value 16pt Bold Amber -->
     <font><name val="Calibri"/><sz val="16"/><b/><color rgb="FFB45309"/></font>
     <!-- 10: KPI Closed Label 8.5pt Bold Green -->
-    <font><name val="Calibri"/><sz val="8.5"/><b/><color rgb="FF047857"/></font>
+    <font><name val="Calibri"/><sz val="9"/><b/><color rgb="FF047857"/></font>
     <!-- 11: KPI Closed Value 16pt Bold Green -->
     <font><name val="Calibri"/><sz val="16"/><b/><color rgb="FF047857"/></font>
     <!-- 12: Status OPEN Bold Blue -->
@@ -370,23 +370,23 @@ public static function createXlsx($tickets, array $meta = [])
         $progressCount = $tickets->where('status', 'PROGRESS')->count();
         $closedCount = $tickets->where('status', 'CLOSED')->count();
 
-        // 15 Kolom dengan urutan: Deskripsi Masalah & Solusi diletakkan setelah Tipe Penanganan
+        // 15 Kolom dengan lebar luas & proporsional: System (20), Module (24), Tipe Penanganan (22) agar tidak terpotong
         $cols = [
             ['title' => 'No', 'width' => 8],
             ['title' => 'No. Tiket', 'width' => 22],
             ['title' => 'Judul Tiket', 'width' => 38],
             ['title' => 'Client / Outlet', 'width' => 42],
             ['title' => 'Staff Yang Mengerjakan', 'width' => 28],
-            ['title' => 'Advisor', 'width' => 22],
-            ['title' => 'System', 'width' => 16],
-            ['title' => 'Module', 'width' => 18],
-            ['title' => 'Tipe Penanganan', 'width' => 18],
+            ['title' => 'Advisor', 'width' => 24],
+            ['title' => 'System', 'width' => 20],
+            ['title' => 'Module', 'width' => 24],
+            ['title' => 'Tipe Penanganan', 'width' => 22],
             ['title' => 'Deskripsi Masalah', 'width' => 55],
             ['title' => 'Keterangan Solusi', 'width' => 55],
             ['title' => 'Status', 'width' => 16],
             ['title' => 'Lama Pengerjaan', 'width' => 22],
-            ['title' => 'Waktu Masuk (Insert Time)', 'width' => 22],
-            ['title' => 'Waktu Selesai (Ending Time)', 'width' => 22],
+            ['title' => 'Waktu Masuk (Insert Time)', 'width' => 24],
+            ['title' => 'Waktu Selesai (Ending Time)', 'width' => 24],
         ];
 
         $xml = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' . "\n";
@@ -396,6 +396,7 @@ public static function createXlsx($tickets, array $meta = [])
         $xml .= '  <sheetViews>' . "\n";
         $xml .= '    <sheetView tabSelected="1" workbookViewId="0">' . "\n";
         $xml .= '      <pane ySplit="7" topLeftCell="A8" activePane="bottomLeft" state="frozen"/>' . "\n";
+        $xml .= '      <selection pane="bottomLeft" activeCell="A8" sqref="A8"/>' . "\n";
         $xml .= '    </sheetView>' . "\n";
         $xml .= '  </sheetViews>' . "\n";
 
@@ -434,8 +435,12 @@ public static function createXlsx($tickets, array $meta = [])
         }
         $xml .= '    </row>' . "\n";
 
-        // Row 3: Blank separator (Tinggi 8pt)
-        $xml .= '    <row r="3" ht="8" customHeight="1"/>' . "\n";
+        // Row 3: Blank separator (Tinggi 8pt) dengan sel lengkap agar grid OpenXML konsisten
+        $xml .= '    <row r="3" ht="8" customHeight="1">' . "\n";
+        for ($colIdx = 1; $colIdx <= 15; $colIdx++) {
+            $xml .= '      <c r="' . self::colLetter($colIdx) . '3"/>' . "\n";
+        }
+        $xml .= '    </row>' . "\n";
 
         // Row 4: KPI Summary Cards - Label Row (Tinggi 20pt)
         // Card 1: A4..D4 (Total), Card 2: E4..G4 (Open), Card 3: H4..K4 (Progress), Card 4: L4..O4 (Closed)
@@ -456,8 +461,8 @@ public static function createXlsx($tickets, array $meta = [])
         $xml .= '      <c r="K4" s="11"/>' . "\n";
         // Closed Card Header (L4..O4)
         $xml .= '      <c r="L4" s="13" t="inlineStr"><is><t>TIKET CLOSED</t></is></c>' . "\n";
-        $xml .= '      <c r="N4" s="13"/>' . "\n";
         $xml .= '      <c r="M4" s="13"/>' . "\n";
+        $xml .= '      <c r="N4" s="13"/>' . "\n";
         $xml .= '      <c r="O4" s="13"/>' . "\n";
         $xml .= '    </row>' . "\n";
 
@@ -484,15 +489,19 @@ public static function createXlsx($tickets, array $meta = [])
         $xml .= '      <c r="O5" s="14"/>' . "\n";
         $xml .= '    </row>' . "\n";
 
-        // Row 6: Blank separator (Tinggi 12pt)
-        $xml .= '    <row r="6" ht="12" customHeight="1"/>' . "\n";
+        // Row 6: Blank separator (Tinggi 10pt) dengan sel lengkap agar grid OpenXML konsisten
+        $xml .= '    <row r="6" ht="10" customHeight="1">' . "\n";
+        for ($colIdx = 1; $colIdx <= 15; $colIdx++) {
+            $xml .= '      <c r="' . self::colLetter($colIdx) . '6"/>' . "\n";
+        }
+        $xml .= '    </row>' . "\n";
 
         // Row 7: Main Table Headers (Tinggi 32pt, Style 4: Dark Navy & White Bold)
         $headerRow = 7;
         $xml .= '    <row r="' . $headerRow . '" ht="36" customHeight="1">' . "\n";
         foreach ($cols as $idx => $col) {
             $colLetter = self::colLetter($idx + 1);
-            $xml .= '      <c r="' . $colLetter . $headerRow . '" s="4" t="inlineStr"><is><t>' . self::xmlEscape($col['title']) . '</t></is></c>' . "\n";
+            $xml .= '      <c r="' . $colLetter . $headerRow . '" s="4" t="inlineStr"><is><t xml:space="preserve">' . self::xmlEscape($col['title']) . '</t></is></c>' . "\n";
         }
         $xml .= '    </row>' . "\n";
 
@@ -653,6 +662,7 @@ public static function createXlsx($tickets, array $meta = [])
         $xml .= '  <sheetViews>' . "\n";
         $xml .= '    <sheetView tabSelected="1" workbookViewId="0">' . "\n";
         $xml .= '      <pane ySplit="7" topLeftCell="A8" activePane="bottomLeft" state="frozen"/>' . "\n";
+        $xml .= '      <selection pane="bottomLeft" activeCell="A8" sqref="A8"/>' . "\n";
         $xml .= '    </sheetView>' . "\n";
         $xml .= '  </sheetViews>' . "\n";
 
@@ -748,7 +758,7 @@ public static function createXlsx($tickets, array $meta = [])
         $xml .= '    <row r="' . $headerRow . '" ht="36" customHeight="1">' . "\n";
         foreach ($cols as $idx => $col) {
             $colLetter = self::colLetter($idx + 1);
-            $xml .= '      <c r="' . $colLetter . $headerRow . '" s="4" t="inlineStr"><is><t>' . self::xmlEscape($col['title']) . '</t></is></c>' . "\n";
+            $xml .= '      <c r="' . $colLetter . $headerRow . '" s="4" t="inlineStr"><is><t xml:space="preserve">' . self::xmlEscape($col['title']) . '</t></is></c>' . "\n";
         }
         $xml .= '    </row>' . "\n";
 
