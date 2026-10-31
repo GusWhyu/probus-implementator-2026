@@ -404,7 +404,12 @@ class HomeController extends Controller
         
         $systems = \App\Models\Kategori::all(); 
         $modules = ModuleSystem::all();
-        $users = User::where('is_active', true)->orderBy('name')->get();
+        $currentUser = auth()->user();
+        $userQuery = User::where('is_active', true);
+        if ($currentUser && $currentUser->departemen_id) {
+            $userQuery->where('departemen_id', $currentUser->departemen_id);
+        }
+        $users = $userQuery->orderBy('name')->get();
         if ($request->filled('user_id') && !$users->contains('id', (int)$request->user_id)) {
             $currentFilteredUser = User::find($request->user_id);
             if ($currentFilteredUser) {
