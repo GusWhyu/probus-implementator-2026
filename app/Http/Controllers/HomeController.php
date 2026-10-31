@@ -404,7 +404,14 @@ class HomeController extends Controller
         
         $systems = \App\Models\Kategori::all(); 
         $modules = ModuleSystem::all();
-        $users = User::orderBy('name')->get();
+        $users = User::where('is_active', true)->orderBy('name')->get();
+        if ($request->filled('user_id') && !$users->contains('id', (int)$request->user_id)) {
+            $currentFilteredUser = User::find($request->user_id);
+            if ($currentFilteredUser) {
+                $users->push($currentFilteredUser);
+                $users = $users->sortBy('name');
+            }
+        }
 
         return view('daftartiket', compact('open', 'progress', 'closed', 'us', 'open_count', 'progress_count', 'closed_count', 'total_count', 'all_tickets', 'systems', 'modules', 'users'));
     }
