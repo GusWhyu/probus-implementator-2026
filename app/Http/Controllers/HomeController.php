@@ -386,6 +386,11 @@ class HomeController extends Controller
             $query->where('status', $request->status);
         }
 
+        // Apply User (Pembuat Tiket) Filter
+        if ($request->filled('user_id')) {
+            $query->where('user_id', $request->user_id);
+        }
+
         if ($request->filled('system')) {
             $query->where('system', $request->system);
         }
@@ -399,8 +404,9 @@ class HomeController extends Controller
         
         $systems = \App\Models\Kategori::all(); 
         $modules = ModuleSystem::all();
+        $users = User::orderBy('name')->get();
 
-        return view('daftartiket', compact('open', 'progress', 'closed', 'us', 'open_count', 'progress_count', 'closed_count', 'total_count', 'all_tickets', 'systems', 'modules'));
+        return view('daftartiket', compact('open', 'progress', 'closed', 'us', 'open_count', 'progress_count', 'closed_count', 'total_count', 'all_tickets', 'systems', 'modules', 'users'));
     }
 
     /**
@@ -470,6 +476,11 @@ class HomeController extends Controller
             $query->where('status', $request->status);
         }
 
+        // Filter User (Pembuat Tiket)
+        if ($request->filled('user_id')) {
+            $query->where('user_id', $request->user_id);
+        }
+
         // Filter System
         if ($request->filled('system')) {
             $query->where('system', $request->system);
@@ -485,12 +496,14 @@ class HomeController extends Controller
         $statusStr = $request->filled('status') ? strtoupper($request->status) : 'Semua Status';
         $systemName = $request->filled('system') ? optional(Kategori::find($request->system))->name : 'Semua System';
         $moduleName = $request->filled('module') ? optional(ModuleSystem::find($request->module))->name : 'Semua Module';
+        $userName = $request->filled('user_id') ? optional(User::find($request->user_id))->name : 'Semua User';
 
         $currentUser = auth()->user();
         $meta = [
             'status' => $statusStr,
             'system_name' => $systemName ?: 'Semua System',
             'module_name' => $moduleName ?: 'Semua Module',
+            'user_name' => $userName ?: 'Semua User',
             'search' => $request->search,
             'printed_by' => ($currentUser->name ?? 'Admin') . ' (' . ucfirst($currentUser->usertype ?? 'admin') . ')',
             'printed_at' => now()->format('d/m/Y H:i') . ' WITA',
@@ -498,7 +511,14 @@ class HomeController extends Controller
 
         $filePath = TicketExcelService::createXlsx($tickets, $meta);
 
-        $suffix = $request->filled('status') ? '_' . strtoupper($request->status) : '';
+        $suffixParts = [];
+        if ($request->filled('status')) {
+            $suffixParts[] = strtoupper($request->status);
+        }
+        if ($request->filled('user_id') && $userName && $userName !== 'Semua User') {
+            $suffixParts[] = \Illuminate\Support\Str::slug($userName);
+        }
+        $suffix = !empty($suffixParts) ? '_' . implode('_', $suffixParts) : '';
         $fileName = 'Laporan_Tiket' . $suffix . '_' . date('Ymd_His') . '.xlsx';
 
         return response()->download($filePath, $fileName, [

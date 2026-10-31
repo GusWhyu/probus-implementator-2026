@@ -308,6 +308,7 @@ public static function createXlsx($tickets, array $meta = [])
     private static function buildSheetXml($tickets, array $meta = [])
     {
         $statusFilter = !empty($meta['status']) ? strtoupper($meta['status']) : 'SEMUA STATUS';
+        $userFilter = !empty($meta['user_name']) ? $meta['user_name'] : 'Semua User';
         $systemFilter = !empty($meta['system_name']) ? $meta['system_name'] : 'Semua System';
         $moduleFilter = !empty($meta['module_name']) ? $meta['module_name'] : 'Semua Module';
         $searchFilter = !empty($meta['search']) ? '"' . $meta['search'] . '"' : null;
@@ -369,6 +370,7 @@ public static function createXlsx($tickets, array $meta = [])
 
         // Row 2: Subtitle Info & Filter Terapan (Tinggi 22pt, Center & Merged A2:N2)
         $subInfo = "Filter Status: " . $statusFilter;
+        if ($userFilter !== 'Semua User') $subInfo .= "   •   User: " . $userFilter;
         if ($systemFilter !== 'Semua System') $subInfo .= "   •   System: " . $systemFilter;
         if ($moduleFilter !== 'Semua Module') $subInfo .= "   •   Module: " . $moduleFilter;
         if ($searchFilter) $subInfo .= "   •   Kata Kunci: " . $searchFilter;

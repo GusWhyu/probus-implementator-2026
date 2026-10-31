@@ -103,6 +103,16 @@
                         </select>
                         <i class="fa-solid fa-chevron-down absolute right-3.5 top-1/2 -translate-y-1/2 text-[10px] sm:text-xs text-slate-400 pointer-events-none"></i>
                     </div>
+
+                    <div class="relative flex-1 min-w-[120px] sm:flex-none sm:w-40 md:w-44">
+                        <select name="user_id" onchange="this.form.submit()" class="w-full appearance-none pl-3.5 sm:pl-4 pr-9 sm:pr-10 py-2 sm:py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200 hover:border-slate-300 dark:hover:border-slate-600 focus:outline-none focus:ring-4 focus:ring-blue-500/10 shadow-sm cursor-pointer transition-all truncate" title="Filter tiket berdasarkan pembuat tiket (User)">
+                            <option value="">Semua User</option>
+                            @foreach($users as $u)
+                                <option value="{{ $u->id }}" {{ request('user_id') == $u->id ? 'selected' : '' }}>{{ $u->name }}</option>
+                            @endforeach
+                        </select>
+                        <i class="fa-solid fa-chevron-down absolute right-3.5 top-1/2 -translate-y-1/2 text-[10px] sm:text-xs text-slate-400 pointer-events-none"></i>
+                    </div>
                     
                     <div class="relative flex-1 min-w-[120px] sm:flex-none sm:w-40 md:w-44">
                         <select name="system" onchange="this.form.submit()" class="w-full appearance-none pl-3.5 sm:pl-4 pr-9 sm:pr-10 py-2 sm:py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200 hover:border-slate-300 dark:hover:border-slate-600 focus:outline-none focus:ring-4 focus:ring-blue-500/10 shadow-sm cursor-pointer transition-all truncate">
@@ -124,7 +134,7 @@
                         <i class="fa-solid fa-chevron-down absolute right-3.5 top-1/2 -translate-y-1/2 text-[10px] sm:text-xs text-slate-400 pointer-events-none"></i>
                     </div>
 
-                    @if(request()->filled('search') || request()->filled('status') || request()->filled('system') || request()->filled('module'))
+                    @if(request()->filled('search') || request()->filled('status') || request()->filled('user_id') || request()->filled('system') || request()->filled('module'))
                     <!-- Reset Filter Button -->
                     <a href="{{ route('daftartiket') }}" class="px-3.5 py-2 sm:py-2.5 bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 dark:hover:bg-rose-900/60 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-900/60 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-1.5 transition-colors shadow-sm shrink-0" title="Reset filter & pencarian">
                         <i class="fa-solid fa-rotate-left text-xs"></i>
@@ -156,15 +166,36 @@
                 </div>
             </div>
 
-            @if(request('search'))
-            <div class="flex items-center gap-2 mt-2 px-1">
-                <span class="text-xs text-slate-500 dark:text-slate-400 font-medium">Hasil pencarian untuk:</span>
-                <span class="inline-flex items-center gap-1.5 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-xs font-bold px-2.5 py-0.5 rounded-lg border border-blue-200 dark:border-blue-800">
-                    "{{ request('search') }}"
-                    <a href="{{ route('daftartiket', request()->except('search')) }}" class="hover:text-blue-900 dark:hover:text-blue-200 ml-0.5" title="Hapus filter pencarian">
-                        <i class="fa-solid fa-xmark text-[10px]"></i>
-                    </a>
-                </span>
+            @if(request('search') || request('user_id'))
+            <div class="flex flex-wrap items-center gap-2 mt-2 px-1">
+                @if(request('search'))
+                <div class="flex items-center gap-1.5">
+                    <span class="text-xs text-slate-500 dark:text-slate-400 font-medium">Pencarian:</span>
+                    <span class="inline-flex items-center gap-1.5 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-xs font-bold px-2.5 py-0.5 rounded-lg border border-blue-200 dark:border-blue-800">
+                        "{{ request('search') }}"
+                        <a href="{{ route('daftartiket', request()->except('search')) }}" class="hover:text-blue-900 dark:hover:text-blue-200 ml-0.5" title="Hapus filter pencarian">
+                            <i class="fa-solid fa-xmark text-[10px]"></i>
+                        </a>
+                    </span>
+                </div>
+                @endif
+                @if(request('user_id'))
+                @php
+                    $selectedUser = $users->firstWhere('id', request('user_id'));
+                @endphp
+                @if($selectedUser)
+                <div class="flex items-center gap-1.5">
+                    <span class="text-xs text-slate-500 dark:text-slate-400 font-medium">User:</span>
+                    <span class="inline-flex items-center gap-1.5 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 text-xs font-bold px-2.5 py-0.5 rounded-lg border border-indigo-200 dark:border-indigo-800">
+                        <i class="fa-solid fa-user text-[10px]"></i>
+                        {{ $selectedUser->name }}
+                        <a href="{{ route('daftartiket', request()->except('user_id')) }}" class="hover:text-indigo-900 dark:hover:text-indigo-200 ml-0.5" title="Hapus filter user">
+                            <i class="fa-solid fa-xmark text-[10px]"></i>
+                        </a>
+                    </span>
+                </div>
+                @endif
+                @endif
             </div>
             @endif
         </form>
