@@ -272,6 +272,10 @@ public static function createXlsx($tickets, array $meta = [])
     <xf numFmtId="0" fontId="15" fillId="0" borderId="1" xfId="0" applyFont="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>
     <!-- 19: Ticket Number Zebra (Bold, Center, Zebra) -->
     <xf numFmtId="0" fontId="15" fillId="3" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>
+    <!-- 20: Data Left Wrapped (White) -->
+    <xf numFmtId="0" fontId="0" fillId="0" borderId="1" xfId="0" applyBorder="1" applyAlignment="1"><alignment vertical="center" wrapText="1"/></xf>
+    <!-- 21: Data Left Wrapped Zebra (#F8FAFC) -->
+    <xf numFmtId="0" fontId="0" fillId="3" borderId="1" xfId="0" applyFill="1" applyBorder="1" applyAlignment="1"><alignment vertical="center" wrapText="1"/></xf>
   </cellXfs>
 </styleSheet>';
     }
@@ -321,12 +325,14 @@ public static function createXlsx($tickets, array $meta = [])
         $progressCount = $tickets->where('status', 'PROGRESS')->count();
         $closedCount = $tickets->where('status', 'CLOSED')->count();
 
-        // 14 Kolom dengan lebar yang luas dan proporsional (Kolom rating klien telah dihilangkan)
+        // 16 Kolom dengan lebar yang luas dan proporsional (Lengkap dengan Deskripsi Masalah & Keterangan Solusi)
         $cols = [
             ['title' => 'No', 'width' => 8],
             ['title' => 'No. Tiket', 'width' => 21],
-            ['title' => 'Judul Tiket', 'width' => 38],
-            ['title' => 'Client / Outlet', 'width' => 38],
+            ['title' => 'Judul Tiket', 'width' => 36],
+            ['title' => 'Deskripsi Masalah', 'width' => 45],
+            ['title' => 'Keterangan Solusi', 'width' => 45],
+            ['title' => 'Client / Outlet', 'width' => 36],
             ['title' => 'Staff / Pelapor', 'width' => 24],
             ['title' => 'Proses By', 'width' => 24],
             ['title' => 'Advisor', 'width' => 22],
@@ -359,16 +365,16 @@ public static function createXlsx($tickets, array $meta = [])
 
         $xml .= '  <sheetData>' . "\n";
 
-        // Row 1: Header Judul Laporan (Tinggi 36pt, Center & Merged A1:N1)
+        // Row 1: Header Judul Laporan (Tinggi 36pt, Center & Merged A1:P1)
         $xml .= '    <row r="1" ht="36" customHeight="1">' . "\n";
         $xml .= '      <c r="A1" s="5" t="inlineStr"><is><t>' . self::xmlEscape('PROBUS SYSTEM - LAPORAN DAFTAR TIKET HELPDESK') . '</t></is></c>' . "\n";
-        for ($colIdx = 2; $colIdx <= 14; $colIdx++) {
+        for ($colIdx = 2; $colIdx <= 16; $colIdx++) {
             $colLetter = self::colLetter($colIdx);
             $xml .= '      <c r="' . $colLetter . '1" s="5"/>' . "\n";
         }
         $xml .= '    </row>' . "\n";
 
-        // Row 2: Subtitle Info & Filter Terapan (Tinggi 22pt, Center & Merged A2:N2)
+        // Row 2: Subtitle Info & Filter Terapan (Tinggi 22pt, Center & Merged A2:P2)
         $subInfo = "Filter Status: " . $statusFilter;
         if ($userFilter !== 'Semua User') $subInfo .= "   •   User: " . $userFilter;
         if ($systemFilter !== 'Semua System') $subInfo .= "   •   System: " . $systemFilter;
@@ -378,7 +384,7 @@ public static function createXlsx($tickets, array $meta = [])
 
         $xml .= '    <row r="2" ht="22" customHeight="1">' . "\n";
         $xml .= '      <c r="A2" s="6" t="inlineStr"><is><t>' . self::xmlEscape($subInfo) . '</t></is></c>' . "\n";
-        for ($colIdx = 2; $colIdx <= 14; $colIdx++) {
+        for ($colIdx = 2; $colIdx <= 16; $colIdx++) {
             $colLetter = self::colLetter($colIdx);
             $xml .= '      <c r="' . $colLetter . '2" s="6"/>' . "\n";
         }
@@ -388,44 +394,52 @@ public static function createXlsx($tickets, array $meta = [])
         $xml .= '    <row r="3" ht="8" customHeight="1"/>' . "\n";
 
         // Row 4: KPI Summary Cards - Label Row (Tinggi 20pt)
-        // Card 1: A4:C4 (Total), Card 2: D4:F4 (Open), Card 3: G4:I4 (Progress), Card 4: J4:L4 (Closed)
+        // Card 1: A4..D4 (Total), Card 2: E4..H4 (Open), Card 3: I4..L4 (Progress), Card 4: M4..P4 (Closed)
         $xml .= '    <row r="4" ht="20" customHeight="1">' . "\n";
-        // Total Card Header (A4..C4)
+        // Total Card Header (A4..D4)
         $xml .= '      <c r="A4" s="7" t="inlineStr"><is><t>TOTAL TIKET TERFILTER</t></is></c>' . "\n";
         $xml .= '      <c r="B4" s="7"/>' . "\n";
         $xml .= '      <c r="C4" s="7"/>' . "\n";
-        // Open Card Header (D4..F4)
-        $xml .= '      <c r="D4" s="9" t="inlineStr"><is><t>TIKET OPEN</t></is></c>' . "\n";
-        $xml .= '      <c r="E4" s="9"/>' . "\n";
+        $xml .= '      <c r="D4" s="7"/>' . "\n";
+        // Open Card Header (E4..H4)
+        $xml .= '      <c r="E4" s="9" t="inlineStr"><is><t>TIKET OPEN</t></is></c>' . "\n";
         $xml .= '      <c r="F4" s="9"/>' . "\n";
-        // Progress Card Header (G4..I4)
-        $xml .= '      <c r="G4" s="11" t="inlineStr"><is><t>TIKET IN PROGRESS</t></is></c>' . "\n";
-        $xml .= '      <c r="H4" s="11"/>' . "\n";
-        $xml .= '      <c r="I4" s="11"/>' . "\n";
-        // Closed Card Header (J4..L4)
-        $xml .= '      <c r="J4" s="13" t="inlineStr"><is><t>TIKET CLOSED</t></is></c>' . "\n";
-        $xml .= '      <c r="K4" s="13"/>' . "\n";
-        $xml .= '      <c r="L4" s="13"/>' . "\n";
+        $xml .= '      <c r="G4" s="9"/>' . "\n";
+        $xml .= '      <c r="H4" s="9"/>' . "\n";
+        // Progress Card Header (I4..L4)
+        $xml .= '      <c r="I4" s="11" t="inlineStr"><is><t>TIKET IN PROGRESS</t></is></c>' . "\n";
+        $xml .= '      <c r="J4" s="11"/>' . "\n";
+        $xml .= '      <c r="K4" s="11"/>' . "\n";
+        $xml .= '      <c r="L4" s="11"/>' . "\n";
+        // Closed Card Header (M4..P4)
+        $xml .= '      <c r="M4" s="13" t="inlineStr"><is><t>TIKET CLOSED</t></is></c>' . "\n";
+        $xml .= '      <c r="N4" s="13"/>' . "\n";
+        $xml .= '      <c r="O4" s="13"/>' . "\n";
+        $xml .= '      <c r="P4" s="13"/>' . "\n";
         $xml .= '    </row>' . "\n";
 
         // Row 5: KPI Summary Cards - Value Row (Tinggi 28pt)
         $xml .= '    <row r="5" ht="28" customHeight="1">' . "\n";
-        // Total Card Value (A5..C5)
+        // Total Card Value (A5..D5)
         $xml .= '      <c r="A5" s="8"><v>' . $totalCount . '</v></c>' . "\n";
         $xml .= '      <c r="B5" s="8"/>' . "\n";
         $xml .= '      <c r="C5" s="8"/>' . "\n";
-        // Open Card Value (D5..F5)
-        $xml .= '      <c r="D5" s="10"><v>' . $openCount . '</v></c>' . "\n";
-        $xml .= '      <c r="E5" s="10"/>' . "\n";
+        $xml .= '      <c r="D5" s="8"/>' . "\n";
+        // Open Card Value (E5..H5)
+        $xml .= '      <c r="E5" s="10"><v>' . $openCount . '</v></c>' . "\n";
         $xml .= '      <c r="F5" s="10"/>' . "\n";
-        // Progress Card Value (G5..I5)
-        $xml .= '      <c r="G5" s="12"><v>' . $progressCount . '</v></c>' . "\n";
-        $xml .= '      <c r="H5" s="12"/>' . "\n";
-        $xml .= '      <c r="I5" s="12"/>' . "\n";
-        // Closed Card Value (J5..L5)
-        $xml .= '      <c r="J5" s="14"><v>' . $closedCount . '</v></c>' . "\n";
-        $xml .= '      <c r="K5" s="14"/>' . "\n";
-        $xml .= '      <c r="L5" s="14"/>' . "\n";
+        $xml .= '      <c r="G5" s="10"/>' . "\n";
+        $xml .= '      <c r="H5" s="10"/>' . "\n";
+        // Progress Card Value (I5..L5)
+        $xml .= '      <c r="I5" s="12"><v>' . $progressCount . '</v></c>' . "\n";
+        $xml .= '      <c r="J5" s="12"/>' . "\n";
+        $xml .= '      <c r="K5" s="12"/>' . "\n";
+        $xml .= '      <c r="L5" s="12"/>' . "\n";
+        // Closed Card Value (M5..P5)
+        $xml .= '      <c r="M5" s="14"><v>' . $closedCount . '</v></c>' . "\n";
+        $xml .= '      <c r="N5" s="14"/>' . "\n";
+        $xml .= '      <c r="O5" s="14"/>' . "\n";
+        $xml .= '      <c r="P5" s="14"/>' . "\n";
         $xml .= '    </row>' . "\n";
 
         // Row 6: Blank separator (Tinggi 12pt)
@@ -447,6 +461,7 @@ public static function createXlsx($tickets, array $meta = [])
         foreach ($tickets as $t) {
             $isZebra = ($no % 2 === 0);
             $sText = $isZebra ? 2 : 0;
+            $sWrap = $isZebra ? 21 : 20;
             $sCenter = $isZebra ? 3 : 1;
             $sTck = $isZebra ? 19 : 18;
 
@@ -457,6 +472,10 @@ public static function createXlsx($tickets, array $meta = [])
             } elseif ($status === 'CLOSED') {
                 $sStatus = 17; // CLOSED (Soft Green)
             }
+
+            // Bersihkan teks HTML dan decode entitas untuk Deskripsi & Solusi
+            $deskripsi = $t->description ? trim(html_entity_decode(strip_tags($t->description), ENT_QUOTES, 'UTF-8')) : '-';
+            $solusi = $t->solusi ? trim(html_entity_decode(strip_tags($t->solusi), ENT_QUOTES, 'UTF-8')) : '-';
 
             // Client / Property & Lokasi
             $prop = $t->client->nm_out ?? $t->client->name ?? '-';
@@ -487,35 +506,39 @@ public static function createXlsx($tickets, array $meta = [])
             $insertTime = $t->created_at ? Carbon::parse($t->created_at)->format('d/m/Y H:i:s') : '-';
             $endingTime = ($status === 'CLOSED' && $t->closed_at) ? Carbon::parse($t->closed_at)->format('d/m/Y H:i:s') : '-';
 
-            $xml .= '    <row r="' . $currentRow . '" ht="24" customHeight="1">' . "\n";
+            $xml .= '    <row r="' . $currentRow . '" ht="30" customHeight="1">' . "\n";
             // A: No
             $xml .= '      <c r="A' . $currentRow . '" s="' . $sCenter . '"><v>' . $no . '</v></c>' . "\n";
             // B: No. Tiket
             $xml .= '      <c r="B' . $currentRow . '" s="' . $sTck . '" t="inlineStr"><is><t>' . self::xmlEscape($t->ticket_number) . '</t></is></c>' . "\n";
             // C: Judul Tiket
-            $xml .= '      <c r="C' . $currentRow . '" s="' . $sText . '" t="inlineStr"><is><t>' . self::xmlEscape($t->title) . '</t></is></c>' . "\n";
-            // D: Property / Pelanggan
-            $xml .= '      <c r="D' . $currentRow . '" s="' . $sText . '" t="inlineStr"><is><t>' . self::xmlEscape($prop) . '</t></is></c>' . "\n";
-            // E: Staff / Pelapor
-            $xml .= '      <c r="E' . $currentRow . '" s="' . $sText . '" t="inlineStr"><is><t>' . self::xmlEscape($staff) . '</t></is></c>' . "\n";
-            // F: Petugas (Proses By)
-            $xml .= '      <c r="F' . $currentRow . '" s="' . $sText . '" t="inlineStr"><is><t>' . self::xmlEscape($prosesBy) . '</t></is></c>' . "\n";
-            // G: Advisor
-            $xml .= '      <c r="G' . $currentRow . '" s="' . $sText . '" t="inlineStr"><is><t>' . self::xmlEscape($advisor) . '</t></is></c>' . "\n";
-            // H: System
-            $xml .= '      <c r="H' . $currentRow . '" s="' . $sCenter . '" t="inlineStr"><is><t>' . self::xmlEscape($sys) . '</t></is></c>' . "\n";
-            // I: Module
-            $xml .= '      <c r="I' . $currentRow . '" s="' . $sCenter . '" t="inlineStr"><is><t>' . self::xmlEscape($mod) . '</t></is></c>' . "\n";
-            // J: Tipe Penanganan
-            $xml .= '      <c r="J' . $currentRow . '" s="' . $sCenter . '" t="inlineStr"><is><t>' . self::xmlEscape($tipe) . '</t></is></c>' . "\n";
-            // K: Status (with color badge)
-            $xml .= '      <c r="K' . $currentRow . '" s="' . $sStatus . '" t="inlineStr"><is><t>' . self::xmlEscape($status) . '</t></is></c>' . "\n";
-            // L: Lama Pengerjaan
-            $xml .= '      <c r="L' . $currentRow . '" s="' . $sCenter . '" t="inlineStr"><is><t>' . self::xmlEscape($duration) . '</t></is></c>' . "\n";
-            // M: Waktu Masuk (Insert Time)
-            $xml .= '      <c r="M' . $currentRow . '" s="' . $sCenter . '" t="inlineStr"><is><t>' . self::xmlEscape($insertTime) . '</t></is></c>' . "\n";
-            // N: Waktu Selesai (Ending Time)
-            $xml .= '      <c r="N' . $currentRow . '" s="' . $sCenter . '" t="inlineStr"><is><t>' . self::xmlEscape($endingTime) . '</t></is></c>' . "\n";
+            $xml .= '      <c r="C' . $currentRow . '" s="' . $sWrap . '" t="inlineStr"><is><t>' . self::xmlEscape($t->title) . '</t></is></c>' . "\n";
+            // D: Deskripsi Masalah
+            $xml .= '      <c r="D' . $currentRow . '" s="' . $sWrap . '" t="inlineStr"><is><t>' . self::xmlEscape($deskripsi) . '</t></is></c>' . "\n";
+            // E: Keterangan Solusi
+            $xml .= '      <c r="E' . $currentRow . '" s="' . $sWrap . '" t="inlineStr"><is><t>' . self::xmlEscape($solusi) . '</t></is></c>' . "\n";
+            // F: Property / Pelanggan
+            $xml .= '      <c r="F' . $currentRow . '" s="' . $sText . '" t="inlineStr"><is><t>' . self::xmlEscape($prop) . '</t></is></c>' . "\n";
+            // G: Staff / Pelapor
+            $xml .= '      <c r="G' . $currentRow . '" s="' . $sText . '" t="inlineStr"><is><t>' . self::xmlEscape($staff) . '</t></is></c>' . "\n";
+            // H: Petugas (Proses By)
+            $xml .= '      <c r="H' . $currentRow . '" s="' . $sText . '" t="inlineStr"><is><t>' . self::xmlEscape($prosesBy) . '</t></is></c>' . "\n";
+            // I: Advisor
+            $xml .= '      <c r="I' . $currentRow . '" s="' . $sText . '" t="inlineStr"><is><t>' . self::xmlEscape($advisor) . '</t></is></c>' . "\n";
+            // J: System
+            $xml .= '      <c r="J' . $currentRow . '" s="' . $sCenter . '" t="inlineStr"><is><t>' . self::xmlEscape($sys) . '</t></is></c>' . "\n";
+            // K: Module
+            $xml .= '      <c r="K' . $currentRow . '" s="' . $sCenter . '" t="inlineStr"><is><t>' . self::xmlEscape($mod) . '</t></is></c>' . "\n";
+            // L: Tipe Penanganan
+            $xml .= '      <c r="L' . $currentRow . '" s="' . $sCenter . '" t="inlineStr"><is><t>' . self::xmlEscape($tipe) . '</t></is></c>' . "\n";
+            // M: Status (with color badge)
+            $xml .= '      <c r="M' . $currentRow . '" s="' . $sStatus . '" t="inlineStr"><is><t>' . self::xmlEscape($status) . '</t></is></c>' . "\n";
+            // N: Lama Pengerjaan
+            $xml .= '      <c r="N' . $currentRow . '" s="' . $sCenter . '" t="inlineStr"><is><t>' . self::xmlEscape($duration) . '</t></is></c>' . "\n";
+            // O: Waktu Masuk (Insert Time)
+            $xml .= '      <c r="O' . $currentRow . '" s="' . $sCenter . '" t="inlineStr"><is><t>' . self::xmlEscape($insertTime) . '</t></is></c>' . "\n";
+            // P: Waktu Selesai (Ending Time)
+            $xml .= '      <c r="P' . $currentRow . '" s="' . $sCenter . '" t="inlineStr"><is><t>' . self::xmlEscape($endingTime) . '</t></is></c>' . "\n";
             $xml .= '    </row>' . "\n";
 
             $currentRow++;
@@ -524,18 +547,18 @@ public static function createXlsx($tickets, array $meta = [])
 
         $xml .= '  </sheetData>' . "\n";
 
-        // Merge cells untuk Judul (A1:N1), Subtitle (A2:N2), dan KPI Cards (A4..L5)
+        // Merge cells untuk Judul (A1:P1), Subtitle (A2:P2), dan KPI Cards (A4..P5)
         $xml .= '  <mergeCells count="10">' . "\n";
-        $xml .= '    <mergeCell ref="A1:N1"/>' . "\n";
-        $xml .= '    <mergeCell ref="A2:N2"/>' . "\n";
-        $xml .= '    <mergeCell ref="A4:C4"/>' . "\n";
-        $xml .= '    <mergeCell ref="A5:C5"/>' . "\n";
-        $xml .= '    <mergeCell ref="D4:F4"/>' . "\n";
-        $xml .= '    <mergeCell ref="D5:F5"/>' . "\n";
-        $xml .= '    <mergeCell ref="G4:I4"/>' . "\n";
-        $xml .= '    <mergeCell ref="G5:I5"/>' . "\n";
-        $xml .= '    <mergeCell ref="J4:L4"/>' . "\n";
-        $xml .= '    <mergeCell ref="J5:L5"/>' . "\n";
+        $xml .= '    <mergeCell ref="A1:P1"/>' . "\n";
+        $xml .= '    <mergeCell ref="A2:P2"/>' . "\n";
+        $xml .= '    <mergeCell ref="A4:D4"/>' . "\n";
+        $xml .= '    <mergeCell ref="A5:D5"/>' . "\n";
+        $xml .= '    <mergeCell ref="E4:H4"/>' . "\n";
+        $xml .= '    <mergeCell ref="E5:H5"/>' . "\n";
+        $xml .= '    <mergeCell ref="I4:L4"/>' . "\n";
+        $xml .= '    <mergeCell ref="I5:L5"/>' . "\n";
+        $xml .= '    <mergeCell ref="M4:P4"/>' . "\n";
+        $xml .= '    <mergeCell ref="M5:P5"/>' . "\n";
         $xml .= '  </mergeCells>' . "\n";
 
         $xml .= '</worksheet>';
