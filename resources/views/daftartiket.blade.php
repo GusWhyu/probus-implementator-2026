@@ -99,7 +99,7 @@
                 {{-- Action Buttons --}}
                 <div class="flex items-center gap-2.5 shrink-0 justify-between sm:justify-end">
                     <!-- Download Excel Button -->
-                    <a href="{{ route('daftartiket.export', request()->except('page')) }}" 
+                    <a href="{{ route('daftartiket.export', array_merge(request()->except('page'), ['_v' => time()])) }}" 
                        class="inline-flex items-center gap-2 px-3.5 sm:px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white border border-emerald-500 rounded-xl text-xs sm:text-sm font-bold transition-all shadow-sm shadow-emerald-600/20 hover:shadow-md hover:shadow-emerald-600/30 shrink-0 transform hover:-translate-y-0.5" 
                        title="Download data tiket dalam format Excel sesuai filter aktif saat ini">
                         <i class="fa-solid fa-file-excel text-sm"></i>

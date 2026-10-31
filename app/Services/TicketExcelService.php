@@ -708,8 +708,12 @@ public static function createXlsx($tickets, array $meta = [])
         }
         $xml .= '    </row>' . "\n";
 
-        // Row 3: Blank
-        $xml .= '    <row r="3" ht="10" customHeight="1"/>' . "\n";
+        // Row 3: Blank separator (Tinggi 10pt) dengan sel lengkap agar grid OpenXML konsisten
+        $xml .= '    <row r="3" ht="10" customHeight="1">' . "\n";
+        for ($colIdx = 1; $colIdx <= 12; $colIdx++) {
+            $xml .= '      <c r="' . self::colLetter($colIdx) . '3"/>' . "\n";
+        }
+        $xml .= '    </row>' . "\n";
 
         // Row 4: KPI Summary Cards - Label Row (Tinggi 18pt)
         if ($isAdvice) {
@@ -750,8 +754,12 @@ public static function createXlsx($tickets, array $meta = [])
         $xml .= '      <c r="L5" s="10"/>' . "\n";
         $xml .= '    </row>' . "\n";
 
-        // Row 6: Blank separator
-        $xml .= '    <row r="6" ht="12" customHeight="1"/>' . "\n";
+        // Row 6: Blank separator (Tinggi 12pt) dengan sel lengkap agar grid OpenXML konsisten
+        $xml .= '    <row r="6" ht="12" customHeight="1">' . "\n";
+        for ($colIdx = 1; $colIdx <= 12; $colIdx++) {
+            $xml .= '      <c r="' . self::colLetter($colIdx) . '6"/>' . "\n";
+        }
+        $xml .= '    </row>' . "\n";
 
         // Row 7: Main Table Headers (Tinggi 32pt)
         $headerRow = 7;
