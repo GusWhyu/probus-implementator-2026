@@ -78,12 +78,15 @@
         </div>
         
         {{-- Filters & Search --}}
-        <form method="GET" action="{{ route('daftartiket') }}" class="mb-6">
+        <form method="GET" action="{{ route('daftartiket') }}" class="mb-6 space-y-3">
             <input type="hidden" name="view" value="{{ request('view', 'list') }}">
-            <div class="flex flex-col lg:flex-row gap-4">
-                <div class="relative flex-1">
-                    <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                    <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari ID tiket, judul, user, atau pelanggan..." autocomplete="off" class="w-full pl-11 pr-10 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-200 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all shadow-sm">
+            
+            {{-- Row 1: Search Bar & Primary Actions (Download Excel & View Mode) --}}
+            <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3">
+                {{-- Search Bar (Takes full available width, never crushed) --}}
+                <div class="relative flex-1 min-w-0">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+                    <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari ID tiket, judul, user, atau pelanggan..." autocomplete="off" class="w-full pl-10 pr-10 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-200 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all shadow-sm">
                     @if(request('search'))
                     <a href="{{ route('daftartiket', request()->except('search')) }}" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1 rounded-full transition-colors" title="Hapus pencarian">
                         <i class="fa-solid fa-circle-xmark text-sm"></i>
@@ -92,82 +95,92 @@
                     {{-- Invisible submit button to allow Enter to submit search --}}
                     <button type="submit" class="hidden"></button>
                 </div>
-                
-                <div class="flex flex-wrap items-center gap-2.5 sm:gap-3">
-                    <div class="relative flex-1 min-w-[120px] sm:flex-none sm:w-40 md:w-44">
-                        <select name="status" onchange="this.form.submit()" class="w-full appearance-none pl-3.5 sm:pl-4 pr-9 sm:pr-10 py-2 sm:py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200 hover:border-slate-300 dark:hover:border-slate-600 focus:outline-none focus:ring-4 focus:ring-blue-500/10 shadow-sm cursor-pointer transition-all truncate">
-                            <option value="">Semua Status</option>
-                            @foreach(['OPEN', 'PROGRESS', 'CLOSED'] as $st)
-                                <option value="{{ $st }}" {{ request('status') == $st ? 'selected' : '' }}>{{ ucfirst(strtolower($st)) }}</option>
-                            @endforeach
-                        </select>
-                        <i class="fa-solid fa-chevron-down absolute right-3.5 top-1/2 -translate-y-1/2 text-[10px] sm:text-xs text-slate-400 pointer-events-none"></i>
-                    </div>
 
-                    <div class="relative flex-1 min-w-[120px] sm:flex-none sm:w-40 md:w-44">
-                        <select name="user_id" onchange="this.form.submit()" class="w-full appearance-none pl-3.5 sm:pl-4 pr-9 sm:pr-10 py-2 sm:py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200 hover:border-slate-300 dark:hover:border-slate-600 focus:outline-none focus:ring-4 focus:ring-blue-500/10 shadow-sm cursor-pointer transition-all truncate" title="Filter tiket berdasarkan pembuat tiket (User)">
-                            <option value="">Semua User</option>
-                            @foreach($users as $u)
-                                <option value="{{ $u->id }}" {{ request('user_id') == $u->id ? 'selected' : '' }}>{{ $u->name }}</option>
-                            @endforeach
-                        </select>
-                        <i class="fa-solid fa-chevron-down absolute right-3.5 top-1/2 -translate-y-1/2 text-[10px] sm:text-xs text-slate-400 pointer-events-none"></i>
-                    </div>
-                    
-                    <div class="relative flex-1 min-w-[120px] sm:flex-none sm:w-40 md:w-44">
-                        <select name="system" onchange="this.form.submit()" class="w-full appearance-none pl-3.5 sm:pl-4 pr-9 sm:pr-10 py-2 sm:py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200 hover:border-slate-300 dark:hover:border-slate-600 focus:outline-none focus:ring-4 focus:ring-blue-500/10 shadow-sm cursor-pointer transition-all truncate">
-                            <option value="">Semua System</option>
-                            @foreach($systems as $sys)
-                                <option value="{{ $sys->id }}" {{ request('system') == $sys->id ? 'selected' : '' }}>{{ $sys->name }}</option>
-                            @endforeach
-                        </select>
-                        <i class="fa-solid fa-chevron-down absolute right-3.5 top-1/2 -translate-y-1/2 text-[10px] sm:text-xs text-slate-400 pointer-events-none"></i>
-                    </div>
-                    
-                    <div class="relative flex-1 min-w-[120px] sm:flex-none sm:w-40 md:w-44">
-                        <select name="module" onchange="this.form.submit()" class="w-full appearance-none pl-3.5 sm:pl-4 pr-9 sm:pr-10 py-2 sm:py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200 hover:border-slate-300 dark:hover:border-slate-600 focus:outline-none focus:ring-4 focus:ring-blue-500/10 shadow-sm cursor-pointer transition-all truncate">
-                            <option value="">Semua Module</option>
-                            @foreach($modules as $mod)
-                                <option value="{{ $mod->id }}" {{ request('module') == $mod->id ? 'selected' : '' }}>{{ $mod->name }}</option>
-                            @endforeach
-                        </select>
-                        <i class="fa-solid fa-chevron-down absolute right-3.5 top-1/2 -translate-y-1/2 text-[10px] sm:text-xs text-slate-400 pointer-events-none"></i>
-                    </div>
-
-                    @if(request()->filled('search') || request()->filled('status') || request()->filled('user_id') || request()->filled('system') || request()->filled('module'))
-                    <!-- Reset Filter Button -->
-                    <a href="{{ route('daftartiket') }}" class="px-3.5 py-2 sm:py-2.5 bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 dark:hover:bg-rose-900/60 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-900/60 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-1.5 transition-colors shadow-sm shrink-0" title="Reset filter & pencarian">
-                        <i class="fa-solid fa-rotate-left text-xs"></i>
-                        <span class="hidden md:inline">Reset</span>
-                    </a>
-                    @endif
-
-                    <!-- Download Excel Button (Dapat diakses oleh seluruh user) -->
+                {{-- Action Buttons --}}
+                <div class="flex items-center gap-2.5 shrink-0 justify-between sm:justify-end">
+                    <!-- Download Excel Button -->
                     <a href="{{ route('daftartiket.export', request()->except('page')) }}" 
-                       class="inline-flex items-center gap-1.5 px-3.5 py-2 sm:py-2.5 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white border border-emerald-500 rounded-xl text-xs sm:text-sm font-bold transition-all shadow-sm shadow-emerald-600/20 hover:shadow-md hover:shadow-emerald-600/30 shrink-0 transform hover:-translate-y-0.5" 
+                       class="inline-flex items-center gap-2 px-3.5 sm:px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white border border-emerald-500 rounded-xl text-xs sm:text-sm font-bold transition-all shadow-sm shadow-emerald-600/20 hover:shadow-md hover:shadow-emerald-600/30 shrink-0 transform hover:-translate-y-0.5" 
                        title="Download data tiket dalam format Excel sesuai filter aktif saat ini">
                         <i class="fa-solid fa-file-excel text-sm"></i>
                         <span>Download Excel</span>
                         @if(request('status'))
-                            <span class="bg-emerald-800/60 text-emerald-100 text-[10px] font-extrabold px-1.5 py-0.5 rounded-md uppercase ml-0.5">
+                            <span class="bg-emerald-800/60 text-emerald-100 text-[10px] font-extrabold px-1.5 py-0.5 rounded-md uppercase">
                                 {{ request('status') }}
                             </span>
                         @endif
                     </a>
                     
+                    <!-- View Mode Toggle (List / Grid) -->
                     <div class="flex items-center bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-1 shadow-sm shrink-0">
-                        <a href="{{ request()->fullUrlWithQuery(['view' => 'list']) }}" class="w-8 h-8 rounded-lg {{ request('view', 'list') == 'list' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700' }} flex items-center justify-center transition-colors">
-                            <i class="fa-solid fa-list-ul"></i>
+                        <a href="{{ request()->fullUrlWithQuery(['view' => 'list']) }}" class="w-8 h-8 rounded-lg {{ request('view', 'list') == 'list' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700' }} flex items-center justify-center transition-colors" title="Tampilan Tabel">
+                            <i class="fa-solid fa-list-ul text-xs"></i>
                         </a>
-                        <a href="{{ request()->fullUrlWithQuery(['view' => 'grid']) }}" class="w-8 h-8 rounded-lg {{ request('view') == 'grid' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700' }} flex items-center justify-center transition-colors">
-                            <i class="fa-solid fa-border-all"></i>
+                        <a href="{{ request()->fullUrlWithQuery(['view' => 'grid']) }}" class="w-8 h-8 rounded-lg {{ request('view') == 'grid' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700' }} flex items-center justify-center transition-colors" title="Tampilan Grid / Kartu">
+                            <i class="fa-solid fa-border-all text-xs"></i>
                         </a>
                     </div>
                 </div>
             </div>
 
+            {{-- Row 2: Filter Dropdowns (Status, User, System, Module) & Reset --}}
+            <div class="flex flex-wrap items-center gap-2.5 sm:gap-3">
+                {{-- Filter Status --}}
+                <div class="relative flex-1 min-w-[130px] sm:min-w-[140px]">
+                    <select name="status" onchange="this.form.submit()" class="w-full appearance-none pl-3.5 pr-8 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200 hover:border-slate-300 dark:hover:border-slate-600 focus:outline-none focus:ring-4 focus:ring-blue-500/10 shadow-sm cursor-pointer transition-all truncate">
+                        <option value="">Semua Status</option>
+                        @foreach(['OPEN', 'PROGRESS', 'CLOSED'] as $st)
+                            <option value="{{ $st }}" {{ request('status') == $st ? 'selected' : '' }}>{{ ucfirst(strtolower($st)) }}</option>
+                        @endforeach
+                    </select>
+                    <i class="fa-solid fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-slate-400 pointer-events-none"></i>
+                </div>
+
+                {{-- Filter User (Pembuat Tiket) --}}
+                <div class="relative flex-1 min-w-[140px] sm:min-w-[160px]">
+                    <select name="user_id" onchange="this.form.submit()" class="w-full appearance-none pl-3.5 pr-8 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200 hover:border-slate-300 dark:hover:border-slate-600 focus:outline-none focus:ring-4 focus:ring-blue-500/10 shadow-sm cursor-pointer transition-all truncate" title="Filter tiket berdasarkan pembuat tiket (User)">
+                        <option value="">Semua User</option>
+                        @foreach($users as $u)
+                            <option value="{{ $u->id }}" {{ request('user_id') == $u->id ? 'selected' : '' }}>{{ $u->name }}</option>
+                        @endforeach
+                    </select>
+                    <i class="fa-solid fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-slate-400 pointer-events-none"></i>
+                </div>
+                
+                {{-- Filter System --}}
+                <div class="relative flex-1 min-w-[130px] sm:min-w-[140px]">
+                    <select name="system" onchange="this.form.submit()" class="w-full appearance-none pl-3.5 pr-8 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200 hover:border-slate-300 dark:hover:border-slate-600 focus:outline-none focus:ring-4 focus:ring-blue-500/10 shadow-sm cursor-pointer transition-all truncate">
+                        <option value="">Semua System</option>
+                        @foreach($systems as $sys)
+                            <option value="{{ $sys->id }}" {{ request('system') == $sys->id ? 'selected' : '' }}>{{ $sys->name }}</option>
+                        @endforeach
+                    </select>
+                    <i class="fa-solid fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-slate-400 pointer-events-none"></i>
+                </div>
+                
+                {{-- Filter Module --}}
+                <div class="relative flex-1 min-w-[130px] sm:min-w-[140px]">
+                    <select name="module" onchange="this.form.submit()" class="w-full appearance-none pl-3.5 pr-8 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200 hover:border-slate-300 dark:hover:border-slate-600 focus:outline-none focus:ring-4 focus:ring-blue-500/10 shadow-sm cursor-pointer transition-all truncate">
+                        <option value="">Semua Module</option>
+                        @foreach($modules as $mod)
+                            <option value="{{ $mod->id }}" {{ request('module') == $mod->id ? 'selected' : '' }}>{{ $mod->name }}</option>
+                        @endforeach
+                    </select>
+                    <i class="fa-solid fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-slate-400 pointer-events-none"></i>
+                </div>
+
+                {{-- Reset Filter Button --}}
+                @if(request()->filled('search') || request()->filled('status') || request()->filled('user_id') || request()->filled('system') || request()->filled('module'))
+                <a href="{{ route('daftartiket') }}" class="px-3.5 py-2 bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 dark:hover:bg-rose-900/60 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-900/60 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-1.5 transition-colors shadow-sm shrink-0" title="Reset semua filter & pencarian">
+                    <i class="fa-solid fa-rotate-left text-xs"></i>
+                    <span>Reset Filter</span>
+                </a>
+                @endif
+            </div>
+
+            {{-- Active Filter Pills --}}
             @if(request('search') || request('user_id'))
-            <div class="flex flex-wrap items-center gap-2 mt-2 px-1">
+            <div class="flex flex-wrap items-center gap-2 pt-1 px-1">
                 @if(request('search'))
                 <div class="flex items-center gap-1.5">
                     <span class="text-xs text-slate-500 dark:text-slate-400 font-medium">Pencarian:</span>
