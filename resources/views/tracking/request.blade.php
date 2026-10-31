@@ -36,7 +36,7 @@
     }
 @endphp
 
-<div class="space-y-6 sm:space-y-8 lg:space-y-9">
+<div class="space-y-6 sm:space-y-8 lg:space-y-9 pb-12 sm:pb-16">
 
     <!-- Top Breadcrumb & Handler Header Card -->
     <div class="bg-white dark:bg-[#151f38] rounded-2xl sm:rounded-3xl p-4 sm:p-6 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-3.5 sm:space-y-4">
@@ -274,16 +274,15 @@
                         {{ $isTrainerTesting ? 'Sedang Diuji' : ($isTestingPassed ? 'Terverifikasi' : ($isClosed ? 'Rilis' : 'Estimasi')) }}
                     </span>
                 </div>
-                </div>
             </div>
         </div>
     </div>
 
     <!-- Main Content Grid -->
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 lg:gap-9 xl:gap-10 items-start">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 lg:gap-10 xl:gap-12 items-start mt-6 sm:mt-8 lg:mt-9">
 
-        <!-- Left Column: Details & Updates & Discussion (7 cols on lg, 8 cols on xl+) -->
-        <div class="lg:col-span-7 xl:col-span-8 space-y-6 sm:space-y-8">
+        <!-- Left Column: Details & Updates & Discussion -->
+        <div class="lg:col-span-7 xl:col-span-7 2xl:col-span-7 space-y-6 sm:space-y-8">
 
             <!-- Problem Description Card -->
             <div class="bg-gradient-to-br from-blue-500/10 via-blue-500/5 to-transparent dark:from-blue-950/40 dark:via-[#151f38] dark:to-[#151f38] rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 border border-blue-200/80 dark:border-blue-800/60 shadow-sm relative overflow-hidden">
@@ -443,8 +442,8 @@
 
         </div>
 
-        <!-- Right Column: Metadata Details (5 cols on lg, 4 cols on xl+) -->
-        <div class="lg:col-span-5 xl:col-span-4 space-y-6 sm:space-y-8">
+        <!-- Right Column: Metadata Details -->
+        <div class="lg:col-span-5 xl:col-span-5 2xl:col-span-5 space-y-6 sm:space-y-8">
 
             <!-- Detail Information Card -->
             <div class="bg-white dark:bg-[#151f38] rounded-2xl sm:rounded-3xl p-4 sm:p-6 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-4 sm:space-y-5">
@@ -550,7 +549,7 @@
     </div>
 
     <!-- Real-time Live Sync Indicator Pill -->
-    <div id="realtime-status-pill" class="fixed bottom-4 left-4 z-40 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border border-slate-200/90 dark:border-slate-800 px-3 py-1.5 rounded-full shadow-lg flex items-center gap-2 text-xs font-bold text-slate-600 dark:text-slate-300 transition-all">
+    <div id="realtime-status-pill" class="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border border-slate-200/90 dark:border-slate-800 px-3.5 py-1.5 rounded-full shadow-xl flex items-center gap-2 text-xs font-bold text-slate-600 dark:text-slate-300 transition-all">
         <span class="relative flex h-2 w-2">
             <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
             <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>

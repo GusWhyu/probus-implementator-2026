@@ -15,7 +15,7 @@
     $progressPercent = $isClosed ? 100 : ($statusUpper === 'PROGRESS' ? 60 : 25);
 @endphp
 
-<div class="space-y-6 sm:space-y-8 lg:space-y-9">
+<div class="space-y-6 sm:space-y-8 lg:space-y-9 pb-12 sm:pb-16">
 
     <!-- Top Breadcrumb & Handler Header Card -->
     <div class="bg-white dark:bg-[#151f38] rounded-2xl sm:rounded-3xl p-4 sm:p-6 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-3.5 sm:space-y-4">
@@ -233,10 +233,10 @@
     </div>
 
     <!-- Main Content Grid -->
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 lg:gap-9 xl:gap-10 items-start">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 lg:gap-10 xl:gap-12 items-start mt-6 sm:mt-8 lg:mt-9">
 
-        <!-- Left Column: Details & Solution & Discussion (7 cols on lg, 8 cols on xl+) -->
-        <div class="lg:col-span-7 xl:col-span-8 space-y-6 sm:space-y-8">
+        <!-- Left Column: Details & Solution & Discussion -->
+        <div class="lg:col-span-7 xl:col-span-7 2xl:col-span-7 space-y-6 sm:space-y-8">
 
             <!-- Problem Description Card -->
             <div class="bg-gradient-to-br from-blue-500/10 via-blue-500/5 to-transparent dark:from-blue-950/40 dark:via-[#151f38] dark:to-[#151f38] rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 border border-blue-200/80 dark:border-blue-800/60 shadow-sm relative overflow-hidden">
@@ -320,8 +320,8 @@
 
         </div>
 
-        <!-- Right Column: Metadata Details (5 cols on lg, 4 cols on xl+) -->
-        <div class="lg:col-span-5 xl:col-span-4 space-y-6 sm:space-y-8">
+        <!-- Right Column: Metadata Details -->
+        <div class="lg:col-span-5 xl:col-span-5 2xl:col-span-5 space-y-6 sm:space-y-8">
 
             <!-- Detail Information Card -->
             <div class="bg-white dark:bg-[#151f38] rounded-2xl sm:rounded-3xl p-4 sm:p-6 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-4 sm:space-y-5">
