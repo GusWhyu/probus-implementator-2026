@@ -232,14 +232,14 @@ public static function createXlsx($tickets, array $meta = [])
     </border>
   </borders>
   <cellXfs count="22">
-    <!-- 0: Data Left (White) -->
-    <xf numFmtId="0" fontId="0" fillId="0" borderId="1" xfId="0" applyBorder="1" applyAlignment="1"><alignment vertical="center"/></xf>
-    <!-- 1: Data Center (White) -->
-    <xf numFmtId="0" fontId="0" fillId="0" borderId="1" xfId="0" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>
-    <!-- 2: Data Left (Zebra #F8FAFC) -->
-    <xf numFmtId="0" fontId="0" fillId="3" borderId="1" xfId="0" applyFill="1" applyBorder="1" applyAlignment="1"><alignment vertical="center"/></xf>
-    <!-- 3: Data Center (Zebra #F8FAFC) -->
-    <xf numFmtId="0" fontId="0" fillId="3" borderId="1" xfId="0" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>
+    <!-- 0: Data Left (White, Top Alignment) -->
+    <xf numFmtId="0" fontId="0" fillId="0" borderId="1" xfId="0" applyBorder="1" applyAlignment="1"><alignment vertical="top"/></xf>
+    <!-- 1: Data Center (White, Top Alignment) -->
+    <xf numFmtId="0" fontId="0" fillId="0" borderId="1" xfId="0" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="top"/></xf>
+    <!-- 2: Data Left (Zebra #F8FAFC, Top Alignment) -->
+    <xf numFmtId="0" fontId="0" fillId="3" borderId="1" xfId="0" applyFill="1" applyBorder="1" applyAlignment="1"><alignment vertical="top"/></xf>
+    <!-- 3: Data Center (Zebra #F8FAFC, Top Alignment) -->
+    <xf numFmtId="0" fontId="0" fillId="3" borderId="1" xfId="0" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="top"/></xf>
     <!-- 4: Table Header (Navy #0F172A, White Bold, Center, Wrapped) -->
     <xf numFmtId="0" fontId="1" fillId="2" borderId="2" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center" wrapText="1"/></xf>
     <!-- 5: Title (Bold 17pt Royal Blue, Center) -->
@@ -262,16 +262,16 @@ public static function createXlsx($tickets, array $meta = [])
     <xf numFmtId="0" fontId="10" fillId="6" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>
     <!-- 14: KPI Closed Value (Bold 16pt Green, Soft Green fill, border, center) -->
     <xf numFmtId="0" fontId="11" fillId="6" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>
-    <!-- 15: Status OPEN (Blue fill, Blue text, Center, border) -->
-    <xf numFmtId="0" fontId="12" fillId="4" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>
-    <!-- 16: Status PROGRESS (Amber fill, Amber text, Center, border) -->
-    <xf numFmtId="0" fontId="13" fillId="5" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>
-    <!-- 17: Status CLOSED (Green fill, Green text, Center, border) -->
-    <xf numFmtId="0" fontId="14" fillId="6" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>
-    <!-- 18: Ticket Number (Bold, Center, White) -->
-    <xf numFmtId="0" fontId="15" fillId="0" borderId="1" xfId="0" applyFont="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>
-    <!-- 19: Ticket Number Zebra (Bold, Center, Zebra) -->
-    <xf numFmtId="0" fontId="15" fillId="3" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>
+    <!-- 15: Status OPEN (Blue fill, Blue text, Center, Top) -->
+    <xf numFmtId="0" fontId="12" fillId="4" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="top"/></xf>
+    <!-- 16: Status PROGRESS (Amber fill, Amber text, Center, Top) -->
+    <xf numFmtId="0" fontId="13" fillId="5" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="top"/></xf>
+    <!-- 17: Status CLOSED (Green fill, Green text, Center, Top) -->
+    <xf numFmtId="0" fontId="14" fillId="6" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="top"/></xf>
+    <!-- 18: Ticket Number (Bold, Center, White, Top) -->
+    <xf numFmtId="0" fontId="15" fillId="0" borderId="1" xfId="0" applyFont="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="top"/></xf>
+    <!-- 19: Ticket Number Zebra (Bold, Center, Zebra, Top) -->
+    <xf numFmtId="0" fontId="15" fillId="3" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="top"/></xf>
     <!-- 20: Data Left Wrapped (White, Top Alignment) -->
     <xf numFmtId="0" fontId="0" fillId="0" borderId="1" xfId="0" applyBorder="1" applyAlignment="1"><alignment vertical="top" wrapText="1"/></xf>
     <!-- 21: Data Left Wrapped Zebra (#F8FAFC, Top Alignment) -->
@@ -315,7 +315,8 @@ public static function createXlsx($tickets, array $meta = [])
         if (empty($text) || $text === '-') return 1;
         $lines = explode("\n", $text);
         $total = 0;
-        $charsPerLine = max(10, (int)($colWidth * 0.95));
+        // Faktor 0.78 untuk mengantisipasi pemotongan kata (word wrap) pada spasi dan font proporsional
+        $charsPerLine = max(10, (int)($colWidth * 0.78));
         foreach ($lines as $line) {
             $len = mb_strlen($line);
             if ($len === 0) {
@@ -369,20 +370,20 @@ public static function createXlsx($tickets, array $meta = [])
         $progressCount = $tickets->where('status', 'PROGRESS')->count();
         $closedCount = $tickets->where('status', 'CLOSED')->count();
 
-        // 15 Kolom dengan lebar yang luas, proporsional, dan adaptif agar tidak ada teks terpotong
+        // 15 Kolom dengan urutan: Deskripsi Masalah & Solusi diletakkan setelah Tipe Penanganan
         $cols = [
             ['title' => 'No', 'width' => 8],
-            ['title' => 'No. Tiket', 'width' => 21],
+            ['title' => 'No. Tiket', 'width' => 22],
             ['title' => 'Judul Tiket', 'width' => 38],
-            ['title' => 'Deskripsi Masalah', 'width' => 55],
-            ['title' => 'Keterangan Solusi', 'width' => 55],
-            ['title' => 'Client / Outlet', 'width' => 40],
+            ['title' => 'Client / Outlet', 'width' => 42],
             ['title' => 'Staff Yang Mengerjakan', 'width' => 28],
             ['title' => 'Advisor', 'width' => 22],
             ['title' => 'System', 'width' => 16],
             ['title' => 'Module', 'width' => 18],
             ['title' => 'Tipe Penanganan', 'width' => 18],
-            ['title' => 'Status', 'width' => 15],
+            ['title' => 'Deskripsi Masalah', 'width' => 55],
+            ['title' => 'Keterangan Solusi', 'width' => 55],
+            ['title' => 'Status', 'width' => 16],
             ['title' => 'Lama Pengerjaan', 'width' => 22],
             ['title' => 'Waktu Masuk (Insert Time)', 'width' => 22],
             ['title' => 'Waktu Selesai (Ending Time)', 'width' => 22],
@@ -488,7 +489,7 @@ public static function createXlsx($tickets, array $meta = [])
 
         // Row 7: Main Table Headers (Tinggi 32pt, Style 4: Dark Navy & White Bold)
         $headerRow = 7;
-        $xml .= '    <row r="' . $headerRow . '" ht="32" customHeight="1">' . "\n";
+        $xml .= '    <row r="' . $headerRow . '" ht="36" customHeight="1">' . "\n";
         foreach ($cols as $idx => $col) {
             $colLetter = self::colLetter($idx + 1);
             $xml .= '      <c r="' . $colLetter . $headerRow . '" s="4" t="inlineStr"><is><t>' . self::xmlEscape($col['title']) . '</t></is></c>' . "\n";
@@ -544,14 +545,14 @@ public static function createXlsx($tickets, array $meta = [])
             $insertTime = $t->created_at ? Carbon::parse($t->created_at)->format('d/m/Y H:i:s') : '-';
             $endingTime = ($status === 'CLOSED' && $t->closed_at) ? Carbon::parse($t->closed_at)->format('d/m/Y H:i:s') : '-';
 
-            // Hitung estimasi tinggi baris dinamis agar seluruh baris teks tampil utuh
+            // Hitung estimasi tinggi baris dinamis agar seluruh baris teks tampil utuh dan lega
             $maxLines = max(
                 self::estimateLines($t->title, 38),
+                self::estimateLines($prop, 42),
                 self::estimateLines($deskripsi, 55),
-                self::estimateLines($solusi, 55),
-                self::estimateLines($prop, 40)
+                self::estimateLines($solusi, 55)
             );
-            $rowHeight = max(26, ($maxLines * 16) + 6);
+            $rowHeight = max(28, ($maxLines * 20) + 8);
 
             // ht menyediakan tinggi precalculated yang lega, dan tanpa customHeight="1" agar Excel juga bebas auto-fit penuh
             $xml .= '    <row r="' . $currentRow . '" ht="' . $rowHeight . '">' . "\n";
@@ -561,22 +562,22 @@ public static function createXlsx($tickets, array $meta = [])
             $xml .= '      <c r="B' . $currentRow . '" s="' . $sTck . '" t="inlineStr"><is><t>' . self::xmlEscape($t->ticket_number) . '</t></is></c>' . "\n";
             // C: Judul Tiket
             $xml .= '      <c r="C' . $currentRow . '" s="' . $sWrap . '" t="inlineStr"><is><t xml:space="preserve">' . self::xmlEscape($t->title) . '</t></is></c>' . "\n";
-            // D: Deskripsi Masalah
-            $xml .= '      <c r="D' . $currentRow . '" s="' . $sWrap . '" t="inlineStr"><is><t xml:space="preserve">' . self::xmlEscape($deskripsi) . '</t></is></c>' . "\n";
-            // E: Keterangan Solusi
-            $xml .= '      <c r="E' . $currentRow . '" s="' . $sWrap . '" t="inlineStr"><is><t xml:space="preserve">' . self::xmlEscape($solusi) . '</t></is></c>' . "\n";
-            // F: Property / Pelanggan
-            $xml .= '      <c r="F' . $currentRow . '" s="' . $sText . '" t="inlineStr"><is><t>' . self::xmlEscape($prop) . '</t></is></c>' . "\n";
-            // G: Staff Yang Mengerjakan
-            $xml .= '      <c r="G' . $currentRow . '" s="' . $sText . '" t="inlineStr"><is><t>' . self::xmlEscape($staff) . '</t></is></c>' . "\n";
-            // H: Advisor
-            $xml .= '      <c r="H' . $currentRow . '" s="' . $sText . '" t="inlineStr"><is><t>' . self::xmlEscape($advisor) . '</t></is></c>' . "\n";
-            // I: System
-            $xml .= '      <c r="I' . $currentRow . '" s="' . $sCenter . '" t="inlineStr"><is><t>' . self::xmlEscape($sys) . '</t></is></c>' . "\n";
-            // J: Module
-            $xml .= '      <c r="J' . $currentRow . '" s="' . $sCenter . '" t="inlineStr"><is><t>' . self::xmlEscape($mod) . '</t></is></c>' . "\n";
-            // K: Tipe Penanganan
-            $xml .= '      <c r="K' . $currentRow . '" s="' . $sCenter . '" t="inlineStr"><is><t>' . self::xmlEscape($tipe) . '</t></is></c>' . "\n";
+            // D: Client / Outlet (wrapped agar nama panjang tidak terpotong)
+            $xml .= '      <c r="D' . $currentRow . '" s="' . $sWrap . '" t="inlineStr"><is><t xml:space="preserve">' . self::xmlEscape($prop) . '</t></is></c>' . "\n";
+            // E: Staff Yang Mengerjakan
+            $xml .= '      <c r="E' . $currentRow . '" s="' . $sText . '" t="inlineStr"><is><t>' . self::xmlEscape($staff) . '</t></is></c>' . "\n";
+            // F: Advisor
+            $xml .= '      <c r="F' . $currentRow . '" s="' . $sText . '" t="inlineStr"><is><t>' . self::xmlEscape($advisor) . '</t></is></c>' . "\n";
+            // G: System
+            $xml .= '      <c r="G' . $currentRow . '" s="' . $sCenter . '" t="inlineStr"><is><t>' . self::xmlEscape($sys) . '</t></is></c>' . "\n";
+            // H: Module
+            $xml .= '      <c r="H' . $currentRow . '" s="' . $sCenter . '" t="inlineStr"><is><t>' . self::xmlEscape($mod) . '</t></is></c>' . "\n";
+            // I: Tipe Penanganan
+            $xml .= '      <c r="I' . $currentRow . '" s="' . $sCenter . '" t="inlineStr"><is><t>' . self::xmlEscape($tipe) . '</t></is></c>' . "\n";
+            // J: Deskripsi Masalah (SETELAH TIPE PENANGANAN)
+            $xml .= '      <c r="J' . $currentRow . '" s="' . $sWrap . '" t="inlineStr"><is><t xml:space="preserve">' . self::xmlEscape($deskripsi) . '</t></is></c>' . "\n";
+            // K: Keterangan Solusi (SETELAH TIPE PENANGANAN)
+            $xml .= '      <c r="K' . $currentRow . '" s="' . $sWrap . '" t="inlineStr"><is><t xml:space="preserve">' . self::xmlEscape($solusi) . '</t></is></c>' . "\n";
             // L: Status (with color badge)
             $xml .= '      <c r="L' . $currentRow . '" s="' . $sStatus . '" t="inlineStr"><is><t>' . self::xmlEscape($status) . '</t></is></c>' . "\n";
             // M: Lama Pengerjaan
@@ -744,7 +745,7 @@ public static function createXlsx($tickets, array $meta = [])
 
         // Row 7: Main Table Headers (Tinggi 32pt)
         $headerRow = 7;
-        $xml .= '    <row r="' . $headerRow . '" ht="32" customHeight="1">' . "\n";
+        $xml .= '    <row r="' . $headerRow . '" ht="36" customHeight="1">' . "\n";
         foreach ($cols as $idx => $col) {
             $colLetter = self::colLetter($idx + 1);
             $xml .= '      <c r="' . $colLetter . $headerRow . '" s="4" t="inlineStr"><is><t>' . self::xmlEscape($col['title']) . '</t></is></c>' . "\n";
