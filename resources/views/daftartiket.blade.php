@@ -222,10 +222,10 @@
                         <col style="width: 130px;">
                         <col style="width: 155px;">
                         <col style="width: auto;">
-                        <col style="width: 175px;">
-                        <col style="width: 110px;">
-                        <col style="width: 135px;">
-                        <col style="width: 120px;">
+                        <col style="width: 155px;">
+                        <col style="width: 150px;">
+                        <col style="width: 115px;">
+                        <col style="width: 115px;">
                         <col style="width: 110px;">
                         <col style="width: 105px;">
                         <col style="width: 45px;">
@@ -235,14 +235,14 @@
                             <th class="py-3 px-3 sm:px-4 text-[10px] font-extrabold uppercase tracking-widest whitespace-nowrap" style="width: 130px;">No. Tiket</th>
                             <th class="py-3 px-3 sm:px-4 text-[10px] font-extrabold uppercase tracking-widest" style="width: 155px;">User</th>
                             <th class="py-3 px-3 sm:px-4 text-[10px] font-extrabold uppercase tracking-widest">Judul</th>
-                            <th class="py-3 px-2 sm:px-3 text-[10px] font-extrabold uppercase tracking-widest text-left leading-tight" style="width: 175px;">
+                            <th class="py-3 px-2 sm:px-3 text-[10px] font-extrabold uppercase tracking-widest text-left leading-tight" style="width: 155px;">
                                 Lama<br>Pengerjaan
                             </th>
-                            <th class="py-3 px-3 sm:px-4 text-[10px] font-extrabold uppercase tracking-widest text-left leading-tight" style="width: 110px;">
+                            <th class="py-3 px-2 sm:px-3 text-[10px] font-extrabold uppercase tracking-widest text-left leading-tight" style="width: 150px;">
                                 Tipe<br>Penanganan
                             </th>
-                            <th class="py-3 px-3 sm:px-4 text-[10px] font-extrabold uppercase tracking-widest whitespace-nowrap" style="width: 135px;">System</th>
-                            <th class="py-3 px-3 sm:px-4 text-[10px] font-extrabold uppercase tracking-widest whitespace-nowrap" style="width: 120px;">Module</th>
+                            <th class="py-3 px-2 sm:px-3 text-[10px] font-extrabold uppercase tracking-widest whitespace-nowrap" style="width: 115px;">System</th>
+                            <th class="py-3 px-2 sm:px-3 text-[10px] font-extrabold uppercase tracking-widest whitespace-nowrap" style="width: 115px;">Module</th>
                             <th class="py-3 px-3 sm:px-4 text-[10px] font-extrabold uppercase tracking-widest text-center whitespace-nowrap" style="width: 110px;">Status</th>
                             <th class="py-3 px-3 sm:px-4 text-[10px] font-extrabold uppercase tracking-widest whitespace-nowrap" style="width: 105px;">Created At</th>
                             <th class="py-3 px-3 sm:px-4 text-[10px] font-extrabold uppercase tracking-widest text-center" style="width: 45px;"></th>
@@ -300,7 +300,7 @@
                                         </div>
                                     @endif
                                 </td>
-                                <td class="py-3 px-3 sm:px-4 align-top text-left whitespace-nowrap">
+                                <td class="py-3 px-2 sm:px-3 align-top text-left">
                                     @if($rq->tipe_penanganan)
                                         @php
                                             $isSite = $rq->tipe_penanganan == 'On Site';
@@ -318,18 +318,19 @@
                                                             : 'bg-sky-50 dark:bg-sky-950/40 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-800/80')));
                                             $badgeIcon = $isSite ? 'fa-location-dot' : ($isPiket ? 'fa-calendar-check' : ($isTraining ? 'fa-chalkboard-user' : ($isOnline ? 'fa-globe' : 'fa-building-user')));
                                         @endphp
-                                        <span class="inline-flex items-center text-[10px] font-bold px-2 py-0.5 rounded-md {{ $badgeClass }}">
-                                            <i class="fa-solid {{ $badgeIcon }} text-[9px] mr-1"></i>{{ $rq->tipe_penanganan }}
+                                        <span class="inline-flex items-start gap-1 text-[10px] font-bold px-2 py-1 rounded-md leading-tight text-left max-w-full {{ $badgeClass }}" title="{{ $rq->tipe_penanganan }}">
+                                            <i class="fa-solid {{ $badgeIcon }} text-[9px] mt-0.5 shrink-0"></i>
+                                            <span class="break-words leading-tight">{{ $rq->tipe_penanganan }}</span>
                                         </span>
                                     @else
                                         <span class="text-slate-400 dark:text-slate-500 text-xs">-</span>
                                     @endif
                                 </td>
-                                <td class="py-3 px-3 sm:px-4 align-top whitespace-nowrap">
-                                    <span class="inline-flex items-center px-2 py-1 rounded text-[11px] font-semibold bg-slate-100 dark:bg-slate-700/60 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-600/60 whitespace-nowrap" title="{{ $rq->kategoriSystem->name ?? 'N/A' }}">{{ $rq->kategoriSystem->name ?? 'N/A' }}</span>
+                                <td class="py-3 px-2 sm:px-3 align-top whitespace-nowrap">
+                                    <span class="inline-flex items-center px-2 py-1 rounded text-[11px] font-semibold bg-slate-100 dark:bg-slate-700/60 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-600/60 truncate max-w-full" title="{{ $rq->kategoriSystem->name ?? 'N/A' }}">{{ $rq->kategoriSystem->name ?? 'N/A' }}</span>
                                 </td>
-                                <td class="py-3 px-3 sm:px-4 align-top whitespace-nowrap">
-                                    <span class="inline-flex items-center px-2 py-1 rounded text-[11px] font-semibold bg-slate-100 dark:bg-slate-700/60 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-600/60 whitespace-nowrap" title="{{ $rq->moduleSystem->name ?? 'N/A' }}">{{ $rq->moduleSystem->name ?? 'N/A' }}</span>
+                                <td class="py-3 px-2 sm:px-3 align-top whitespace-nowrap">
+                                    <span class="inline-flex items-center px-2 py-1 rounded text-[11px] font-semibold bg-slate-100 dark:bg-slate-700/60 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-600/60 truncate max-w-full" title="{{ $rq->moduleSystem->name ?? 'N/A' }}">{{ $rq->moduleSystem->name ?? 'N/A' }}</span>
                                 </td>
                                 <td class="py-3 px-3 sm:px-4 align-top text-center">
                                     @if($rq->pending_advisor_id != null)
