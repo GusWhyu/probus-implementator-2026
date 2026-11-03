@@ -217,15 +217,15 @@
         {{-- Table Section --}}
         <div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700/80 rounded-2xl shadow-sm overflow-hidden mb-6">
             <div class="w-full overflow-x-auto custom-scrollbar">
-                <table class="w-full text-left border-collapse min-w-[1360px] table-fixed">
+                <table class="w-full text-left border-collapse min-w-[1400px] table-fixed">
                     <colgroup>
                         <col style="width: 130px;">
                         <col style="width: 155px;">
                         <col style="width: auto;">
-                        <col style="width: 160px;">
-                        <col style="width: 220px;">
-                        <col style="width: 105px;">
-                        <col style="width: 110px;">
+                        <col style="width: 185px;">
+                        <col style="width: 205px;">
+                        <col style="width: 140px;">
+                        <col style="width: 115px;">
                         <col style="width: 110px;">
                         <col style="width: 105px;">
                         <col style="width: 45px;">
@@ -235,14 +235,14 @@
                             <th class="py-3 px-3 sm:px-4 text-[10px] font-extrabold uppercase tracking-widest whitespace-nowrap" style="width: 130px;">No. Tiket</th>
                             <th class="py-3 px-3 sm:px-4 text-[10px] font-extrabold uppercase tracking-widest" style="width: 155px;">User</th>
                             <th class="py-3 px-3 sm:px-4 text-[10px] font-extrabold uppercase tracking-widest">Judul</th>
-                            <th class="py-3 px-2 sm:px-3 text-[10px] font-extrabold uppercase tracking-widest text-left leading-tight" style="width: 160px;">
+                            <th class="py-3 px-3 sm:px-4 text-[10px] font-extrabold uppercase tracking-widest text-left leading-tight" style="width: 185px;">
                                 Lama<br>Pengerjaan
                             </th>
-                            <th class="py-3 px-3 sm:px-4 text-[10px] font-extrabold uppercase tracking-widest text-left whitespace-nowrap" style="width: 220px;">
-                                Tipe Penanganan
+                            <th class="py-3 px-3 sm:px-4 text-[10px] font-extrabold uppercase tracking-widest text-left leading-tight" style="width: 205px;">
+                                Tipe<br>Penanganan
                             </th>
-                            <th class="py-3 px-2.5 sm:px-3 text-[10px] font-extrabold uppercase tracking-widest whitespace-nowrap" style="width: 105px;">System</th>
-                            <th class="py-3 px-2.5 sm:px-3 text-[10px] font-extrabold uppercase tracking-widest whitespace-nowrap" style="width: 110px;">Module</th>
+                            <th class="py-3 px-3 sm:px-4 text-[10px] font-extrabold uppercase tracking-widest whitespace-nowrap" style="width: 140px;">System</th>
+                            <th class="py-3 px-3 sm:px-4 text-[10px] font-extrabold uppercase tracking-widest whitespace-nowrap" style="width: 115px;">Module</th>
                             <th class="py-3 px-3 sm:px-4 text-[10px] font-extrabold uppercase tracking-widest text-center whitespace-nowrap" style="width: 110px;">Status</th>
                             <th class="py-3 px-3 sm:px-4 text-[10px] font-extrabold uppercase tracking-widest whitespace-nowrap" style="width: 105px;">Created At</th>
                             <th class="py-3 px-3 sm:px-4 text-[10px] font-extrabold uppercase tracking-widest text-center" style="width: 45px;"></th>
@@ -272,7 +272,7 @@
                                 <td class="py-3 px-3 sm:px-4 align-top">
                                     <div class="text-sm font-bold text-slate-800 dark:text-slate-100 leading-snug line-clamp-2 break-words" title="{{ $rq->title }}">{{ $rq->title }}</div>
                                 </td>
-                                <td class="py-3 px-2 sm:px-3 align-top text-left whitespace-nowrap">
+                                <td class="py-3 px-3 sm:px-4 align-top text-left whitespace-nowrap">
                                     @if($rq->status == 'CLOSED')
                                         <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-800/80 shadow-xs whitespace-nowrap" title="Selesai dalam {{ $rq->duration_text }}">
                                             <i class="fa-solid fa-clock-check text-[11px] text-emerald-600 dark:text-emerald-400 shrink-0"></i>
@@ -326,11 +326,11 @@
                                         <span class="text-slate-400 dark:text-slate-500 text-xs">-</span>
                                     @endif
                                 </td>
-                                <td class="py-3 px-2.5 sm:px-3 align-top whitespace-nowrap">
-                                    <span class="inline-flex items-center px-2 py-1 rounded text-[11px] font-semibold bg-slate-100 dark:bg-slate-700/60 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-600/60 max-w-full truncate" title="{{ $rq->kategoriSystem->name ?? 'N/A' }}">{{ $rq->kategoriSystem->name ?? 'N/A' }}</span>
+                                <td class="py-3 px-3 sm:px-4 align-top whitespace-nowrap">
+                                    <span class="inline-flex items-center px-2.5 py-1 rounded text-[11px] font-semibold bg-slate-100 dark:bg-slate-700/60 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-600/60 whitespace-nowrap" title="{{ $rq->kategoriSystem->name ?? 'N/A' }}">{{ $rq->kategoriSystem->name ?? 'N/A' }}</span>
                                 </td>
-                                <td class="py-3 px-2.5 sm:px-3 align-top whitespace-nowrap">
-                                    <span class="inline-flex items-center px-2 py-1 rounded text-[11px] font-semibold bg-slate-100 dark:bg-slate-700/60 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-600/60 max-w-full truncate" title="{{ $rq->moduleSystem->name ?? 'N/A' }}">{{ $rq->moduleSystem->name ?? 'N/A' }}</span>
+                                <td class="py-3 px-3 sm:px-4 align-top whitespace-nowrap">
+                                    <span class="inline-flex items-center px-2.5 py-1 rounded text-[11px] font-semibold bg-slate-100 dark:bg-slate-700/60 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-600/60 whitespace-nowrap" title="{{ $rq->moduleSystem->name ?? 'N/A' }}">{{ $rq->moduleSystem->name ?? 'N/A' }}</span>
                                 </td>
                                 <td class="py-3 px-3 sm:px-4 align-top text-center">
                                     @if($rq->pending_advisor_id != null)
