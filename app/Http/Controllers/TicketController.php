@@ -84,11 +84,10 @@ class TicketController extends Controller
         $dataimg = DataImage::where('ticket_id', $id)->get();
         $komentar = Komentar::where('ticket_id', $id)->with('user')->orderBy('created_at', 'asc')->get();
         $dataus = UpdateSystem::where('request_id', $id)->get();
-        $reqlog = RequestLog::where('request_id', $id)->first();
         $ticketLogs = TicketLog::with('user')->where('ticket_id', $id)->orderBy('created_at', 'desc')->get();
         $ticketTakeovers = TicketTakeover::with(['fromUser', 'toUser'])->where('ticket_id', $id)->orderBy('created_at', 'desc')->get();
         $tags = Tag::orderBy('name')->get();
-        return view('tablerq.detailticket', compact('datarq', 'dataimg','komentar','dataus','reqlog', 'ticketLogs', 'ticketTakeovers', 'tags'));
+        return view('tablerq.detailticket', compact('datarq', 'dataimg','komentar','dataus', 'ticketLogs', 'ticketTakeovers', 'tags'));
     }
 
     public function mrq(){
@@ -460,7 +459,6 @@ class TicketController extends Controller
     }
 
     public function updatestatus($id,$stid){
-        $reqlog = RequestLog::class;
         $data = \App\Models\Ticket::findOrFail($id);
 
         // Authorization check: Advisor tidak dapat memproses atau mengubah status tiket di-advice
@@ -538,17 +536,6 @@ class TicketController extends Controller
             'user_id' => Auth::id(),
             'action' => $stid == 'CLOSED' ? 'CLOSED' : 'STATUS_CHANGED',
             'description' => $logDescription,
-        ]);
-        
-        // Map string status to old status_id for backward compatibility in RequestLog
-        $logStatusId = 2;
-        if ($stid == 'PROGRESS') $logStatusId = 3;
-        elseif ($stid == 'CLOSED') $logStatusId = 4;
-        
-        $reqlog::create([
-            'request_id' => $id,
-            'status_id' => $logStatusId,
-            'user_id' => Auth::user()->id
         ]);
         $closerName = Auth::user() ? Auth::user()->name : 'Petugas';
         $creator = $data->user;
