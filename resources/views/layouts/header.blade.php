@@ -85,11 +85,41 @@
                 <i class="fa-solid fa-chevron-right text-[10px] text-slate-400 dark:text-slate-500"></i>
                 <span class="text-slate-800 dark:text-slate-100 font-bold">Manual Book Sistem (Per Modul)</span>
             </nav>
+        @elseif(request()->routeIs('bank-solusi.show') && isset($article))
+            <nav class="flex items-center gap-2 text-xs sm:text-sm font-medium truncate max-w-[200px] sm:max-w-md md:max-w-lg lg:max-w-xl">
+                <span class="text-slate-400 dark:text-slate-400 shrink-0 hidden sm:inline">Knowledge Base</span>
+                <i class="fa-solid fa-chevron-right text-[10px] text-slate-400 dark:text-slate-500 shrink-0 hidden sm:inline"></i>
+                <a href="{{ route('bank-solusi.index') }}" class="text-slate-400 hover:text-blue-600 dark:text-slate-400 dark:hover:text-blue-400 shrink-0">Bank Solusi</a>
+                <i class="fa-solid fa-chevron-right text-[10px] text-slate-400 dark:text-slate-500 shrink-0"></i>
+                <span class="text-slate-800 dark:text-slate-100 font-bold truncate">{{ Str::limit($article->title, 45) }}</span>
+            </nav>
+        @elseif(request()->routeIs('bank-solusi.create') || request()->routeIs('bank-solusi.edit'))
+            <nav class="flex items-center gap-2 text-xs sm:text-sm font-medium">
+                <span class="text-slate-400 dark:text-slate-400 shrink-0 hidden sm:inline">Knowledge Base</span>
+                <i class="fa-solid fa-chevron-right text-[10px] text-slate-400 dark:text-slate-500 shrink-0 hidden sm:inline"></i>
+                <a href="{{ route('bank-solusi.index') }}" class="text-slate-400 hover:text-blue-600 dark:text-slate-400 dark:hover:text-blue-400 shrink-0">Bank Solusi</a>
+                <i class="fa-solid fa-chevron-right text-[10px] text-slate-400 dark:text-slate-500 shrink-0"></i>
+                <span class="text-slate-800 dark:text-slate-100 font-bold">{{ request()->routeIs('bank-solusi.edit') ? 'Edit Artikel Solusi' : 'Buat Artikel Solusi' }}</span>
+            </nav>
         @else
             <h1 class="font-bold text-[14px] md:text-[15px] text-slate-800 capitalize truncate max-w-[180px] sm:max-w-xs md:max-w-none">{{ $headerTitle }}</h1>
         @endif
     </div>
     <div class="flex items-center gap-2 sm:gap-3">
+        @if(request()->routeIs('bank-solusi.show') && isset($article))
+            <a href="{{ route('bank-solusi.index') }}" class="hidden lg:inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-semibold transition-colors">
+                <i class="fa-solid fa-arrow-left text-[11px]"></i>
+                <span>Kembali ke Bank Solusi</span>
+            </a>
+            <a href="{{ route('bank-solusi.edit', $article->id) }}" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white rounded-xl text-xs font-semibold shadow-sm shadow-blue-500/20 transition-all cursor-pointer">
+                <i class="fa-solid fa-pen-to-square text-[11px]"></i>
+                <span class="hidden sm:inline">Edit Solusi</span>
+            </a>
+            <button type="button" onclick="if(window.toggleBlogVersion){window.toggleBlogVersion();}" id="btn-header-blog-toggle" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-sky-500 hover:bg-sky-600 active:scale-95 text-white rounded-xl text-xs font-semibold shadow-sm shadow-sky-500/20 transition-all cursor-pointer">
+                <i class="fa-solid fa-globe text-[11px]"></i>
+                <span id="header-btn-blog-text" class="hidden sm:inline">{{ $article->visibility === 'publik' ? 'Versi Blog Klien' : 'Buat Versi Blog Klien' }}</span>
+            </button>
+        @endif
         @if(request()->routeIs('manualbook*'))
             <button type="button" onclick="if(window.saveManualBookDraft){window.saveManualBookDraft(true)}" class="inline-flex items-center gap-2 px-3.5 py-1.5 sm:py-2 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white rounded-xl text-xs font-semibold shadow-sm shadow-blue-500/20 transition-all cursor-pointer">
                 <i class="fa-solid fa-floppy-disk text-xs"></i>

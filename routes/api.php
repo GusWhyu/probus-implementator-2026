@@ -17,3 +17,17 @@ use Illuminate\Support\Facades\Route;
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
+
+/*
+|--------------------------------------------------------------------------
+| Public Portal API Routes (Konsumsi Website Publik Golang)
+|--------------------------------------------------------------------------
+| Read-only endpoints untuk artikel solusi & manual book berstatus publik
+*/
+Route::prefix('bank-solusi')->group(function () {
+    Route::get('/', [\App\Http\Controllers\Api\BankSolusiApiController::class, 'index']);
+    Route::get('/systems', [\App\Http\Controllers\Api\BankSolusiApiController::class, 'systems']);
+    Route::get('/{id}', [\App\Http\Controllers\Api\BankSolusiApiController::class, 'show']);
+});
+
+Route::get('/manual-books', [\App\Http\Controllers\Api\BankSolusiApiController::class, 'manualBooks']);

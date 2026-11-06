@@ -170,11 +170,21 @@
 
                     {{-- Bottom Link --}}
                     <div class="mt-auto pt-2 flex items-center justify-between border-t border-slate-100 dark:border-slate-800/80">
-                        <span class="inline-flex items-center gap-1 text-xs font-bold text-blue-600 dark:text-blue-400 group-hover:text-blue-700 dark:group-hover:text-blue-300 transition-colors">
+                        <a :href="'{{ url('/bank-solusi') }}/' + item.id" 
+                           @click.stop
+                           class="inline-flex items-center gap-1 text-xs font-bold text-blue-600 dark:text-blue-400 group-hover:text-blue-700 dark:group-hover:text-blue-300 transition-colors">
                             <span>Baca panduan</span>
                             <i class="fa-solid fa-arrow-right text-[10px] group-hover:translate-x-1 transition-transform"></i>
-                        </span>
-                        <span class="text-[10px] font-medium text-slate-400 dark:text-slate-400" x-text="item.read_time"></span>
+                        </a>
+                        <div class="flex items-center gap-2">
+                            <a :href="'{{ url('/bank-solusi') }}/' + item.id + '/edit'" 
+                               @click.stop 
+                               title="Edit Solusi"
+                               class="w-6 h-6 rounded flex items-center justify-center text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+                                <i class="fa-solid fa-pen-to-square text-[11px]"></i>
+                            </a>
+                            <span class="text-[10px] font-medium text-slate-400 dark:text-slate-400" x-text="item.read_time"></span>
+                        </div>
                     </div>
                 </div>
             </template>
@@ -310,11 +320,23 @@
                                     <span>Salin Link</span>
                                 </button>
 
-                                <button type="button" 
-                                        @click="closeReaderModal()" 
-                                        class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-xs transition-all cursor-pointer">
-                                    Selesai Membaca
-                                </button>
+                                <div class="flex items-center gap-2">
+                                    <a :href="'{{ url('/bank-solusi') }}/' + selectedSolution.id" 
+                                       class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-blue-200 dark:border-blue-800 text-xs font-bold text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950 transition-colors cursor-pointer">
+                                        <i class="fa-solid fa-up-right-from-square text-[10px]"></i>
+                                        <span>Halaman Lengkap</span>
+                                    </a>
+                                    <a :href="'{{ url('/bank-solusi') }}/' + selectedSolution.id + '/edit'" 
+                                       class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer">
+                                        <i class="fa-solid fa-pen-to-square text-[10px]"></i>
+                                        <span>Edit</span>
+                                    </a>
+                                    <button type="button" 
+                                            @click="closeReaderModal()" 
+                                            class="px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-xs transition-all cursor-pointer">
+                                        Tutup
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </template>

@@ -238,14 +238,137 @@ class BankSolusiController extends Controller
     /**
      * Menampilkan detail artikel solusi
      */
-    public function show($id)
+    public function show(Request $request, $id)
     {
         $article = Article::with(['user', 'menuSystems.kategori'])->findOrFail($id);
 
-        return response()->json([
-            'success' => true,
-            'data' => $article,
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'data' => $article,
+            ]);
+        }
+
+        $firstMs = $article->menuSystems->first();
+        $systemName = ($firstMs && $firstMs->kategori) ? $firstMs->kategori->name : 'Sistem Probus';
+        $moduleName = $firstMs ? $firstMs->name : 'Umum';
+
+        $wordCount = str_word_count(strip_tags($article->content));
+        $readTime = max(1, (int) round($wordCount / 150)) . ' min baca';
+
+        return view('bank_solusi.show', compact('article', 'systemName', 'moduleName', 'readTime'));
+    }
+
+    /**
+     * Menampilkan formulir edit artikel solusi
+     */
+    public function edit($id)
+    {
+        $article = Article::with(['menuSystems.kategori'])->findOrFail($id);
+        $categories = Kategori::whereHas('menuSystems')
+            ->with(['menuSystems' => function ($q) {
+                $q->orderBy('order');
+            }])
+            ->get();
+
+        $selectedModule = $article->menuSystems->first();
+        $selectedModuleId = $selectedModule ? $selectedModule->id : null;
+        $selectedCategoryId = $selectedModule ? $selectedModule->kategori_id : ($categories->first() ? $categories->first()->id : null);
+
+        return view('bank_solusi.edit', compact('article', 'categories', 'selectedModuleId', 'selectedCategoryId'));
+    }
+
+    /**
+     * Memperbarui artikel solusi
+     */
+    public function update(Request $request, $id)
+    {
+        $request->validate([
+            'title' => 'required|string|max:150',
+            'visibility' => 'required|in:publik,internal',
+            'status' => 'required|in:draft,published',
+            'menu_system_id' => 'required|exists:menu_systems,id',
+            'content' => 'required|string',
+            'summary' => 'nullable|string',
         ]);
+
+        $article = Article::findOrFail($id);
+
+        $summary = $request->summary;
+        if (empty($summary)) {
+            $cleanText = trim(preg_replace('/\s+/', ' ', strip_tags($request->content)));
+            $summary = Str::limit($cleanText, 140);
+        }
+
+        $article->update([
+            'title' => $request->title,
+            'visibility' => $request->visibility,
+            'status' => $request->status,
+            'summary' => $summary,
+            'content' => $request->content,
+        ]);
+
+        // Hubungkan kembali ke menu system
+        $article->menuSystems()->sync([$request->menu_system_id]);
+
+        $message = 'Artikel solusi berhasil diperbarui!';
+
+        if ($request->expectsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => $message,
+                'article' => $article,
+                'redirect_url' => route('bank-solusi.show', $article->id),
+            ]);
+        }
+
+        return redirect()->route('bank-solusi.show', $article->id)->with('success', $message);
+    }
+
+    /**
+     * Toggle cepat jangkauan visibilitas artikel (publik <-> internal)
+     */
+    public function toggleVisibility(Request $request, $id)
+    {
+        $article = Article::findOrFail($id);
+        $newVisibility = $article->visibility === 'publik' ? 'internal' : 'publik';
+        $article->update(['visibility' => $newVisibility]);
+
+        $label = $newVisibility === 'publik' ? 'BLOG KLIEN' : 'INTERNAL';
+        $msg = $newVisibility === 'publik'
+            ? 'Artikel sekarang berstatus Publik (Blog Solusi Klien & Internal).'
+            : 'Artikel sekarang berstatus Khusus Internal (Implementator).';
+
+        if ($request->expectsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'visibility' => $newVisibility,
+                'label' => $label,
+                'message' => $msg,
+            ]);
+        }
+
+        return back()->with('success', $msg);
+    }
+
+    /**
+     * Menghapus artikel solusi
+     */
+    public function destroy(Request $request, $id)
+    {
+        $article = Article::findOrFail($id);
+        $article->menuSystems()->detach();
+        $article->delete();
+
+        if ($request->expectsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Artikel solusi berhasil dihapus.',
+                'redirect_url' => route('bank-solusi.index'),
+            ]);
+        }
+
+        return redirect()->route('bank-solusi.index')->with('success', 'Artikel solusi berhasil dihapus.');
     }
 
     /**
