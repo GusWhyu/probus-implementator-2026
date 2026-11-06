@@ -30,9 +30,23 @@
         <button @click="sidebarOpen = true" class="md:hidden p-2 -ml-2 text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors">
             <i class="fa-solid fa-bars text-lg"></i>
         </button>
-        <h1 class="font-bold text-[14px] md:text-[15px] text-slate-800 capitalize truncate max-w-[180px] sm:max-w-xs md:max-w-none">{{ request()->routeIs('tipepenanganan.*') ? 'Master Data Tipe Penanganan' : (request()->routeIs('request.dashboard') ? 'Dashboard Request System' : (request()->routeIs('dashboard') ? 'Dashboard Laporan & Penilaian Kinerja Staff' : (request()->routeIs('daftartiket') ? 'Daftar Tiket Helpdesk CS' : (request()->routeIs('inbox') ? 'Inbox & Manajemen Tiket' : (request()->routeIs('bobot-penilaian.*') ? 'Master Data Bobot Penilaian' : (request()->routeIs('soft-skill.*') ? 'Penilaian Soft Skill' : (request()->routeIs('modul*') ? 'Master Data Modul' : (request()->is('request') ? 'Daftar Request (Semua Request)' : (request()->is('myreq') ? 'My Request (Antrean Masuk)' : (request()->is('history') || request()->is('myrequs') || request()->is('myrequest') || request()->is('myupdatesystem') ? 'History (Pengajuan Saya)' : (request()->is('createrq') ? 'Buat Request Baru' : (request()->is('createticket') ? 'Buat Tiket Baru' : (request()->is('detailrequest/*') ? 'Detail Workspace Request' : (request()->is('detailticket/*') || request()->is('detailtiket/*') ? 'Detail Workspace Pengerjaan Tiket' : (request()->is('editrq/*') ? 'Edit Request' : (request()->is('editticket/*') ? 'Edit Tiket Pelanggan' : (request()->is('notifications') ? 'Riwayat Notifikasi' : (str_replace('-', ' ', request()->path()) == '/' ? 'Dashboard' : str_replace('-', ' ', request()->path()))))))))))))))))))) }}</h1>
+        @if(request()->routeIs('manualbook*'))
+            <nav class="flex items-center gap-2 text-xs sm:text-sm font-medium">
+                <span class="text-slate-400 dark:text-slate-400">Knowledge Base</span>
+                <i class="fa-solid fa-chevron-right text-[10px] text-slate-400 dark:text-slate-500"></i>
+                <span class="text-slate-800 dark:text-slate-100 font-bold">Manual Book Sistem (Per Modul)</span>
+            </nav>
+        @else
+            <h1 class="font-bold text-[14px] md:text-[15px] text-slate-800 capitalize truncate max-w-[180px] sm:max-w-xs md:max-w-none">{{ request()->routeIs('tipepenanganan.*') ? 'Master Data Tipe Penanganan' : (request()->routeIs('request.dashboard') ? 'Dashboard Request System' : (request()->routeIs('dashboard') ? 'Dashboard Laporan & Penilaian Kinerja Staff' : (request()->routeIs('daftartiket') ? 'Daftar Tiket Helpdesk CS' : (request()->routeIs('inbox') ? 'Inbox & Manajemen Tiket' : (request()->routeIs('bobot-penilaian.*') ? 'Master Data Bobot Penilaian' : (request()->routeIs('soft-skill.*') ? 'Penilaian Soft Skill' : (request()->routeIs('modul*') ? 'Master Data Modul' : (request()->is('request') ? 'Daftar Request (Semua Request)' : (request()->is('myreq') ? 'My Request (Antrean Masuk)' : (request()->is('history') || request()->is('myrequs') || request()->is('myrequest') || request()->is('myupdatesystem') ? 'History (Pengajuan Saya)' : (request()->is('createrq') ? 'Buat Request Baru' : (request()->is('createticket') ? 'Buat Tiket Baru' : (request()->is('detailrequest/*') ? 'Detail Workspace Request' : (request()->is('detailticket/*') || request()->is('detailtiket/*') ? 'Detail Workspace Pengerjaan Tiket' : (request()->is('editrq/*') ? 'Edit Request' : (request()->is('editticket/*') ? 'Edit Tiket Pelanggan' : (request()->is('notifications') ? 'Riwayat Notifikasi' : (str_replace('-', ' ', request()->path()) == '/' ? 'Dashboard' : str_replace('-', ' ', request()->path()))))))))))))))))))) }}</h1>
+        @endif
     </div>
     <div class="flex items-center gap-2 sm:gap-3">
+        @if(request()->routeIs('manualbook*'))
+            <button type="button" onclick="if(window.saveManualBookDraft){window.saveManualBookDraft(true)}" class="inline-flex items-center gap-2 px-3.5 py-1.5 sm:py-2 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white rounded-xl text-xs font-semibold shadow-sm shadow-blue-500/20 transition-all cursor-pointer">
+                <i class="fa-solid fa-floppy-disk text-xs"></i>
+                <span class="hidden sm:inline">Simpan Manual Modul</span>
+            </button>
+        @endif
         <!-- Dark Mode Toggle Button (sebelah lonceng notifikasi) -->
         <button type="button" 
                 id="theme-toggle" 

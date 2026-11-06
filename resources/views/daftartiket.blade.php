@@ -460,7 +460,7 @@
                         $statusClass = 'bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-950/50 dark:text-emerald-400 dark:border-emerald-800';
                     }
                     
-                    $isOverdue = $rq->status != 'CLOSED' && $rq->due_date && \Carbon\Carbon::now()->gt(\Carbon\Carbon::parse($rq->due_date));
+                    $isOverdue = $rq->status != 'CLOSED' && $rq->due_date && \Carbon\Carbon::now()->gt(\Carbon\Carbon::parse($rq->due_date)->endOfDay());
                 @endphp
                 <div class="{{ $rq->pending_advisor_id != null ? 'bg-amber-50/30 dark:bg-amber-950/20 border-2 border-amber-300 dark:border-amber-700 ring-2 ring-amber-200/50 dark:ring-amber-900/30' : 'bg-white dark:bg-slate-800 border border-slate-200/90 dark:border-slate-700/80' }} rounded-2xl p-5 shadow-sm hover:shadow-lg hover:border-blue-300 dark:hover:border-blue-500/60 transition-all duration-200 flex flex-col group relative">
                     {{-- Header Top Bar --}}
