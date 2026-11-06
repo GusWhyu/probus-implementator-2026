@@ -4,214 +4,171 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
+use App\Models\Article;
+use App\Models\Kategori;
+use App\Models\MenuSystem;
+use App\Models\MediaUpload;
 
 class BankSolusiController extends Controller
 {
     /**
-     * Menampilkan halaman Bank Solusi & Panduan Sistem
+     * Menampilkan katalog Bank Solusi & Panduan Sistem
      */
     public function index(Request $request)
     {
-        // Daftar Sistem utama sesuai tampilan referensi
-        $systems = [
-            [
-                'id' => 'presto-resto-pos',
-                'name' => 'PRESTO Resto POS',
-                'description' => 'Aplikasi Point of Sale untuk Restoran & F&B',
-            ],
-            [
-                'id' => 'probus-hotel-pms',
-                'name' => 'Probus Hotel PMS',
-                'description' => 'Sistem Property Management untuk Perhotelan',
-            ],
-            [
-                'id' => 'ppe-2-management',
-                'name' => 'PPE 2.0 Management',
-                'description' => 'Platform Pengelolaan Probus Enterprise',
-            ],
-            [
-                'id' => 'back-office-akuntansi',
-                'name' => 'Back Office & Akuntansi',
-                'description' => 'Modul Keuangan, GL, Inventory & Laporan',
-            ],
-            [
-                'id' => 'all',
-                'name' => 'Semua Sistem',
-                'description' => 'Seluruh panduan dari semua sistem Probus',
-            ],
-        ];
+        // 1. Ambil Kategori yang memiliki Menu Systems
+        $categories = Kategori::whereHas('menuSystems')
+            ->with(['menuSystems' => function ($q) {
+                $q->orderBy('order')->withCount('articles');
+            }])
+            ->get();
 
-        // Daftar Modul berdasarkan sistem
-        $modules = [
-            'presto-resto-pos' => [
-                ['id' => 'hardware-printer', 'name' => 'Hardware & Printer', 'count' => 6],
-                ['id' => 'order-taker-kasir', 'name' => 'Order Taker & Kasir', 'count' => 7],
-                ['id' => 'qris-edc', 'name' => 'QRIS & Pembayaran EDC', 'count' => 5],
-                ['id' => 'kds', 'name' => 'Kitchen Display / KDS', 'count' => 4],
-                ['id' => 'tutup-shift-laporan', 'name' => 'Tutup Shift & Laporan', 'count' => 2],
-                ['id' => 'all-modules', 'name' => 'Semua Modul', 'count' => 24],
-            ],
-            'probus-hotel-pms' => [
-                ['id' => 'front-office', 'name' => 'Front Office & Reservasi', 'count' => 5],
-                ['id' => 'housekeeping', 'name' => 'Housekeeping & Room Status', 'count' => 3],
-                ['id' => 'night-audit', 'name' => 'Night Audit & EOD', 'count' => 4],
-                ['id' => 'all-modules', 'name' => 'Semua Modul', 'count' => 12],
-            ],
-            'ppe-2-management' => [
-                ['id' => 'user-access', 'name' => 'Manajemen Hak Akses', 'count' => 3],
-                ['id' => 'multi-property', 'name' => 'Sinkronisasi Multi-Outlet', 'count' => 3],
-                ['id' => 'all-modules', 'name' => 'Semua Modul', 'count' => 6],
-            ],
-            'back-office-akuntansi' => [
-                ['id' => 'inventory-cost', 'name' => 'Inventory & Food Cost', 'count' => 4],
-                ['id' => 'jurnal-gl', 'name' => 'Jurnal & Buku Besar', 'count' => 3],
-                ['id' => 'all-modules', 'name' => 'Semua Modul', 'count' => 7],
-            ],
-            'all' => [
-                ['id' => 'hardware-printer', 'name' => 'Hardware & Printer', 'count' => 6],
-                ['id' => 'order-taker-kasir', 'name' => 'Order Taker & Kasir', 'count' => 7],
-                ['id' => 'qris-edc', 'name' => 'QRIS & Pembayaran EDC', 'count' => 5],
-                ['id' => 'front-office', 'name' => 'Front Office & Reservasi', 'count' => 5],
-                ['id' => 'all-modules', 'name' => 'Semua Modul', 'count' => 49],
-            ],
-        ];
+        // Siapkan struktur sistem untuk filter tab
+        $systems = [];
+        $modulesBySystem = [];
+        $totalAllArticles = 0;
 
-        // Daftar solusi panduan (6 kartu pertama persis 100% sama dengan gambar referensi)
-        $solutions = [
-            [
-                'id' => 1,
-                'system_id' => 'presto-resto-pos',
-                'system_name' => 'PRESTO Resto POS',
-                'module_id' => 'hardware-printer',
-                'module_name' => 'Hardware & Printer',
-                'audience' => 'klien', // Blog Klien
-                'audience_label' => 'BLOG KLIEN',
-                'title' => 'Cara Menangani Printer Kasir Thermal yang Tidak Mencetak Struk',
-                'excerpt' => 'Langkah pengecekan lampu indikator LED, arah gulungan kertas thermal, power cycle 10 detik, dan uji cetak dari layar Order Taker.',
-                'author' => 'Rafi (Admin System)',
-                'date' => '04 Nov 2026',
-                'read_time' => '3 min baca',
-                'steps' => [
-                    'Pastikan lampu indikator POWER berwarna hijau stabil dan lampu ERROR/PAPER tidak menyala merah atau berkedip.',
-                    'Buka penutup printer, pastikan kertas thermal terpasang searah putaran jarum jam (sisi luar mengarah ke pemotong).',
-                    'Lakukan Power Cycle: Matikan saklar power printer, cabut kabel adaptor selama 10 detik, lalu tancapkan dan nyalakan kembali.',
-                    'Tekan dan tahan tombol FEED saat printer dinyalakan untuk melakukan Self-Test Print mandiri.',
-                    'Buka aplikasi Order Taker, masuk ke menu Pengaturan > Test Print Struk untuk memastikan komunikasi data berjalan lancar.',
-                ],
-                'notes' => 'Jika lampu ERROR berkedip merah cepat, kemungkinan kepala pemanas (thermal head) mengalami overheat atau terhalang debu struk.',
-            ],
-            [
-                'id' => 2,
-                'system_id' => 'presto-resto-pos',
-                'system_name' => 'PRESTO Resto POS',
-                'module_id' => 'hardware-printer',
-                'module_name' => 'Hardware & Printer',
-                'audience' => 'internal', // Internal Tim
-                'audience_label' => 'INTERNAL',
-                'title' => 'Mengatur IP Address Statis Printer Kitchen (LAN Port 9100)',
-                'excerpt' => 'Panduan mengecek IP printer lewat self-test print dan menyamakan alamat IP pada menu pengaturan printer di aplikasi kasir.',
-                'author' => 'Tim Support Probus',
-                'date' => '02 Nov 2026',
-                'read_time' => '4 min baca',
-                'steps' => [
-                    'Nyalakan printer sembari menahan tombol FEED untuk mencetak struk diagnostik konfigurasi jaringan.',
-                    'Catat IP Address default printer (biasanya 192.168.1.200 atau 192.168.192.168).',
-                    'Hubungkan kabel LAN printer langsung ke laptop teknisi dan ubah segmen IP Ethernet laptop menjadi satu subnet.',
-                    'Akses Web Config printer via browser atau tool POS Utility untuk menetapkan IP statis permanen (misal: 192.168.1.180, Port 9100).',
-                    'Buka Back Office / POS Setting, daftarkan printer dapur dengan IP baru tersebut dan lakukan uji ping.',
-                ],
-                'notes' => 'Pastikan router outlet telah mereservasi IP printer pada daftar DHCP Binding agar tidak tertabrak perangkat tamu.',
-            ],
-            [
-                'id' => 3,
-                'system_id' => 'presto-resto-pos',
-                'system_name' => 'PRESTO Resto POS',
-                'module_id' => 'hardware-printer',
-                'module_name' => 'Hardware & Printer',
-                'audience' => 'klien', // Blog Klien
-                'audience_label' => 'BLOG KLIEN',
-                'title' => 'Solusi Laci Uang (Cash Drawer) Tidak Terbuka Otomatis Saat Bayar',
-                'excerpt' => 'Cara memeriksa konektor RJ-11 di belakang printer kasir dan mengaktifkan opsi Open Drawer on Payment pada pengaturan POS.',
-                'author' => 'Gus Wahyu (Implementator)',
-                'date' => '01 Nov 2026',
-                'read_time' => '2 min baca',
-                'steps' => [
-                    'Periksa kabel konektor RJ-11 laci kasir (kabel mirip telepon) tertancap kuat ke port DK (Drawer Kick) di belakang printer thermal kasir.',
-                    'Pastikan anak kunci laci berada pada posisi vertikal (mode otomatis terbuka elektrik), bukan posisi terkunci manual horizontal.',
-                    'Di aplikasi PRESTO POS, buka menu Pengaturan Kasir > Perangkat Keras > Centang "Buka Laci Otomatis Saat Selesai Bayar Tunai".',
-                    'Coba selesaikan transaksi tunai dummy untuk memastikan solenoid laci menerima pulsa pembuka dari printer.',
-                ],
-                'notes' => 'Jika terdengar bunyi "klik" solenoid namun laci tidak terdorong keluar, bersihkan rel laci dari debu atau koin yang terselip.',
-            ],
-            [
-                'id' => 4,
-                'system_id' => 'presto-resto-pos',
-                'system_name' => 'PRESTO Resto POS',
-                'module_id' => 'hardware-printer',
-                'module_name' => 'Hardware & Printer',
-                'audience' => 'klien', // Blog Klien
-                'audience_label' => 'BLOG KLIEN',
-                'title' => 'Mengatasi Kertas Struk Macet (Paper Jam) pada Pemotong Otomatis',
-                'excerpt' => 'Prosedur aman membebaskan pisau auto-cutter yang mengunci penutup printer tanpa merusak komponen mekanis kepala cetak.',
-                'author' => 'Rafi (Admin System)',
-                'date' => '28 Okt 2026',
-                'read_time' => '3 min baca',
-                'steps' => [
-                    'JANGAN memaksa menarik tuas penutup printer saat pisau cutter sedang macet di posisi mengunci.',
-                    'Matikan saklar power printer kasir terlebih dahulu demi keamanan.',
-                    'Buka penutup kecil di bagian depan printer (penutup manual gear putar cutter).',
-                    'Putar roda gerigi (gear) secara perlahan sampai bilah pisau cutter mundur kembali ke posisi awal (home position).',
-                    'Tekan tuas penutup, buka bodi printer, rapikan sisa kertas yang terjepit, lalu tutup rapat kembali.',
-                ],
-                'notes' => 'Gunakan selalu kertas thermal berdiameter standar agar roll tidak menekan tutup printer terlalu kencang.',
-            ],
-            [
-                'id' => 5,
-                'system_id' => 'presto-resto-pos',
-                'system_name' => 'PRESTO Resto POS',
-                'module_id' => 'hardware-printer',
-                'module_name' => 'Hardware & Printer',
-                'audience' => 'internal', // Internal Tim
-                'audience_label' => 'INTERNAL',
-                'title' => 'Mengalihkan Cetakan Order Dapur Sementara Saat Printer Utama Rusak',
-                'excerpt' => 'Langkah mengaktifkan fitur Redirect Printer di Order Taker agar pesanan dapur tetap tercetak di printer bar atau kasir utama.',
-                'author' => 'Sathya Pramerta (SPV)',
-                'date' => '25 Okt 2026',
-                'read_time' => '3 min baca',
-                'steps' => [
-                    'Buka aplikasi kasir utama PRESTO POS dengan akun Supervisor / Manager on Duty.',
-                    'Pilih menu Pengaturan Jaringan > Pengalihan Printer (Printer Redirection).',
-                    'Pada target "Printer Dapur 1 (Kitchen)", ubah pengalihan sementara ke "Printer Bar" atau "Printer Kasir".',
-                    'Pilih opsi cetak tambahan "Tandai Header: ORDER KHUSUS DAPUR (PENGALIHAN)" agar staf bar dapat segera menyerahkan tiket ke juru masak.',
-                    'Simpan pengaturan dan lakukan simulasi pemesanan makanan dari meja tamu.',
-                ],
-                'notes' => 'Segera hubungi tim implementator untuk penggantian unit backup atau pengecekan adaptor printer yang bermasalah.',
-            ],
-            [
-                'id' => 6,
-                'system_id' => 'presto-resto-pos',
-                'system_name' => 'PRESTO Resto POS',
-                'module_id' => 'hardware-printer',
-                'module_name' => 'Hardware & Printer',
-                'audience' => 'klien', // Blog Klien
-                'audience_label' => 'BLOG KLIEN',
-                'title' => 'Cara Menghubungkan Printer Thermal Bluetooth ke Tablet Kasir Android',
-                'excerpt' => 'Panduan pairing perangkat Bluetooth, pemilihan ukuran kertas 58mm atau 80mm, dan kalibrasi batas margin cetakan struk.',
-                'author' => 'Tim Support Probus',
-                'date' => '20 Okt 2026',
-                'read_time' => '3 min baca',
-                'steps' => [
-                    'Aktifkan Bluetooth pada tablet kasir Android dan pastikan printer thermal Bluetooth dalam kondisi menyala (lampu biru berkedip).',
-                    'Masuk ke Pengaturan Bluetooth tablet, cari perangkat baru bernama "RPP02N", "MTP-II", atau "POS-58/80".',
-                    'Masukkan PIN pairing default (biasanya 0000 atau 1234) hingga status perangkat "Tersambung / Paired".',
-                    'Buka aplikasi PRESTO POS Android > menu Pengaturan Printer > Tipe Koneksi pilih Bluetooth > Pilih nama printer yang telah di-pair.',
-                    'Tentukan lebar kertas (58mm atau 80mm) kemudian tekan tombol "Uji Cetak Bluetooth".',
-                ],
-                'notes' => 'Jika koneksi sering terputus, pastikan jarak tablet dengan printer tidak melebihi 5 meter dan tidak terhalang sekat logam/dinding tebal.',
-            ],
-        ];
+        foreach ($categories as $cat) {
+            $catArticleCount = 0;
+            $modList = [];
 
-        return view('bank_solusi.index', compact('systems', 'modules', 'solutions'));
+            foreach ($cat->menuSystems as $ms) {
+                $count = $ms->articles_count;
+                $catArticleCount += $count;
+                $modList[] = [
+                    'id' => (string) $ms->id,
+                    'name' => $ms->name,
+                    'count' => $count,
+                    'description' => $ms->description,
+                ];
+            }
+
+            $totalAllArticles += $catArticleCount;
+
+            // Tambahkan opsi "Semua Modul" di awal daftar modul sistem
+            array_unshift($modList, [
+                'id' => 'all-modules',
+                'name' => 'Semua Modul',
+                'count' => $catArticleCount,
+                'description' => 'Seluruh modul dalam ' . $cat->name,
+            ]);
+
+            $systems[] = [
+                'id' => (string) $cat->id,
+                'name' => $cat->name,
+                'description' => 'Modul dan solusi untuk ' . $cat->name,
+                'count' => $catArticleCount,
+            ];
+
+            $modulesBySystem[(string) $cat->id] = $modList;
+        }
+
+        // Tambahkan sistem "Semua Sistem" (All)
+        array_unshift($systems, [
+            'id' => 'all',
+            'name' => 'Semua Sistem',
+            'description' => 'Seluruh panduan dari semua sistem Probus',
+            'count' => $totalAllArticles,
+        ]);
+
+        // Daftar modul untuk "all"
+        $allModulesFlat = [];
+        foreach ($modulesBySystem as $mList) {
+            foreach ($mList as $m) {
+                if ($m['id'] !== 'all-modules' && !in_array($m['name'], array_column($allModulesFlat, 'name'))) {
+                    $allModulesFlat[] = $m;
+                }
+            }
+        }
+        array_unshift($allModulesFlat, [
+            'id' => 'all-modules',
+            'name' => 'Semua Modul',
+            'count' => $totalAllArticles,
+            'description' => 'Seluruh modul dari semua sistem',
+        ]);
+        $modulesBySystem['all'] = $allModulesFlat;
+
+        // 2. Query data artikel dari database
+        $articleQuery = Article::with(['user', 'menuSystems.kategori'])
+            ->orderBy('created_at', 'desc');
+
+        // Filter status: tampilkan yang published secara default
+        if ($request->filled('status') && in_array($request->status, ['draft', 'published', 'all'])) {
+            if ($request->status !== 'all') {
+                $articleQuery->where('status', $request->status);
+            }
+        } else {
+            $articleQuery->where('status', 'published');
+        }
+
+        // Filter visibilitas jika ada
+        if ($request->filled('visibility') && in_array($request->visibility, ['publik', 'internal'])) {
+            $articleQuery->where('visibility', $request->visibility);
+        }
+
+        // Filter pencarian teks
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $articleQuery->where(function ($q) use ($search) {
+                $q->where('title', 'like', "%{$search}%")
+                  ->orWhere('summary', 'like', "%{$search}%")
+                  ->orWhere('content', 'like', "%{$search}%");
+            });
+        }
+
+        // Filter berdasarkan modul atau kategori
+        if ($request->filled('module_id') && $request->module_id !== 'all' && $request->module_id !== 'all-modules') {
+            $moduleId = $request->module_id;
+            $articleQuery->whereHas('menuSystems', function ($q) use ($moduleId) {
+                $q->where('menu_systems.id', $moduleId);
+            });
+        } elseif ($request->filled('system_id') && $request->system_id !== 'all') {
+            $sysId = $request->system_id;
+            $articleQuery->whereHas('menuSystems', function ($q) use ($sysId) {
+                $q->where('kategori_id', $sysId);
+            });
+        }
+
+        $rawArticles = $articleQuery->get();
+
+        // 3. Format artikel agar sesuai dengan tampilan kartu blade
+        $solutions = [];
+        foreach ($rawArticles as $art) {
+            $firstMs = $art->menuSystems->first();
+            $systemName = ($firstMs && $firstMs->kategori) ? $firstMs->kategori->name : 'Sistem Probus';
+            $systemId = ($firstMs && $firstMs->kategori) ? (string) $firstMs->kategori->id : 'all';
+            $moduleName = $firstMs ? $firstMs->name : 'Umum';
+            $moduleId = $firstMs ? (string) $firstMs->id : 'all-modules';
+
+            // Hitung estimasi waktu baca (rata-rata 150 kata/menit)
+            $wordCount = str_word_count(strip_tags($art->content));
+            $readTime = max(1, (int) round($wordCount / 150)) . ' min baca';
+
+            $solutions[] = [
+                'id' => $art->id,
+                'system_id' => $systemId,
+                'system_name' => $systemName,
+                'module_id' => $moduleId,
+                'module_name' => $moduleName,
+                'audience' => $art->visibility === 'publik' ? 'klien' : 'internal',
+                'audience_label' => $art->visibility === 'publik' ? 'BLOG KLIEN' : 'INTERNAL',
+                'title' => $art->title,
+                'excerpt' => $art->summary ? $art->summary : Str::limit(strip_tags($art->content), 120),
+                'content' => $art->content,
+                'author' => $art->user ? $art->user->name : 'Implementator',
+                'date' => $art->created_at ? $art->created_at->format('d M Y') : date('d M Y'),
+                'read_time' => $readTime,
+                'status' => $art->status,
+            ];
+        }
+
+        return view('bank_solusi.index', [
+            'systems' => $systems,
+            'modules' => $modulesBySystem,
+            'solutions' => $solutions,
+            'categories' => $categories,
+        ]);
     }
 
     /**
@@ -219,7 +176,146 @@ class BankSolusiController extends Controller
      */
     public function create(Request $request)
     {
-        return view('bank_solusi.create');
+        $categories = Kategori::whereHas('menuSystems')
+            ->with(['menuSystems' => function ($q) {
+                $q->orderBy('order');
+            }])
+            ->get();
+
+        return view('bank_solusi.create', compact('categories'));
+    }
+
+    /**
+     * Menyimpan artikel solusi baru ke tabel articles & menu_has_articles
+     */
+    public function store(Request $request)
+    {
+        $request->validate([
+            'title' => 'required|string|max:100',
+            'visibility' => 'required|in:publik,internal',
+            'status' => 'required|in:draft,published',
+            'menu_system_id' => 'required|exists:menu_systems,id',
+            'content' => 'required|string',
+            'summary' => 'nullable|string',
+        ]);
+
+        $summary = $request->summary;
+        if (empty($summary)) {
+            $cleanText = trim(preg_replace('/\s+/', ' ', strip_tags($request->content)));
+            $summary = Str::limit($cleanText, 140);
+        }
+
+        $userId = Auth::id() ? Auth::id() : 1;
+
+        $article = Article::create([
+            'user_id' => $userId,
+            'title' => $request->title,
+            'visibility' => $request->visibility,
+            'status' => $request->status,
+            'summary' => $summary,
+            'content' => $request->content,
+        ]);
+
+        // Hubungkan ke tabel pivot menu_has_articles
+        $article->menuSystems()->sync([$request->menu_system_id]);
+
+        $message = $request->status === 'published' 
+            ? 'Artikel Solusi berhasil diterbitkan!' 
+            : 'Draft Artikel Solusi berhasil disimpan!';
+
+        if ($request->expectsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => $message,
+                'article' => $article,
+                'redirect_url' => route('bank-solusi.index'),
+            ]);
+        }
+
+        return redirect()->route('bank-solusi.index')->with('success', $message);
+    }
+
+    /**
+     * Menampilkan detail artikel solusi
+     */
+    public function show($id)
+    {
+        $article = Article::with(['user', 'menuSystems.kategori'])->findOrFail($id);
+
+        return response()->json([
+            'success' => true,
+            'data' => $article,
+        ]);
+    }
+
+    /**
+     * Handler upload gambar / screenshot untuk TinyMCE Editor
+     * Menyimpan file ke public/uploads/editor/ dan mencatatnya ke tabel media_uploads
+     */
+    public function uploadImage(Request $request)
+    {
+        $request->validate([
+            'image' => 'nullable|file|mimes:jpeg,png,jpg,gif,webp,svg|max:10240',
+            'file' => 'nullable|file|mimes:jpeg,png,jpg,gif,webp,svg|max:10240',
+            'upload' => 'nullable|file|mimes:jpeg,png,jpg,gif,webp,svg|max:10240',
+        ]);
+
+        $file = $request->file('image');
+        if (!$file) {
+            $file = $request->file('file');
+        }
+        if (!$file) {
+            $file = $request->file('upload');
+        }
+
+        if (!$file) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Tidak ada file gambar yang diunggah.',
+            ], 422);
+        }
+
+        $ext = $file->getClientOriginalExtension();
+        if (!$ext) {
+            $ext = 'png';
+        }
+
+        $fileName = 'editor_' . time() . '_' . Str::random(8) . '.' . $ext;
+        
+        // 1. Simpan ke public/uploads/editor
+        $targetDir = public_path('uploads/editor');
+        if (!file_exists($targetDir)) {
+            mkdir($targetDir, 0777, true);
+        }
+        $file->move($targetDir, $fileName);
+
+        // 2. Salin juga ke storage/app/public/uploads/editor bila ada
+        $storageDir = storage_path('app/public/uploads/editor');
+        if (file_exists(storage_path('app/public'))) {
+            if (!file_exists($storageDir)) {
+                @mkdir($storageDir, 0777, true);
+            }
+            @copy($targetDir . DIRECTORY_SEPARATOR . $fileName, $storageDir . DIRECTORY_SEPARATOR . $fileName);
+        }
+
+        $url = asset('uploads/editor/' . $fileName);
+        $userId = Auth::id() ? Auth::id() : 1;
+
+        // 3. Simpan riwayat upload ke tabel media_uploads
+        $mediaUpload = MediaUpload::create([
+            'user_id' => $userId,
+            'file_name' => $fileName,
+            'file_path' => 'uploads/editor/' . $fileName,
+            'original_name' => $file->getClientOriginalName(),
+        ]);
+
+        // Return format yang didukung oleh TinyMCE dan custom script
+        return response()->json([
+            'success' => true,
+            'location' => $url,
+            'url' => $url,
+            'media_id' => $mediaUpload->id,
+            'file_name' => $fileName,
+        ]);
     }
 }
-

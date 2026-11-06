@@ -47,6 +47,9 @@ Route::get('/manual-book', [ManualBookController::class, 'index'])->middleware([
 Route::get('/laporan', [HomeController::class, 'laporan'])->middleware(['auth'])->name('laporan');
 Route::get('/bank-solusi', [BankSolusiController::class, 'index'])->middleware(['auth'])->name('bank-solusi.index');
 Route::get('/bank-solusi/create', [BankSolusiController::class, 'create'])->middleware(['auth'])->name('bank-solusi.create');
+Route::post('/bank-solusi', [BankSolusiController::class, 'store'])->middleware(['auth'])->name('bank-solusi.store');
+Route::get('/bank-solusi/{id}', [BankSolusiController::class, 'show'])->middleware(['auth'])->name('bank-solusi.show');
+Route::post('/bank-solusi/upload-image', [BankSolusiController::class, 'uploadImage'])->middleware(['auth'])->name('bank-solusi.upload_image');
 Route::get('/laporan/export-excel', [HomeController::class, 'exportExcel'])->middleware(['auth'])->name('laporan.export_excel');
 Route::post('/laporan/{id}/proses-nilai', [HomeController::class, 'prosesNilai'])->middleware(['auth'])->name('laporan.proses_nilai');
 Route::post('/laporan/proses-semua-nilai', [HomeController::class, 'prosesSemuaNilai'])->middleware(['auth'])->name('laporan.proses_semua');

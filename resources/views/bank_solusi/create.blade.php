@@ -22,18 +22,20 @@
 
                 {{-- Simpan Draft --}}
                 <button type="button" 
-                        @click="saveDraft()" 
-                        class="inline-flex items-center gap-2 px-3.5 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-[#0f172a] dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer">
+                        @click="submitArticle('draft')" 
+                        :disabled="isSubmitting"
+                        class="inline-flex items-center gap-2 px-3.5 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-[#0f172a] dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer disabled:opacity-50">
                     <i class="fa-regular fa-floppy-disk text-xs"></i>
-                    <span>Simpan Draft</span>
+                    <span x-text="isSubmitting && submitTarget === 'draft' ? 'Menyimpan...' : 'Simpan Draft'"></span>
                 </button>
 
                 {{-- Terbitkan Artikel Solusi --}}
                 <button type="button" 
-                        @click="publishArticle()" 
-                        class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white rounded-xl text-xs sm:text-sm font-bold shadow-md shadow-blue-500/20 transition-all hover:scale-[1.02] cursor-pointer">
+                        @click="submitArticle('published')" 
+                        :disabled="isSubmitting"
+                        class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white rounded-xl text-xs sm:text-sm font-bold shadow-md shadow-blue-500/20 transition-all hover:scale-[1.02] cursor-pointer disabled:opacity-50">
                     <i class="fa-solid fa-rocket text-xs"></i>
-                    <span>Terbitkan Artikel Solusi</span>
+                    <span x-text="isSubmitting && submitTarget === 'published' ? 'Menerbitkan...' : 'Terbitkan Artikel Solusi'"></span>
                 </button>
             </div>
         </div>
@@ -118,7 +120,7 @@
                 </div>
             </div>
 
-            {{-- Row Dropdowns: PILIH SISTEM & PILIH MODUL --}}
+            {{-- Row Dropdowns: PILIH SISTEM & PILIH MODUL (Dinamis dari Database) --}}
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-5">
                 {{-- PILIH SISTEM (LEVEL 1) --}}
                 <div>
@@ -126,13 +128,12 @@
                         PILIH SISTEM (LEVEL 1)
                     </label>
                     <div class="relative">
-                        <select x-model="selectedSystem" 
-                                @change="onSystemChange()"
+                        <select x-model="selectedCategoryId" 
+                                @change="onCategoryChange()"
                                 class="w-full px-4 py-3 bg-white dark:bg-[#0e172a] border border-slate-200 dark:border-slate-700/80 rounded-xl text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 appearance-none pr-10 shadow-xs cursor-pointer">
-                            <option value="PRESTO Resto POS">PRESTO Resto POS</option>
-                            <option value="Probus Hotel PMS">Probus Hotel PMS</option>
-                            <option value="PPE 2.0 Management">PPE 2.0 Management</option>
-                            <option value="Back Office & Akuntansi">Back Office & Akuntansi</option>
+                            <template x-for="cat in categories" :key="cat.id">
+                                <option :value="cat.id" x-text="cat.name"></option>
+                            </template>
                         </select>
                         <div class="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none text-slate-400">
                             <i class="fa-solid fa-chevron-down text-xs"></i>
@@ -146,10 +147,10 @@
                         PILIH MODUL / KATEGORI (LEVEL 2)
                     </label>
                     <div class="relative">
-                        <select x-model="selectedModule" 
+                        <select x-model="selectedModuleId" 
                                 class="w-full px-4 py-3 bg-white dark:bg-[#0e172a] border border-slate-200 dark:border-slate-700/80 rounded-xl text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 appearance-none pr-10 shadow-xs cursor-pointer">
-                            <template x-for="mod in currentModuleOptions" :key="mod">
-                                <option :value="mod" x-text="mod" :selected="mod === selectedModule"></option>
+                            <template x-for="mod in currentModules" :key="mod.id">
+                                <option :value="mod.id" x-text="mod.name"></option>
                             </template>
                         </select>
                         <div class="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none text-slate-400">
@@ -254,24 +255,27 @@
 
                     {{-- Insert Buttons --}}
                     <div class="flex items-center gap-1.5">
-                        <button type="button" class="inline-flex items-center gap-1 px-2 py-1 hover:bg-slate-100 rounded text-slate-700 text-xs font-medium cursor-pointer">
-                            <i class="fa-regular fa-image text-slate-500"></i>
+                        <button type="button" 
+                                @click="$refs.imageInput.click()" 
+                                class="inline-flex items-center gap-1 px-2.5 py-1 hover:bg-slate-100 rounded text-slate-700 text-xs font-semibold cursor-pointer border border-transparent hover:border-slate-300 transition-colors"
+                                title="Unggah Gambar / Screenshot ke Editor (Tersimpan ke media_uploads)">
+                            <i class="fa-regular fa-image text-blue-600"></i>
                             <span>Gambar</span>
                         </button>
+                        <input type="file" 
+                               x-ref="imageInput" 
+                               @change="handleImageFileSelect($event)" 
+                               accept="image/*" 
+                               class="hidden">
 
-                        <button type="button" class="inline-flex items-center gap-1 px-2 py-1 hover:bg-slate-100 rounded text-slate-700 text-xs font-medium cursor-pointer">
+                        <button type="button" @click="insertTableSample()" class="inline-flex items-center gap-1 px-2 py-1 hover:bg-slate-100 rounded text-slate-700 text-xs font-medium cursor-pointer" title="Sisipkan Tabel Standar">
                             <i class="fa-solid fa-table text-slate-500"></i>
                             <span>Tabel</span>
-                            <i class="fa-solid fa-caret-down text-[9px] text-slate-400"></i>
                         </button>
 
-                        <button type="button" class="inline-flex items-center gap-1 px-2 py-1 hover:bg-slate-100 rounded text-slate-700 text-xs font-medium cursor-pointer">
+                        <button type="button" @click="insertLinkPrompt()" class="inline-flex items-center gap-1 px-2 py-1 hover:bg-slate-100 rounded text-slate-700 text-xs font-medium cursor-pointer" title="Sisipkan Tautan">
                             <i class="fa-solid fa-link text-slate-500"></i>
                             <span>Link</span>
-                        </button>
-
-                        <button type="button" class="p-1.5 hover:bg-slate-100 rounded text-slate-500 text-xs cursor-pointer">
-                            <i class="fa-solid fa-ellipsis"></i>
                         </button>
                     </div>
                 </div>
@@ -279,6 +283,9 @@
                 {{-- Document Canvas (Identik 100% dengan Gambar User) --}}
                 <div id="editorCanvas" 
                      contenteditable="true" 
+                     @paste="handleEditorPaste($event)"
+                     @dragover.prevent
+                     @drop.prevent="handleEditorDrop($event)"
                      class="p-6 sm:p-10 min-h-[580px] bg-white text-slate-800 text-sm leading-relaxed focus:outline-none">
                     
                     {{-- Intro Text --}}
@@ -419,17 +426,19 @@
             {{-- Right Buttons --}}
             <div class="flex items-center gap-3 w-full sm:w-auto justify-end">
                 <button type="button" 
-                        @click="saveDraft()" 
-                        class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-[#0f172a] dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer flex items-center gap-2">
+                        @click="submitArticle('draft')" 
+                        :disabled="isSubmitting"
+                        class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-[#0f172a] dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer flex items-center gap-2 disabled:opacity-50">
                     <i class="fa-regular fa-floppy-disk text-xs"></i>
-                    <span>Simpan sebagai Draft</span>
+                    <span x-text="isSubmitting && submitTarget === 'draft' ? 'Menyimpan...' : 'Simpan sebagai Draft'"></span>
                 </button>
 
                 <button type="button" 
-                        @click="publishArticle()" 
-                        class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white rounded-xl text-xs sm:text-sm font-bold shadow-md shadow-blue-500/20 transition-all hover:scale-[1.02] cursor-pointer flex items-center gap-2">
+                        @click="submitArticle('published')" 
+                        :disabled="isSubmitting"
+                        class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white rounded-xl text-xs sm:text-sm font-bold shadow-md shadow-blue-500/20 transition-all hover:scale-[1.02] cursor-pointer flex items-center gap-2 disabled:opacity-50">
                     <i class="fa-solid fa-rocket text-xs"></i>
-                    <span>Terbitkan Artikel Solusi</span>
+                    <span x-text="isSubmitting && submitTarget === 'published' ? 'Menerbitkan...' : 'Terbitkan Artikel Solusi'"></span>
                 </button>
             </div>
         </div>
@@ -441,45 +450,40 @@
         function createArtikelSolusi() {
             return {
                 visibility: 'publik', // 'publik' atau 'internal'
-                selectedSystem: 'PRESTO Resto POS',
-                selectedModule: 'Hardware & Printer',
+                categories: @json($categories ?? []),
+                selectedCategoryId: null,
+                selectedModuleId: null,
                 articleTitle: 'Cara Menangani Printer Kasir Thermal yang Tidak Mencetak Struk',
-
-                moduleMap: {
-                    'PRESTO Resto POS': [
-                        'Hardware & Printer',
-                        'Order Taker & Kasir',
-                        'QRIS & Pembayaran EDC',
-                        'Kitchen Display / KDS',
-                        'Tutup Shift & Laporan'
-                    ],
-                    'Probus Hotel PMS': [
-                        'Front Office & Reservasi',
-                        'Housekeeping & Room Status',
-                        'Night Audit & EOD'
-                    ],
-                    'PPE 2.0 Management': [
-                        'Manajemen Hak Akses',
-                        'Sinkronisasi Multi-Outlet'
-                    ],
-                    'Back Office & Akuntansi': [
-                        'Inventory & Food Cost',
-                        'Jurnal & Buku Besar'
-                    ]
-                },
+                isSubmitting: false,
+                submitTarget: null,
 
                 init() {
-                    // Default terisi persis gambar
+                    if (this.categories && this.categories.length > 0) {
+                        // Cari default kategori (misal: PRESTO atau kategori pertama)
+                        const prestoCat = this.categories.find(c => (c.name || '').toUpperCase().includes('PRESTO'));
+                        const defaultCat = prestoCat || this.categories[0];
+                        this.selectedCategoryId = defaultCat.id;
+
+                        // Cari default modul
+                        if (defaultCat.menu_systems && defaultCat.menu_systems.length > 0) {
+                            const hwMod = defaultCat.menu_systems.find(m => (m.name || '').toLowerCase().includes('hardware'));
+                            this.selectedModuleId = hwMod ? hwMod.id : defaultCat.menu_systems[0].id;
+                        }
+                    }
                 },
 
-                get currentModuleOptions() {
-                    return this.moduleMap[this.selectedSystem] || ['Hardware & Printer'];
+                get currentModules() {
+                    if (!this.selectedCategoryId) return [];
+                    const found = this.categories.find(c => String(c.id) === String(this.selectedCategoryId));
+                    return found && found.menu_systems ? found.menu_systems : [];
                 },
 
-                onSystemChange() {
-                    const opts = this.currentModuleOptions;
-                    if (opts.length > 0) {
-                        this.selectedModule = opts[0];
+                onCategoryChange() {
+                    const mods = this.currentModules;
+                    if (mods.length > 0) {
+                        this.selectedModuleId = mods[0].id;
+                    } else {
+                        this.selectedModuleId = null;
                     }
                 },
 
@@ -491,40 +495,241 @@
                     document.execCommand('formatBlock', false, tag);
                 },
 
-                saveDraft() {
-                    if (typeof Swal !== 'undefined') {
-                        Swal.fire({
-                            icon: 'info',
-                            title: 'Draft Disimpan!',
-                            text: 'Artikel "' + this.articleTitle + '" berhasil disimpan sebagai draft.',
-                            confirmButtonColor: '#2563eb',
-                            timer: 2000
-                        });
-                    } else {
-                        alert('Draft berhasil disimpan!');
+                insertTableSample() {
+                    const tableHtml = `
+                        <table style="width: 100%; border-collapse: collapse; margin: 15px 0; border: 1px solid #cbd5e1;">
+                            <thead>
+                                <tr style="background-color: #f8fafc; font-weight: bold; text-align: left;">
+                                    <th style="padding: 8px 12px; border: 1px solid #cbd5e1; width: 40px; text-align: center;">No</th>
+                                    <th style="padding: 8px 12px; border: 1px solid #cbd5e1; width: 160px;">Kolom 1</th>
+                                    <th style="padding: 8px 12px; border: 1px solid #cbd5e1;">Keterangan & Penjelasan</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td style="padding: 8px 12px; border: 1px solid #cbd5e1; text-align: center;">1</td>
+                                    <td style="padding: 8px 12px; border: 1px solid #cbd5e1; font-weight: 600;">Item Pertama</td>
+                                    <td style="padding: 8px 12px; border: 1px solid #cbd5e1;">Deskripsi atau langkah yang perlu diperiksa.</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 8px 12px; border: 1px solid #cbd5e1; text-align: center;">2</td>
+                                    <td style="padding: 8px 12px; border: 1px solid #cbd5e1; font-weight: 600;">Item Kedua</td>
+                                    <td style="padding: 8px 12px; border: 1px solid #cbd5e1;">Deskripsi atau langkah lanjutan.</td>
+                                </tr>
+                            </tbody>
+                        </table><p></p>
+                    `;
+                    document.execCommand('insertHTML', false, tableHtml);
+                },
+
+                insertLinkPrompt() {
+                    const url = prompt('Masukkan tautan URL (misal: https://example.com):', 'https://');
+                    if (url) {
+                        document.execCommand('createLink', false, url);
                     }
                 },
 
-                publishArticle() {
-                    if (!this.articleTitle.trim()) {
-                        alert('Silakan isi judul artikel terlebih dahulu.');
+                // Handler pilih file gambar via tombol toolbar
+                handleImageFileSelect(event) {
+                    const file = event.target.files[0];
+                    if (file) {
+                        this.uploadAndInsertImage(file);
+                        event.target.value = '';
+                    }
+                },
+
+                // Handler paste screenshot langsung ke editor (Ctrl+V)
+                handleEditorPaste(event) {
+                    const items = (event.clipboardData || event.originalEvent.clipboardData).items;
+                    for (let i = 0; i < items.length; i++) {
+                        if (items[i].type.indexOf('image') !== -1) {
+                            event.preventDefault();
+                            const blob = items[i].getAsFile();
+                            this.uploadAndInsertImage(blob);
+                            return;
+                        }
+                    }
+                },
+
+                // Handler drag and drop gambar ke editor
+                handleEditorDrop(event) {
+                    const files = event.dataTransfer.files;
+                    if (files.length > 0 && files[0].type.indexOf('image') !== -1) {
+                        this.uploadAndInsertImage(files[0]);
+                    }
+                },
+
+                // Mengirim gambar ke backend /bank-solusi/upload-image & menyimpan riwayat ke media_uploads
+                uploadAndInsertImage(file) {
+                    if (!file) return;
+
+                    const formData = new FormData();
+                    formData.append('image', file);
+                    formData.append('_token', '{{ csrf_token() }}');
+
+                    // Notifikasi sedang mengunggah
+                    if (typeof Swal !== 'undefined') {
+                        Swal.fire({
+                            title: 'Mengunggah Gambar...',
+                            text: 'Gambar sedang disimpan ke server.',
+                            allowOutsideClick: false,
+                            didOpen: () => {
+                                Swal.showLoading();
+                            }
+                        });
+                    }
+
+                    fetch('{{ route("bank-solusi.upload_image") }}', {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    })
+                    .then(response => {
+                        if (!response.ok) throw new Error('Gagal mengunggah gambar');
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (data.location || data.url) {
+                            const imgUrl = data.location || data.url;
+                            const imgHtml = `<p><img src="${imgUrl}" alt="Screenshot Panduan" style="max-width: 100%; height: auto; border-radius: 12px; margin: 12px 0; border: 1px solid #cbd5e1; box-shadow: 0 1px 3px rgba(0,0,0,0.1);" /></p><p></p>`;
+                            
+                            // Sisipkan ke posisi kursor atau canvas
+                            const canvas = document.getElementById('editorCanvas');
+                            canvas.focus();
+                            document.execCommand('insertHTML', false, imgHtml);
+
+                            if (typeof Swal !== 'undefined') {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Gambar Berhasil Diunggah!',
+                                    text: 'Gambar telah dimasukkan ke editor dan dicatat ke tabel media_uploads.',
+                                    timer: 2000,
+                                    showConfirmButton: false
+                                });
+                            }
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error upload:', error);
+                        if (typeof Swal !== 'undefined') {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Gagal Mengunggah',
+                                text: 'Terjadi kesalahan saat mengunggah gambar. Pastikan format gambar valid (PNG/JPG/WEBP).',
+                            });
+                        } else {
+                            alert('Gagal mengunggah gambar.');
+                        }
+                    });
+                },
+
+                // Menyimpan Artikel (Draft atau Published) ke Tabel articles & menu_has_articles
+                submitArticle(targetStatus) {
+                    if (this.isSubmitting) return;
+
+                    const title = (this.articleTitle || '').trim();
+                    if (!title) {
+                        if (typeof Swal !== 'undefined') {
+                            Swal.fire({
+                                icon: 'warning',
+                                title: 'Judul Wajib Diisi',
+                                text: 'Silakan masukkan judul artikel solusi terlebih dahulu.',
+                                confirmButtonColor: '#2563eb'
+                            });
+                        } else {
+                            alert('Silakan isi judul artikel terlebih dahulu.');
+                        }
                         return;
                     }
 
-                    if (typeof Swal !== 'undefined') {
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'Artikel Berhasil Diterbitkan!',
-                            text: 'Panduan "' + this.articleTitle + '" kini telah aktif di Bank Solusi (' + (this.visibility === 'publik' ? 'Publik' : 'Internal') + ').',
-                            confirmButtonColor: '#2563eb',
-                            confirmButtonText: 'Kembali ke Bank Solusi'
-                        }).then((result) => {
-                            window.location.href = "{{ route('bank-solusi.index') }}";
-                        });
-                    } else {
-                        alert('Artikel berhasil diterbitkan!');
-                        window.location.href = "{{ route('bank-solusi.index') }}";
+                    if (!this.selectedModuleId) {
+                        if (typeof Swal !== 'undefined') {
+                            Swal.fire({
+                                icon: 'warning',
+                                title: 'Modul Belum Dipilih',
+                                text: 'Silakan pilih modul (Level 2) yang sesuai untuk artikel ini.',
+                                confirmButtonColor: '#2563eb'
+                            });
+                        } else {
+                            alert('Silakan pilih modul terlebih dahulu.');
+                        }
+                        return;
                     }
+
+                    const canvas = document.getElementById('editorCanvas');
+                    const content = canvas ? canvas.innerHTML.trim() : '';
+                    if (!content) {
+                        alert('Isi artikel panduan tidak boleh kosong.');
+                        return;
+                    }
+
+                    this.isSubmitting = true;
+                    this.submitTarget = targetStatus;
+
+                    const payload = {
+                        title: title,
+                        visibility: this.visibility,
+                        status: targetStatus,
+                        menu_system_id: this.selectedModuleId,
+                        content: content,
+                        _token: '{{ csrf_token() }}'
+                    };
+
+                    fetch('{{ route("bank-solusi.store") }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        body: JSON.stringify(payload)
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            return response.json().then(err => { throw err; });
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        this.isSubmitting = false;
+                        const isPublish = targetStatus === 'published';
+
+                        if (typeof Swal !== 'undefined') {
+                            Swal.fire({
+                                icon: 'success',
+                                title: isPublish ? 'Artikel Berhasil Diterbitkan!' : 'Draft Berhasil Disimpan!',
+                                text: `Panduan "${title}" berhasil disimpan ke database (${this.visibility === 'publik' ? 'Publik' : 'Internal Saja'}).`,
+                                confirmButtonColor: '#2563eb',
+                                confirmButtonText: 'Kembali ke Bank Solusi'
+                            }).then(() => {
+                                window.location.href = data.redirect_url || "{{ route('bank-solusi.index') }}";
+                            });
+                        } else {
+                            alert(isPublish ? 'Artikel berhasil diterbitkan!' : 'Draft berhasil disimpan!');
+                            window.location.href = data.redirect_url || "{{ route('bank-solusi.index') }}";
+                        }
+                    })
+                    .catch(err => {
+                        this.isSubmitting = false;
+                        console.error('Error submit:', err);
+                        let errMsg = 'Terjadi kesalahan saat menyimpan artikel.';
+                        if (err && err.message) errMsg = err.message;
+                        if (err && err.errors) errMsg = Object.values(err.errors).flat().join('<br>');
+
+                        if (typeof Swal !== 'undefined') {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Gagal Menyimpan',
+                                html: errMsg,
+                                confirmButtonColor: '#2563eb'
+                            });
+                        } else {
+                            alert(errMsg);
+                        }
+                    });
                 }
             };
         }

@@ -264,22 +264,31 @@
                                 <p class="text-xs sm:text-sm text-slate-700 dark:text-slate-200 leading-relaxed" x-text="selectedSolution.excerpt"></p>
                             </div>
 
-                            {{-- Step by Step Guide --}}
+                            {{-- Full Content from TinyMCE or Step by Step Guide --}}
                             <div class="mb-6">
-                                <h4 class="text-sm font-extrabold text-slate-800 dark:text-slate-100 uppercase tracking-wider mb-3 flex items-center gap-2">
-                                    <i class="fa-solid fa-list-check text-blue-600 dark:text-blue-400"></i>
-                                    <span>Langkah Penanganan Mandiri</span>
-                                </h4>
+                                <template x-if="selectedSolution.content">
+                                    <div class="prose prose-sm dark:prose-invert max-w-none text-slate-800 dark:text-slate-100 leading-relaxed overflow-x-auto text-sm" 
+                                         x-html="selectedSolution.content"></div>
+                                </template>
+                                
+                                <template x-if="!selectedSolution.content && selectedSolution.steps">
+                                    <div>
+                                        <h4 class="text-sm font-extrabold text-slate-800 dark:text-slate-100 uppercase tracking-wider mb-3 flex items-center gap-2">
+                                            <i class="fa-solid fa-list-check text-blue-600 dark:text-blue-400"></i>
+                                            <span>Langkah Penanganan Mandiri</span>
+                                        </h4>
 
-                                <ol class="space-y-3">
-                                    <template x-for="(step, idx) in selectedSolution.steps" :key="idx">
-                                        <li class="flex items-start gap-3 p-3 rounded-xl bg-slate-50 dark:bg-[#0f172a] border border-slate-200/80 dark:border-slate-800">
-                                            <span class="w-6 h-6 rounded-full bg-blue-600 text-white text-xs font-bold flex items-center justify-center shrink-0 mt-0.5" 
-                                                  x-text="idx + 1"></span>
-                                            <span class="text-xs sm:text-sm text-slate-700 dark:text-slate-200 leading-relaxed" x-text="step"></span>
-                                        </li>
-                                    </template>
-                                </ol>
+                                        <ol class="space-y-3">
+                                            <template x-for="(step, idx) in selectedSolution.steps" :key="idx">
+                                                <li class="flex items-start gap-3 p-3 rounded-xl bg-slate-50 dark:bg-[#0f172a] border border-slate-200/80 dark:border-slate-800">
+                                                    <span class="w-6 h-6 rounded-full bg-blue-600 text-white text-xs font-bold flex items-center justify-center shrink-0 mt-0.5" 
+                                                          x-text="idx + 1"></span>
+                                                    <span class="text-xs sm:text-sm text-slate-700 dark:text-slate-200 leading-relaxed" x-text="step"></span>
+                                                </li>
+                                            </template>
+                                        </ol>
+                                    </div>
+                                </template>
                             </div>
 
                             {{-- Technical Notes / Warning --}}
@@ -427,12 +436,12 @@
     <script>
         function bankSolusi() {
             return {
-                systems: @json($systems),
-                allModules: @json($modules),
-                solutions: @json($solutions),
+                systems: @json($systems ?? []),
+                allModules: @json($modules ?? []),
+                solutions: @json($solutions ?? []),
 
-                activeSystem: 'presto-resto-pos',
-                activeModule: 'hardware-printer',
+                activeSystem: 'all',
+                activeModule: 'all-modules',
                 activeAudience: 'all', // 'all', 'klien', 'internal'
                 searchQuery: '',
 
@@ -450,11 +459,24 @@
                 },
 
                 init() {
-                    // Default load identik gambar
+                    // Cari sistem PRESTO atau sistem pertama dengan modul
+                    if (this.systems && this.systems.length > 0) {
+                        const presto = this.systems.find(s => (s.name || '').toUpperCase().includes('PRESTO'));
+                        const targetSys = presto || this.systems.find(s => s.id !== 'all') || this.systems[0];
+                        if (targetSys) {
+                            this.activeSystem = targetSys.id;
+                            const mods = this.currentModules;
+                            if (mods && mods.length > 0) {
+                                const hw = mods.find(m => (m.name || '').toLowerCase().includes('hardware'));
+                                this.activeModule = hw ? hw.id : (mods[1] ? mods[1].id : mods[0].id);
+                            }
+                        }
+                    }
                 },
 
                 get currentModules() {
-                    return this.allModules[this.activeSystem] || this.allModules['all'] || [];
+                    const key = String(this.activeSystem);
+                    return this.allModules[key] || this.allModules['all'] || [];
                 },
 
                 selectSystem(sysId) {
@@ -472,13 +494,13 @@
                 },
 
                 getActiveSystemName() {
-                    const found = this.systems.find(s => s.id === this.activeSystem);
-                    return found ? found.name : 'PRESTO Resto POS';
+                    const found = this.systems.find(s => String(s.id) === String(this.activeSystem));
+                    return found ? found.name : 'Semua Sistem';
                 },
 
                 getActiveModuleName() {
-                    const found = this.currentModules.find(m => m.id === this.activeModule);
-                    return found ? found.name : 'Hardware & Printer';
+                    const found = this.currentModules.find(m => String(m.id) === String(this.activeModule));
+                    return found ? found.name : 'Semua Modul';
                 },
 
                 countAudience(type) {
@@ -492,13 +514,27 @@
                 getBaseFilteredSolutions() {
                     return this.solutions.filter(item => {
                         // Filter sistem
-                        if (this.activeSystem !== 'all' && item.system_id !== this.activeSystem) {
+                        if (this.activeSystem !== 'all' && String(item.system_id) !== String(this.activeSystem)) {
                             return false;
                         }
                         // Filter modul
-                        if (this.activeModule !== 'all-modules' && item.module_id !== this.activeModule) {
+                        if (this.activeModule !== 'all-modules' && String(item.module_id) !== String(this.activeModule)) {
                             return false;
                         }
+                        // Search query
+                        if (this.searchQuery && this.searchQuery.trim() !== '') {
+                            const q = this.searchQuery.toLowerCase();
+                            const matchTitle = (item.title || '').toLowerCase().includes(q);
+                            const matchExcerpt = (item.excerpt || '').toLowerCase().includes(q);
+                            const matchMod = (item.module_name || '').toLowerCase().includes(q);
+                            const matchSys = (item.system_name || '').toLowerCase().includes(q);
+                            if (!matchTitle && !matchExcerpt && !matchMod && !matchSys) {
+                                return false;
+                            }
+                        }
+                        return true;
+                    });
+                },
                         // Search query
                         if (this.searchQuery.trim() !== '') {
                             const q = this.searchQuery.toLowerCase();
@@ -522,8 +558,8 @@
                 },
 
                 resetFilters() {
-                    this.activeSystem = 'presto-resto-pos';
-                    this.activeModule = 'hardware-printer';
+                    this.activeSystem = 'all';
+                    this.activeModule = 'all-modules';
                     this.activeAudience = 'all';
                     this.searchQuery = '';
                 },
