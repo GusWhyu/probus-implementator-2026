@@ -119,6 +119,11 @@ class ManualBookController extends Controller
             $menuSystem->manualBooks()->attach($manualBook->id);
         }
 
+        // Perbarui juga deskripsi di modul jika diisi
+        if ($request->filled('description')) {
+            $menuSystem->update(['description' => $request->description]);
+        }
+
         $message = $request->status === 'published'
             ? 'Tata cara modul "' . $manualBook->title . '" berhasil disimpan dan dipublikasikan ke Manual Book!'
             : 'Draft panduan modul "' . $manualBook->title . '" berhasil disimpan!';
@@ -129,6 +134,52 @@ class ManualBookController extends Controller
             'manual_book' => $manualBook,
             'statusLabel' => $request->status === 'published' ? 'Panduan Terisi ✓' : 'Sedang Diedit ✎',
             'statusClass' => $request->status === 'published' ? 'text-emerald-600 dark:text-emerald-400' : 'text-blue-600 dark:text-blue-400',
+        ]);
+    }
+
+    /**
+     * Menghapus modul (MenuSystem) beserta relasinya
+     */
+    public function deleteModule($id)
+    {
+        $menuSystem = MenuSystem::findOrFail($id);
+        $name = $menuSystem->name;
+        $kategoriId = $menuSystem->kategori_id;
+
+        // Lepas relasi pivot manual books & articles
+        $menuSystem->manualBooks()->detach();
+        $menuSystem->articles()->detach();
+        $menuSystem->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Modul "' . $name . '" berhasil dihapus!',
+            'deleted_id' => (string) $id,
+            'kategori_id' => (string) $kategoriId,
+        ]);
+    }
+
+    /**
+     * Menghapus sistem (Kategori)
+     */
+    public function deleteSystem($id)
+    {
+        $kategori = Kategori::with('menuSystems')->findOrFail($id);
+
+        if ($kategori->menuSystems()->count() > 0) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Sistem "' . $kategori->name . '" masih memiliki ' . $kategori->menuSystems()->count() . ' modul. Hapus atau kosongkan modulnya terlebih dahulu.',
+            ], 422);
+        }
+
+        $name = $kategori->name;
+        $kategori->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Sistem "' . $name . '" berhasil dihapus!',
+            'deleted_id' => (string) $id,
         ]);
     }
 

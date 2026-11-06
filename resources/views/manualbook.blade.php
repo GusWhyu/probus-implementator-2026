@@ -78,9 +78,17 @@
                                 : 'border-slate-200 dark:border-slate-800/90 bg-slate-50/50 dark:bg-slate-900/60 hover:bg-slate-100/70 dark:hover:bg-slate-800/60'"
                              class="p-3.5 rounded-xl border transition-all duration-200 cursor-pointer text-left group">
                             
-                            {{-- Judul Modul --}}
-                            <div class="text-xs sm:text-[13px] font-bold text-slate-800 dark:text-slate-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors leading-snug"
-                                 x-text="mod.title">
+                            {{-- Judul Modul & Hapus --}}
+                            <div class="flex items-start justify-between gap-2">
+                                <div class="text-xs sm:text-[13px] font-bold text-slate-800 dark:text-slate-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors leading-snug"
+                                     x-text="mod.title">
+                                </div>
+                                <button type="button" 
+                                        @click.stop="confirmDeleteModule(mod)" 
+                                        class="opacity-0 group-hover:opacity-100 p-1 hover:bg-rose-100 dark:hover:bg-rose-950/60 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 rounded-md transition-all shrink-0 cursor-pointer" 
+                                        title="Hapus Modul">
+                                    <i class="fa-regular fa-trash-can text-[11px]"></i>
+                                </button>
                             </div>
 
                             {{-- Status Pengisian --}}
@@ -201,6 +209,7 @@
                         <div id="manualBookCanvas"
                              class="p-5 sm:p-8 bg-white text-slate-900 text-sm leading-relaxed min-h-[460px] space-y-6 focus:outline-none" 
                              contenteditable="true"
+                             @input="updateWordCount()"
                              @paste="handleEditorPaste($event)"
                              @drop.prevent="handleEditorDrop($event)"
                              @dragover.prevent>
@@ -213,7 +222,7 @@
                             </div>
                             <div class="flex items-center gap-3">
                                 <span>Press Alt+0 for help</span>
-                                <span>186 words</span>
+                                <span x-text="wordCount + ' words'"></span>
                                 <span class="text-blue-600 font-semibold flex items-center gap-1">
                                     Build with tinyMCE <i class="fa-solid fa-arrow-up-right-from-square text-[9px]"></i>
                                 </span>
@@ -344,6 +353,7 @@
                 newModuleName: '',
                 isSubmitting: false,
                 submitTarget: null,
+                wordCount: 0,
 
                 systems: @json($systems ?? []),
                 modulesBySystem: @json($modulesBySystem ?? []),
@@ -352,6 +362,12 @@
                 activeModuleId: null,
 
                 initEditor() {
+                    const self = this;
+                    // Sinkronisasi dengan tombol 'Simpan Manual Modul' di header atas
+                    window.saveManualBookDraft = function(isPublish = true) {
+                        self.submitManualBook(isPublish ? 'published' : 'draft');
+                    };
+
                     if (this.systems && this.systems.length > 0) {
                         // Prioritaskan sistem yang ada modulnya atau PRESTO
                         const presto = this.systems.find(s => (s.name || '').toUpperCase().includes('PRESTO'));
@@ -392,6 +408,14 @@
                 },
 
                 selectSystem(id) {
+                    // Simpan canvas konten modul sebelumnya ke memori lokal
+                    if (this.currentModule) {
+                        const canvas = document.getElementById('manualBookCanvas');
+                        if (canvas) {
+                            this.currentModule.content = canvas.innerHTML;
+                        }
+                    }
+
                     this.activeSystem = String(id);
                     const mods = this.modules;
                     if (mods.length > 0) {
@@ -406,6 +430,14 @@
                 },
 
                 selectModule(id) {
+                    // Simpan canvas konten modul sebelumnya ke memori lokal
+                    if (this.currentModule) {
+                        const canvas = document.getElementById('manualBookCanvas');
+                        if (canvas) {
+                            this.currentModule.content = canvas.innerHTML;
+                        }
+                    }
+
                     this.activeModuleId = String(id);
                     this.$nextTick(() => {
                         this.updateCanvasContent();
@@ -416,7 +448,16 @@
                     const canvas = document.getElementById('manualBookCanvas');
                     if (canvas && this.currentModule) {
                         canvas.innerHTML = this.currentModule.content || '<p class="text-slate-400 italic">Belum ada panduan tata cara yang ditulis untuk modul ini. Silakan mulai tulis panduan Anda di sini...</p>';
+                        this.updateWordCount();
                     }
+                },
+
+                updateWordCount() {
+                    const canvas = document.getElementById('manualBookCanvas');
+                    if (!canvas) return;
+                    const text = canvas.innerText || canvas.textContent || '';
+                    const words = text.trim().split(/\s+/).filter(w => w.length > 0);
+                    this.wordCount = words.length;
                 },
 
                 formatDoc(cmd, value = null) {
@@ -730,6 +771,157 @@
                     .catch(err => {
                         console.error('Error add module:', err);
                         alert(err.message || 'Gagal menambahkan modul baru.');
+                    });
+                },
+
+                // Konfirmasi & Hapus Modul dari Database
+                confirmDeleteModule(mod) {
+                    if (typeof Swal !== 'undefined') {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Hapus Modul?',
+                            html: `Apakah Anda yakin ingin menghapus modul <strong>"${mod.title}"</strong>?<br><span class="text-xs text-rose-500 font-semibold">Tata cara manual book terkait modul ini akan terhapus.</span>`,
+                            showCancelButton: true,
+                            confirmButtonColor: '#e11d48',
+                            cancelButtonColor: '#64748b',
+                            confirmButtonText: 'Ya, Hapus Modul',
+                            cancelButtonText: 'Batal'
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                this.executeDeleteModule(mod);
+                            }
+                        });
+                    } else {
+                        if (confirm(`Yakin ingin menghapus modul "${mod.title}"?`)) {
+                            this.executeDeleteModule(mod);
+                        }
+                    }
+                },
+
+                executeDeleteModule(mod) {
+                    fetch(`/manual-book/module/${mod.id}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    })
+                    .then(res => {
+                        if (!res.ok) return res.json().then(e => { throw e; });
+                        return res.json();
+                    })
+                    .then(data => {
+                        // Hapus modul dari daftar lokal
+                        const list = this.modulesBySystem[this.activeSystem] || [];
+                        this.modulesBySystem[this.activeSystem] = list.filter(m => String(m.id) !== String(mod.id));
+
+                        // Kurangi jumlah modul di tab sistem
+                        const sys = this.systems.find(s => String(s.id) === String(this.activeSystem));
+                        if (sys && sys.moduleCount > 0) sys.moduleCount--;
+
+                        // Ganti modul aktif jika yang dihapus sedang dibuka
+                        if (String(this.activeModuleId) === String(mod.id)) {
+                            const remaining = this.modules;
+                            this.activeModuleId = remaining.length > 0 ? remaining[0].id : null;
+                        }
+
+                        this.$nextTick(() => {
+                            this.updateCanvasContent();
+                        });
+
+                        if (typeof Swal !== 'undefined') {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Modul Dihapus',
+                                text: data.message,
+                                timer: 1800,
+                                showConfirmButton: false
+                            });
+                        }
+                    })
+                    .catch(err => {
+                        console.error('Error delete module:', err);
+                        const msg = (err && err.message) ? err.message : 'Gagal menghapus modul.';
+                        if (typeof Swal !== 'undefined') {
+                            Swal.fire({ icon: 'error', title: 'Gagal', text: msg });
+                        } else {
+                            alert(msg);
+                        }
+                    });
+                },
+
+                // Konfirmasi & Hapus Sistem dari Database
+                confirmDeleteSystem(sys) {
+                    if (typeof Swal !== 'undefined') {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Hapus Sistem?',
+                            html: `Apakah Anda yakin ingin menghapus sistem <strong>"${sys.name}"</strong>?`,
+                            showCancelButton: true,
+                            confirmButtonColor: '#e11d48',
+                            cancelButtonColor: '#64748b',
+                            confirmButtonText: 'Ya, Hapus Sistem',
+                            cancelButtonText: 'Batal'
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                this.executeDeleteSystem(sys);
+                            }
+                        });
+                    } else {
+                        if (confirm(`Yakin ingin menghapus sistem "${sys.name}"?`)) {
+                            this.executeDeleteSystem(sys);
+                        }
+                    }
+                },
+
+                executeDeleteSystem(sys) {
+                    fetch(`/manual-book/system/${sys.id}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    })
+                    .then(res => {
+                        if (!res.ok) return res.json().then(e => { throw e; });
+                        return res.json();
+                    })
+                    .then(data => {
+                        this.systems = this.systems.filter(s => String(s.id) !== String(sys.id));
+                        delete this.modulesBySystem[sys.id];
+
+                        if (String(this.activeSystem) === String(sys.id)) {
+                            this.activeSystem = this.systems.length > 0 ? this.systems[0].id : null;
+                            const nextMods = this.modules;
+                            this.activeModuleId = nextMods.length > 0 ? nextMods[0].id : null;
+                        }
+
+                        this.$nextTick(() => {
+                            this.updateCanvasContent();
+                        });
+
+                        if (typeof Swal !== 'undefined') {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Sistem Dihapus',
+                                text: data.message,
+                                timer: 1800,
+                                showConfirmButton: false
+                            });
+                        }
+                    })
+                    .catch(err => {
+                        console.error('Error delete system:', err);
+                        const msg = (err && err.message) ? err.message : 'Gagal menghapus sistem.';
+                        if (typeof Swal !== 'undefined') {
+                            Swal.fire({ icon: 'error', title: 'Gagal', text: msg });
+                        } else {
+                            alert(msg);
+                        }
                     });
                 }
             };
