@@ -44,6 +44,10 @@ Route::get('/daftartiket/export', [HomeController::class, 'exportDaftarTiket'])-
 Route::get('/daftartiket', [HomeController::class, 'daftartiket'])->middleware(['auth'])->name('daftartiket');
 Route::get('/inbox-manajemen', [HomeController::class, 'inbox'])->middleware(['auth'])->name('inbox');
 Route::get('/manual-book', [ManualBookController::class, 'index'])->middleware(['auth'])->name('manualbook');
+Route::post('/manual-book/save', [ManualBookController::class, 'saveModule'])->middleware(['auth'])->name('manualbook.save');
+Route::post('/manual-book/system', [ManualBookController::class, 'addSystem'])->middleware(['auth'])->name('manualbook.system.add');
+Route::post('/manual-book/module', [ManualBookController::class, 'addModule'])->middleware(['auth'])->name('manualbook.module.add');
+Route::get('/manual-book/module/{id}', [ManualBookController::class, 'getModuleData'])->middleware(['auth'])->name('manualbook.module.data');
 Route::get('/laporan', [HomeController::class, 'laporan'])->middleware(['auth'])->name('laporan');
 Route::get('/bank-solusi', [BankSolusiController::class, 'index'])->middleware(['auth'])->name('bank-solusi.index');
 Route::get('/bank-solusi/create', [BankSolusiController::class, 'create'])->middleware(['auth'])->name('bank-solusi.create');

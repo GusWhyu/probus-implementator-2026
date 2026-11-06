@@ -158,159 +158,52 @@
                             <span class="hover:bg-slate-200 px-1.5 py-0.5 rounded cursor-pointer">Help</span>
                         </div>
 
-                        {{-- Editor Toolbar Mockup --}}
+                        {{-- Editor Toolbar (Functional Tools) --}}
                         <div class="bg-slate-50 border-b border-slate-200 px-3 py-2 flex flex-wrap items-center gap-1.5 sm:gap-2 text-xs text-slate-700 select-none">
-                            <button type="button" class="p-1.5 hover:bg-slate-200 rounded text-slate-600" title="Undo"><i class="fa-solid fa-rotate-left"></i></button>
-                            <button type="button" class="p-1.5 hover:bg-slate-200 rounded text-slate-600" title="Redo"><i class="fa-solid fa-rotate-right"></i></button>
+                            <button type="button" @click="formatDoc('undo')" class="p-1.5 hover:bg-slate-200 rounded text-slate-600 cursor-pointer" title="Undo"><i class="fa-solid fa-rotate-left"></i></button>
+                            <button type="button" @click="formatDoc('redo')" class="p-1.5 hover:bg-slate-200 rounded text-slate-600 cursor-pointer" title="Redo"><i class="fa-solid fa-rotate-right"></i></button>
                             <span class="h-4 w-px bg-slate-300"></span>
 
-                            <div class="px-2 py-1 bg-white border border-slate-200 rounded flex items-center gap-1.5 text-xs font-semibold">
-                                <span>Heading 2</span>
-                                <i class="fa-solid fa-chevron-down text-[10px] text-slate-400"></i>
-                            </div>
-
-                            <div class="px-2 py-1 bg-white border border-slate-200 rounded flex items-center gap-1.5 text-xs font-semibold">
-                                <span>14px</span>
-                                <i class="fa-solid fa-chevron-down text-[10px] text-slate-400"></i>
-                            </div>
+                            <select @change="formatHeading($event.target.value)" class="px-2 py-1 bg-white border border-slate-200 rounded text-xs font-semibold focus:outline-none cursor-pointer">
+                                <option value="p">Paragraph</option>
+                                <option value="h2">Heading 2</option>
+                                <option value="h3" selected>Heading 3</option>
+                                <option value="h4">Heading 4</option>
+                            </select>
                             <span class="h-4 w-px bg-slate-300"></span>
 
-                            <button type="button" class="p-1.5 hover:bg-slate-200 rounded font-bold" title="Bold">B</button>
-                            <button type="button" class="p-1.5 hover:bg-slate-200 rounded italic font-serif font-bold" title="Italic">I</button>
-                            <button type="button" class="p-1.5 hover:bg-slate-200 rounded underline" title="Underline">U</button>
+                            <button type="button" @click="formatDoc('bold')" class="p-1.5 hover:bg-slate-200 rounded font-bold cursor-pointer" title="Bold">B</button>
+                            <button type="button" @click="formatDoc('italic')" class="p-1.5 hover:bg-slate-200 rounded italic font-serif font-bold cursor-pointer" title="Italic">I</button>
+                            <button type="button" @click="formatDoc('underline')" class="p-1.5 hover:bg-slate-200 rounded underline cursor-pointer" title="Underline">U</button>
                             <span class="h-4 w-px bg-slate-300"></span>
 
-                            <button type="button" class="p-1.5 hover:bg-slate-200 rounded" title="Bullet List"><i class="fa-solid fa-list-ul"></i></button>
-                            <button type="button" class="p-1.5 hover:bg-slate-200 rounded" title="Numbered List"><i class="fa-solid fa-list-ol"></i></button>
+                            <button type="button" @click="formatDoc('insertUnorderedList')" class="p-1.5 hover:bg-slate-200 rounded cursor-pointer" title="Bullet List"><i class="fa-solid fa-list-ul"></i></button>
+                            <button type="button" @click="formatDoc('insertOrderedList')" class="p-1.5 hover:bg-slate-200 rounded cursor-pointer" title="Numbered List"><i class="fa-solid fa-list-ol"></i></button>
                             <span class="h-4 w-px bg-slate-300"></span>
 
-                            <button type="button" class="px-2 py-1 hover:bg-slate-200 rounded flex items-center gap-1 text-slate-700 font-medium">
-                                <i class="fa-regular fa-image text-xs"></i>
+                            <button type="button" @click="$refs.imageInput.click()" class="px-2 py-1 hover:bg-slate-200 rounded flex items-center gap-1 text-slate-700 font-semibold cursor-pointer border border-transparent hover:border-slate-300 transition-colors" title="Unggah Gambar / Screenshot (Tersimpan ke media_uploads)">
+                                <i class="fa-regular fa-image text-blue-600 text-xs"></i>
                                 <span>Gambar</span>
                             </button>
-                            <button type="button" class="px-2 py-1 hover:bg-slate-200 rounded flex items-center gap-1 text-slate-700 font-medium">
+                            <input type="file" x-ref="imageInput" @change="handleImageFileSelect($event)" accept="image/*" class="hidden">
+
+                            <button type="button" @click="insertTableSample()" class="px-2 py-1 hover:bg-slate-200 rounded flex items-center gap-1 text-slate-700 font-medium cursor-pointer" title="Sisipkan Tabel">
                                 <i class="fa-solid fa-table text-xs"></i>
                                 <span>Tabel</span>
-                                <i class="fa-solid fa-chevron-down text-[9px] text-slate-400"></i>
                             </button>
-                            <button type="button" class="px-2 py-1 hover:bg-slate-200 rounded flex items-center gap-1 text-slate-700 font-medium">
+                            <button type="button" @click="insertLinkPrompt()" class="px-2 py-1 hover:bg-slate-200 rounded flex items-center gap-1 text-slate-700 font-medium cursor-pointer" title="Sisipkan Link">
                                 <i class="fa-solid fa-link text-xs"></i>
                                 <span>Link</span>
-                            </button>
-                            <button type="button" class="p-1.5 hover:bg-slate-200 rounded text-slate-500" title="More">
-                                <i class="fa-solid fa-ellipsis"></i>
                             </button>
                         </div>
 
                         {{-- Editor Content Body (Pre-rendered Rich Documentation Canvas) --}}
-                        <div class="p-5 sm:p-8 bg-white text-slate-900 text-sm leading-relaxed min-h-[460px] space-y-6 focus:outline-none" contenteditable="true">
-                            
-                            {{-- Paragraph Intro --}}
-                            <p class="text-slate-700 leading-normal text-[13.5px]">
-                                Panduan langkah demi langkah bagi kasir dan pramusaji untuk mengoperasikan modul Order Taker &amp; Transaksi Meja pada sistem PRESTO Resto POS.
-                            </p>
-
-                            {{-- Step 1 --}}
-                            <div class="space-y-2.5">
-                                <h3 class="text-base font-bold text-slate-900 tracking-tight">
-                                    1. Membuka Meja Baru (Open Table) &amp; Mengisi Jumlah Tamu
-                                </h3>
-                                <p class="text-slate-600 text-xs sm:text-sm">
-                                    Pilih nomor meja yang berstatus Kosong (warna hijau) pada denah restoran, lalu tekan tombol 'Buka Meja' untuk mulai mencatat pesanan tamu:
-                                </p>
-                                
-                                {{-- Wireframe Ilustrasi denah_meja_resto.png --}}
-                                <div class="border border-slate-300 rounded-lg p-3.5 bg-slate-50/50 space-y-2 max-w-xl">
-                                    <div class="text-[11px] font-mono text-slate-400 flex items-center gap-1.5">
-                                        <i class="fa-regular fa-image text-xs"></i>
-                                        <span>denah_meja_resto.png (480 × 160 px)</span>
-                                    </div>
-                                    <div class="border border-rose-400/80 bg-white rounded-md p-2.5 text-xs font-semibold text-slate-800">
-                                        [1] Meja 04 • Status: Kosong (Hijau)
-                                    </div>
-                                    <div class="border border-rose-400/80 bg-white rounded-md p-2.5 text-xs font-semibold text-slate-800 flex items-center justify-between">
-                                        <span>[2] Tombol Buka Meja 04 (Input Pesanan)</span>
-                                        <i class="fa-solid fa-arrow-right text-rose-500"></i>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {{-- Step 2 --}}
-                            <div class="space-y-2.5">
-                                <h3 class="text-base font-bold text-slate-900 tracking-tight">
-                                    2. Memilih Menu Pesanan, Catatan Dapur &amp; Kirim Order
-                                </h3>
-                                <p class="text-slate-600 text-xs sm:text-sm">
-                                    Pilih kategori makanan atau minuman, tentukan jumlah porsi, lalu gunakan kolom Catatan Dapur (Notes) untuk instruksi khusus sebelum mengirim pesanan ke koki:
-                                </p>
-
-                                {{-- Wireframe Ilustrasi input_pesanan_menu.png --}}
-                                <div class="border border-slate-300 rounded-lg p-3.5 bg-slate-50/50 space-y-2 max-w-xl">
-                                    <div class="text-[11px] font-mono text-slate-400 flex items-center gap-1.5">
-                                        <i class="fa-regular fa-image text-xs"></i>
-                                        <span>input_pesanan_menu.png (480 × 180 px)</span>
-                                    </div>
-                                    <div class="border border-rose-400/80 bg-white rounded-md p-2.5 text-xs font-semibold text-slate-800">
-                                        [1] Nasi Goreng Spesial (x2) — Rp 70.000
-                                    </div>
-                                    <div class="border border-rose-400/80 bg-white rounded-md p-2.5 text-xs font-semibold text-slate-800">
-                                        [2] Catatan Dapur: 1 Tidak Pedas, 1 Less Oil
-                                    </div>
-                                    <div class="border border-rose-400/80 bg-white rounded-md p-2.5 text-xs font-semibold text-slate-800 flex items-center justify-between">
-                                        <span>[3] Tombol Kirim ke Dapur (Send Order)</span>
-                                        <i class="fa-solid fa-paper-plane text-rose-500"></i>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {{-- Step 3 --}}
-                            <div class="space-y-2.5">
-                                <h3 class="text-base font-bold text-slate-900 tracking-tight">
-                                    3. Keterangan Status Meja &amp; Panduan Pindah Meja (Move Table)
-                                </h3>
-                                <p class="text-slate-600 text-xs sm:text-sm">
-                                    Berikut adalah acuan status warna meja pada denah restoran dan tata cara pindah meja jika tamu berpindah tempat duduk:
-                                </p>
-
-                                {{-- Tabel Status Meja --}}
-                                <div class="overflow-x-auto border border-slate-300 rounded-lg">
-                                    <table class="w-full text-xs text-left border-collapse">
-                                        <thead>
-                                            <tr class="bg-slate-100 text-slate-700 border-b border-slate-300 font-bold">
-                                                <th class="py-2.5 px-3 w-12 text-center">No</th>
-                                                <th class="py-2.5 px-3 w-48">Status / Aksi</th>
-                                                <th class="py-2.5 px-3">Keterangan Petunjuk Penggunaan</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody class="divide-y divide-slate-200">
-                                            <tr>
-                                                <td class="py-2 px-3 text-center font-medium">1</td>
-                                                <td class="py-2 px-3 font-semibold flex items-center gap-2">
-                                                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
-                                                    <span>Meja Kosong (Hijau)</span>
-                                                </td>
-                                                <td class="py-2 px-3 text-slate-600">Meja belum terisi tamu, siap dibuka untuk transaksi tamu baru.</td>
-                                            </tr>
-                                            <tr>
-                                                <td class="py-2 px-3 text-center font-medium">2</td>
-                                                <td class="py-2 px-3 font-semibold flex items-center gap-2">
-                                                    <span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span>
-                                                    <span>Meja Terisi (Merah)</span>
-                                                </td>
-                                                <td class="py-2 px-3 text-slate-600">Meja aktif sedang makan dan pesanan telah terkirim ke dapur.</td>
-                                            </tr>
-                                            <tr>
-                                                <td class="py-2 px-3 text-center font-medium">3</td>
-                                                <td class="py-2 px-3 font-semibold flex items-center gap-2">
-                                                    <i class="fa-solid fa-arrows-split-up-and-left text-slate-500 text-[11px]"></i>
-                                                    <span>Pindah Meja (Move Table)</span>
-                                                </td>
-                                                <td class="py-2 px-3 text-slate-600">Buka meja aktif, klik Pindah / Gabung Meja di sudut kanan atas, lalu pilih nomor meja tujuan.</td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
+                        <div id="manualBookCanvas"
+                             class="p-5 sm:p-8 bg-white text-slate-900 text-sm leading-relaxed min-h-[460px] space-y-6 focus:outline-none" 
+                             contenteditable="true"
+                             @paste="handleEditorPaste($event)"
+                             @drop.prevent="handleEditorDrop($event)"
+                             @dragover.prevent>
                         </div>
 
                         {{-- Editor Status Bar Mockup --}}
@@ -333,24 +226,26 @@
                 <div class="pt-3 border-t border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                     <div class="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 font-medium">
                         <i class="fa-solid fa-bullseye text-blue-500"></i>
-                        <span>Target: Tersinkronisasi ke Manual Book Publik</span>
+                        <span>Target: Tersinkronisasi ke Manual Book Publik &amp; Internal</span>
                     </div>
 
                     <div class="flex items-center gap-2.5 self-end sm:self-auto">
                         {{-- Simpan Draft --}}
                         <button type="button" 
-                                @click="saveDraft()"
-                                class="px-4 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-750 text-xs font-semibold shadow-xs flex items-center gap-2 transition-all cursor-pointer">
+                                @click="submitManualBook('draft')"
+                                :disabled="isSubmitting"
+                                class="px-4 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-750 text-xs font-semibold shadow-xs flex items-center gap-2 transition-all cursor-pointer disabled:opacity-50">
                             <i class="fa-regular fa-file-lines text-slate-400"></i>
-                            <span>Simpan Draft Modul</span>
+                            <span x-text="isSubmitting && submitTarget === 'draft' ? 'Menyimpan...' : 'Simpan Draft Modul'"></span>
                         </button>
 
                         {{-- Simpan Modul --}}
                         <button type="button" 
-                                @click="saveModule()"
-                                class="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 active:scale-95 text-white text-xs font-semibold shadow-sm shadow-blue-500/20 flex items-center gap-2 transition-all cursor-pointer">
+                                @click="submitManualBook('published')"
+                                :disabled="isSubmitting"
+                                class="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 active:scale-95 text-white text-xs font-semibold shadow-sm shadow-blue-500/20 flex items-center gap-2 transition-all cursor-pointer disabled:opacity-50">
                             <i class="fa-solid fa-bookmark text-xs"></i>
-                            <span>Simpan Modul</span>
+                            <span x-text="isSubmitting && submitTarget === 'published' ? 'Menyimpan...' : 'Simpan Modul'"></span>
                         </button>
                     </div>
                 </div>
@@ -359,7 +254,7 @@
         </div>
 
         {{-- ======================================================== --}}
-        {{-- MODAL: TAMBAH SISTEM BARU (PROTOTYPE UI)                  --}}
+        {{-- MODAL: TAMBAH SISTEM BARU (TERHUBUNG KE DATABASE)         --}}
         {{-- ======================================================== --}}
         <div x-show="openAddSystemModal" 
              x-cloak
@@ -375,29 +270,28 @@
                         <i class="fa-solid fa-xmark text-base"></i>
                     </button>
                 </div>
-                <div class="space-y-3">
-                    <div>
-                        <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">Nama Sistem</label>
-                        <input type="text" x-model="newSystemName" placeholder="Contoh: Probus Cloud Accounting" class="w-full px-3.5 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
+                
+                <form @submit.prevent="submitAddSystem()">
+                    <div class="space-y-3">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">Nama Sistem / Kategori</label>
+                            <input type="text" x-model="newSystemName" required placeholder="Contoh: Probus Cloud Accounting" class="w-full px-3.5 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
+                        </div>
                     </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">Kode / Singkatan</label>
-                        <input type="text" placeholder="Contoh: PCA" class="w-full px-3.5 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
+                    <div class="flex items-center justify-end gap-2 pt-4">
+                        <button type="button" @click="openAddSystemModal = false" class="px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800">
+                            Batal
+                        </button>
+                        <button type="submit" class="px-4 py-2 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white shadow-sm shadow-blue-500/20">
+                            Simpan Sistem
+                        </button>
                     </div>
-                </div>
-                <div class="flex items-center justify-end gap-2 pt-2">
-                    <button type="button" @click="openAddSystemModal = false" class="px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800">
-                        Batal
-                    </button>
-                    <button type="button" @click="addSystem()" class="px-4 py-2 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white shadow-sm shadow-blue-500/20">
-                        Simpan Sistem
-                    </button>
-                </div>
+                </form>
             </div>
         </div>
 
         {{-- ======================================================== --}}
-        {{-- MODAL: TAMBAH MODUL BARU (PROTOTYPE UI)                  --}}
+        {{-- MODAL: TAMBAH MODUL BARU (TERHUBUNG KE DATABASE)          --}}
         {{-- ======================================================== --}}
         <div x-show="openAddModuleModal" 
              x-cloak
@@ -413,30 +307,33 @@
                         <i class="fa-solid fa-xmark text-base"></i>
                     </button>
                 </div>
-                <div class="space-y-3">
-                    <div>
-                        <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">Nomor / Urutan</label>
-                        <input type="text" x-model="newModuleNumber" placeholder="Contoh: 07" class="w-full px-3.5 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
+
+                <form @submit.prevent="submitAddModule()">
+                    <div class="space-y-3">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">Nomor / Urutan</label>
+                            <input type="number" x-model="newModuleNumber" placeholder="Contoh: 7" class="w-full px-3.5 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">Nama Modul</label>
+                            <input type="text" x-model="newModuleName" required placeholder="Contoh: Reservasi & Manajemen Event" class="w-full px-3.5 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
+                        </div>
                     </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">Nama Modul</label>
-                        <input type="text" x-model="newModuleName" placeholder="Contoh: Reservasi & Manajemen Event" class="w-full px-3.5 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
+                    <div class="flex items-center justify-end gap-2 pt-4">
+                        <button type="button" @click="openAddModuleModal = false" class="px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800">
+                            Batal
+                        </button>
+                        <button type="submit" class="px-4 py-2 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white shadow-sm shadow-blue-500/20">
+                            Simpan Modul
+                        </button>
                     </div>
-                </div>
-                <div class="flex items-center justify-end gap-2 pt-2">
-                    <button type="button" @click="openAddModuleModal = false" class="px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800">
-                        Batal
-                    </button>
-                    <button type="button" @click="addModule()" class="px-4 py-2 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white shadow-sm shadow-blue-500/20">
-                        Simpan Modul
-                    </button>
-                </div>
+                </form>
             </div>
         </div>
 
     </div>
 
-    {{-- Alpine JS Controller for Interactive UI Simulation --}}
+    {{-- Alpine JS Controller Terhubung Database --}}
     <script>
         function manualBookApp() {
             return {
@@ -445,179 +342,395 @@
                 newSystemName: '',
                 newModuleNumber: '',
                 newModuleName: '',
+                isSubmitting: false,
+                submitTarget: null,
 
-                activeSystem: 'presto',
-                systems: [
-                    { id: 'presto', name: 'PRESTO Resto POS', moduleCount: 6 },
-                    { id: 'hotel', name: 'Probus Hotel PMS', moduleCount: 8 },
-                    { id: 'ppe', name: 'PPE 2.0 Management', moduleCount: 5 },
-                    { id: 'bo', name: 'Back Office & Akuntansi', moduleCount: 7 }
-                ],
+                systems: @json($systems ?? []),
+                modulesBySystem: @json($modulesBySystem ?? []),
 
-                activeModuleId: 'mod-2',
-                modules: [
-                    {
-                        id: 'mod-1',
-                        title: '01. Persiapan & Login Kasir',
-                        statusLabel: 'Panduan Terisi ✓',
-                        statusClass: 'text-emerald-600 dark:text-emerald-400',
-                        breadcrumb: 'PRESTO RESTO POS • MODUL 01 • PENGISIAN TATA CARA PENGGUNAAN',
-                        description: 'Panduan persiapan perangkat kasir POS, login user dengan PIN/kartu RFID, serta pembukaan kas awal shift.'
-                    },
-                    {
-                        id: 'mod-2',
-                        title: '02. Order Taker & Transaksi Meja',
-                        statusLabel: 'Sedang Diedit ✎',
-                        statusClass: 'text-blue-600 dark:text-blue-400',
-                        breadcrumb: 'PRESTO RESTO POS • MODUL 02 • PENGISIAN TATA CARA PENGGUNAAN',
-                        description: 'Panduan langkah demi langkah bagi kasir & pramusaji untuk membuka meja tamu, menginput pesanan menu beserta catatan dapur (notes), hingga memindahkan atau menggabungkan meja aktif.'
-                    },
-                    {
-                        id: 'mod-3',
-                        title: '03. Pembayaran & Split Bill',
-                        statusLabel: 'Panduan Terisi ✓',
-                        statusClass: 'text-emerald-600 dark:text-emerald-400',
-                        breadcrumb: 'PRESTO RESTO POS • MODUL 03 • PENGISIAN TATA CARA PENGGUNAAN',
-                        description: 'Panduan pembayaran multi-metode (Cash, EDC, QRIS, Voucher), cetak bill sementara, serta fitur split bill per item / per nominal.'
-                    },
-                    {
-                        id: 'mod-4',
-                        title: '04. Kitchen Display (KDS)',
-                        statusLabel: 'Panduan Terisi ✓',
-                        statusClass: 'text-emerald-600 dark:text-emerald-400',
-                        breadcrumb: 'PRESTO RESTO POS • MODUL 04 • PENGISIAN TATA CARA PENGGUNAAN',
-                        description: 'Panduan pengoperasian layar dapur KDS, alokasi stasiun masak (hot kitchen, bar, grill), serta penanda pesanan selesai (bump bar).'
-                    },
-                    {
-                        id: 'mod-5',
-                        title: '05. Tutup Shift & Rekap Harian',
-                        statusLabel: 'Belum Diisi • Draft',
-                        statusClass: 'text-amber-600 dark:text-amber-400',
-                        breadcrumb: 'PRESTO RESTO POS • MODUL 05 • PENGISIAN TATA CARA PENGGUNAAN',
-                        description: 'Panduan rekonsiliasi kas fisik vs sistem, cetak laporan X-Report & Z-Report, serta penutupan hari (closing day).'
-                    },
-                    {
-                        id: 'mod-6',
-                        title: '06. Pengaturan Hardware & Printer',
-                        statusLabel: 'Panduan Terisi ✓',
-                        statusClass: 'text-emerald-600 dark:text-emerald-400',
-                        breadcrumb: 'PRESTO RESTO POS • MODUL 06 • PENGISIAN TATA CARA PENGGUNAAN',
-                        description: 'Panduan konfigurasi printer thermal bluetooth/LAN untuk kasir dan kitchen printer, serta cash drawer trigger.'
+                activeSystem: null,
+                activeModuleId: null,
+
+                initEditor() {
+                    if (this.systems && this.systems.length > 0) {
+                        // Prioritaskan sistem yang ada modulnya atau PRESTO
+                        const presto = this.systems.find(s => (s.name || '').toUpperCase().includes('PRESTO'));
+                        const sysWithMods = this.systems.find(s => s.moduleCount > 0);
+                        const defaultSys = presto || sysWithMods || this.systems[0];
+                        
+                        this.activeSystem = defaultSys.id;
+                        const mods = this.modules;
+                        if (mods && mods.length > 0) {
+                            // Prioritaskan modul Order Taker jika ada
+                            const otMod = mods.find(m => (m.title || '').toLowerCase().includes('order taker'));
+                            this.activeModuleId = otMod ? otMod.id : mods[0].id;
+                        }
                     }
-                ],
+
+                    this.$nextTick(() => {
+                        this.updateCanvasContent();
+                    });
+                },
+
+                get modules() {
+                    if (!this.activeSystem) return [];
+                    return this.modulesBySystem[String(this.activeSystem)] || [];
+                },
 
                 get currentModule() {
-                    return this.modules.find(m => m.id === this.activeModuleId) || this.modules[1];
+                    const found = this.modules.find(m => String(m.id) === String(this.activeModuleId));
+                    return found || this.modules[0] || {
+                        id: null,
+                        menu_system_id: null,
+                        title: '',
+                        description: '',
+                        content: '',
+                        breadcrumb: 'PILIH MODUL',
+                        statusLabel: 'Belum Diisi • Draft',
+                        statusClass: 'text-amber-600 dark:text-amber-400'
+                    };
                 },
 
                 selectSystem(id) {
-                    this.activeSystem = id;
-                    const sys = this.systems.find(s => s.id === id);
-                    if (sys && window.Swal) {
-                        Swal.fire({
-                            toast: true,
-                            position: 'top-end',
-                            icon: 'info',
-                            title: 'Sistem Terpilih: ' + sys.name,
-                            showConfirmButton: false,
-                            timer: 1500
-                        });
+                    this.activeSystem = String(id);
+                    const mods = this.modules;
+                    if (mods.length > 0) {
+                        this.activeModuleId = mods[0].id;
+                    } else {
+                        this.activeModuleId = null;
                     }
+
+                    this.$nextTick(() => {
+                        this.updateCanvasContent();
+                    });
                 },
 
                 selectModule(id) {
-                    this.activeModuleId = id;
+                    this.activeModuleId = String(id);
+                    this.$nextTick(() => {
+                        this.updateCanvasContent();
+                    });
                 },
 
-                addSystem() {
-                    if (!this.newSystemName.trim()) {
-                        alert('Silakan masukkan nama sistem');
+                updateCanvasContent() {
+                    const canvas = document.getElementById('manualBookCanvas');
+                    if (canvas && this.currentModule) {
+                        canvas.innerHTML = this.currentModule.content || '<p class="text-slate-400 italic">Belum ada panduan tata cara yang ditulis untuk modul ini. Silakan mulai tulis panduan Anda di sini...</p>';
+                    }
+                },
+
+                formatDoc(cmd, value = null) {
+                    document.execCommand(cmd, false, value);
+                },
+
+                formatHeading(tag) {
+                    document.execCommand('formatBlock', false, tag);
+                },
+
+                insertTableSample() {
+                    const tableHtml = `
+                        <table style="width: 100%; border-collapse: collapse; margin: 15px 0; border: 1px solid #cbd5e1;">
+                            <thead>
+                                <tr style="background-color: #f1f5f9; font-weight: bold; text-align: left;">
+                                    <th style="padding: 8px 12px; border: 1px solid #cbd5e1; width: 40px; text-align: center;">No</th>
+                                    <th style="padding: 8px 12px; border: 1px solid #cbd5e1; width: 180px;">Status / Bagian</th>
+                                    <th style="padding: 8px 12px; border: 1px solid #cbd5e1;">Keterangan & Petunjuk</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td style="padding: 8px 12px; border: 1px solid #cbd5e1; text-align: center;">1</td>
+                                    <td style="padding: 8px 12px; border: 1px solid #cbd5e1; font-weight: 600;">Langkah Pertama</td>
+                                    <td style="padding: 8px 12px; border: 1px solid #cbd5e1;">Penjelasan petunjuk penggunaan modul.</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 8px 12px; border: 1px solid #cbd5e1; text-align: center;">2</td>
+                                    <td style="padding: 8px 12px; border: 1px solid #cbd5e1; font-weight: 600;">Langkah Kedua</td>
+                                    <td style="padding: 8px 12px; border: 1px solid #cbd5e1;">Penjelasan petunjuk penggunaan lanjutan.</td>
+                                </tr>
+                            </tbody>
+                        </table><p></p>
+                    `;
+                    document.execCommand('insertHTML', false, tableHtml);
+                },
+
+                insertLinkPrompt() {
+                    const url = prompt('Masukkan tautan URL:', 'https://');
+                    if (url) {
+                        document.execCommand('createLink', false, url);
+                    }
+                },
+
+                handleImageFileSelect(event) {
+                    const file = event.target.files[0];
+                    if (file) {
+                        this.uploadAndInsertImage(file);
+                        event.target.value = '';
+                    }
+                },
+
+                handleEditorPaste(event) {
+                    const items = (event.clipboardData || event.originalEvent.clipboardData).items;
+                    for (let i = 0; i < items.length; i++) {
+                        if (items[i].type.indexOf('image') !== -1) {
+                            event.preventDefault();
+                            const blob = items[i].getAsFile();
+                            this.uploadAndInsertImage(blob);
+                            return;
+                        }
+                    }
+                },
+
+                handleEditorDrop(event) {
+                    const files = event.dataTransfer.files;
+                    if (files.length > 0 && files[0].type.indexOf('image') !== -1) {
+                        this.uploadAndInsertImage(files[0]);
+                    }
+                },
+
+                uploadAndInsertImage(file) {
+                    if (!file) return;
+
+                    const formData = new FormData();
+                    formData.append('image', file);
+                    formData.append('_token', '{{ csrf_token() }}');
+
+                    if (typeof Swal !== 'undefined') {
+                        Swal.fire({
+                            title: 'Mengunggah Gambar...',
+                            text: 'Menyimpan berkas ke media_uploads.',
+                            allowOutsideClick: false,
+                            didOpen: () => {
+                                Swal.showLoading();
+                            }
+                        });
+                    }
+
+                    fetch('{{ route("bank-solusi.upload_image") }}', {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    })
+                    .then(response => {
+                        if (!response.ok) throw new Error('Gagal mengunggah gambar');
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (data.location || data.url) {
+                            const imgUrl = data.location || data.url;
+                            const imgHtml = `<p><img src="${imgUrl}" alt="Ilustrasi Manual Book" style="max-width: 100%; height: auto; border-radius: 12px; margin: 12px 0; border: 1px solid #cbd5e1; box-shadow: 0 1px 3px rgba(0,0,0,0.1);" /></p><p></p>`;
+                            
+                            const canvas = document.getElementById('manualBookCanvas');
+                            canvas.focus();
+                            document.execCommand('insertHTML', false, imgHtml);
+
+                            if (typeof Swal !== 'undefined') {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Gambar Berhasil Diunggah!',
+                                    text: 'Gambar telah disisipkan ke editor dan tercatat di tabel media_uploads.',
+                                    timer: 2000,
+                                    showConfirmButton: false
+                                });
+                            }
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error upload:', error);
+                        if (typeof Swal !== 'undefined') {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Gagal Mengunggah',
+                                text: 'Pastikan file gambar valid (PNG/JPG/WEBP).',
+                            });
+                        }
+                    });
+                },
+
+                // Simpan tata cara modul ke database (manual_books & menu_has_manual_books)
+                submitManualBook(targetStatus) {
+                    if (this.isSubmitting) return;
+
+                    if (!this.currentModule || !this.currentModule.menu_system_id) {
+                        alert('Silakan pilih modul terlebih dahulu.');
                         return;
                     }
-                    const newId = 'sys-' + (this.systems.length + 1);
-                    this.systems.push({
-                        id: newId,
-                        name: this.newSystemName.trim(),
-                        moduleCount: 0
-                    });
-                    this.activeSystem = newId;
-                    this.newSystemName = '';
-                    this.openAddSystemModal = false;
-                    if (window.Swal) {
-                        Swal.fire({
-                            toast: true,
-                            position: 'top-end',
-                            icon: 'success',
-                            title: 'Sistem Baru Berhasil Ditambahkan',
-                            showConfirmButton: false,
-                            timer: 2000
-                        });
-                    }
-                },
 
-                addModule() {
-                    if (!this.newModuleName.trim()) {
-                        alert('Silakan masukkan nama modul');
-                        return;
-                    }
-                    const num = this.newModuleNumber.trim() || String(this.modules.length + 1).padStart(2, '0');
-                    const fullTitle = num + '. ' + this.newModuleName.trim();
-                    const newId = 'mod-' + (this.modules.length + 1);
-                    
-                    this.modules.push({
-                        id: newId,
-                        title: fullTitle,
-                        statusLabel: 'Belum Diisi • Draft',
-                        statusClass: 'text-amber-600 dark:text-amber-400',
-                        breadcrumb: 'PRESTO RESTO POS • MODUL ' + num + ' • PENGISIAN TATA CARA PENGGUNAAN',
-                        description: 'Panduan langkah demi langkah untuk modul ' + this.newModuleName.trim()
-                    });
-                    this.activeModuleId = newId;
-                    this.newModuleName = '';
-                    this.newModuleNumber = '';
-                    this.openAddModuleModal = false;
-                    if (window.Swal) {
-                        Swal.fire({
-                            toast: true,
-                            position: 'top-end',
-                            icon: 'success',
-                            title: 'Modul Baru Berhasil Ditambahkan',
-                            showConfirmButton: false,
-                            timer: 2000
-                        });
-                    }
-                },
+                    const canvas = document.getElementById('manualBookCanvas');
+                    const content = canvas ? canvas.innerHTML.trim() : '';
 
-                saveDraft() {
-                    if (window.Swal) {
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'Draft Tersimpan',
-                            text: 'Draft tata cara modul ' + this.currentModule.title + ' berhasil disimpan (Mode UI).',
-                            confirmButtonColor: '#2563eb'
-                        });
-                    } else {
-                        alert('Draft tata cara berhasil disimpan!');
-                    }
-                },
+                    this.isSubmitting = true;
+                    this.submitTarget = targetStatus;
 
-                saveModule() {
-                    if (window.Swal) {
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'Modul Berhasil Disimpan',
-                            text: 'Tata cara modul ' + this.currentModule.title + ' tersinkronisasi ke Manual Book Publik (Mode UI).',
-                            confirmButtonColor: '#2563eb'
-                        });
-                    } else {
-                        alert('Modul berhasil disimpan!');
-                    }
-                },
-
-                initEditor() {
-                    window.saveManualBookDraft = () => {
-                        this.saveModule();
+                    const payload = {
+                        menu_system_id: this.currentModule.menu_system_id,
+                        title: this.currentModule.title,
+                        description: this.currentModule.description || '',
+                        content: content,
+                        status: targetStatus,
+                        _token: '{{ csrf_token() }}'
                     };
+
+                    fetch('{{ route("manualbook.save") }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        body: JSON.stringify(payload)
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            return response.json().then(err => { throw err; });
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        this.isSubmitting = false;
+
+                        // Perbarui status tampilan modul lokal
+                        this.currentModule.content = content;
+                        this.currentModule.status = targetStatus;
+                        this.currentModule.statusLabel = data.statusLabel || (targetStatus === 'published' ? 'Panduan Terisi ✓' : 'Sedang Diedit ✎');
+                        this.currentModule.statusClass = data.statusClass || (targetStatus === 'published' ? 'text-emerald-600 dark:text-emerald-400' : 'text-blue-600 dark:text-blue-400');
+
+                        if (typeof Swal !== 'undefined') {
+                            Swal.fire({
+                                icon: 'success',
+                                title: targetStatus === 'published' ? 'Modul Berhasil Disimpan!' : 'Draft Berhasil Disimpan!',
+                                text: data.message || `Tata cara modul "${this.currentModule.title}" berhasil tersimpan ke database!`,
+                                confirmButtonColor: '#2563eb'
+                            });
+                        } else {
+                            alert(data.message);
+                        }
+                    })
+                    .catch(err => {
+                        this.isSubmitting = false;
+                        console.error('Error submit:', err);
+                        let errMsg = 'Terjadi kesalahan saat menyimpan modul.';
+                        if (err && err.message) errMsg = err.message;
+
+                        if (typeof Swal !== 'undefined') {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Gagal Menyimpan',
+                                text: errMsg,
+                                confirmButtonColor: '#2563eb'
+                            });
+                        } else {
+                            alert(errMsg);
+                        }
+                    });
+                },
+
+                // Tambah Sistem Baru ke Database Kategori
+                submitAddSystem() {
+                    const name = (this.newSystemName || '').trim();
+                    if (!name) return;
+
+                    fetch('{{ route("manualbook.system.add") }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        body: JSON.stringify({ name: name, _token: '{{ csrf_token() }}' })
+                    })
+                    .then(response => {
+                        if (!response.ok) return response.json().then(err => { throw err; });
+                        return response.json();
+                    })
+                    .then(data => {
+                        const newSys = data.system;
+                        this.systems.push(newSys);
+                        this.modulesBySystem[newSys.id] = [];
+                        this.activeSystem = newSys.id;
+                        this.newSystemName = '';
+                        this.openAddSystemModal = false;
+
+                        if (typeof Swal !== 'undefined') {
+                            Swal.fire({
+                                toast: true,
+                                position: 'top-end',
+                                icon: 'success',
+                                title: data.message || 'Sistem baru berhasil ditambahkan!',
+                                showConfirmButton: false,
+                                timer: 2000
+                            });
+                        }
+                    })
+                    .catch(err => {
+                        console.error('Error add system:', err);
+                        alert(err.message || 'Gagal menambahkan sistem baru.');
+                    });
+                },
+
+                // Tambah Modul Baru ke Database menu_systems
+                submitAddModule() {
+                    const name = (this.newModuleName || '').trim();
+                    if (!name) return;
+
+                    fetch('{{ route("manualbook.module.add") }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        body: JSON.stringify({
+                            kategori_id: this.activeSystem,
+                            name: name,
+                            order: this.newModuleNumber || null,
+                            _token: '{{ csrf_token() }}'
+                        })
+                    })
+                    .then(response => {
+                        if (!response.ok) return response.json().then(err => { throw err; });
+                        return response.json();
+                    })
+                    .then(data => {
+                        const newMod = data.module;
+                        if (!this.modulesBySystem[this.activeSystem]) {
+                            this.modulesBySystem[this.activeSystem] = [];
+                        }
+                        this.modulesBySystem[this.activeSystem].push(newMod);
+
+                        // Perbarui jumlah modul pada sistem
+                        const sys = this.systems.find(s => String(s.id) === String(this.activeSystem));
+                        if (sys) sys.moduleCount = (sys.moduleCount || 0) + 1;
+
+                        this.activeModuleId = newMod.id;
+                        this.newModuleName = '';
+                        this.newModuleNumber = '';
+                        this.openAddModuleModal = false;
+
+                        this.$nextTick(() => {
+                            this.updateCanvasContent();
+                        });
+
+                        if (typeof Swal !== 'undefined') {
+                            Swal.fire({
+                                toast: true,
+                                position: 'top-end',
+                                icon: 'success',
+                                title: data.message || 'Modul baru berhasil ditambahkan!',
+                                showConfirmButton: false,
+                                timer: 2000
+                            });
+                        }
+                    })
+                    .catch(err => {
+                        console.error('Error add module:', err);
+                        alert(err.message || 'Gagal menambahkan modul baru.');
+                    });
                 }
             };
         }
