@@ -73,20 +73,24 @@
             <ul class="space-y-1">
                 <li><a href="{{ route('dashboard') }}" class="flex items-center px-3 py-2 text-sm {{ request()->routeIs('dashboard') ? 'text-blue-600 bg-blue-50 font-medium' : 'text-slate-600 hover:bg-slate-50' }} rounded-lg transition-colors"><i class="fa-solid fa-chart-line w-5 text-center mr-2 {{ request()->routeIs('dashboard') ? 'text-blue-600' : 'text-slate-400' }}"></i> Dashboard</a></li>
                 <li><a href="{{ route('daftartiket') }}" class="flex items-center px-3 py-2 text-sm {{ request()->routeIs('daftartiket') ? 'text-blue-600 bg-blue-50 font-medium' : 'text-slate-600 hover:bg-slate-50' }} rounded-lg transition-colors"><i class="fa-solid fa-ticket w-5 text-center mr-2 {{ request()->routeIs('daftartiket') ? 'text-blue-600' : 'text-slate-400' }}"></i> Daftar Tiket</a></li>
-                <li><a href="#" class="flex items-center justify-between px-3 py-2 text-sm text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg transition-colors group">
-                    <div class="flex items-center">
-                        <i class="fa-solid fa-lightbulb w-5 text-center mr-2 text-slate-400 group-hover:text-emerald-500 transition-colors"></i>
-                        <span>Bank Solusi</span>
-                    </div>
-                    <span class="text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded tracking-wider bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">BLOG</span>
-                </a></li>
-                <li><a href="{{ route('manualbook') }}" class="flex items-center justify-between px-3 py-2 text-sm {{ request()->routeIs('manualbook*') ? 'text-blue-600 bg-blue-50 dark:bg-blue-900/30 font-medium' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800' }} rounded-lg transition-colors group">
-                    <div class="flex items-center">
-                        <i class="fa-solid fa-book-open w-5 text-center mr-2 {{ request()->routeIs('manualbook*') ? 'text-blue-600 dark:text-blue-400' : 'text-slate-400 group-hover:text-blue-500' }} transition-colors"></i>
-                        <span>Manual Book</span>
-                    </div>
-                    <span class="text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded tracking-wider bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">MODUL</span>
-                </a></li>
+                <li>
+                    <a href="{{ route('bank-solusi.index') }}" class="flex items-center px-3 py-2 text-sm {{ request()->routeIs('bank-solusi.*') ? 'text-blue-600 bg-blue-50 dark:bg-blue-900/30 font-medium' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800' }} rounded-lg transition-colors justify-between group">
+                        <div class="flex items-center">
+                            <i class="fa-solid fa-book-bookmark w-5 text-center mr-2 {{ request()->routeIs('bank-solusi.*') ? 'text-blue-600 dark:text-blue-400' : 'text-slate-400 dark:text-slate-400' }}"></i> 
+                            <span>Bank Solusi</span>
+                        </div>
+                        <span class="text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded tracking-wider bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">BLOG</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ route('manualbook') }}" class="flex items-center justify-between px-3 py-2 text-sm {{ request()->routeIs('manualbook*') ? 'text-blue-600 bg-blue-50 dark:bg-blue-900/30 font-medium' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800' }} rounded-lg transition-colors group">
+                        <div class="flex items-center">
+                            <i class="fa-solid fa-book-open w-5 text-center mr-2 {{ request()->routeIs('manualbook*') ? 'text-blue-600 dark:text-blue-400' : 'text-slate-400 group-hover:text-blue-500' }} transition-colors"></i>
+                            <span>Manual Book</span>
+                        </div>
+                        <span class="text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded tracking-wider bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">MODUL</span>
+                    </a>
+                </li>
                 <li><a href="{{ route('inbox') }}" class="flex items-center px-3 py-2 text-sm {{ request()->routeIs('inbox') ? 'text-blue-600 bg-blue-50 font-medium' : 'text-slate-600 hover:bg-slate-50' }} rounded-lg transition-colors justify-between">
                     <div class="flex items-center">
                         <i class="fa-solid fa-inbox w-5 text-center mr-2 {{ request()->routeIs('inbox') ? 'text-blue-600' : 'text-slate-400' }}"></i> 

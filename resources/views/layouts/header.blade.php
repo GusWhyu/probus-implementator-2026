@@ -24,6 +24,55 @@
         }
     }
     $unreadCount = $unreadNotifications->count();
+
+    // Judul Header Halaman yang bersih dan aman
+    $headerTitle = 'Dashboard';
+    if (request()->routeIs('manualbook*')) {
+        $headerTitle = 'Manual Book Sistem (Per Modul)';
+    } elseif (request()->routeIs('bank-solusi.create') || request()->routeIs('bank-solusi.edit')) {
+        $headerTitle = 'Buat / Edit Artikel Solusi';
+    } elseif (request()->routeIs('bank-solusi.*')) {
+        $headerTitle = 'Bank Solusi (Blog Tech)';
+    } elseif (request()->routeIs('tipepenanganan.*')) {
+        $headerTitle = 'Master Data Tipe Penanganan';
+    } elseif (request()->routeIs('request.dashboard')) {
+        $headerTitle = 'Dashboard Request System';
+    } elseif (request()->routeIs('dashboard')) {
+        $headerTitle = 'Dashboard Laporan & Penilaian Kinerja Staff';
+    } elseif (request()->routeIs('daftartiket')) {
+        $headerTitle = 'Daftar Tiket Helpdesk CS';
+    } elseif (request()->routeIs('inbox')) {
+        $headerTitle = 'Inbox & Manajemen Tiket';
+    } elseif (request()->routeIs('bobot-penilaian.*')) {
+        $headerTitle = 'Master Data Bobot Penilaian';
+    } elseif (request()->routeIs('soft-skill.*')) {
+        $headerTitle = 'Penilaian Soft Skill';
+    } elseif (request()->routeIs('modul*')) {
+        $headerTitle = 'Master Data Modul';
+    } elseif (request()->is('request')) {
+        $headerTitle = 'Daftar Request (Semua Request)';
+    } elseif (request()->is('myreq')) {
+        $headerTitle = 'My Request (Antrean Masuk)';
+    } elseif (request()->is('history') || request()->is('myrequs') || request()->is('myrequest') || request()->is('myupdatesystem')) {
+        $headerTitle = 'History (Pengajuan Saya)';
+    } elseif (request()->is('createrq')) {
+        $headerTitle = 'Buat Request Baru';
+    } elseif (request()->is('createticket')) {
+        $headerTitle = 'Buat Tiket Baru';
+    } elseif (request()->is('detailrequest/*')) {
+        $headerTitle = 'Detail Workspace Request';
+    } elseif (request()->is('detailticket/*') || request()->is('detailtiket/*')) {
+        $headerTitle = 'Detail Workspace Pengerjaan Tiket';
+    } elseif (request()->is('editrq/*')) {
+        $headerTitle = 'Edit Request';
+    } elseif (request()->is('editticket/*')) {
+        $headerTitle = 'Edit Tiket Pelanggan';
+    } elseif (request()->is('notifications')) {
+        $headerTitle = 'Riwayat Notifikasi';
+    } else {
+        $path = request()->path();
+        $headerTitle = ($path === '/' || empty($path)) ? 'Dashboard' : str_replace('-', ' ', $path);
+    }
 @endphp
 <header class="h-16 bg-white/80 backdrop-blur-md border-b border-slate-200 flex items-center justify-between px-4 md:px-8 shrink-0 z-30 sticky top-0 w-full">
     <div class="flex items-center gap-3">
@@ -37,7 +86,7 @@
                 <span class="text-slate-800 dark:text-slate-100 font-bold">Manual Book Sistem (Per Modul)</span>
             </nav>
         @else
-            <h1 class="font-bold text-[14px] md:text-[15px] text-slate-800 capitalize truncate max-w-[180px] sm:max-w-xs md:max-w-none">{{ request()->routeIs('tipepenanganan.*') ? 'Master Data Tipe Penanganan' : (request()->routeIs('request.dashboard') ? 'Dashboard Request System' : (request()->routeIs('dashboard') ? 'Dashboard Laporan & Penilaian Kinerja Staff' : (request()->routeIs('daftartiket') ? 'Daftar Tiket Helpdesk CS' : (request()->routeIs('inbox') ? 'Inbox & Manajemen Tiket' : (request()->routeIs('bobot-penilaian.*') ? 'Master Data Bobot Penilaian' : (request()->routeIs('soft-skill.*') ? 'Penilaian Soft Skill' : (request()->routeIs('modul*') ? 'Master Data Modul' : (request()->is('request') ? 'Daftar Request (Semua Request)' : (request()->is('myreq') ? 'My Request (Antrean Masuk)' : (request()->is('history') || request()->is('myrequs') || request()->is('myrequest') || request()->is('myupdatesystem') ? 'History (Pengajuan Saya)' : (request()->is('createrq') ? 'Buat Request Baru' : (request()->is('createticket') ? 'Buat Tiket Baru' : (request()->is('detailrequest/*') ? 'Detail Workspace Request' : (request()->is('detailticket/*') || request()->is('detailtiket/*') ? 'Detail Workspace Pengerjaan Tiket' : (request()->is('editrq/*') ? 'Edit Request' : (request()->is('editticket/*') ? 'Edit Tiket Pelanggan' : (request()->is('notifications') ? 'Riwayat Notifikasi' : (str_replace('-', ' ', request()->path()) == '/' ? 'Dashboard' : str_replace('-', ' ', request()->path()))))))))))))))))))) }}</h1>
+            <h1 class="font-bold text-[14px] md:text-[15px] text-slate-800 capitalize truncate max-w-[180px] sm:max-w-xs md:max-w-none">{{ $headerTitle }}</h1>
         @endif
     </div>
     <div class="flex items-center gap-2 sm:gap-3">
