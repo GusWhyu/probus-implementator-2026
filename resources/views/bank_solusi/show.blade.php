@@ -1,4 +1,138 @@
 <x-app-layout>
+    {{-- Alpine.js Component Logic (Didefinisikan SEBELUM template agar selalu siap) --}}
+    <script>
+function showArtikelSolusi() {
+            return {
+                visibility: '{{ $article->visibility }}',
+                isToggling: false,
+
+                init() {
+                    const self = this;
+                    window.toggleBlogVersion = function() {
+                        self.toggleVisibility();
+                    };
+                },
+
+                toggleVisibility() {
+                    this.isToggling = true;
+                    fetch('{{ route("bank-solusi.toggle_visibility", $article->id) }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    })
+                    .then(res => {
+                        if (!res.ok) throw new Error('Gagal mengubah visibilitas artikel.');
+                        return res.json();
+                    })
+                    .then(data => {
+                        this.isToggling = false;
+                        this.visibility = data.visibility;
+
+                        if (typeof Swal !== 'undefined') {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Status Diperbarui',
+                                text: data.message,
+                                confirmButtonColor: '#2563eb'
+                            }).then(() => {
+                                window.location.reload();
+                            });
+                        } else {
+                            alert(data.message);
+                            window.location.reload();
+                        }
+                    })
+                    .catch(err => {
+                        this.isToggling = false;
+                        console.error('Error toggle:', err);
+                        alert('Terjadi kesalahan saat mengubah jangkauan visibilitas.');
+                    });
+                },
+
+                confirmDelete(articleId, articleTitle) {
+                    if (typeof Swal !== 'undefined') {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Hapus Artikel Solusi?',
+                            html: `Apakah Anda yakin ingin menghapus artikel <strong>"${articleTitle}"</strong>?<br><span class="text-xs text-rose-500 font-semibold">Tindakan ini tidak dapat dibatalkan.</span>`,
+                            showCancelButton: true,
+                            confirmButtonColor: '#e11d48',
+                            cancelButtonColor: '#64748b',
+                            confirmButtonText: 'Ya, Hapus Sekarang',
+                            cancelButtonText: 'Batal'
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                this.executeDelete(articleId);
+                            }
+                        });
+                    } else {
+                        if (confirm(`Yakin ingin menghapus artikel "${articleTitle}"?`)) {
+                            this.executeDelete(articleId);
+                        }
+                    }
+                },
+
+                executeDelete(articleId) {
+                    fetch(`/bank-solusi/${articleId}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            return response.json().then(err => { throw err; });
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (typeof Swal !== 'undefined') {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Artikel Dihapus',
+                                text: data.message || 'Artikel berhasil dihapus dari Bank Solusi.',
+                                confirmButtonColor: '#2563eb'
+                            }).then(() => {
+                                window.location.href = data.redirect_url || '{{ route("bank-solusi.index") }}';
+                            });
+                        } else {
+                            alert(data.message || 'Artikel berhasil dihapus!');
+                            window.location.href = data.redirect_url || '{{ route("bank-solusi.index") }}';
+                        }
+                    })
+                    .catch(err => {
+                        console.error('Error delete:', err);
+                        const msg = (err && err.message) ? err.message : 'Gagal menghapus artikel.';
+                        if (typeof Swal !== 'undefined') {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Gagal Menghapus',
+                                text: msg,
+                                confirmButtonColor: '#2563eb'
+                            });
+                        } else {
+                            alert(msg);
+                        }
+                    });
+                }
+            };
+        }
+
+        window.showArtikelSolusi = showArtikelSolusi;
+        document.addEventListener('alpine:init', () => {
+            if (window.Alpine) {
+                window.Alpine.data('showArtikelSolusi', showArtikelSolusi);
+            }
+        });
+    </script>
+
     <div x-data="showArtikelSolusi()" class="w-full pb-16">
         
         {{-- ======================================================== --}}
@@ -297,129 +431,4 @@
     </style>
 
     {{-- Script Alpine.js & SweetAlert Delete Confirmation --}}
-    <script>
-        function showArtikelSolusi() {
-            return {
-                visibility: '{{ $article->visibility }}',
-                isToggling: false,
-
-                init() {
-                    const self = this;
-                    window.toggleBlogVersion = function() {
-                        self.toggleVisibility();
-                    };
-                },
-
-                toggleVisibility() {
-                    this.isToggling = true;
-                    fetch('{{ route("bank-solusi.toggle_visibility", $article->id) }}', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                            'Accept': 'application/json',
-                            'X-Requested-With': 'XMLHttpRequest'
-                        }
-                    })
-                    .then(res => {
-                        if (!res.ok) throw new Error('Gagal mengubah visibilitas artikel.');
-                        return res.json();
-                    })
-                    .then(data => {
-                        this.isToggling = false;
-                        this.visibility = data.visibility;
-
-                        if (typeof Swal !== 'undefined') {
-                            Swal.fire({
-                                icon: 'success',
-                                title: 'Status Diperbarui',
-                                text: data.message,
-                                confirmButtonColor: '#2563eb'
-                            }).then(() => {
-                                window.location.reload();
-                            });
-                        } else {
-                            alert(data.message);
-                            window.location.reload();
-                        }
-                    })
-                    .catch(err => {
-                        this.isToggling = false;
-                        console.error('Error toggle:', err);
-                        alert('Terjadi kesalahan saat mengubah jangkauan visibilitas.');
-                    });
-                },
-
-                confirmDelete(articleId, articleTitle) {
-                    if (typeof Swal !== 'undefined') {
-                        Swal.fire({
-                            icon: 'warning',
-                            title: 'Hapus Artikel Solusi?',
-                            html: `Apakah Anda yakin ingin menghapus artikel <strong>"${articleTitle}"</strong>?<br><span class="text-xs text-rose-500 font-semibold">Tindakan ini tidak dapat dibatalkan.</span>`,
-                            showCancelButton: true,
-                            confirmButtonColor: '#e11d48',
-                            cancelButtonColor: '#64748b',
-                            confirmButtonText: 'Ya, Hapus Sekarang',
-                            cancelButtonText: 'Batal'
-                        }).then((result) => {
-                            if (result.isConfirmed) {
-                                this.executeDelete(articleId);
-                            }
-                        });
-                    } else {
-                        if (confirm(`Yakin ingin menghapus artikel "${articleTitle}"?`)) {
-                            this.executeDelete(articleId);
-                        }
-                    }
-                },
-
-                executeDelete(articleId) {
-                    fetch(`/bank-solusi/${articleId}`, {
-                        method: 'DELETE',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                            'Accept': 'application/json',
-                            'X-Requested-With': 'XMLHttpRequest'
-                        }
-                    })
-                    .then(response => {
-                        if (!response.ok) {
-                            return response.json().then(err => { throw err; });
-                        }
-                        return response.json();
-                    })
-                    .then(data => {
-                        if (typeof Swal !== 'undefined') {
-                            Swal.fire({
-                                icon: 'success',
-                                title: 'Artikel Dihapus',
-                                text: data.message || 'Artikel berhasil dihapus dari Bank Solusi.',
-                                confirmButtonColor: '#2563eb'
-                            }).then(() => {
-                                window.location.href = data.redirect_url || '{{ route("bank-solusi.index") }}';
-                            });
-                        } else {
-                            alert(data.message || 'Artikel berhasil dihapus!');
-                            window.location.href = data.redirect_url || '{{ route("bank-solusi.index") }}';
-                        }
-                    })
-                    .catch(err => {
-                        console.error('Error delete:', err);
-                        const msg = (err && err.message) ? err.message : 'Gagal menghapus artikel.';
-                        if (typeof Swal !== 'undefined') {
-                            Swal.fire({
-                                icon: 'error',
-                                title: 'Gagal Menghapus',
-                                text: msg,
-                                confirmButtonColor: '#2563eb'
-                            });
-                        } else {
-                            alert(msg);
-                        }
-                    });
-                }
-            };
-        }
-    </script>
 </x-app-layout>

@@ -1,4 +1,217 @@
 <x-app-layout>
+    {{-- Alpine.js Controller Logic (Didefinisikan SEBELUM template agar selalu siap saat Alpine memindai DOM) --}}
+    <script>
+        function bankSolusi() {
+            return {
+                systems: @json($systems ?? []),
+                allModules: @json($modules ?? []),
+                solutions: @json($solutions ?? []),
+
+                activeSystem: 'all',
+                activeModule: 'all-modules',
+                activeAudience: 'all', // 'all', 'klien', 'internal'
+                searchQuery: '',
+
+                isReaderModalOpen: false,
+                selectedSolution: null,
+
+                isCreateModalOpen: false,
+                newForm: {
+                    system: 'PRESTO Resto POS',
+                    module: 'Hardware & Printer',
+                    audience: 'klien',
+                    title: '',
+                    excerpt: '',
+                    stepsText: ''
+                },
+
+                init() {
+                    // Cari sistem PRESTO atau sistem pertama dengan modul
+                    if (this.systems && this.systems.length > 0) {
+                        const presto = this.systems.find(s => (s.name || '').toUpperCase().includes('PRESTO'));
+                        const targetSys = presto || this.systems.find(s => s.id !== 'all') || this.systems[0];
+                        if (targetSys) {
+                            this.activeSystem = targetSys.id;
+                            const mods = this.currentModules;
+                            if (mods && mods.length > 0) {
+                                const hw = mods.find(m => (m.name || '').toLowerCase().includes('hardware'));
+                                this.activeModule = hw ? hw.id : (mods[1] ? mods[1].id : mods[0].id);
+                            }
+                        }
+                    }
+                },
+
+                get currentModules() {
+                    const key = String(this.activeSystem);
+                    return this.allModules[key] || this.allModules['all'] || [];
+                },
+
+                selectSystem(sysId) {
+                    this.activeSystem = sysId;
+                    const mods = this.currentModules;
+                    if (mods.length > 0) {
+                        this.activeModule = mods[0].id;
+                    } else {
+                        this.activeModule = 'all-modules';
+                    }
+                },
+
+                selectModule(modId) {
+                    this.activeModule = modId;
+                },
+
+                getActiveSystemName() {
+                    const found = this.systems.find(s => String(s.id) === String(this.activeSystem));
+                    return found ? found.name : 'Semua Sistem';
+                },
+
+                getActiveModuleName() {
+                    const found = this.currentModules.find(m => String(m.id) === String(this.activeModule));
+                    return found ? found.name : 'Semua Modul';
+                },
+
+                countAudience(type) {
+                    const baseList = this.getBaseFilteredSolutions();
+                    if (type === 'all') {
+                        return baseList.length;
+                    }
+                    return baseList.filter(s => s.audience === type).length;
+                },
+
+                getBaseFilteredSolutions() {
+                    return this.solutions.filter(item => {
+                        // Filter sistem
+                        if (this.activeSystem !== 'all' && String(item.system_id) !== String(this.activeSystem)) {
+                            return false;
+                        }
+                        // Filter modul
+                        if (this.activeModule !== 'all-modules' && String(item.module_id) !== String(this.activeModule)) {
+                            return false;
+                        }
+                        // Search query
+                        if (this.searchQuery && this.searchQuery.trim() !== '') {
+                            const q = this.searchQuery.toLowerCase();
+                            const matchTitle = (item.title || '').toLowerCase().includes(q);
+                            const matchExcerpt = (item.excerpt || '').toLowerCase().includes(q);
+                            const matchMod = (item.module_name || '').toLowerCase().includes(q);
+                            const matchSys = (item.system_name || '').toLowerCase().includes(q);
+                            if (!matchTitle && !matchExcerpt && !matchMod && !matchSys) {
+                                return false;
+                            }
+                        }
+                        return true;
+                    });
+                },
+
+                get filteredSolutions() {
+                    const baseList = this.getBaseFilteredSolutions();
+                    if (this.activeAudience === 'all') {
+                        return baseList;
+                    }
+                    return baseList.filter(item => item.audience === this.activeAudience);
+                },
+
+                resetFilters() {
+                    this.activeSystem = 'all';
+                    this.activeModule = 'all-modules';
+                    this.activeAudience = 'all';
+                    this.searchQuery = '';
+                },
+
+                openReaderModal(solution) {
+                    this.selectedSolution = solution;
+                    this.isReaderModalOpen = true;
+                },
+
+                closeReaderModal() {
+                    this.isReaderModalOpen = false;
+                    this.selectedSolution = null;
+                },
+
+                openCreateModal() {
+                    this.newForm = {
+                        system: this.getActiveSystemName(),
+                        module: this.getActiveModuleName(),
+                        audience: 'klien',
+                        title: '',
+                        excerpt: '',
+                        stepsText: ''
+                    };
+                    this.isCreateModalOpen = true;
+                },
+
+                closeCreateModal() {
+                    this.isCreateModalOpen = false;
+                },
+
+                submitNewSolution() {
+                    if (!this.newForm.title || !this.newForm.excerpt) return;
+
+                    const steps = (this.newForm.stepsText || '')
+                        .split('\n')
+                        .map(s => s.trim())
+                        .filter(s => s.length > 0);
+
+                    const newId = this.solutions.length + 1;
+                    const sysSlug = this.newForm.system.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+                    const modSlug = this.newForm.module.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+
+                    const newEntry = {
+                        id: newId,
+                        system_id: sysSlug,
+                        system_name: this.newForm.system,
+                        module_id: modSlug,
+                        module_name: this.newForm.module,
+                        audience: this.newForm.audience,
+                        audience_label: this.newForm.audience === 'klien' ? 'BLOG KLIEN' : 'INTERNAL',
+                        title: this.newForm.title,
+                        excerpt: this.newForm.excerpt,
+                        author: '{{ Auth::user()->name ?? "Implementator" }}',
+                        date: 'Hari ini',
+                        read_time: '3 min baca',
+                        steps: steps.length > 0 ? steps : ['Periksa perangkat keras dan koneksi sistem.', 'Ikuti petunjuk konfigurasi dasar.', 'Lakukan uji transaksi mandiri.'],
+                        notes: 'Panduan baru berhasil disimpan dan siap dijadikan acuan tim maupun klien.'
+                    };
+
+                    this.solutions.unshift(newEntry);
+                    this.closeCreateModal();
+
+                    if (typeof Swal !== 'undefined') {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Solusi Berhasil Dibuat!',
+                            text: 'Panduan "' + newEntry.title + '" kini telah tersedia di Bank Solusi.',
+                            confirmButtonColor: '#2563eb',
+                            timer: 2500
+                        });
+                    }
+                },
+
+                copyLink() {
+                    if (navigator.clipboard && window.location.href) {
+                        navigator.clipboard.writeText(window.location.href);
+                        if (typeof Swal !== 'undefined') {
+                            Swal.fire({
+                                toast: true,
+                                position: 'top-end',
+                                icon: 'success',
+                                title: 'Tautan panduan berhasil disalin!',
+                                showConfirmButton: false,
+                                timer: 2000
+                            });
+                        }
+                    }
+                }
+            };
+        }
+        window.bankSolusi = bankSolusi;
+        document.addEventListener('alpine:init', () => {
+            if (window.Alpine) {
+                window.Alpine.data('bankSolusi', bankSolusi);
+            }
+        });
+    </script>
+
     <div x-data="bankSolusi()" x-init="init()" class="w-full pb-10">
         
         {{-- Top Bar Breadcrumb & Header Action (Identik dengan Gambar) --}}
@@ -434,225 +647,5 @@
         </div>
 
     </div>
-
-    {{-- Alpine.js Controller Logic --}}
-    <script>
-        function bankSolusi() {
-            return {
-                systems: @json($systems ?? []),
-                allModules: @json($modules ?? []),
-                solutions: @json($solutions ?? []),
-
-                activeSystem: 'all',
-                activeModule: 'all-modules',
-                activeAudience: 'all', // 'all', 'klien', 'internal'
-                searchQuery: '',
-
-                isReaderModalOpen: false,
-                selectedSolution: null,
-
-                isCreateModalOpen: false,
-                newForm: {
-                    system: 'PRESTO Resto POS',
-                    module: 'Hardware & Printer',
-                    audience: 'klien',
-                    title: '',
-                    excerpt: '',
-                    stepsText: ''
-                },
-
-                init() {
-                    // Cari sistem PRESTO atau sistem pertama dengan modul
-                    if (this.systems && this.systems.length > 0) {
-                        const presto = this.systems.find(s => (s.name || '').toUpperCase().includes('PRESTO'));
-                        const targetSys = presto || this.systems.find(s => s.id !== 'all') || this.systems[0];
-                        if (targetSys) {
-                            this.activeSystem = targetSys.id;
-                            const mods = this.currentModules;
-                            if (mods && mods.length > 0) {
-                                const hw = mods.find(m => (m.name || '').toLowerCase().includes('hardware'));
-                                this.activeModule = hw ? hw.id : (mods[1] ? mods[1].id : mods[0].id);
-                            }
-                        }
-                    }
-                },
-
-                get currentModules() {
-                    const key = String(this.activeSystem);
-                    return this.allModules[key] || this.allModules['all'] || [];
-                },
-
-                selectSystem(sysId) {
-                    this.activeSystem = sysId;
-                    const mods = this.currentModules;
-                    if (mods.length > 0) {
-                        this.activeModule = mods[0].id;
-                    } else {
-                        this.activeModule = 'all-modules';
-                    }
-                },
-
-                selectModule(modId) {
-                    this.activeModule = modId;
-                },
-
-                getActiveSystemName() {
-                    const found = this.systems.find(s => String(s.id) === String(this.activeSystem));
-                    return found ? found.name : 'Semua Sistem';
-                },
-
-                getActiveModuleName() {
-                    const found = this.currentModules.find(m => String(m.id) === String(this.activeModule));
-                    return found ? found.name : 'Semua Modul';
-                },
-
-                countAudience(type) {
-                    const baseList = this.getBaseFilteredSolutions();
-                    if (type === 'all') {
-                        return baseList.length;
-                    }
-                    return baseList.filter(s => s.audience === type).length;
-                },
-
-                getBaseFilteredSolutions() {
-                    return this.solutions.filter(item => {
-                        // Filter sistem
-                        if (this.activeSystem !== 'all' && String(item.system_id) !== String(this.activeSystem)) {
-                            return false;
-                        }
-                        // Filter modul
-                        if (this.activeModule !== 'all-modules' && String(item.module_id) !== String(this.activeModule)) {
-                            return false;
-                        }
-                        // Search query
-                        if (this.searchQuery && this.searchQuery.trim() !== '') {
-                            const q = this.searchQuery.toLowerCase();
-                            const matchTitle = (item.title || '').toLowerCase().includes(q);
-                            const matchExcerpt = (item.excerpt || '').toLowerCase().includes(q);
-                            const matchMod = (item.module_name || '').toLowerCase().includes(q);
-                            const matchSys = (item.system_name || '').toLowerCase().includes(q);
-                            if (!matchTitle && !matchExcerpt && !matchMod && !matchSys) {
-                                return false;
-                            }
-                        }
-                        return true;
-                    });
-                },
-                        // Search query
-                        if (this.searchQuery.trim() !== '') {
-                            const q = this.searchQuery.toLowerCase();
-                            const matchTitle = (item.title || '').toLowerCase().includes(q);
-                            const matchExcerpt = (item.excerpt || '').toLowerCase().includes(q);
-                            const matchMod = (item.module_name || '').toLowerCase().includes(q);
-                            if (!matchTitle && !matchExcerpt && !matchMod) {
-                                return false;
-                            }
-                        }
-                        return true;
-                    });
-                },
-
-                get filteredSolutions() {
-                    const baseList = this.getBaseFilteredSolutions();
-                    if (this.activeAudience === 'all') {
-                        return baseList;
-                    }
-                    return baseList.filter(item => item.audience === this.activeAudience);
-                },
-
-                resetFilters() {
-                    this.activeSystem = 'all';
-                    this.activeModule = 'all-modules';
-                    this.activeAudience = 'all';
-                    this.searchQuery = '';
-                },
-
-                openReaderModal(solution) {
-                    this.selectedSolution = solution;
-                    this.isReaderModalOpen = true;
-                },
-
-                closeReaderModal() {
-                    this.isReaderModalOpen = false;
-                    this.selectedSolution = null;
-                },
-
-                openCreateModal() {
-                    this.newForm = {
-                        system: this.getActiveSystemName(),
-                        module: this.getActiveModuleName(),
-                        audience: 'klien',
-                        title: '',
-                        excerpt: '',
-                        stepsText: ''
-                    };
-                    this.isCreateModalOpen = true;
-                },
-
-                closeCreateModal() {
-                    this.isCreateModalOpen = false;
-                },
-
-                submitNewSolution() {
-                    if (!this.newForm.title || !this.newForm.excerpt) return;
-
-                    const steps = (this.newForm.stepsText || '')
-                        .split('\n')
-                        .map(s => s.trim())
-                        .filter(s => s.length > 0);
-
-                    const newId = this.solutions.length + 1;
-                    const sysSlug = this.newForm.system.toLowerCase().replace(/[^a-z0-9]+/g, '-');
-                    const modSlug = this.newForm.module.toLowerCase().replace(/[^a-z0-9]+/g, '-');
-
-                    const newEntry = {
-                        id: newId,
-                        system_id: sysSlug,
-                        system_name: this.newForm.system,
-                        module_id: modSlug,
-                        module_name: this.newForm.module,
-                        audience: this.newForm.audience,
-                        audience_label: this.newForm.audience === 'klien' ? 'BLOG KLIEN' : 'INTERNAL',
-                        title: this.newForm.title,
-                        excerpt: this.newForm.excerpt,
-                        author: '{{ Auth::user()->name ?? "Implementator" }}',
-                        date: 'Hari ini',
-                        read_time: '3 min baca',
-                        steps: steps.length > 0 ? steps : ['Periksa perangkat keras dan koneksi sistem.', 'Ikuti petunjuk konfigurasi dasar.', 'Lakukan uji transaksi mandiri.'],
-                        notes: 'Panduan baru berhasil disimpan dan siap dijadikan acuan tim maupun klien.'
-                    };
-
-                    this.solutions.unshift(newEntry);
-                    this.closeCreateModal();
-
-                    if (typeof Swal !== 'undefined') {
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'Solusi Berhasil Dibuat!',
-                            text: 'Panduan "' + newEntry.title + '" kini telah tersedia di Bank Solusi.',
-                            confirmButtonColor: '#2563eb',
-                            timer: 2500
-                        });
-                    }
-                },
-
-                copyLink() {
-                    if (navigator.clipboard && window.location.href) {
-                        navigator.clipboard.writeText(window.location.href);
-                        if (typeof Swal !== 'undefined') {
-                            Swal.fire({
-                                toast: true,
-                                position: 'top-end',
-                                icon: 'success',
-                                title: 'Tautan panduan berhasil disalin!',
-                                showConfirmButton: false,
-                                timer: 2000
-                            });
-                        }
-                    }
-                }
-            };
-        }
-    </script>
 </x-app-layout>
 

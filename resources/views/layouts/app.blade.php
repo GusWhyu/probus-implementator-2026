@@ -35,7 +35,7 @@
         <script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js"></script>
         <!-- SweetAlert2 Reliable Global CDN -->
         <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-        <script src="{{ asset('js/app.js') }}"></script>
+        <script src="{{ asset('js/app.js') }}" defer></script>
         
         <!-- Anti-FOUC: Check theme before page renders to prevent flash -->
         <script>

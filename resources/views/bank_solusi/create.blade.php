@@ -1,4 +1,301 @@
 <x-app-layout>
+    {{-- Alpine.js Component Logic (Didefinisikan SEBELUM template agar selalu siap) --}}
+    <script>
+function createArtikelSolusi() {
+            return {
+                visibility: 'publik', // 'publik' atau 'internal'
+                categories: @json($categories ?? []),
+                selectedCategoryId: null,
+                selectedModuleId: null,
+                articleTitle: 'Cara Menangani Printer Kasir Thermal yang Tidak Mencetak Struk',
+                isSubmitting: false,
+                submitTarget: null,
+
+                init() {
+                    if (this.categories && this.categories.length > 0) {
+                        // Cari default kategori (misal: PRESTO atau kategori pertama)
+                        const prestoCat = this.categories.find(c => (c.name || '').toUpperCase().includes('PRESTO'));
+                        const defaultCat = prestoCat || this.categories[0];
+                        this.selectedCategoryId = defaultCat.id;
+
+                        // Cari default modul
+                        if (defaultCat.menu_systems && defaultCat.menu_systems.length > 0) {
+                            const hwMod = defaultCat.menu_systems.find(m => (m.name || '').toLowerCase().includes('hardware'));
+                            this.selectedModuleId = hwMod ? hwMod.id : defaultCat.menu_systems[0].id;
+                        }
+                    }
+                },
+
+                get currentModules() {
+                    if (!this.selectedCategoryId) return [];
+                    const found = this.categories.find(c => String(c.id) === String(this.selectedCategoryId));
+                    return found && found.menu_systems ? found.menu_systems : [];
+                },
+
+                onCategoryChange() {
+                    const mods = this.currentModules;
+                    if (mods.length > 0) {
+                        this.selectedModuleId = mods[0].id;
+                    } else {
+                        this.selectedModuleId = null;
+                    }
+                },
+
+                formatDoc(cmd, value = null) {
+                    document.execCommand(cmd, false, value);
+                },
+
+                formatHeading(tag) {
+                    document.execCommand('formatBlock', false, tag);
+                },
+
+                insertTableSample() {
+                    const tableHtml = `
+                        <table style="width: 100%; border-collapse: collapse; margin: 15px 0; border: 1px solid #cbd5e1;">
+                            <thead>
+                                <tr style="background-color: #f8fafc; font-weight: bold; text-align: left;">
+                                    <th style="padding: 8px 12px; border: 1px solid #cbd5e1; width: 40px; text-align: center;">No</th>
+                                    <th style="padding: 8px 12px; border: 1px solid #cbd5e1; width: 160px;">Kolom 1</th>
+                                    <th style="padding: 8px 12px; border: 1px solid #cbd5e1;">Keterangan & Penjelasan</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td style="padding: 8px 12px; border: 1px solid #cbd5e1; text-align: center;">1</td>
+                                    <td style="padding: 8px 12px; border: 1px solid #cbd5e1; font-weight: 600;">Item Pertama</td>
+                                    <td style="padding: 8px 12px; border: 1px solid #cbd5e1;">Deskripsi atau langkah yang perlu diperiksa.</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 8px 12px; border: 1px solid #cbd5e1; text-align: center;">2</td>
+                                    <td style="padding: 8px 12px; border: 1px solid #cbd5e1; font-weight: 600;">Item Kedua</td>
+                                    <td style="padding: 8px 12px; border: 1px solid #cbd5e1;">Deskripsi atau langkah lanjutan.</td>
+                                </tr>
+                            </tbody>
+                        </table><p></p>
+                    `;
+                    document.execCommand('insertHTML', false, tableHtml);
+                },
+
+                insertLinkPrompt() {
+                    const url = prompt('Masukkan tautan URL (misal: https://example.com):', 'https://');
+                    if (url) {
+                        document.execCommand('createLink', false, url);
+                    }
+                },
+
+                // Handler pilih file gambar via tombol toolbar
+                handleImageFileSelect(event) {
+                    const file = event.target.files[0];
+                    if (file) {
+                        this.uploadAndInsertImage(file);
+                        event.target.value = '';
+                    }
+                },
+
+                // Handler paste screenshot langsung ke editor (Ctrl+V)
+                handleEditorPaste(event) {
+                    const items = (event.clipboardData || event.originalEvent.clipboardData).items;
+                    for (let i = 0; i < items.length; i++) {
+                        if (items[i].type.indexOf('image') !== -1) {
+                            event.preventDefault();
+                            const blob = items[i].getAsFile();
+                            this.uploadAndInsertImage(blob);
+                            return;
+                        }
+                    }
+                },
+
+                // Handler drag and drop gambar ke editor
+                handleEditorDrop(event) {
+                    const files = event.dataTransfer.files;
+                    if (files.length > 0 && files[0].type.indexOf('image') !== -1) {
+                        this.uploadAndInsertImage(files[0]);
+                    }
+                },
+
+                // Mengirim gambar ke backend /bank-solusi/upload-image & menyimpan riwayat ke media_uploads
+                uploadAndInsertImage(file) {
+                    if (!file) return;
+
+                    const formData = new FormData();
+                    formData.append('image', file);
+                    formData.append('_token', '{{ csrf_token() }}');
+
+                    // Notifikasi sedang mengunggah
+                    if (typeof Swal !== 'undefined') {
+                        Swal.fire({
+                            title: 'Mengunggah Gambar...',
+                            text: 'Gambar sedang disimpan ke server.',
+                            allowOutsideClick: false,
+                            didOpen: () => {
+                                Swal.showLoading();
+                            }
+                        });
+                    }
+
+                    fetch('{{ route("bank-solusi.upload_image") }}', {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    })
+                    .then(response => {
+                        if (!response.ok) throw new Error('Gagal mengunggah gambar');
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (data.location || data.url) {
+                            const imgUrl = data.location || data.url;
+                            const imgHtml = `<p><img src="${imgUrl}" alt="Screenshot Panduan" style="max-width: 100%; height: auto; border-radius: 12px; margin: 12px 0; border: 1px solid #cbd5e1; box-shadow: 0 1px 3px rgba(0,0,0,0.1);" /></p><p></p>`;
+                            
+                            // Sisipkan ke posisi kursor atau canvas
+                            const canvas = document.getElementById('editorCanvas');
+                            canvas.focus();
+                            document.execCommand('insertHTML', false, imgHtml);
+
+                            if (typeof Swal !== 'undefined') {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Gambar Berhasil Diunggah!',
+                                    text: 'Gambar telah dimasukkan ke editor dan dicatat ke tabel media_uploads.',
+                                    timer: 2000,
+                                    showConfirmButton: false
+                                });
+                            }
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error upload:', error);
+                        if (typeof Swal !== 'undefined') {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Gagal Mengunggah',
+                                text: 'Terjadi kesalahan saat mengunggah gambar. Pastikan format gambar valid (PNG/JPG/WEBP).',
+                            });
+                        } else {
+                            alert('Gagal mengunggah gambar.');
+                        }
+                    });
+                },
+
+                // Menyimpan Artikel (Draft atau Published) ke Tabel articles & menu_has_articles
+                submitArticle(targetStatus) {
+                    if (this.isSubmitting) return;
+
+                    const title = (this.articleTitle || '').trim();
+                    if (!title) {
+                        if (typeof Swal !== 'undefined') {
+                            Swal.fire({
+                                icon: 'warning',
+                                title: 'Judul Wajib Diisi',
+                                text: 'Silakan masukkan judul artikel solusi terlebih dahulu.',
+                                confirmButtonColor: '#2563eb'
+                            });
+                        } else {
+                            alert('Silakan isi judul artikel terlebih dahulu.');
+                        }
+                        return;
+                    }
+
+                    if (!this.selectedModuleId) {
+                        if (typeof Swal !== 'undefined') {
+                            Swal.fire({
+                                icon: 'warning',
+                                title: 'Modul Belum Dipilih',
+                                text: 'Silakan pilih modul (Level 2) yang sesuai untuk artikel ini.',
+                                confirmButtonColor: '#2563eb'
+                            });
+                        } else {
+                            alert('Silakan pilih modul terlebih dahulu.');
+                        }
+                        return;
+                    }
+
+                    const canvas = document.getElementById('editorCanvas');
+                    const content = canvas ? canvas.innerHTML.trim() : '';
+                    if (!content) {
+                        alert('Isi artikel panduan tidak boleh kosong.');
+                        return;
+                    }
+
+                    this.isSubmitting = true;
+                    this.submitTarget = targetStatus;
+
+                    const payload = {
+                        title: title,
+                        visibility: this.visibility,
+                        status: targetStatus,
+                        menu_system_id: this.selectedModuleId,
+                        content: content,
+                        _token: '{{ csrf_token() }}'
+                    };
+
+                    fetch('{{ route("bank-solusi.store") }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        body: JSON.stringify(payload)
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            return response.json().then(err => { throw err; });
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        this.isSubmitting = false;
+                        const isPublish = targetStatus === 'published';
+
+                        if (typeof Swal !== 'undefined') {
+                            Swal.fire({
+                                icon: 'success',
+                                title: isPublish ? 'Artikel Berhasil Diterbitkan!' : 'Draft Berhasil Disimpan!',
+                                text: `Panduan "${title}" berhasil disimpan ke database (${this.visibility === 'publik' ? 'Publik' : 'Internal Saja'}).`,
+                                confirmButtonColor: '#2563eb',
+                                confirmButtonText: 'Kembali ke Bank Solusi'
+                            }).then(() => {
+                                window.location.href = data.redirect_url || "{{ route('bank-solusi.index') }}";
+                            });
+                        } else {
+                            alert(isPublish ? 'Artikel berhasil diterbitkan!' : 'Draft berhasil disimpan!');
+                            window.location.href = data.redirect_url || "{{ route('bank-solusi.index') }}";
+                        }
+                    })
+                    .catch(err => {
+                        this.isSubmitting = false;
+                        console.error('Error submit:', err);
+                        let errMsg = 'Terjadi kesalahan saat menyimpan artikel.';
+                        if (err && err.message) errMsg = err.message;
+                        if (err && err.errors) errMsg = Object.values(err.errors).flat().join('<br>');
+
+                        if (typeof Swal !== 'undefined') {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Gagal Menyimpan',
+                                html: errMsg,
+                                confirmButtonColor: '#2563eb'
+                            });
+                        } else {
+                            alert(errMsg);
+                        }
+                    });
+                }
+            };
+        }
+
+        window.createArtikelSolusi = createArtikelSolusi;
+        document.addEventListener('alpine:init', () => {
+            if (window.Alpine) {
+                window.Alpine.data('createArtikelSolusi', createArtikelSolusi);
+            }
+        });
+    </script>
+
     <div x-data="createArtikelSolusi()" x-init="init()" class="w-full pb-16">
         
         {{-- Top Bar Breadcrumb & Header Action (Identik dengan Gambar) --}}
@@ -131,9 +428,9 @@
                         <select x-model="selectedCategoryId" 
                                 @change="onCategoryChange()"
                                 class="w-full px-4 py-3 bg-white dark:bg-[#0e172a] border border-slate-200 dark:border-slate-700/80 rounded-xl text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 appearance-none pr-10 shadow-xs cursor-pointer">
-                            <template x-for="cat in categories" :key="cat.id">
-                                <option :value="cat.id" x-text="cat.name"></option>
-                            </template>
+                            @foreach($categories as $cat)
+                                <option value="{{ $cat->id }}">{{ $cat->name }}</option>
+                            @endforeach
                         </select>
                         <div class="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none text-slate-400">
                             <i class="fa-solid fa-chevron-down text-xs"></i>
@@ -446,293 +743,5 @@
     </div>
 
     {{-- Alpine.js Controller Logic --}}
-    <script>
-        function createArtikelSolusi() {
-            return {
-                visibility: 'publik', // 'publik' atau 'internal'
-                categories: @json($categories ?? []),
-                selectedCategoryId: null,
-                selectedModuleId: null,
-                articleTitle: 'Cara Menangani Printer Kasir Thermal yang Tidak Mencetak Struk',
-                isSubmitting: false,
-                submitTarget: null,
-
-                init() {
-                    if (this.categories && this.categories.length > 0) {
-                        // Cari default kategori (misal: PRESTO atau kategori pertama)
-                        const prestoCat = this.categories.find(c => (c.name || '').toUpperCase().includes('PRESTO'));
-                        const defaultCat = prestoCat || this.categories[0];
-                        this.selectedCategoryId = defaultCat.id;
-
-                        // Cari default modul
-                        if (defaultCat.menu_systems && defaultCat.menu_systems.length > 0) {
-                            const hwMod = defaultCat.menu_systems.find(m => (m.name || '').toLowerCase().includes('hardware'));
-                            this.selectedModuleId = hwMod ? hwMod.id : defaultCat.menu_systems[0].id;
-                        }
-                    }
-                },
-
-                get currentModules() {
-                    if (!this.selectedCategoryId) return [];
-                    const found = this.categories.find(c => String(c.id) === String(this.selectedCategoryId));
-                    return found && found.menu_systems ? found.menu_systems : [];
-                },
-
-                onCategoryChange() {
-                    const mods = this.currentModules;
-                    if (mods.length > 0) {
-                        this.selectedModuleId = mods[0].id;
-                    } else {
-                        this.selectedModuleId = null;
-                    }
-                },
-
-                formatDoc(cmd, value = null) {
-                    document.execCommand(cmd, false, value);
-                },
-
-                formatHeading(tag) {
-                    document.execCommand('formatBlock', false, tag);
-                },
-
-                insertTableSample() {
-                    const tableHtml = `
-                        <table style="width: 100%; border-collapse: collapse; margin: 15px 0; border: 1px solid #cbd5e1;">
-                            <thead>
-                                <tr style="background-color: #f8fafc; font-weight: bold; text-align: left;">
-                                    <th style="padding: 8px 12px; border: 1px solid #cbd5e1; width: 40px; text-align: center;">No</th>
-                                    <th style="padding: 8px 12px; border: 1px solid #cbd5e1; width: 160px;">Kolom 1</th>
-                                    <th style="padding: 8px 12px; border: 1px solid #cbd5e1;">Keterangan & Penjelasan</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td style="padding: 8px 12px; border: 1px solid #cbd5e1; text-align: center;">1</td>
-                                    <td style="padding: 8px 12px; border: 1px solid #cbd5e1; font-weight: 600;">Item Pertama</td>
-                                    <td style="padding: 8px 12px; border: 1px solid #cbd5e1;">Deskripsi atau langkah yang perlu diperiksa.</td>
-                                </tr>
-                                <tr>
-                                    <td style="padding: 8px 12px; border: 1px solid #cbd5e1; text-align: center;">2</td>
-                                    <td style="padding: 8px 12px; border: 1px solid #cbd5e1; font-weight: 600;">Item Kedua</td>
-                                    <td style="padding: 8px 12px; border: 1px solid #cbd5e1;">Deskripsi atau langkah lanjutan.</td>
-                                </tr>
-                            </tbody>
-                        </table><p></p>
-                    `;
-                    document.execCommand('insertHTML', false, tableHtml);
-                },
-
-                insertLinkPrompt() {
-                    const url = prompt('Masukkan tautan URL (misal: https://example.com):', 'https://');
-                    if (url) {
-                        document.execCommand('createLink', false, url);
-                    }
-                },
-
-                // Handler pilih file gambar via tombol toolbar
-                handleImageFileSelect(event) {
-                    const file = event.target.files[0];
-                    if (file) {
-                        this.uploadAndInsertImage(file);
-                        event.target.value = '';
-                    }
-                },
-
-                // Handler paste screenshot langsung ke editor (Ctrl+V)
-                handleEditorPaste(event) {
-                    const items = (event.clipboardData || event.originalEvent.clipboardData).items;
-                    for (let i = 0; i < items.length; i++) {
-                        if (items[i].type.indexOf('image') !== -1) {
-                            event.preventDefault();
-                            const blob = items[i].getAsFile();
-                            this.uploadAndInsertImage(blob);
-                            return;
-                        }
-                    }
-                },
-
-                // Handler drag and drop gambar ke editor
-                handleEditorDrop(event) {
-                    const files = event.dataTransfer.files;
-                    if (files.length > 0 && files[0].type.indexOf('image') !== -1) {
-                        this.uploadAndInsertImage(files[0]);
-                    }
-                },
-
-                // Mengirim gambar ke backend /bank-solusi/upload-image & menyimpan riwayat ke media_uploads
-                uploadAndInsertImage(file) {
-                    if (!file) return;
-
-                    const formData = new FormData();
-                    formData.append('image', file);
-                    formData.append('_token', '{{ csrf_token() }}');
-
-                    // Notifikasi sedang mengunggah
-                    if (typeof Swal !== 'undefined') {
-                        Swal.fire({
-                            title: 'Mengunggah Gambar...',
-                            text: 'Gambar sedang disimpan ke server.',
-                            allowOutsideClick: false,
-                            didOpen: () => {
-                                Swal.showLoading();
-                            }
-                        });
-                    }
-
-                    fetch('{{ route("bank-solusi.upload_image") }}', {
-                        method: 'POST',
-                        body: formData,
-                        headers: {
-                            'X-Requested-With': 'XMLHttpRequest'
-                        }
-                    })
-                    .then(response => {
-                        if (!response.ok) throw new Error('Gagal mengunggah gambar');
-                        return response.json();
-                    })
-                    .then(data => {
-                        if (data.location || data.url) {
-                            const imgUrl = data.location || data.url;
-                            const imgHtml = `<p><img src="${imgUrl}" alt="Screenshot Panduan" style="max-width: 100%; height: auto; border-radius: 12px; margin: 12px 0; border: 1px solid #cbd5e1; box-shadow: 0 1px 3px rgba(0,0,0,0.1);" /></p><p></p>`;
-                            
-                            // Sisipkan ke posisi kursor atau canvas
-                            const canvas = document.getElementById('editorCanvas');
-                            canvas.focus();
-                            document.execCommand('insertHTML', false, imgHtml);
-
-                            if (typeof Swal !== 'undefined') {
-                                Swal.fire({
-                                    icon: 'success',
-                                    title: 'Gambar Berhasil Diunggah!',
-                                    text: 'Gambar telah dimasukkan ke editor dan dicatat ke tabel media_uploads.',
-                                    timer: 2000,
-                                    showConfirmButton: false
-                                });
-                            }
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error upload:', error);
-                        if (typeof Swal !== 'undefined') {
-                            Swal.fire({
-                                icon: 'error',
-                                title: 'Gagal Mengunggah',
-                                text: 'Terjadi kesalahan saat mengunggah gambar. Pastikan format gambar valid (PNG/JPG/WEBP).',
-                            });
-                        } else {
-                            alert('Gagal mengunggah gambar.');
-                        }
-                    });
-                },
-
-                // Menyimpan Artikel (Draft atau Published) ke Tabel articles & menu_has_articles
-                submitArticle(targetStatus) {
-                    if (this.isSubmitting) return;
-
-                    const title = (this.articleTitle || '').trim();
-                    if (!title) {
-                        if (typeof Swal !== 'undefined') {
-                            Swal.fire({
-                                icon: 'warning',
-                                title: 'Judul Wajib Diisi',
-                                text: 'Silakan masukkan judul artikel solusi terlebih dahulu.',
-                                confirmButtonColor: '#2563eb'
-                            });
-                        } else {
-                            alert('Silakan isi judul artikel terlebih dahulu.');
-                        }
-                        return;
-                    }
-
-                    if (!this.selectedModuleId) {
-                        if (typeof Swal !== 'undefined') {
-                            Swal.fire({
-                                icon: 'warning',
-                                title: 'Modul Belum Dipilih',
-                                text: 'Silakan pilih modul (Level 2) yang sesuai untuk artikel ini.',
-                                confirmButtonColor: '#2563eb'
-                            });
-                        } else {
-                            alert('Silakan pilih modul terlebih dahulu.');
-                        }
-                        return;
-                    }
-
-                    const canvas = document.getElementById('editorCanvas');
-                    const content = canvas ? canvas.innerHTML.trim() : '';
-                    if (!content) {
-                        alert('Isi artikel panduan tidak boleh kosong.');
-                        return;
-                    }
-
-                    this.isSubmitting = true;
-                    this.submitTarget = targetStatus;
-
-                    const payload = {
-                        title: title,
-                        visibility: this.visibility,
-                        status: targetStatus,
-                        menu_system_id: this.selectedModuleId,
-                        content: content,
-                        _token: '{{ csrf_token() }}'
-                    };
-
-                    fetch('{{ route("bank-solusi.store") }}', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                            'Accept': 'application/json',
-                            'X-Requested-With': 'XMLHttpRequest'
-                        },
-                        body: JSON.stringify(payload)
-                    })
-                    .then(response => {
-                        if (!response.ok) {
-                            return response.json().then(err => { throw err; });
-                        }
-                        return response.json();
-                    })
-                    .then(data => {
-                        this.isSubmitting = false;
-                        const isPublish = targetStatus === 'published';
-
-                        if (typeof Swal !== 'undefined') {
-                            Swal.fire({
-                                icon: 'success',
-                                title: isPublish ? 'Artikel Berhasil Diterbitkan!' : 'Draft Berhasil Disimpan!',
-                                text: `Panduan "${title}" berhasil disimpan ke database (${this.visibility === 'publik' ? 'Publik' : 'Internal Saja'}).`,
-                                confirmButtonColor: '#2563eb',
-                                confirmButtonText: 'Kembali ke Bank Solusi'
-                            }).then(() => {
-                                window.location.href = data.redirect_url || "{{ route('bank-solusi.index') }}";
-                            });
-                        } else {
-                            alert(isPublish ? 'Artikel berhasil diterbitkan!' : 'Draft berhasil disimpan!');
-                            window.location.href = data.redirect_url || "{{ route('bank-solusi.index') }}";
-                        }
-                    })
-                    .catch(err => {
-                        this.isSubmitting = false;
-                        console.error('Error submit:', err);
-                        let errMsg = 'Terjadi kesalahan saat menyimpan artikel.';
-                        if (err && err.message) errMsg = err.message;
-                        if (err && err.errors) errMsg = Object.values(err.errors).flat().join('<br>');
-
-                        if (typeof Swal !== 'undefined') {
-                            Swal.fire({
-                                icon: 'error',
-                                title: 'Gagal Menyimpan',
-                                html: errMsg,
-                                confirmButtonColor: '#2563eb'
-                            });
-                        } else {
-                            alert(errMsg);
-                        }
-                    });
-                }
-            };
-        }
-    </script>
 </x-app-layout>
 
