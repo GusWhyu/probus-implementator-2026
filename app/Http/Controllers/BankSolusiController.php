@@ -242,7 +242,7 @@ class BankSolusiController extends Controller
     {
         $article = Article::with(['user', 'menuSystems.kategori'])->findOrFail($id);
 
-        if ($request->wantsJson() || $request->ajax()) {
+        if ($request->expectsJson() || $request->ajax()) {
             return response()->json([
                 'success' => true,
                 'data' => $article,
@@ -250,13 +250,26 @@ class BankSolusiController extends Controller
         }
 
         $firstMs = $article->menuSystems->first();
-        $systemName = ($firstMs && $firstMs->kategori) ? $firstMs->kategori->name : 'Sistem Probus';
-        $moduleName = $firstMs ? $firstMs->name : 'Umum';
+        $system = ($firstMs && $firstMs->kategori) ? $firstMs->kategori : null;
+        $module = $firstMs ?: null;
 
+        // Hitung estimasi waktu baca (rata-rata 150 kata/menit)
         $wordCount = str_word_count(strip_tags($article->content));
         $readTime = max(1, (int) round($wordCount / 150)) . ' min baca';
 
-        return view('bank_solusi.show', compact('article', 'systemName', 'moduleName', 'readTime'));
+        // Artikel terkait dalam modul yang sama
+        $relatedArticles = collect();
+        if ($module) {
+            $relatedArticles = Article::where('id', '!=', $article->id)
+                ->where('status', 'published')
+                ->whereHas('menuSystems', function ($q) use ($module) {
+                    $q->where('menu_systems.id', $module->id);
+                })
+                ->take(4)
+                ->get();
+        }
+
+        return view('bank_solusi.show', compact('article', 'system', 'module', 'readTime', 'relatedArticles'));
     }
 
     /**
@@ -265,34 +278,37 @@ class BankSolusiController extends Controller
     public function edit($id)
     {
         $article = Article::with(['menuSystems.kategori'])->findOrFail($id);
+        
         $categories = Kategori::whereHas('menuSystems')
             ->with(['menuSystems' => function ($q) {
                 $q->orderBy('order');
             }])
             ->get();
 
-        $selectedModule = $article->menuSystems->first();
-        $selectedModuleId = $selectedModule ? $selectedModule->id : null;
-        $selectedCategoryId = $selectedModule ? $selectedModule->kategori_id : ($categories->first() ? $categories->first()->id : null);
+        $currentModule = $article->menuSystems->first();
+        $currentCategoryId = $currentModule && $currentModule->kategori_id 
+            ? $currentModule->kategori_id 
+            : ($categories->first()->id ?? null);
+        $currentModuleId = $currentModule ? $currentModule->id : null;
 
-        return view('bank_solusi.edit', compact('article', 'categories', 'selectedModuleId', 'selectedCategoryId'));
+        return view('bank_solusi.edit', compact('article', 'categories', 'currentCategoryId', 'currentModuleId'));
     }
 
     /**
-     * Memperbarui artikel solusi
+     * Memperbarui artikel solusi di database
      */
     public function update(Request $request, $id)
     {
+        $article = Article::findOrFail($id);
+
         $request->validate([
-            'title' => 'required|string|max:150',
+            'title' => 'required|string|max:100',
             'visibility' => 'required|in:publik,internal',
             'status' => 'required|in:draft,published',
             'menu_system_id' => 'required|exists:menu_systems,id',
             'content' => 'required|string',
             'summary' => 'nullable|string',
         ]);
-
-        $article = Article::findOrFail($id);
 
         $summary = $request->summary;
         if (empty($summary)) {
@@ -308,10 +324,12 @@ class BankSolusiController extends Controller
             'content' => $request->content,
         ]);
 
-        // Hubungkan kembali ke menu system
+        // Perbarui relasi pivot menu_has_articles
         $article->menuSystems()->sync([$request->menu_system_id]);
 
-        $message = 'Artikel solusi berhasil diperbarui!';
+        $message = $request->status === 'published' 
+            ? 'Artikel Solusi berhasil diperbarui dan diterbitkan!' 
+            : 'Perubahan Draft Artikel Solusi berhasil disimpan!';
 
         if ($request->expectsJson() || $request->ajax()) {
             return response()->json([
@@ -352,23 +370,28 @@ class BankSolusiController extends Controller
     }
 
     /**
-     * Menghapus artikel solusi
+     * Menghapus artikel solusi dari database
      */
     public function destroy(Request $request, $id)
     {
         $article = Article::findOrFail($id);
+        $title = $article->title;
+
+        // Lepaskan relasi pivot sebelum delete
         $article->menuSystems()->detach();
         $article->delete();
+
+        $message = 'Artikel solusi "' . $title . '" berhasil dihapus!';
 
         if ($request->expectsJson() || $request->ajax()) {
             return response()->json([
                 'success' => true,
-                'message' => 'Artikel solusi berhasil dihapus.',
+                'message' => $message,
                 'redirect_url' => route('bank-solusi.index'),
             ]);
         }
 
-        return redirect()->route('bank-solusi.index')->with('success', 'Artikel solusi berhasil dihapus.');
+        return redirect()->route('bank-solusi.index')->with('success', $message);
     }
 
     /**

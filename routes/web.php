@@ -52,12 +52,12 @@ Route::get('/laporan', [HomeController::class, 'laporan'])->middleware(['auth'])
 Route::get('/bank-solusi', [BankSolusiController::class, 'index'])->middleware(['auth'])->name('bank-solusi.index');
 Route::get('/bank-solusi/create', [BankSolusiController::class, 'create'])->middleware(['auth'])->name('bank-solusi.create');
 Route::post('/bank-solusi', [BankSolusiController::class, 'store'])->middleware(['auth'])->name('bank-solusi.store');
+Route::post('/bank-solusi/upload-image', [BankSolusiController::class, 'uploadImage'])->middleware(['auth'])->name('bank-solusi.upload_image');
 Route::get('/bank-solusi/{id}', [BankSolusiController::class, 'show'])->middleware(['auth'])->name('bank-solusi.show');
 Route::get('/bank-solusi/{id}/edit', [BankSolusiController::class, 'edit'])->middleware(['auth'])->name('bank-solusi.edit');
 Route::match(['put', 'post'], '/bank-solusi/{id}', [BankSolusiController::class, 'update'])->middleware(['auth'])->name('bank-solusi.update');
 Route::post('/bank-solusi/{id}/toggle-visibility', [BankSolusiController::class, 'toggleVisibility'])->middleware(['auth'])->name('bank-solusi.toggle_visibility');
 Route::delete('/bank-solusi/{id}', [BankSolusiController::class, 'destroy'])->middleware(['auth'])->name('bank-solusi.destroy');
-Route::post('/bank-solusi/upload-image', [BankSolusiController::class, 'uploadImage'])->middleware(['auth'])->name('bank-solusi.upload_image');
 Route::get('/laporan/export-excel', [HomeController::class, 'exportExcel'])->middleware(['auth'])->name('laporan.export_excel');
 Route::post('/laporan/{id}/proses-nilai', [HomeController::class, 'prosesNilai'])->middleware(['auth'])->name('laporan.proses_nilai');
 Route::post('/laporan/proses-semua-nilai', [HomeController::class, 'prosesSemuaNilai'])->middleware(['auth'])->name('laporan.proses_semua');
