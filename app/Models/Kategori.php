@@ -19,4 +19,9 @@ class Kategori extends Model
     {
         return $this->hasMany(Request::class, 'kategori_id');
     }
+
+    public function menuSystems()
+    {
+        return $this->hasMany(MenuSystem::class, 'kategori_id')->orderBy('order');
+    }
 }

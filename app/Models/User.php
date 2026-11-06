@@ -87,6 +87,14 @@ class User extends Authenticatable
         return $this->hasMany(Request::class, 'approved_by');
     }
 
+    public function articles() {
+        return $this->hasMany(Article::class, 'user_id');
+    }
+
+    public function manualBooks() {
+        return $this->hasMany(ManualBook::class, 'user_id');
+    }
+
     public function getAvatarUrlAttribute()
     {
         if ($this->profile_image) {
