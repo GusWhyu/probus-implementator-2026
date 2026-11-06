@@ -99,7 +99,7 @@
         </div>
 
         <div>
-            <div class="px-3 mb-3 text-[11px] font-bold text-slate-400 uppercase tracking-wider">Knowledge Base</div>
+            <div class="px-3 mb-3 text-[11px] font-bold text-slate-400 uppercase tracking-wider">Bank Solution System</div>
             <ul class="space-y-1">
                 <li>
                     <a href="{{ route('bank-solusi.index') }}" class="flex items-center px-3 py-2 text-sm {{ request()->routeIs('bank-solusi.*') ? 'text-blue-600 bg-blue-50 dark:bg-blue-900/30 font-medium' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800' }} rounded-lg transition-colors justify-between group">
