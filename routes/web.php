@@ -17,6 +17,7 @@ use App\Http\Controllers\UpdateSystemController;
 use App\Http\Controllers\ModulController;
 use App\Http\Controllers\DepartemenController;
 use App\Http\Controllers\Auth\RegisteredUserController;
+use App\Http\Controllers\BankSolusiController;
 
 /*
 |--------------------------------------------------------------------------
@@ -42,6 +43,8 @@ Route::get('/daftartiket/export', [HomeController::class, 'exportDaftarTiket'])-
 Route::get('/daftartiket', [HomeController::class, 'daftartiket'])->middleware(['auth'])->name('daftartiket');
 Route::get('/inbox-manajemen', [HomeController::class, 'inbox'])->middleware(['auth'])->name('inbox');
 Route::get('/laporan', [HomeController::class, 'laporan'])->middleware(['auth'])->name('laporan');
+Route::get('/bank-solusi', [BankSolusiController::class, 'index'])->middleware(['auth'])->name('bank-solusi.index');
+Route::get('/bank-solusi/create', [BankSolusiController::class, 'create'])->middleware(['auth'])->name('bank-solusi.create');
 Route::get('/laporan/export-excel', [HomeController::class, 'exportExcel'])->middleware(['auth'])->name('laporan.export_excel');
 Route::post('/laporan/{id}/proses-nilai', [HomeController::class, 'prosesNilai'])->middleware(['auth'])->name('laporan.proses_nilai');
 Route::post('/laporan/proses-semua-nilai', [HomeController::class, 'prosesSemuaNilai'])->middleware(['auth'])->name('laporan.proses_semua');

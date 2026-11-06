@@ -95,6 +95,15 @@
                 @if(Auth::user()->usertype != 'user')
                 <li><a href="{{ route('laporan') }}" class="flex items-center px-3 py-2 text-sm {{ request()->routeIs('laporan') ? 'text-blue-600 bg-blue-50 font-medium' : 'text-slate-600 hover:bg-slate-50' }} rounded-lg transition-colors"><i class="fa-solid fa-file-lines w-5 text-center mr-2 {{ request()->routeIs('laporan') ? 'text-blue-600' : 'text-slate-400' }}"></i> Laporan</a></li>
                 @endif
+                <li>
+                    <a href="{{ route('bank-solusi.index') }}" class="flex items-center px-3 py-2 text-sm {{ request()->routeIs('bank-solusi.*') ? 'text-blue-600 bg-blue-50 dark:bg-blue-900/30 font-medium' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700/40' }} rounded-lg transition-colors justify-between group">
+                        <div class="flex items-center">
+                            <i class="fa-solid fa-book-bookmark w-5 text-center mr-2 {{ request()->routeIs('bank-solusi.*') ? 'text-blue-600' : 'text-slate-400 dark:text-slate-400' }}"></i> 
+                            <span>Bank Solusi</span>
+                        </div>
+                        <span class="bg-blue-600 text-white text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded shadow-xs tracking-wider">BLOG</span>
+                    </a>
+                </li>
             </ul>
         </div>
 
