@@ -19,6 +19,7 @@ use App\Http\Controllers\DepartemenController;
 use App\Http\Controllers\ManualBookController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\BankSolusiController;
+use App\Http\Controllers\MenuSystemController;
 
 /*
 |--------------------------------------------------------------------------
@@ -60,6 +61,15 @@ Route::get('/bank-solusi/{id}/edit', [BankSolusiController::class, 'edit'])->mid
 Route::match(['put', 'post'], '/bank-solusi/{id}', [BankSolusiController::class, 'update'])->middleware(['auth'])->name('bank-solusi.update');
 Route::post('/bank-solusi/{id}/toggle-visibility', [BankSolusiController::class, 'toggleVisibility'])->middleware(['auth'])->name('bank-solusi.toggle_visibility');
 Route::delete('/bank-solusi/{id}', [BankSolusiController::class, 'destroy'])->middleware(['auth'])->name('bank-solusi.destroy');
+
+// Master Menu Modul Sistem Routes
+Route::get('/menu-system', [MenuSystemController::class, 'index'])->middleware(['auth'])->name('menu-system.index');
+Route::get('/menu-system/create', [MenuSystemController::class, 'create'])->middleware(['auth'])->name('menu-system.create');
+Route::post('/menu-system', [MenuSystemController::class, 'store'])->middleware(['auth'])->name('menu-system.store');
+Route::get('/menu-system/{id}/edit', [MenuSystemController::class, 'edit'])->middleware(['auth'])->name('menu-system.edit');
+Route::match(['put', 'post'], '/menu-system/{id}', [MenuSystemController::class, 'update'])->middleware(['auth'])->name('menu-system.update');
+Route::match(['delete', 'get'], '/menu-system/{id}/delete', [MenuSystemController::class, 'destroy'])->middleware(['auth'])->name('menu-system.destroy');
+Route::post('/menu-system/auto-seed/{kategori_id}', [MenuSystemController::class, 'autoSeedCategory'])->middleware(['auth'])->name('menu-system.auto-seed');
 Route::get('/laporan/export-excel', [HomeController::class, 'exportExcel'])->middleware(['auth'])->name('laporan.export_excel');
 Route::post('/laporan/{id}/proses-nilai', [HomeController::class, 'prosesNilai'])->middleware(['auth'])->name('laporan.proses_nilai');
 Route::post('/laporan/proses-semua-nilai', [HomeController::class, 'prosesSemuaNilai'])->middleware(['auth'])->name('laporan.proses_semua');

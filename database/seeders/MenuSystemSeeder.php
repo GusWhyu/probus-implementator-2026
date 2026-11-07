@@ -68,23 +68,20 @@ class MenuSystemSeeder extends Seeder
             ],
         ];
 
-        $targetCategoryNames = ['PHIS', 'PRESTO', 'PPOS', 'SELF ORDER', 'PR-PO ONLINE', 'ORDER TAKER', 'PPE'];
+        $allCategories = Kategori::all();
 
-        foreach ($targetCategoryNames as $categoryName) {
-            $kategori = Kategori::where('name', 'LIKE', '%' . $categoryName . '%')->first();
-            if ($kategori) {
-                foreach ($targetModules as $mod) {
-                    MenuSystem::firstOrCreate(
-                        [
-                            'kategori_id' => $kategori->id,
-                            'name' => $mod['name'],
-                        ],
-                        [
-                            'description' => $mod['description'],
-                            'order' => $mod['order'],
-                        ]
-                    );
-                }
+        foreach ($allCategories as $kategori) {
+            foreach ($targetModules as $mod) {
+                MenuSystem::firstOrCreate(
+                    [
+                        'kategori_id' => $kategori->id,
+                        'name' => $mod['name'],
+                    ],
+                    [
+                        'description' => $mod['description'],
+                        'order' => $mod['order'],
+                    ]
+                );
             }
         }
     }

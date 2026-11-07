@@ -119,6 +119,15 @@
                         <span class="text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded tracking-wider bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">MODUL</span>
                     </a>
                 </li>
+                <li>
+                    <a href="{{ route('menu-system.index') }}" class="flex items-center justify-between px-3 py-2 text-sm {{ request()->routeIs('menu-system.*') ? 'text-blue-600 bg-blue-50 dark:bg-blue-900/30 font-medium' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800' }} rounded-lg transition-colors group">
+                        <div class="flex items-center">
+                            <i class="fa-solid fa-list-check w-5 text-center mr-2 {{ request()->routeIs('menu-system.*') ? 'text-blue-600 dark:text-blue-400' : 'text-slate-400 group-hover:text-blue-500' }} transition-colors"></i>
+                            <span>Menu Modul</span>
+                        </div>
+                        <span class="text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded tracking-wider bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20">MASTER</span>
+                    </a>
+                </li>
             </ul>
         </div>
 
@@ -133,6 +142,7 @@
                 <li><a href="{{ route('tipepenanganan.index') }}" class="flex items-center px-3 py-2 text-sm {{ request()->routeIs('tipepenanganan.*') ? 'text-blue-600 bg-blue-50 font-medium' : 'text-slate-600 hover:bg-slate-50' }} rounded-lg transition-colors"><i class="fa-solid fa-headset w-5 text-center mr-2 {{ request()->routeIs('tipepenanganan.*') ? 'text-blue-600' : 'text-slate-400' }}"></i> Tipe Penanganan</a></li>
                 <li><a href="{{ route('user') }}" class="flex items-center px-3 py-2 text-sm {{ request()->routeIs('user') ? 'text-blue-600 bg-blue-50 font-medium' : 'text-slate-600 hover:bg-slate-50' }} rounded-lg transition-colors"><i class="fa-solid fa-users w-5 text-center mr-2 {{ request()->routeIs('user') ? 'text-blue-600' : 'text-slate-400' }}"></i> User List</a></li>
                 <li><a href="{{ route('modul') }}" class="flex items-center px-3 py-2 text-sm {{ request()->routeIs('modul') || request()->routeIs('createmodul') || request()->routeIs('editmodul') ? 'text-blue-600 bg-blue-50 font-medium' : 'text-slate-600 hover:bg-slate-50' }} rounded-lg transition-colors"><i class="fa-solid fa-layer-group w-5 text-center mr-2 {{ request()->routeIs('modul') || request()->routeIs('createmodul') || request()->routeIs('editmodul') ? 'text-blue-600' : 'text-slate-400' }}"></i> Master Data Modul</a></li>
+                <li><a href="{{ route('menu-system.index') }}" class="flex items-center px-3 py-2 text-sm {{ request()->routeIs('menu-system.*') ? 'text-blue-600 bg-blue-50 font-medium' : 'text-slate-600 hover:bg-slate-50' }} rounded-lg transition-colors"><i class="fa-solid fa-list-check w-5 text-center mr-2 {{ request()->routeIs('menu-system.*') ? 'text-blue-600' : 'text-slate-400' }}"></i> Menu Modul Sistem</a></li>
                 <li><a href="{{ route('soft-skill.index') }}" class="flex items-center px-3 py-2 text-sm {{ request()->routeIs('soft-skill.*') ? 'text-blue-600 bg-blue-50 font-medium' : 'text-slate-600 hover:bg-slate-50' }} rounded-lg transition-colors"><i class="fa-solid fa-sliders w-5 text-center mr-2 {{ request()->routeIs('soft-skill.*') ? 'text-blue-600' : 'text-slate-400' }}"></i> Penilaian Soft Skill</a></li>
                 <li><a href="{{ route('bobot-penilaian.index') }}" class="flex items-center px-3 py-2 text-sm {{ request()->routeIs('bobot-penilaian.*') ? 'text-blue-600 bg-blue-50 font-medium' : 'text-slate-600 hover:bg-slate-50' }} rounded-lg transition-colors"><i class="fa-solid fa-scale-balanced w-5 text-center mr-2 {{ request()->routeIs('bobot-penilaian.*') ? 'text-blue-600' : 'text-slate-400' }}"></i> Bobot Penilaian</a></li>
             </ul>
