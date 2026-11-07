@@ -17,8 +17,8 @@
 
                 isCreateModalOpen: false,
                 newForm: {
-                    system: 'PRESTO Resto POS',
-                    module: 'Hardware & Printer',
+                    system: 'PRESTO',
+                    module: 'Sales',
                     audience: 'klien',
                     title: '',
                     excerpt: '',
@@ -26,19 +26,9 @@
                 },
 
                 init() {
-                    // Cari sistem PRESTO atau sistem pertama dengan modul
-                    if (this.systems && this.systems.length > 0) {
-                        const presto = this.systems.find(s => (s.name || '').toUpperCase().includes('PRESTO'));
-                        const targetSys = presto || this.systems.find(s => s.id !== 'all') || this.systems[0];
-                        if (targetSys) {
-                            this.activeSystem = targetSys.id;
-                            const mods = this.currentModules;
-                            if (mods && mods.length > 0) {
-                                const hw = mods.find(m => (m.name || '').toLowerCase().includes('hardware'));
-                                this.activeModule = hw ? hw.id : (mods[1] ? mods[1].id : mods[0].id);
-                            }
-                        }
-                    }
+                    // Default menampilkan Semua Sistem dan Semua Modul
+                    this.activeSystem = 'all';
+                    this.activeModule = 'all-modules';
                 },
 
                 get currentModules() {
@@ -85,8 +75,20 @@
                             return false;
                         }
                         // Filter modul
-                        if (this.activeModule !== 'all-modules' && String(item.module_id) !== String(this.activeModule)) {
-                            return false;
+                        if (this.activeModule !== 'all-modules') {
+                            if (this.activeSystem === 'all') {
+                                const selectedModObj = this.currentModules.find(m => String(m.id) === String(this.activeModule));
+                                const selectedModName = selectedModObj ? selectedModObj.name : null;
+                                if (selectedModName) {
+                                    if (item.module_name !== selectedModName && String(item.module_id) !== String(this.activeModule)) {
+                                        return false;
+                                    }
+                                } else if (String(item.module_id) !== String(this.activeModule)) {
+                                    return false;
+                                }
+                            } else if (String(item.module_id) !== String(this.activeModule)) {
+                                return false;
+                            }
                         }
                         // Search query
                         if (this.searchQuery && this.searchQuery.trim() !== '') {

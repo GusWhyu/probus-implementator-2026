@@ -34,9 +34,8 @@ function manualBookApp() {
                         this.activeSystem = defaultSys.id;
                         const mods = this.modules;
                         if (mods && mods.length > 0) {
-                            // Prioritaskan modul Order Taker jika ada
-                            const otMod = mods.find(m => (m.title || '').toLowerCase().includes('order taker'));
-                            this.activeModuleId = otMod ? otMod.id : mods[0].id;
+                            const salesMod = mods.find(m => (m.title || '').toLowerCase().includes('sales'));
+                            this.activeModuleId = salesMod ? salesMod.id : mods[0].id;
                         }
                     }
 

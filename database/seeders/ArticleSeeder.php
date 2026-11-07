@@ -25,11 +25,11 @@ class ArticleSeeder extends Seeder
             ]);
         }
 
-        $hardwarePrinter = MenuSystem::where('name', 'Hardware & Printer')->first();
-        $hwId = $hardwarePrinter ? $hardwarePrinter->id : null;
+        $tools = MenuSystem::where('name', 'Tools')->first();
+        $hwId = $tools ? $tools->id : null;
 
-        $orderTaker = MenuSystem::where('name', 'Order Taker & Kasir')->first();
-        $otId = $orderTaker ? $orderTaker->id : $hwId;
+        $sales = MenuSystem::where('name', 'Sales')->first();
+        $otId = $sales ? $sales->id : $hwId;
 
         $articles = [
             [

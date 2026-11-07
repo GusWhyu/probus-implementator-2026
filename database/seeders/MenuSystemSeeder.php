@@ -15,49 +15,65 @@ class MenuSystemSeeder extends Seeder
      */
     public function run()
     {
-        $modulesByCategory = [
-            'PRESTO' => [
-                ['name' => 'Hardware & Printer', 'description' => 'Panduan printer struk thermal, printer dapur, cash drawer, dan barcode scanner', 'order' => 1],
-                ['name' => 'Order Taker & Kasir', 'description' => 'Tata cara input order, hold bill, diskon, split bill, dan cetak bill kasir', 'order' => 2],
-                ['name' => 'QRIS & Pembayaran EDC', 'description' => 'Konfigurasi QRIS statis/dinamis, EDC BCA/Mandiri, dan e-wallet', 'order' => 3],
-                ['name' => 'Kitchen Display / KDS', 'description' => 'Pengoperasian display pesanan dapur dan status kesiapan makanan', 'order' => 4],
-                ['name' => 'Tutup Shift & Laporan', 'description' => 'Prosedur rekonsiliasi kas kasir, serah terima shift, dan cetak summary', 'order' => 5],
+        $targetModules = [
+            [
+                'name' => 'Sales',
+                'description' => 'Modul transaksi penjualan, kasir POS, reservasi meja, dan pendapatan.',
+                'order' => 1,
             ],
-            'PHIS' => [
-                ['name' => 'Front Office & Reservasi', 'description' => 'Check-in, check-out, reservasi tamu, dan guest folio', 'order' => 1],
-                ['name' => 'Housekeeping & Room Status', 'description' => 'Status kamar (Clean/Dirty/OOO), update status melalui aplikasi HK', 'order' => 2],
-                ['name' => 'Night Audit & EOD', 'description' => 'Prosedur tutup hari, posting room charge otomatis, dan laporan audit', 'order' => 3],
-                ['name' => 'Point of Sale Resto / Bar', 'description' => 'Posting tagihan restoran langsung ke kamar tamu (Room Charge)', 'order' => 4],
+            [
+                'name' => 'Production',
+                'description' => 'Modul pengolahan dapur, resep, kitchen display system (KDS), dan produksi makanan/minuman.',
+                'order' => 2,
             ],
-            'PPE' => [
-                ['name' => 'Manajemen Hak Akses', 'description' => 'Pengaturan role, permission user, dan batasan wewenang modul', 'order' => 1],
-                ['name' => 'Sinkronisasi Multi-Outlet', 'description' => 'Sinkronisasi data master menu, harga, dan inventory antar cabang', 'order' => 2],
-                ['name' => 'Integrasi Channel Manager', 'description' => 'Konektivitas OTA (Booking.com, Agoda, Tiket.com) secara otomatis', 'order' => 3],
+            [
+                'name' => 'Cost Control',
+                'description' => 'Modul pengendalian biaya, food & beverage cost, dan laporan analisa selisih.',
+                'order' => 3,
             ],
-            'PPOS' => [
-                ['name' => 'Kasir POS', 'description' => 'Transaksi penjualan harian, void, dan refund', 'order' => 1],
-                ['name' => 'Pengaturan Menu & Harga', 'description' => 'Kelola master item, harga jual, dan paket menu promo', 'order' => 2],
-                ['name' => 'Laporan Penjualan', 'description' => 'Analisa omzet per kasir, per kategori produk, dan per shift', 'order' => 3],
+            [
+                'name' => 'Purchasing / AP',
+                'description' => 'Modul pengadaan barang, purchase request (PR), purchase order (PO), receiving, dan hutang usaha.',
+                'order' => 4,
             ],
-            'ORDER TAKER' => [
-                ['name' => 'Floor Map & Denah Meja', 'description' => 'Pemilihan area dan nomor meja saat pelanggan memesan', 'order' => 1],
-                ['name' => 'Split Bill & Gabung Meja', 'description' => 'Pembagian pesanan atau penggabungan beberapa meja jadi satu transaksi', 'order' => 2],
+            [
+                'name' => 'Accounts Receivable / AR',
+                'description' => 'Modul piutang usaha, city ledger, penagihan invoice klien, dan pelunasan.',
+                'order' => 5,
             ],
-            'SELF ORDER' => [
-                ['name' => 'QR Menu Pelanggan', 'description' => 'Scan QR di meja untuk membuka e-menu mandiri oleh tamu', 'order' => 1],
-                ['name' => 'Payment Gateway Self Order', 'description' => 'Pembayaran otomatis langsung saat pemesanan melalui QRIS / e-wallet', 'order' => 2],
+            [
+                'name' => 'Accounting System',
+                'description' => 'Modul sistem akuntansi, jurnal umum, buku besar (GL), neraca, dan laporan keuangan.',
+                'order' => 6,
             ],
-            'PR-PO ONLINE' => [
-                ['name' => 'Purchase Request (PR)', 'description' => 'Pengajuan permintaan pembelian bahan baku oleh departemen outlet', 'order' => 1],
-                ['name' => 'Purchase Order (PO) & Approval', 'description' => 'Persetujuan pesanan pembelian ke supplier oleh Purchasing & GM', 'order' => 2],
-                ['name' => 'Receiving & Goods Receipt', 'description' => 'Penerimaan barang datang dan pencocokan dengan invoice PO', 'order' => 3],
+            [
+                'name' => 'Tools',
+                'description' => 'Modul utilitas sistem, konfigurasi hardware & printer, cash drawer, dan diagnostik perangkat.',
+                'order' => 7,
+            ],
+            [
+                'name' => 'Calendar',
+                'description' => 'Modul kalender kerja, reservasi event, jadwal operasional, dan agenda sistem.',
+                'order' => 8,
+            ],
+            [
+                'name' => 'Calculator',
+                'description' => 'Modul kalkulator sistem, simulasi perhitungan harga, diskon, dan konversi kurs.',
+                'order' => 9,
+            ],
+            [
+                'name' => 'Reconnecting',
+                'description' => 'Modul pemulihan koneksi offline/online, sinkronisasi data cloud, dan pemulihan jaringan.',
+                'order' => 10,
             ],
         ];
 
-        foreach ($modulesByCategory as $categoryName => $modules) {
+        $targetCategoryNames = ['PHIS', 'PRESTO', 'PPOS', 'SELF ORDER', 'PR-PO ONLINE', 'ORDER TAKER', 'PPE'];
+
+        foreach ($targetCategoryNames as $categoryName) {
             $kategori = Kategori::where('name', 'LIKE', '%' . $categoryName . '%')->first();
             if ($kategori) {
-                foreach ($modules as $mod) {
+                foreach ($targetModules as $mod) {
                     MenuSystem::firstOrCreate(
                         [
                             'kategori_id' => $kategori->id,
@@ -73,4 +89,3 @@ class MenuSystemSeeder extends Seeder
         }
     }
 }
-

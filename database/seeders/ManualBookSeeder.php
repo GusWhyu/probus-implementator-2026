@@ -19,10 +19,11 @@ class ManualBookSeeder extends Seeder
         $user = User::first();
         $userId = $user ? $user->id : 1;
 
-        $modules = [
-            'Order Taker & Kasir' => [
-                'title' => '02. Order Taker & Transaksi Meja',
-                'description' => 'Panduan langkah demi langkah bagi kasir & pramusaji untuk membuka meja tamu, menginput pesanan menu beserta catatan dapur (notes), hingga memindahkan atau menggabungkan meja aktif.',
+        $books = [
+            [
+                'module_name' => 'Sales',
+                'title' => '01. Panduan Transaksi Penjualan & POS (Sales)',
+                'description' => 'Panduan langkah demi langkah bagi kasir & pramusaji untuk membuka meja tamu, menginput pesanan menu beserta catatan dapur (notes), hingga proses pembayaran multi-metode.',
                 'status' => 'published',
                 'content' => '
 <div class="space-y-4">
@@ -64,9 +65,10 @@ class ManualBookSeeder extends Seeder
 </div>
 ',
             ],
-            'Hardware & Printer' => [
-                'title' => '06. Pengaturan Hardware & Printer',
-                'description' => 'Panduan konfigurasi printer thermal bluetooth/LAN untuk kasir dan kitchen printer, serta cash drawer trigger.',
+            [
+                'module_name' => 'Tools',
+                'title' => '07. Konfigurasi Hardware, Printer & Cash Drawer (Tools)',
+                'description' => 'Panduan konfigurasi printer thermal bluetooth/LAN untuk kasir dan kitchen printer, serta cash drawer trigger pada modul Tools.',
                 'status' => 'published',
                 'content' => '
 <div class="space-y-4">
@@ -78,24 +80,10 @@ class ManualBookSeeder extends Seeder
 </div>
 ',
             ],
-            'QRIS & Pembayaran EDC' => [
-                'title' => '03. Pembayaran Multi-Metode & Split Bill',
-                'description' => 'Panduan pembayaran multi-metode (Cash, EDC, QRIS, Voucher), cetak bill sementara, serta fitur split bill per item / per nominal.',
-                'status' => 'published',
-                'content' => '
-<div class="space-y-4">
-    <h3>1. Penyelesaian Pembayaran Tunai &amp; Kembalian</h3>
-    <p>Pilih metode bayar Tunai, masukkan jumlah uang yang diserahkan pelanggan. Sistem akan menampilkan nominal kembalian secara otomatis.</p>
-
-    <h3>2. Split Bill Berdasarkan Item</h3>
-    <p>Klik tombol Split Bill, pilih menu yang ingin dibayarkan terpisah, lalu cetak bill masing-masing tamu.</p>
-</div>
-',
-            ],
         ];
 
-        foreach ($modules as $menuName => $bookData) {
-            $menuSystem = MenuSystem::where('name', $menuName)->first();
+        foreach ($books as $bookData) {
+            $menuSystem = MenuSystem::where('name', $bookData['module_name'])->first();
             if ($menuSystem) {
                 $manualBook = ManualBook::firstOrCreate(
                     ['title' => $bookData['title']],

@@ -7,21 +7,17 @@ function createArtikelSolusi() {
                 categories: @json($categories ?? []),
                 selectedCategoryId: null,
                 selectedModuleId: null,
-                articleTitle: 'Cara Menangani Printer Kasir Thermal yang Tidak Mencetak Struk',
+                articleTitle: '',
                 isSubmitting: false,
                 submitTarget: null,
 
                 init() {
                     if (this.categories && this.categories.length > 0) {
-                        // Cari default kategori (misal: PRESTO atau kategori pertama)
-                        const prestoCat = this.categories.find(c => (c.name || '').toUpperCase().includes('PRESTO'));
-                        const defaultCat = prestoCat || this.categories[0];
+                        const defaultCat = this.categories[0];
                         this.selectedCategoryId = defaultCat.id;
 
-                        // Cari default modul
                         if (defaultCat.menu_systems && defaultCat.menu_systems.length > 0) {
-                            const hwMod = defaultCat.menu_systems.find(m => (m.name || '').toLowerCase().includes('hardware'));
-                            this.selectedModuleId = hwMod ? hwMod.id : defaultCat.menu_systems[0].id;
+                            this.selectedModuleId = defaultCat.menu_systems[0].id;
                         }
                     }
                 },

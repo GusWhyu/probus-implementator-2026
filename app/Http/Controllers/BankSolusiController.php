@@ -73,14 +73,46 @@ class BankSolusiController extends Controller
         ]);
 
         // Daftar modul untuk "all"
+        $targetStandardModules = [
+            'Sales',
+            'Production',
+            'Cost Control',
+            'Purchasing / AP',
+            'Accounts Receivable / AR',
+            'Accounting System',
+            'Tools',
+            'Calendar',
+            'Calculator',
+            'Reconnecting',
+        ];
+
         $allModulesFlat = [];
-        foreach ($modulesBySystem as $mList) {
-            foreach ($mList as $m) {
-                if ($m['id'] !== 'all-modules' && !in_array($m['name'], array_column($allModulesFlat, 'name'))) {
-                    $allModulesFlat[] = $m;
+        foreach ($targetStandardModules as $modName) {
+            $totalCountForMod = 0;
+            $modDesc = '';
+            $firstModId = null;
+            foreach ($modulesBySystem as $catId => $mList) {
+                if ($catId === 'all') continue;
+                foreach ($mList as $m) {
+                    if ($m['name'] === $modName) {
+                        $totalCountForMod += (int) $m['count'];
+                        if (!$modDesc && !empty($m['description'])) {
+                            $modDesc = $m['description'];
+                        }
+                        if (!$firstModId) {
+                            $firstModId = $m['id'];
+                        }
+                    }
                 }
             }
+            $allModulesFlat[] = [
+                'id' => $firstModId ? (string) $firstModId : Str::slug($modName),
+                'name' => $modName,
+                'count' => $totalCountForMod,
+                'description' => $modDesc,
+            ];
         }
+
         array_unshift($allModulesFlat, [
             'id' => 'all-modules',
             'name' => 'Semua Modul',
