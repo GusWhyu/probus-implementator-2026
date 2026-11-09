@@ -125,7 +125,7 @@ class ManualBookController extends Controller
             'menu_system_id' => 'required|exists:menu_systems,id',
             'chapter_id' => 'nullable',
             'order' => 'nullable|integer',
-            'title' => 'required|string|max:150',
+            'title' => 'required|string|max:100',
             'description' => 'nullable|string',
             'content' => 'required|string',
             'status' => 'required|in:draft,published',
@@ -248,6 +248,10 @@ class ManualBookController extends Controller
             $order = (int) $m[1];
             $cleanTitle = trim($m[2]);
             $title = $order . '. ' . ($cleanTitle ? $cleanTitle : $rawName);
+        }
+
+        if (mb_strlen($title) > 100) {
+            $title = mb_substr($title, 0, 100);
         }
 
         try {

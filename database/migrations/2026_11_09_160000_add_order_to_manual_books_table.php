@@ -34,3 +34,4 @@ class AddOrderToManualBooksTable extends Migration
         }
     }
 }
+
