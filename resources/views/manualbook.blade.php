@@ -138,24 +138,24 @@ function manualBookApp() {
                         window.ProbusEditorEnhancer.openTableModal();
                     } else {
                         const tableHtml = `
-                            <table style="width: 100%; border-collapse: collapse; margin: 15px 0; border: 1px solid #cbd5e1;">
+                            <table style="width: 100%; border-collapse: collapse; margin: 16px 0; border: 1.5px solid #64748b;">
                                 <thead>
-                                    <tr style="background-color: #0e1f3d; color: #ffffff; font-weight: bold; text-align: left;">
-                                        <th style="padding: 10px 14px; border: 1px solid #334155; width: 50px; text-align: center;">No</th>
-                                        <th style="padding: 10px 14px; border: 1px solid #334155; width: 180px;">Status / Bagian</th>
-                                        <th style="padding: 10px 14px; border: 1px solid #334155;">Keterangan & Petunjuk</th>
+                                    <tr style="background-color: #0b1a36; color: #ffffff; font-weight: bold; text-align: left;">
+                                        <th style="padding: 10px 14px; border: 1px solid #64748b; background-color: #0b1a36; color: #ffffff; width: 50px; text-align: center;">No</th>
+                                        <th style="padding: 10px 14px; border: 1px solid #64748b; background-color: #0b1a36; color: #ffffff; width: 180px;">Status / Bagian</th>
+                                        <th style="padding: 10px 14px; border: 1px solid #64748b; background-color: #0b1a36; color: #ffffff;">Keterangan & Petunjuk</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     <tr>
-                                        <td style="padding: 10px 14px; border: 1px solid #334155; text-align: center;">1</td>
-                                        <td style="padding: 10px 14px; border: 1px solid #334155; font-weight: 600;">Langkah Pertama</td>
-                                        <td style="padding: 10px 14px; border: 1px solid #334155;">Penjelasan petunjuk penggunaan modul.</td>
+                                        <td style="padding: 10px 14px; border: 1px solid #cbd5e1; text-align: center;">1</td>
+                                        <td style="padding: 10px 14px; border: 1px solid #cbd5e1; font-weight: 600;">Langkah Pertama</td>
+                                        <td style="padding: 10px 14px; border: 1px solid #cbd5e1;">Penjelasan petunjuk penggunaan modul.</td>
                                     </tr>
                                     <tr>
-                                        <td style="padding: 10px 14px; border: 1px solid #334155; text-align: center;">2</td>
-                                        <td style="padding: 10px 14px; border: 1px solid #334155; font-weight: 600;">Langkah Kedua</td>
-                                        <td style="padding: 10px 14px; border: 1px solid #334155;">Penjelasan petunjuk penggunaan lanjutan.</td>
+                                        <td style="padding: 10px 14px; border: 1px solid #cbd5e1; text-align: center;">2</td>
+                                        <td style="padding: 10px 14px; border: 1px solid #cbd5e1; font-weight: 600;">Langkah Kedua</td>
+                                        <td style="padding: 10px 14px; border: 1px solid #cbd5e1;">Penjelasan petunjuk penggunaan lanjutan.</td>
                                     </tr>
                                 </tbody>
                             </table><p></p>

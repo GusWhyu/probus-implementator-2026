@@ -1,6 +1,6 @@
 {{-- ========================================================================= --}}
 {{-- PROBUS RICH TEXT EDITOR ENHANCEMENTS                                      --}}
-{{-- Fitur: Resize Gambar Interaktif, Batas Upload < 1MB, & Tabel Interaktif   --}}
+{{-- Fitur: Resize Gambar Interaktif, Batas Upload < 1MB, & Tabel Probus Navy  --}}
 {{-- ========================================================================= --}}
 
 <style>
@@ -78,16 +78,30 @@
         outline-offset: -2px !important;
     }
 
-    /* Table styling standard in editor */
+    /* Styling Standar Tabel Probus Navy: Garis Tepi Jelas & Tegas */
     .editor-canvas-active table {
-        border-collapse: collapse;
-        width: 100%;
-        margin: 16px 0;
+        border-collapse: collapse !important;
+        width: 100% !important;
+        margin: 16px 0 !important;
+        border: 1.5px solid #64748b !important;
     }
-    .editor-canvas-active th,
-    .editor-canvas-active td {
+    .editor-canvas-active th {
+        background-color: #0b1a36 !important;
+        color: #ffffff !important;
+        font-weight: 700 !important;
+        border: 1px solid #64748b !important;
+        padding: 10px 14px !important;
         min-width: 50px;
         position: relative;
+    }
+    .editor-canvas-active td {
+        border: 1px solid #cbd5e1 !important;
+        padding: 10px 14px !important;
+        min-width: 50px;
+        position: relative;
+    }
+    .dark .editor-canvas-active td {
+        border-color: #475569 !important;
     }
     .editor-canvas-active th:hover,
     .editor-canvas-active td:hover {
@@ -143,7 +157,7 @@
 <div id="probusImageBadge" contenteditable="false">0 × 0 px</div>
 
 {{-- ======================================================== --}}
-{{-- 2. DOCKED STICKY TABLE TOOLBAR (TIDAK BERPINDAH SAAT SCROLL) --}}
+{{-- 2. DOCKED STICKY TABLE TOOLBAR (TEMA PROBUS NAVY)        --}}
 {{-- ======================================================== --}}
 <div id="probusTableToolbar" contenteditable="false" class="px-3.5 py-2 flex flex-wrap items-center justify-between gap-2.5 text-xs text-slate-100 shadow-md">
     <div class="flex flex-wrap items-center gap-2.5">
@@ -171,7 +185,7 @@
         </div>
 
         {{-- Grup Kolom --}}
-        <div class="flex items-center gap-1 pr-2 border-r border-slate-700/80">
+        <div class="flex items-center gap-1">
             <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-0.5">Kolom:</span>
             <button type="button" onclick="window.ProbusEditorEnhancer.insertColLeft()" class="px-2 py-1 rounded bg-slate-800/90 hover:bg-slate-750 text-slate-200 font-medium flex items-center gap-1 transition cursor-pointer" title="Sisipkan Kolom di Kiri">
                 <i class="fa-solid fa-arrow-left text-[10px] text-emerald-400"></i>
@@ -185,15 +199,6 @@
                 <i class="fa-solid fa-xmark text-[10px]"></i>
                 <span>Hapus</span>
             </button>
-        </div>
-
-        {{-- Gaya & Tema Header --}}
-        <div class="flex items-center gap-1.5">
-            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-0.5">Tema:</span>
-            <button type="button" onclick="window.ProbusEditorEnhancer.applyTableTheme('navy')" class="w-5 h-5 rounded-full bg-[#0e1f3d] border-2 border-sky-400 hover:scale-110 transition shadow-xs cursor-pointer" title="Probus Dark Navy (Figma)"></button>
-            <button type="button" onclick="window.ProbusEditorEnhancer.applyTableTheme('blue')" class="w-5 h-5 rounded-full bg-blue-600 border-2 border-white hover:scale-110 transition shadow-xs cursor-pointer" title="Probus Blue"></button>
-            <button type="button" onclick="window.ProbusEditorEnhancer.applyTableTheme('slate')" class="w-5 h-5 rounded-full bg-slate-200 border-2 border-slate-400 hover:scale-110 transition shadow-xs cursor-pointer" title="Slate Light"></button>
-            <button type="button" onclick="window.ProbusEditorEnhancer.applyTableTheme('striped')" class="w-5 h-5 rounded-full bg-slate-700 border-2 border-slate-500 hover:scale-110 transition shadow-xs cursor-pointer" title="Zebra Striped"></button>
         </div>
     </div>
 
@@ -210,7 +215,7 @@
 </div>
 
 {{-- ======================================================== --}}
-{{-- 3. MODAL / DIALOG SISIPKAN TABEL KUSTOM                  --}}
+{{-- 3. MODAL / DIALOG SISIPKAN TABEL KUSTOM (PROBUS NAVY)    --}}
 {{-- ======================================================== --}}
 <div id="probusCustomTableModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs hidden flex items-center justify-center p-4">
     <div class="bg-white dark:bg-[#0f172a] border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-md p-6 shadow-2xl space-y-5 animate-in fade-in zoom-in duration-150">
@@ -220,8 +225,8 @@
                     <i class="fa-solid fa-table text-sm"></i>
                 </div>
                 <div>
-                    <h3 class="text-sm font-black text-slate-800 dark:text-slate-100">Sisipkan Tabel Kustom</h3>
-                    <p class="text-xs text-slate-400">Atur jumlah baris, kolom, dan gaya tabel</p>
+                    <h3 class="text-sm font-black text-slate-800 dark:text-slate-100">Sisipkan Tabel Baru</h3>
+                    <p class="text-xs text-slate-400">Atur jumlah baris dan kolom tabel</p>
                 </div>
             </div>
             <button type="button" onclick="window.ProbusEditorEnhancer.closeTableModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1 cursor-pointer">
@@ -241,26 +246,10 @@
                 </div>
             </div>
 
-            <div>
-                <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Pilihan Tema / Desain Tabel</label>
-                <div class="grid grid-cols-2 gap-2 text-xs">
-                    <label class="flex items-center gap-2 p-2.5 rounded-xl border border-blue-500 bg-blue-50/50 dark:bg-blue-950/20 cursor-pointer">
-                        <input type="radio" name="customTableTheme" value="navy" checked class="text-blue-600 focus:ring-blue-500">
-                        <span class="font-bold text-slate-800 dark:text-slate-100">Probus Navy (Figma)</span>
-                    </label>
-                    <label class="flex items-center gap-2 p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 cursor-pointer">
-                        <input type="radio" name="customTableTheme" value="blue" class="text-blue-600 focus:ring-blue-500">
-                        <span class="font-bold text-slate-800 dark:text-slate-100">Probus Blue</span>
-                    </label>
-                    <label class="flex items-center gap-2 p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 cursor-pointer">
-                        <input type="radio" name="customTableTheme" value="slate" class="text-blue-600 focus:ring-blue-500">
-                        <span class="font-bold text-slate-800 dark:text-slate-100">Modern Slate Light</span>
-                    </label>
-                    <label class="flex items-center gap-2 p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 cursor-pointer">
-                        <input type="radio" name="customTableTheme" value="striped" class="text-blue-600 focus:ring-blue-500">
-                        <span class="font-bold text-slate-800 dark:text-slate-100">Zebra Striped</span>
-                    </label>
-                </div>
+            {{-- Keterangan Tema Probus Navy Terstandarisasi --}}
+            <div class="flex items-center gap-2 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 text-xs">
+                <span class="w-3.5 h-3.5 rounded-full bg-[#0b1a36] border-2 border-sky-400 shrink-0"></span>
+                <span class="text-slate-600 dark:text-slate-300">Tema Standar: <strong class="text-slate-900 dark:text-white">Probus Navy</strong> (Header Biru Tua &amp; Garis Tepi Tegas)</span>
             </div>
 
             <div class="flex items-center gap-2 pt-1">
@@ -586,45 +575,35 @@
             const rowsInput = document.getElementById('customTableRows');
             const colsInput = document.getElementById('customTableCols');
             const hasHeaderInput = document.getElementById('customTableHasHeader');
-            const themeRadio = document.querySelector('input[name="customTableTheme"]:checked');
 
             const rowsCount = parseInt(rowsInput ? rowsInput.value : 3) || 3;
             const colsCount = parseInt(colsInput ? colsInput.value : 3) || 3;
             const hasHeader = hasHeaderInput ? hasHeaderInput.checked : true;
-            const theme = themeRadio ? themeRadio.value : 'navy';
 
-            this.insertCustomTable(rowsCount, colsCount, hasHeader, theme);
+            this.insertCustomTable(rowsCount, colsCount, hasHeader);
             this.closeTableModal();
         },
 
-        insertCustomTable(rowsCount, colsCount, hasHeader = true, theme = 'navy') {
+        insertCustomTable(rowsCount, colsCount, hasHeader = true) {
             const canvas = document.getElementById(this.canvasId);
             if (!canvas) return;
 
-            let headerBg = '#0e1f3d';
-            let headerColor = '#ffffff';
-            let borderColor = '#334155';
+            // Tema Standar Probus Navy dengan Garis Tepi Tegas
+            const headerBg = '#0b1a36';
+            const headerColor = '#ffffff';
+            const headerBorder = '#64748b';
+            const cellBorder = '#cbd5e1';
 
-            if (theme === 'blue') {
-                headerBg = '#2563eb';
-                borderColor = '#60a5fa';
-            } else if (theme === 'slate') {
-                headerBg = '#f1f5f9';
-                headerColor = '#1e293b';
-                borderColor = '#cbd5e1';
-            } else if (theme === 'striped') {
-                headerBg = '#1e293b';
-                borderColor = '#475569';
-            }
-
-            let html = `<table style="width: 100%; border-collapse: collapse; margin: 16px 0; border: 1px solid ${borderColor}; border-radius: 8px; overflow: hidden;">`;
+            let html = `<table style="width: 100%; border-collapse: collapse; margin: 16px 0; border: 1.5px solid ${headerBorder};">`;
             
             // Header Row
             if (hasHeader) {
                 html += `<thead><tr style="background-color: ${headerBg}; color: ${headerColor}; font-weight: bold;">`;
                 for (let c = 0; c < colsCount; c++) {
                     const label = c === 0 ? 'No' : (c === 1 ? 'Bagian / Indikator' : `Kolom ${c}`);
-                    const colWidth = c === 0 ? 'style="padding: 10px 14px; border: 1px solid ' + borderColor + '; width: 50px; text-align: center;"' : 'style="padding: 10px 14px; border: 1px solid ' + borderColor + ';"';
+                    const colWidth = c === 0 
+                        ? `style="padding: 10px 14px; border: 1px solid ${headerBorder}; background-color: ${headerBg}; color: ${headerColor}; width: 50px; text-align: center;"` 
+                        : `style="padding: 10px 14px; border: 1px solid ${headerBorder}; background-color: ${headerBg}; color: ${headerColor};"`;
                     html += `<th ${colWidth}>${label}</th>`;
                 }
                 html += `</tr></thead>`;
@@ -634,12 +613,11 @@
             html += `<tbody>`;
             const dataRows = hasHeader ? (rowsCount - 1) : rowsCount;
             for (let r = 0; r < Math.max(1, dataRows); r++) {
-                const rowBg = (theme === 'striped' && r % 2 === 1) ? 'background-color: rgba(51, 65, 85, 0.15);' : '';
-                html += `<tr style="${rowBg}">`;
+                html += `<tr>`;
                 for (let c = 0; c < colsCount; c++) {
                     const val = c === 0 ? `${r + 1}` : (c === 1 ? `Item Contoh ${r + 1}` : `Keterangan atau deskripsi langkah.`);
                     const align = c === 0 ? 'text-align: center;' : '';
-                    html += `<td style="padding: 10px 14px; border: 1px solid ${borderColor}; ${align}">${val}</td>`;
+                    html += `<td style="padding: 10px 14px; border: 1px solid ${cellBorder}; ${align}">${val}</td>`;
                 }
                 html += `</tr>`;
             }
@@ -687,7 +665,7 @@
             for (let i = 0; i < colCount; i++) {
                 const td = document.createElement('td');
                 td.style.padding = '10px 14px';
-                td.style.border = this.activeRow.children[i] ? this.activeRow.children[i].style.border || '1px solid #cbd5e1' : '1px solid #cbd5e1';
+                td.style.border = '1px solid #cbd5e1';
                 td.innerHTML = '<br>';
                 newRow.appendChild(td);
             }
@@ -705,7 +683,7 @@
             for (let i = 0; i < colCount; i++) {
                 const td = document.createElement('td');
                 td.style.padding = '10px 14px';
-                td.style.border = this.activeRow.children[i] ? this.activeRow.children[i].style.border || '1px solid #cbd5e1' : '1px solid #cbd5e1';
+                td.style.border = '1px solid #cbd5e1';
                 td.innerHTML = '<br>';
                 newRow.appendChild(td);
             }
@@ -745,13 +723,14 @@
                 const isHeader = tr.parentNode.tagName === 'THEAD' || tr.firstElementChild.tagName === 'TH';
                 const newCell = document.createElement(isHeader ? 'th' : 'td');
                 newCell.style.padding = '10px 14px';
-                newCell.style.border = '1px solid #cbd5e1';
                 if (isHeader) {
-                    newCell.style.backgroundColor = tr.children[0] ? tr.children[0].style.backgroundColor || '#0e1f3d' : '#0e1f3d';
-                    newCell.style.color = tr.children[0] ? tr.children[0].style.color || '#ffffff' : '#ffffff';
+                    newCell.style.backgroundColor = '#0b1a36';
+                    newCell.style.color = '#ffffff';
+                    newCell.style.border = '1px solid #64748b';
                     newCell.style.fontWeight = 'bold';
                     newCell.innerText = 'Kolom Baru';
                 } else {
+                    newCell.style.border = '1px solid #cbd5e1';
                     newCell.innerHTML = '<br>';
                 }
 
@@ -774,13 +753,14 @@
                 const isHeader = tr.parentNode.tagName === 'THEAD' || tr.firstElementChild.tagName === 'TH';
                 const newCell = document.createElement(isHeader ? 'th' : 'td');
                 newCell.style.padding = '10px 14px';
-                newCell.style.border = '1px solid #cbd5e1';
                 if (isHeader) {
-                    newCell.style.backgroundColor = tr.children[0] ? tr.children[0].style.backgroundColor || '#0e1f3d' : '#0e1f3d';
-                    newCell.style.color = tr.children[0] ? tr.children[0].style.color || '#ffffff' : '#ffffff';
+                    newCell.style.backgroundColor = '#0b1a36';
+                    newCell.style.color = '#ffffff';
+                    newCell.style.border = '1px solid #64748b';
                     newCell.style.fontWeight = 'bold';
                     newCell.innerText = 'Kolom Baru';
                 } else {
+                    newCell.style.border = '1px solid #cbd5e1';
                     newCell.innerHTML = '<br>';
                 }
 
@@ -811,47 +791,6 @@
             });
 
             this.hideTableToolbar();
-        },
-
-        // Terapkan Tema Warna Tabel
-        applyTableTheme(theme) {
-            if (!this.activeTable) return;
-
-            let headerBg = '#0e1f3d';
-            let headerColor = '#ffffff';
-            let borderColor = '#334155';
-
-            if (theme === 'blue') {
-                headerBg = '#2563eb';
-                borderColor = '#60a5fa';
-            } else if (theme === 'slate') {
-                headerBg = '#f1f5f9';
-                headerColor = '#1e293b';
-                borderColor = '#cbd5e1';
-            } else if (theme === 'striped') {
-                headerBg = '#1e293b';
-                borderColor = '#475569';
-            }
-
-            this.activeTable.style.border = `1px solid ${borderColor}`;
-            const headers = this.activeTable.querySelectorAll('th');
-            headers.forEach(th => {
-                th.style.backgroundColor = headerBg;
-                th.style.color = headerColor;
-                th.style.borderColor = borderColor;
-            });
-
-            const cells = this.activeTable.querySelectorAll('td');
-            cells.forEach(td => {
-                td.style.borderColor = borderColor;
-            });
-
-            if (theme === 'striped') {
-                const bodyRows = this.activeTable.querySelectorAll('tbody tr');
-                bodyRows.forEach((tr, idx) => {
-                    tr.style.backgroundColor = (idx % 2 === 1) ? 'rgba(51, 65, 85, 0.15)' : 'transparent';
-                });
-            }
         },
 
         // Hapus Seluruh Tabel

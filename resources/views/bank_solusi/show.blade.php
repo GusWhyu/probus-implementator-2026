@@ -363,46 +363,33 @@ function showArtikelSolusi() {
             line-height: 1.6;
         }
 
-        /* Tabel Responsif & Indikator (Identik Gambar 2 Figma) */
+        /* Tabel Responsif & Indikator (Probus Navy dengan Garis Tepi Tegas) */
         .article-content table {
             width: 100% !important;
-            border-collapse: separate !important;
-            border-spacing: 0 !important;
+            border-collapse: collapse !important;
             margin: 1.5em 0 !important;
-            border: 1px solid rgba(148, 163, 184, 0.25) !important;
-            border-radius: 0.75rem !important;
-            overflow: hidden !important;
+            border: 1.5px solid #64748b !important;
+            border-radius: 0.5rem;
+            overflow: hidden;
         }
         .dark .article-content table {
-            border-color: rgba(51, 65, 85, 0.8) !important;
+            border-color: #64748b !important;
         }
         .article-content th, 
         .article-content td {
             padding: 0.75rem 1rem !important;
-            border-bottom: 1px solid rgba(148, 163, 184, 0.2) !important;
-            border-right: 1px solid rgba(148, 163, 184, 0.2) !important;
+            border: 1px solid #cbd5e1 !important;
             font-size: 0.875rem !important;
         }
-        .dark .article-content th, 
         .dark .article-content td {
-            border-color: rgba(51, 65, 85, 0.6) !important;
+            border-color: #475569 !important;
         }
         .article-content th {
-            background-color: rgba(241, 245, 249, 0.8);
+            background-color: #0b1a36 !important;
             font-weight: 700 !important;
-            color: #1e293b;
+            color: #ffffff !important;
+            border-color: #64748b !important;
             text-align: left !important;
-        }
-        .dark .article-content th:not([style*="background"]) {
-            background-color: rgba(30, 41, 59, 0.8);
-            color: #f1f5f9;
-        }
-        .article-content tr:last-child td {
-            border-bottom: none !important;
-        }
-        .article-content tr td:last-child,
-        .article-content tr th:last-child {
-            border-right: none !important;
         }
 
         /* Gambar Konten */
