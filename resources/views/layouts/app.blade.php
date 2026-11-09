@@ -58,11 +58,11 @@
 
                     if (file.size > 1024 * 1024) {
                         const sizeMb = (file.size / (1024 * 1024)).toFixed(2);
-                        const msg = 'Ukuran file gambar maksimal 1 MB (1024 KB). File yang dipilih: ' + sizeMb + ' MB.';
+                        const msg = 'Ukuran file gambar maksimal 1 MB (1024 KB) dan tidak boleh lebih! File yang dipilih berukuran ' + sizeMb + ' MB.';
                         if (typeof Swal !== 'undefined') {
                             Swal.fire({
                                 icon: 'warning',
-                                title: 'Ukuran Terlalu Besar',
+                                title: 'Gambar Melebihi Batas 1 MB',
                                 text: msg,
                                 confirmButtonColor: '#2563eb'
                             });
@@ -272,7 +272,7 @@
                         editor.ui.registry.addButton('probus_image', {
                             text: 'Gambar',
                             icon: 'image',
-                            tooltip: 'Pilih & Unggah Gambar dari Perangkat / Komputer (Maks. 1MB)',
+                            tooltip: 'Pilih & Unggah Gambar dari Perangkat (Maksimal 1 MB - Tidak Boleh Lebih)',
                             onAction: function () {
                                 const input = document.createElement('input');
                                 input.type = 'file';

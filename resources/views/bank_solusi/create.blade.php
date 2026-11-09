@@ -526,12 +526,23 @@ function createArtikelSolusi() {
 
         {{-- SECTION 2: ISI KONTEN ARTIKEL (TINYMCE RICH TEXT EDITOR) --}}
         <div class="bg-white dark:bg-[#0c1324] border border-slate-200 dark:border-slate-800 rounded-3xl p-5 sm:p-7 shadow-xs mb-6">
-            <div class="flex items-center justify-between gap-3 mb-3">
-                <div class="text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-400">
-                    ISI KONTEN ARTIKEL (TINYMCE RICH TEXT EDITOR)
+            <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
+                <div class="flex flex-wrap items-center gap-2.5">
+                    <div class="text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-400">
+                        ISI KONTEN ARTIKEL (TINYMCE RICH TEXT EDITOR)
+                    </div>
+                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 shadow-2xs">
+                        <i class="fa-solid fa-triangle-exclamation text-[10px]"></i>
+                        <span>Maks. Gambar: 1 MB (Tidak Boleh Lebih)</span>
+                    </span>
                 </div>
-                <div class="text-[11px] text-slate-400 font-medium hidden sm:block">
-                    Teks, Gambar Screenshot, dan Tabel dalam satu editor
+                <div class="text-[11px] text-slate-400 font-medium hidden sm:flex items-center gap-2">
+                    <span>Teks, Gambar Screenshot, dan Tabel</span>
+                    <span>•</span>
+                    <span class="text-amber-600 dark:text-amber-400 font-semibold flex items-center gap-1">
+                        <i class="fa-regular fa-image text-xs"></i>
+                        Bisa Drag &amp; Drop / Paste Gambar (&le; 1 MB)
+                    </span>
                 </div>
             </div>
 
