@@ -36,5 +36,13 @@ class Article extends Model
         return $this->belongsToMany(MenuSystem::class, 'menu_has_articles', 'article_id', 'menu_system_id')
             ->withTimestamps();
     }
+
+    /**
+     * Relasi riwayat & log aktivitas artikel (Khusus Internal Sistem Implementator)
+     */
+    public function logs()
+    {
+        return $this->hasMany(ArticleLog::class, 'article_id')->orderBy('created_at', 'desc');
+    }
 }
 

@@ -289,6 +289,98 @@ function showArtikelSolusi() {
         </div>
 
         {{-- ======================================================== --}}
+        {{-- RIWAYAT & AKTIVITAS ARTIKEL (KHUSUS SISTEM IMPLEMENTATOR) --}}
+        {{-- ======================================================== --}}
+        <div class="bg-white dark:bg-[#0c1324] border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-8 shadow-sm max-w-5xl mx-auto mt-8">
+            <div class="flex flex-wrap items-center justify-between gap-3 mb-6 pb-4 border-b border-slate-100 dark:border-slate-800/80">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-8 h-8 rounded-xl bg-blue-500/10 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
+                        <i class="fa-solid fa-clock-rotate-left text-sm"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-xs sm:text-sm font-black uppercase tracking-wider text-slate-800 dark:text-slate-100">
+                            Riwayat &amp; Aktivitas
+                        </h3>
+                        <p class="text-[11px] text-slate-400 font-medium">
+                            Jejak riwayat perubahan artikel (khusus sistem implementator)
+                        </p>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-2">
+                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                        <i class="fa-solid fa-lock text-[9px]"></i>
+                        <span>Internal Saja (Tidak Tampil di Klien)</span>
+                    </span>
+                    <span class="text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 px-2.5 py-1 rounded-full border border-slate-200 dark:border-slate-700">
+                        {{ isset($articleLogs) ? $articleLogs->count() : 0 }} catatan
+                    </span>
+                </div>
+            </div>
+
+            @if (isset($articleLogs) && $articleLogs->isNotEmpty())
+                <div class="relative pl-6 sm:pl-8 space-y-5 before:content-[''] before:absolute before:left-2.5 sm:before:left-3 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-200 dark:before:bg-slate-700/80 max-h-96 overflow-y-auto custom-scrollbar pr-2">
+                    @foreach ($articleLogs as $log)
+                        @php
+                            $logIcon = 'fa-circle-dot text-slate-400';
+                            $logBg = 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700';
+                            
+                            if ($log->action === 'CREATED') {
+                                $logIcon = 'fa-plus text-blue-600 dark:text-blue-400';
+                                $logBg = 'bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-800';
+                            } elseif ($log->action === 'VISIBILITY_CHANGED') {
+                                if (str_contains(strtoupper($log->description), 'PUBLIK') || str_contains(strtoupper($log->description), 'KLIEN')) {
+                                    $logIcon = 'fa-globe text-emerald-600 dark:text-emerald-400';
+                                    $logBg = 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800';
+                                } else {
+                                    $logIcon = 'fa-lock text-amber-600 dark:text-amber-400';
+                                    $logBg = 'bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 border-amber-200 dark:border-amber-800';
+                                }
+                            } elseif ($log->action === 'STATUS_CHANGED') {
+                                $logIcon = 'fa-circle-check text-emerald-600 dark:text-emerald-400';
+                                $logBg = 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800';
+                            } elseif ($log->action === 'UPDATED') {
+                                $logIcon = 'fa-arrows-rotate text-amber-600 dark:text-amber-400';
+                                $logBg = 'bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 border-amber-200 dark:border-amber-800';
+                            }
+                        @endphp
+                        <div class="relative group">
+                            <!-- Bullet indicator with opaque backing so line does not cut through icon -->
+                            <div class="absolute -left-6 sm:-left-8 top-0.5 w-5 sm:w-6 h-5 sm:h-6 rounded-full bg-white dark:bg-[#0c1324] ring-2 ring-white dark:ring-[#0c1324] z-10 flex items-center justify-center">
+                                <div class="w-full h-full rounded-full {{ $logBg }} border flex items-center justify-center text-[9px] sm:text-[10px] shadow-xs">
+                                    <i class="fa-solid {{ $logIcon }}"></i>
+                                </div>
+                            </div>
+                            <div class="text-xs sm:text-[13px] leading-snug">
+                                <p class="font-bold text-slate-800 dark:text-slate-200">
+                                    {{ $log->description }}
+                                </p>
+                                <div class="flex items-center gap-2 mt-1 text-[10px] sm:text-[11px] text-slate-400 font-medium">
+                                    @if ($log->user)
+                                        <span class="text-slate-600 dark:text-slate-300 font-bold inline-flex items-center gap-1">
+                                            <i class="fa-regular fa-user text-[9px]"></i>
+                                            <span>{{ $log->user->name }}</span>
+                                        </span>
+                                        <span>•</span>
+                                    @endif
+                                    <span class="inline-flex items-center gap-1">
+                                        <i class="fa-regular fa-clock text-[9px]"></i>
+                                        <span>{{ $log->created_at ? $log->created_at->diffForHumans() : '-' }}</span>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            @else
+                <div class="text-center py-6 bg-slate-50/50 dark:bg-slate-900/40 rounded-2xl border border-dashed border-slate-200 dark:border-slate-800">
+                    <i class="fa-solid fa-clock-rotate-left text-slate-300 dark:text-slate-600 text-xl mb-2"></i>
+                    <p class="text-[11px] font-bold text-slate-500 dark:text-slate-400">Belum ada riwayat aktivitas untuk artikel ini</p>
+                </div>
+            @endif
+        </div>
+
+        {{-- ======================================================== --}}
         {{-- ARTIKEL TERKAIT (DARI MODUL YANG SAMA)                  --}}
         {{-- ======================================================== --}}
         @if(isset($relatedArticles) && $relatedArticles->count() > 0)

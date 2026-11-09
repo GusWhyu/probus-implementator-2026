@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use App\Models\Article;
+use App\Models\ArticleLog;
 use App\Models\Kategori;
 use App\Models\MenuSystem;
 use App\Models\MediaUpload;
@@ -252,6 +253,16 @@ class BankSolusiController extends Controller
         // Hubungkan ke tabel pivot menu_has_articles
         $article->menuSystems()->sync([$request->menu_system_id]);
 
+        // Catat riwayat aktivitas awal (hanya terlihat di sistem implementator)
+        $actorName = Auth::user()->name ?? 'Superadministrator';
+        $visLabel = $article->visibility === 'publik' ? 'BLOG KLIEN' : 'INTERNAL';
+        ArticleLog::create([
+            'article_id' => $article->id,
+            'user_id' => $userId,
+            'action' => 'CREATED',
+            'description' => "Artikel #{$article->id} berhasil dibuat dengan visibilitas {$visLabel} (" . ucfirst($article->status) . ") oleh {$actorName}.",
+        ]);
+
         $message = $request->status === 'published'
             ? 'Artikel Solusi berhasil diterbitkan!'
             : 'Draft Artikel Solusi berhasil disimpan!';
@@ -298,7 +309,21 @@ class BankSolusiController extends Controller
                 ->get();
         }
 
-        return view('bank_solusi.show', compact('article', 'system', 'module', 'relatedArticles'));
+        // Ambil riwayat & log aktivitas artikel (hanya tampil di sistem internal implementator ini)
+        $articleLogs = $article->logs()->with('user')->get();
+        if ($articleLogs->isEmpty()) {
+            $initialLog = ArticleLog::create([
+                'article_id' => $article->id,
+                'user_id' => $article->user_id,
+                'action' => 'CREATED',
+                'description' => "Artikel #{$article->id} berhasil dibuat dengan visibilitas " . ($article->visibility === 'publik' ? 'BLOG KLIEN' : 'INTERNAL') . " (" . ucfirst($article->status) . ") oleh " . ($article->user ? $article->user->name : 'Superadministrator') . ".",
+                'created_at' => $article->created_at ?: now(),
+                'updated_at' => $article->created_at ?: now(),
+            ]);
+            $articleLogs = collect([$initialLog]);
+        }
+
+        return view('bank_solusi.show', compact('article', 'system', 'module', 'relatedArticles', 'articleLogs'));
     }
 
     /**
@@ -331,6 +356,9 @@ class BankSolusiController extends Controller
     public function update(Request $request, $id)
     {
         $article = Article::findOrFail($id);
+        $oldVisibility = $article->visibility;
+        $oldStatus = $article->status;
+        $oldTitle = $article->title;
 
         $request->validate([
             'title' => 'required|string|max:100',
@@ -358,6 +386,35 @@ class BankSolusiController extends Controller
         // Perbarui relasi pivot menu_has_articles
         $article->menuSystems()->sync([$request->menu_system_id]);
 
+        // Catat riwayat aktivitas (hanya terlihat di sistem implementator)
+        $actorName = Auth::user()->name ?? 'Superadministrator';
+        $userId = Auth::id() ?: 1;
+
+        if ($oldVisibility !== $request->visibility) {
+            ArticleLog::create([
+                'article_id' => $article->id,
+                'user_id' => $userId,
+                'action' => 'VISIBILITY_CHANGED',
+                'description' => "Jangkauan visibilitas diubah dari " . ($oldVisibility === 'publik' ? 'BLOG KLIEN' : 'INTERNAL') . " menjadi " . ($request->visibility === 'publik' ? 'BLOG KLIEN' : 'INTERNAL') . " oleh {$actorName}.",
+            ]);
+        }
+
+        if ($oldStatus !== $request->status) {
+            ArticleLog::create([
+                'article_id' => $article->id,
+                'user_id' => $userId,
+                'action' => 'STATUS_CHANGED',
+                'description' => "Status artikel diubah dari " . ucfirst($oldStatus) . " menjadi " . ucfirst($request->status) . " oleh {$actorName}.",
+            ]);
+        }
+
+        ArticleLog::create([
+            'article_id' => $article->id,
+            'user_id' => $userId,
+            'action' => 'UPDATED',
+            'description' => "Perubahan isi konten dan informasi artikel disimpan oleh {$actorName}.",
+        ]);
+
         $message = $request->status === 'published'
             ? 'Artikel Solusi berhasil diperbarui dan diterbitkan!'
             : 'Perubahan Draft Artikel Solusi berhasil disimpan!';
@@ -384,6 +441,16 @@ class BankSolusiController extends Controller
         $article->update(['visibility' => $newVisibility]);
 
         $label = $newVisibility === 'publik' ? 'BLOG KLIEN' : 'INTERNAL';
+        $actorName = Auth::user()->name ?? 'Superadministrator';
+
+        // Catat ke article_logs (hanya terlihat di sistem implementator)
+        ArticleLog::create([
+            'article_id' => $article->id,
+            'user_id' => Auth::id() ?: 1,
+            'action' => 'VISIBILITY_CHANGED',
+            'description' => "Jangkauan visibilitas diubah menjadi {$label} oleh {$actorName}.",
+        ]);
+
         $msg = $newVisibility === 'publik'
             ? 'Artikel sekarang berstatus Publik (Blog Solusi Klien & Internal).'
             : 'Artikel sekarang berstatus Khusus Internal (Implementator).';
