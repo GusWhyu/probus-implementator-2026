@@ -177,10 +177,6 @@ class BankSolusiController extends Controller
             $moduleName = $firstMs ? $firstMs->name : 'Umum';
             $moduleId = $firstMs ? (string) $firstMs->id : 'all-modules';
 
-            // Hitung estimasi waktu baca (rata-rata 150 kata/menit)
-            $wordCount = str_word_count(strip_tags($art->content));
-            $readTime = max(1, (int) round($wordCount / 150)) . ' min baca';
-
             $solutions[] = [
                 'id' => $art->id,
                 'system_id' => $systemId,
@@ -194,7 +190,6 @@ class BankSolusiController extends Controller
                 'content' => $art->content,
                 'author' => $art->user ? $art->user->name : 'Implementator',
                 'date' => $art->created_at ? $art->created_at->format('d M Y') : date('d M Y'),
-                'read_time' => $readTime,
                 'status' => $art->status,
             ];
         }
@@ -291,10 +286,6 @@ class BankSolusiController extends Controller
         $system = ($firstMs && $firstMs->kategori) ? $firstMs->kategori : null;
         $module = $firstMs ?: null;
 
-        // Hitung estimasi waktu baca (rata-rata 150 kata/menit)
-        $wordCount = str_word_count(strip_tags($article->content));
-        $readTime = max(1, (int) round($wordCount / 150)) . ' min baca';
-
         // Artikel terkait dalam modul yang sama
         $relatedArticles = collect();
         if ($module) {
@@ -307,7 +298,7 @@ class BankSolusiController extends Controller
                 ->get();
         }
 
-        return view('bank_solusi.show', compact('article', 'system', 'module', 'readTime', 'relatedArticles'));
+        return view('bank_solusi.show', compact('article', 'system', 'module', 'relatedArticles'));
     }
 
     /**

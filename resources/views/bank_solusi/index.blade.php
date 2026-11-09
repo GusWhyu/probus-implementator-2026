@@ -170,7 +170,6 @@
                         excerpt: this.newForm.excerpt,
                         author: '{{ Auth::user()->name ?? "Implementator" }}',
                         date: 'Hari ini',
-                        read_time: '3 min baca',
                         steps: steps.length > 0 ? steps : ['Periksa perangkat keras dan koneksi sistem.', 'Ikuti petunjuk konfigurasi dasar.', 'Lakukan uji transaksi mandiri.'],
                         notes: 'Panduan baru berhasil disimpan dan siap dijadikan acuan tim maupun klien.'
                     };
@@ -389,10 +388,6 @@
                             <span>Baca panduan</span>
                             <i class="fa-solid fa-arrow-right text-[10px] group-hover:translate-x-1 transition-transform"></i>
                         </span>
-
-                        <div class="flex items-center gap-2">
-                            <span class="text-[10px] font-medium text-slate-400 dark:text-slate-400" x-text="item.read_time"></span>
-                        </div>
                     </div>
                 </a>
             </template>
@@ -470,8 +465,6 @@
                                 <span><i class="fa-regular fa-user mr-1 text-slate-400"></i><span x-text="selectedSolution.author"></span></span>
                                 <span>•</span>
                                 <span><i class="fa-regular fa-calendar mr-1 text-slate-400"></i><span x-text="selectedSolution.date"></span></span>
-                                <span>•</span>
-                                <span><i class="fa-regular fa-clock mr-1 text-slate-400"></i><span x-text="selectedSolution.read_time"></span></span>
                             </div>
 
                             {{-- Excerpt Summary Box --}}

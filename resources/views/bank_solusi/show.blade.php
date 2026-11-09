@@ -235,7 +235,7 @@ function showArtikelSolusi() {
                     {{ $article->title }}
                 </h1>
 
-                {{-- Metadata: Penulis, Tanggal, & Estimasi Waktu Baca --}}
+                {{-- Metadata: Penulis & Tanggal --}}
                 <div class="flex flex-wrap items-center gap-4 text-xs font-semibold text-slate-500 dark:text-slate-400 pt-1">
                     <div class="flex items-center gap-2">
                         <div class="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-[10px] font-bold">
@@ -249,13 +249,6 @@ function showArtikelSolusi() {
                     <div class="flex items-center gap-1.5">
                         <i class="fa-regular fa-calendar text-[11px]"></i>
                         <span>{{ $article->created_at ? $article->created_at->format('d M Y') : date('d M Y') }}</span>
-                    </div>
-
-                    <span class="text-slate-300 dark:text-slate-700">•</span>
-
-                    <div class="flex items-center gap-1.5">
-                        <i class="fa-regular fa-clock text-[11px]"></i>
-                        <span>{{ $readTime }}</span>
                     </div>
                 </div>
 
