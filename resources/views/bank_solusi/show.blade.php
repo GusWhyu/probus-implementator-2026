@@ -302,16 +302,12 @@ function showArtikelSolusi() {
                             Riwayat &amp; Aktivitas
                         </h3>
                         <p class="text-[11px] text-slate-400 font-medium">
-                            Jejak riwayat perubahan artikel (khusus sistem implementator)
+                            Jejak riwayat perubahan dan pembaruan artikel
                         </p>
                     </div>
                 </div>
 
                 <div class="flex items-center gap-2">
-                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
-                        <i class="fa-solid fa-lock text-[9px]"></i>
-                        <span>Internal Saja (Tidak Tampil di Klien)</span>
-                    </span>
                     <span class="text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 px-2.5 py-1 rounded-full border border-slate-200 dark:border-slate-700">
                         {{ isset($articleLogs) ? $articleLogs->count() : 0 }} catatan
                     </span>
