@@ -131,6 +131,7 @@
                     height: customOptions.height || 580,
                     promotion: false,
                     branding: false,
+                    elementpath: false,
                     skin: isDark ? 'oxide-dark' : 'oxide',
                     content_css: isDark ? 'dark' : 'default',
                     menubar: 'file edit view insert format tools table help',
