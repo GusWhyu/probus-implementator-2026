@@ -58,13 +58,17 @@
         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
     }
 
-    /* Floating Table Toolbar */
+    /* Docked & Sticky Table Toolbar (Stabil & Tidak Berpindah Saat Scroll) */
     #probusTableToolbar {
-        position: absolute;
-        z-index: 50;
         display: none;
+        position: sticky;
+        top: 0;
+        z-index: 30;
+        width: 100%;
         user-select: none;
         animation: probusFadeIn 0.15s ease-out;
+        background: #0b1324;
+        border-bottom: 1px solid #1e293b;
     }
 
     /* Active Cell Highlight */
@@ -139,57 +143,70 @@
 <div id="probusImageBadge" contenteditable="false">0 × 0 px</div>
 
 {{-- ======================================================== --}}
-{{-- 2. FLOATING CONTEXTUAL TABLE TOOLBAR                      --}}
+{{-- 2. DOCKED STICKY TABLE TOOLBAR (TIDAK BERPINDAH SAAT SCROLL) --}}
 {{-- ======================================================== --}}
-<div id="probusTableToolbar" contenteditable="false" class="bg-slate-900/95 text-white backdrop-blur-md border border-slate-700/80 rounded-xl px-2.5 py-1.5 shadow-2xl flex flex-wrap items-center gap-1.5 text-xs max-w-full">
-    {{-- Grup Baris --}}
-    <div class="flex items-center gap-0.5 pr-1.5 border-r border-slate-700">
-        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-1">Baris:</span>
-        <button type="button" onclick="window.ProbusEditorEnhancer.insertRowAbove()" class="px-2 py-1 rounded hover:bg-slate-800 text-slate-200 font-medium flex items-center gap-1 transition" title="Sisipkan Baris di Atas">
-            <i class="fa-solid fa-arrow-up text-[10px] text-sky-400"></i>
-            <span>+Atas</span>
-        </button>
-        <button type="button" onclick="window.ProbusEditorEnhancer.insertRowBelow()" class="px-2 py-1 rounded hover:bg-slate-800 text-slate-200 font-medium flex items-center gap-1 transition" title="Sisipkan Baris di Bawah (Bisa juga tekan Tab pada sel terakhir)">
-            <i class="fa-solid fa-arrow-down text-[10px] text-sky-400"></i>
-            <span>+Bawah</span>
-        </button>
-        <button type="button" onclick="window.ProbusEditorEnhancer.deleteCurrentRow()" class="px-2 py-1 rounded hover:bg-rose-950/80 text-rose-400 font-medium flex items-center gap-1 transition" title="Hapus Baris Ini">
-            <i class="fa-solid fa-xmark text-[10px]"></i>
-            <span>Hapus</span>
-        </button>
+<div id="probusTableToolbar" contenteditable="false" class="px-3.5 py-2 flex flex-wrap items-center justify-between gap-2.5 text-xs text-slate-100 shadow-md">
+    <div class="flex flex-wrap items-center gap-2.5">
+        {{-- Badge Indikator Tabel Aktif --}}
+        <div class="flex items-center gap-1.5 text-sky-400 font-extrabold uppercase tracking-wider text-[11px] pr-2 border-r border-slate-700/80">
+            <i class="fa-solid fa-table-cells text-xs"></i>
+            <span>Edit Tabel:</span>
+        </div>
+
+        {{-- Grup Baris --}}
+        <div class="flex items-center gap-1 pr-2 border-r border-slate-700/80">
+            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-0.5">Baris:</span>
+            <button type="button" onclick="window.ProbusEditorEnhancer.insertRowAbove()" class="px-2 py-1 rounded bg-slate-800/90 hover:bg-slate-750 text-slate-200 font-medium flex items-center gap-1 transition cursor-pointer" title="Sisipkan Baris di Atas">
+                <i class="fa-solid fa-arrow-up text-[10px] text-sky-400"></i>
+                <span>+Atas</span>
+            </button>
+            <button type="button" onclick="window.ProbusEditorEnhancer.insertRowBelow()" class="px-2 py-1 rounded bg-slate-800/90 hover:bg-slate-750 text-slate-200 font-medium flex items-center gap-1 transition cursor-pointer" title="Sisipkan Baris di Bawah (Atau tekan Tab di sel terakhir)">
+                <i class="fa-solid fa-arrow-down text-[10px] text-sky-400"></i>
+                <span>+Bawah</span>
+            </button>
+            <button type="button" onclick="window.ProbusEditorEnhancer.deleteCurrentRow()" class="px-2 py-1 rounded bg-rose-950/40 hover:bg-rose-900/60 text-rose-300 font-medium flex items-center gap-1 transition cursor-pointer" title="Hapus Baris Ini">
+                <i class="fa-solid fa-xmark text-[10px]"></i>
+                <span>Hapus</span>
+            </button>
+        </div>
+
+        {{-- Grup Kolom --}}
+        <div class="flex items-center gap-1 pr-2 border-r border-slate-700/80">
+            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-0.5">Kolom:</span>
+            <button type="button" onclick="window.ProbusEditorEnhancer.insertColLeft()" class="px-2 py-1 rounded bg-slate-800/90 hover:bg-slate-750 text-slate-200 font-medium flex items-center gap-1 transition cursor-pointer" title="Sisipkan Kolom di Kiri">
+                <i class="fa-solid fa-arrow-left text-[10px] text-emerald-400"></i>
+                <span>+Kiri</span>
+            </button>
+            <button type="button" onclick="window.ProbusEditorEnhancer.insertColRight()" class="px-2 py-1 rounded bg-slate-800/90 hover:bg-slate-750 text-slate-200 font-medium flex items-center gap-1 transition cursor-pointer" title="Sisipkan Kolom di Kanan">
+                <i class="fa-solid fa-arrow-right text-[10px] text-emerald-400"></i>
+                <span>+Kanan</span>
+            </button>
+            <button type="button" onclick="window.ProbusEditorEnhancer.deleteCurrentCol()" class="px-2 py-1 rounded bg-rose-950/40 hover:bg-rose-900/60 text-rose-300 font-medium flex items-center gap-1 transition cursor-pointer" title="Hapus Kolom Ini">
+                <i class="fa-solid fa-xmark text-[10px]"></i>
+                <span>Hapus</span>
+            </button>
+        </div>
+
+        {{-- Gaya & Tema Header --}}
+        <div class="flex items-center gap-1.5">
+            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-0.5">Tema:</span>
+            <button type="button" onclick="window.ProbusEditorEnhancer.applyTableTheme('navy')" class="w-5 h-5 rounded-full bg-[#0e1f3d] border-2 border-sky-400 hover:scale-110 transition shadow-xs cursor-pointer" title="Probus Dark Navy (Figma)"></button>
+            <button type="button" onclick="window.ProbusEditorEnhancer.applyTableTheme('blue')" class="w-5 h-5 rounded-full bg-blue-600 border-2 border-white hover:scale-110 transition shadow-xs cursor-pointer" title="Probus Blue"></button>
+            <button type="button" onclick="window.ProbusEditorEnhancer.applyTableTheme('slate')" class="w-5 h-5 rounded-full bg-slate-200 border-2 border-slate-400 hover:scale-110 transition shadow-xs cursor-pointer" title="Slate Light"></button>
+            <button type="button" onclick="window.ProbusEditorEnhancer.applyTableTheme('striped')" class="w-5 h-5 rounded-full bg-slate-700 border-2 border-slate-500 hover:scale-110 transition shadow-xs cursor-pointer" title="Zebra Striped"></button>
+        </div>
     </div>
 
-    {{-- Grup Kolom --}}
-    <div class="flex items-center gap-0.5 pr-1.5 border-r border-slate-700">
-        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-1">Kolom:</span>
-        <button type="button" onclick="window.ProbusEditorEnhancer.insertColLeft()" class="px-2 py-1 rounded hover:bg-slate-800 text-slate-200 font-medium flex items-center gap-1 transition" title="Sisipkan Kolom di Kiri">
-            <i class="fa-solid fa-arrow-left text-[10px] text-emerald-400"></i>
-            <span>+Kiri</span>
+    {{-- Kanan: Hapus Tabel & Tutup Bar --}}
+    <div class="flex items-center gap-2">
+        <button type="button" onclick="window.ProbusEditorEnhancer.deleteActiveTable()" class="px-2.5 py-1 rounded bg-rose-950/50 hover:bg-rose-900 text-rose-300 font-semibold flex items-center gap-1.5 transition cursor-pointer" title="Hapus Seluruh Tabel">
+            <i class="fa-solid fa-trash-can text-[11px]"></i>
+            <span>Hapus Tabel</span>
         </button>
-        <button type="button" onclick="window.ProbusEditorEnhancer.insertColRight()" class="px-2 py-1 rounded hover:bg-slate-800 text-slate-200 font-medium flex items-center gap-1 transition" title="Sisipkan Kolom di Kanan">
-            <i class="fa-solid fa-arrow-right text-[10px] text-emerald-400"></i>
-            <span>+Kanan</span>
-        </button>
-        <button type="button" onclick="window.ProbusEditorEnhancer.deleteCurrentCol()" class="px-2 py-1 rounded hover:bg-rose-950/80 text-rose-400 font-medium flex items-center gap-1 transition" title="Hapus Kolom Ini">
-            <i class="fa-solid fa-xmark text-[10px]"></i>
-            <span>Hapus</span>
+        <button type="button" onclick="window.ProbusEditorEnhancer.hideTableToolbar()" class="p-1 rounded hover:bg-slate-800 text-slate-400 hover:text-white transition cursor-pointer" title="Tutup Toolbar Tabel">
+            <i class="fa-solid fa-xmark text-xs"></i>
         </button>
     </div>
-
-    {{-- Gaya & Tema Header --}}
-    <div class="flex items-center gap-1 pr-1.5 border-r border-slate-700">
-        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-1">Tema:</span>
-        <button type="button" onclick="window.ProbusEditorEnhancer.applyTableTheme('navy')" class="w-5 h-5 rounded-full bg-[#0e1f3d] border border-sky-400 hover:scale-110 transition shadow-xs" title="Probus Dark Navy (Identik Desain Solusi)"></button>
-        <button type="button" onclick="window.ProbusEditorEnhancer.applyTableTheme('blue')" class="w-5 h-5 rounded-full bg-blue-600 border border-white hover:scale-110 transition shadow-xs" title="Probus Blue"></button>
-        <button type="button" onclick="window.ProbusEditorEnhancer.applyTableTheme('slate')" class="w-5 h-5 rounded-full bg-slate-200 border border-slate-400 hover:scale-110 transition shadow-xs" title="Slate Light"></button>
-        <button type="button" onclick="window.ProbusEditorEnhancer.applyTableTheme('striped')" class="w-5 h-5 rounded-full bg-slate-700 border border-slate-500 hover:scale-110 transition shadow-xs" title="Zebra Striped"></button>
-    </div>
-
-    {{-- Hapus Tabel --}}
-    <button type="button" onclick="window.ProbusEditorEnhancer.deleteActiveTable()" class="px-2 py-1 rounded hover:bg-rose-950 text-rose-400 hover:text-rose-300 font-semibold flex items-center gap-1 transition" title="Hapus Seluruh Tabel">
-        <i class="fa-solid fa-trash-can text-[11px]"></i>
-        <span>Hapus Tabel</span>
-    </button>
 </div>
 
 {{-- ======================================================== --}}
@@ -207,7 +224,7 @@
                     <p class="text-xs text-slate-400">Atur jumlah baris, kolom, dan gaya tabel</p>
                 </div>
             </div>
-            <button type="button" onclick="window.ProbusEditorEnhancer.closeTableModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1">
+            <button type="button" onclick="window.ProbusEditorEnhancer.closeTableModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1 cursor-pointer">
                 <i class="fa-solid fa-xmark text-sm"></i>
             </button>
         </div>
@@ -247,7 +264,7 @@
             </div>
 
             <div class="flex items-center gap-2 pt-1">
-                <input type="checkbox" id="customTableHasHeader" checked class="w-4 h-4 rounded text-blue-600 border-slate-300 dark:border-slate-700 focus:ring-blue-500">
+                <input type="checkbox" id="customTableHasHeader" checked class="w-4 h-4 rounded text-blue-600 border-slate-300 dark:border-slate-700 focus:ring-blue-500 cursor-pointer">
                 <label for="customTableHasHeader" class="text-xs font-semibold text-slate-700 dark:text-slate-300 cursor-pointer">
                     Sertakan Baris Header (Kolom Judul)
                 </label>
@@ -255,10 +272,10 @@
         </div>
 
         <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
-            <button type="button" onclick="window.ProbusEditorEnhancer.closeTableModal()" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+            <button type="button" onclick="window.ProbusEditorEnhancer.closeTableModal()" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer">
                 Batal
             </button>
-            <button type="button" onclick="window.ProbusEditorEnhancer.executeInsertTable()" class="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-md shadow-blue-500/20 transition flex items-center gap-1.5">
+            <button type="button" onclick="window.ProbusEditorEnhancer.executeInsertTable()" class="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-md shadow-blue-500/20 transition flex items-center gap-1.5 cursor-pointer">
                 <i class="fa-solid fa-plus text-xs"></i>
                 <span>Sisipkan ke Dokumen</span>
             </button>
@@ -320,6 +337,24 @@
 
             canvas.classList.add('editor-canvas-active');
 
+            // Docking Table Toolbar tepat sebelum canvas (sebagai sub-toolbar permanen di header editor)
+            const tableToolbar = document.getElementById('probusTableToolbar');
+            const imgToolbar = document.getElementById('probusImageToolbar');
+            const imgHandle = document.getElementById('probusImageResizeHandle');
+            const imgBadge = document.getElementById('probusImageBadge');
+            const container = document.getElementById(containerId) || canvas.parentElement;
+
+            if (canvas && tableToolbar && canvas.parentNode) {
+                // Selalu tempatkan toolbar tabel di atas canvas sebagai sibling (TIDAK MASUK ke dalam innerHTML canvas)
+                canvas.parentNode.insertBefore(tableToolbar, canvas);
+            }
+
+            if (container && imgToolbar && imgToolbar.parentNode !== container) {
+                container.appendChild(imgToolbar);
+                if (imgHandle) container.appendChild(imgHandle);
+                if (imgBadge) container.appendChild(imgBadge);
+            }
+
             // 1. Click Listener pada Canvas (Seleksi Gambar & Tabel)
             canvas.addEventListener('click', (e) => {
                 const img = e.target.closest('img');
@@ -371,7 +406,7 @@
                 }
             });
 
-            // 3. Drag Resize Handle Mouse Events
+            // 3. Drag Resize Handle Mouse Events untuk Gambar
             const handle = document.getElementById('probusImageResizeHandle');
             if (handle) {
                 handle.addEventListener('mousedown', (e) => {
@@ -421,18 +456,21 @@
                 });
             }
 
-            // Reposisi toolbar saat window resize / scroll
-            window.addEventListener('resize', () => {
-                if (this.selectedImage) this.updateImageToolbarPos();
-                if (this.activeCell) this.updateTableToolbarPos();
-            });
+            // Scroll & Resize Listener agar toolbar gambar tetap stabil posisinya
+            const handleReposition = () => {
+                if (this.selectedImage) {
+                    this.updateImageToolbarPos();
+                }
+            };
+            window.addEventListener('scroll', handleReposition, { passive: true });
+            window.addEventListener('resize', handleReposition);
+            canvas.addEventListener('scroll', handleReposition, { passive: true });
         },
 
         // ==========================================
         // FITUR 1: MANIPULASI & RESIZE GAMBAR
         // ==========================================
         selectImage(img) {
-            // Hapus seleksi sebelumnya
             document.querySelectorAll('.probus-img-selected').forEach(el => el.classList.remove('probus-img-selected'));
 
             this.selectedImage = img;
@@ -454,16 +492,14 @@
             toolbar.style.display = 'flex';
             handle.style.display = 'block';
 
-            // Posisi Toolbar di atas gambar
             let topPos = imgRect.top - containerRect.top - 44;
-            if (topPos < 5) topPos = imgRect.bottom - containerRect.top + 8; // Jika mepet atas, taruh di bawah
+            if (topPos < 5) topPos = imgRect.bottom - containerRect.top + 8;
             let leftPos = imgRect.left - containerRect.left + (imgRect.width / 2) - (toolbar.offsetWidth / 2);
             if (leftPos < 10) leftPos = 10;
 
             toolbar.style.top = topPos + 'px';
             toolbar.style.left = leftPos + 'px';
 
-            // Posisi Handle resize di pojok kanan-bawah gambar
             handle.style.top = (imgRect.bottom - containerRect.top - 7) + 'px';
             handle.style.left = (imgRect.right - containerRect.left - 7) + 'px';
         },
@@ -614,7 +650,6 @@
         },
 
         selectCell(cell) {
-            // Hapus cell active sebelumnya
             document.querySelectorAll('.probus-cell-active').forEach(el => el.classList.remove('probus-cell-active'));
 
             this.activeCell = cell;
@@ -622,28 +657,12 @@
             this.activeTable = cell.closest('table');
 
             cell.classList.add('probus-cell-active');
-            this.updateTableToolbarPos();
-        },
 
-        updateTableToolbarPos() {
-            if (!this.activeTable || !this.activeCell) return;
-
+            // Tampilkan toolbar tabel yang kini docked di header editor secara sticky dan stabil
             const toolbar = document.getElementById('probusTableToolbar');
-            if (!toolbar) return;
-
-            const container = document.getElementById(this.containerId) || document.body;
-            const containerRect = container.getBoundingClientRect();
-            const tableRect = this.activeTable.getBoundingClientRect();
-
-            toolbar.style.display = 'flex';
-
-            let topPos = tableRect.top - containerRect.top - 46;
-            if (topPos < 5) topPos = tableRect.bottom - containerRect.top + 8;
-            let leftPos = tableRect.left - containerRect.left;
-            if (leftPos < 10) leftPos = 10;
-
-            toolbar.style.top = topPos + 'px';
-            toolbar.style.left = leftPos + 'px';
+            if (toolbar) {
+                toolbar.style.display = 'flex';
+            }
         },
 
         hideTableToolbar() {
@@ -654,7 +673,9 @@
                 this.activeTable = null;
             }
             const toolbar = document.getElementById('probusTableToolbar');
-            if (toolbar) toolbar.style.display = 'none';
+            if (toolbar) {
+                toolbar.style.display = 'none';
+            }
         },
 
         // Operasi Baris: Tambah di Atas
@@ -741,7 +762,6 @@
                     tr.appendChild(newCell);
                 }
             });
-            this.updateTableToolbarPos();
         },
 
         // Operasi Kolom: Tambah di Kanan
@@ -771,7 +791,6 @@
                     tr.appendChild(newCell);
                 }
             });
-            this.updateTableToolbarPos();
         },
 
         // Operasi Kolom: Hapus Kolom

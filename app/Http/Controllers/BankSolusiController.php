@@ -20,9 +20,11 @@ class BankSolusiController extends Controller
     {
         // 1. Ambil Kategori yang memiliki Menu Systems
         $categories = Kategori::whereHas('menuSystems')
-            ->with(['menuSystems' => function ($q) {
-                $q->orderBy('order')->withCount('articles');
-            }])
+            ->with([
+                'menuSystems' => function ($q) {
+                    $q->orderBy('order')->withCount('articles');
+                }
+            ])
             ->get();
 
         // Siapkan struktur sistem untuk filter tab
@@ -93,7 +95,8 @@ class BankSolusiController extends Controller
             $modDesc = '';
             $firstModId = null;
             foreach ($modulesBySystem as $catId => $mList) {
-                if ($catId === 'all') continue;
+                if ($catId === 'all')
+                    continue;
                 foreach ($mList as $m) {
                     if ($m['name'] === $modName) {
                         $totalCountForMod += (int) $m['count'];
@@ -145,8 +148,8 @@ class BankSolusiController extends Controller
             $search = $request->search;
             $articleQuery->where(function ($q) use ($search) {
                 $q->where('title', 'like', "%{$search}%")
-                  ->orWhere('summary', 'like', "%{$search}%")
-                  ->orWhere('content', 'like', "%{$search}%");
+                    ->orWhere('summary', 'like', "%{$search}%")
+                    ->orWhere('content', 'like', "%{$search}%");
             });
         }
 
@@ -210,9 +213,11 @@ class BankSolusiController extends Controller
     public function create(Request $request)
     {
         $categories = Kategori::whereHas('menuSystems')
-            ->with(['menuSystems' => function ($q) {
-                $q->orderBy('order');
-            }])
+            ->with([
+                'menuSystems' => function ($q) {
+                    $q->orderBy('order');
+                }
+            ])
             ->get();
 
         return view('bank_solusi.create', compact('categories'));
@@ -252,8 +257,8 @@ class BankSolusiController extends Controller
         // Hubungkan ke tabel pivot menu_has_articles
         $article->menuSystems()->sync([$request->menu_system_id]);
 
-        $message = $request->status === 'published' 
-            ? 'Artikel Solusi berhasil diterbitkan!' 
+        $message = $request->status === 'published'
+            ? 'Artikel Solusi berhasil diterbitkan!'
             : 'Draft Artikel Solusi berhasil disimpan!';
 
         if ($request->expectsJson() || $request->ajax()) {
@@ -311,16 +316,18 @@ class BankSolusiController extends Controller
     public function edit($id)
     {
         $article = Article::with(['menuSystems.kategori'])->findOrFail($id);
-        
+
         $categories = Kategori::whereHas('menuSystems')
-            ->with(['menuSystems' => function ($q) {
-                $q->orderBy('order');
-            }])
+            ->with([
+                'menuSystems' => function ($q) {
+                    $q->orderBy('order');
+                }
+            ])
             ->get();
 
         $currentModule = $article->menuSystems->first();
-        $currentCategoryId = $currentModule && $currentModule->kategori_id 
-            ? $currentModule->kategori_id 
+        $currentCategoryId = $currentModule && $currentModule->kategori_id
+            ? $currentModule->kategori_id
             : ($categories->first()->id ?? null);
         $currentModuleId = $currentModule ? $currentModule->id : null;
 
@@ -360,8 +367,8 @@ class BankSolusiController extends Controller
         // Perbarui relasi pivot menu_has_articles
         $article->menuSystems()->sync([$request->menu_system_id]);
 
-        $message = $request->status === 'published' 
-            ? 'Artikel Solusi berhasil diperbarui dan diterbitkan!' 
+        $message = $request->status === 'published'
+            ? 'Artikel Solusi berhasil diperbarui dan diterbitkan!'
             : 'Perubahan Draft Artikel Solusi berhasil disimpan!';
 
         if ($request->expectsJson() || $request->ajax()) {
@@ -435,16 +442,16 @@ class BankSolusiController extends Controller
     {
         // Validasi file gambar maksimal 1 MB (1024 KB) sesuai instruksi
         $validator = Validator::make($request->all(), [
-            'image'  => 'nullable|file|mimes:jpeg,png,jpg,gif,webp,svg|max:1024',
-            'file'   => 'nullable|file|mimes:jpeg,png,jpg,gif,webp,svg|max:1024',
+            'image' => 'nullable|file|mimes:jpeg,png,jpg,gif,webp,svg|max:1024',
+            'file' => 'nullable|file|mimes:jpeg,png,jpg,gif,webp,svg|max:1024',
             'upload' => 'nullable|file|mimes:jpeg,png,jpg,gif,webp,svg|max:1024',
         ], [
-            'image.max'   => 'Ukuran file gambar maksimal 1 MB (1024 KB).',
-            'file.max'    => 'Ukuran file gambar maksimal 1 MB (1024 KB).',
-            'upload.max'  => 'Ukuran file gambar maksimal 1 MB (1024 KB).',
+            'image.max' => 'Ukuran file gambar maksimal 1 MB (1024 KB).',
+            'file.max' => 'Ukuran file gambar maksimal 1 MB (1024 KB).',
+            'upload.max' => 'Ukuran file gambar maksimal 1 MB (1024 KB).',
             'image.mimes' => 'Format file harus berupa gambar valid (JPEG, PNG, JPG, GIF, WebP, SVG).',
-            'file.mimes'  => 'Format file harus berupa gambar valid (JPEG, PNG, JPG, GIF, WebP, SVG).',
-            'upload.mimes'=> 'Format file harus berupa gambar valid (JPEG, PNG, JPG, GIF, WebP, SVG).',
+            'file.mimes' => 'Format file harus berupa gambar valid (JPEG, PNG, JPG, GIF, WebP, SVG).',
+            'upload.mimes' => 'Format file harus berupa gambar valid (JPEG, PNG, JPG, GIF, WebP, SVG).',
         ]);
 
         if ($validator->fails()) {
@@ -475,7 +482,7 @@ class BankSolusiController extends Controller
         }
 
         $fileName = 'editor_' . time() . '_' . Str::random(8) . '.' . $ext;
-        
+
         // 1. Simpan ke public/uploads/editor
         $targetDir = public_path('uploads/editor');
         if (!file_exists($targetDir)) {
