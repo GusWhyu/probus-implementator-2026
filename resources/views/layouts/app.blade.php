@@ -35,6 +35,310 @@
         <script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js"></script>
         <!-- TinyMCE 6 Full-Featured Official Rich Text Editor -->
         <script src="https://cdn.jsdelivr.net/npm/tinymce@6.8.3/tinymce.min.js" referrerpolicy="origin"></script>
+        <script>
+            window.initProbusTinyMCE = function(selector, customOptions = {}) {
+                if (typeof tinymce === 'undefined') {
+                    console.error('TinyMCE library is not loaded');
+                    return;
+                }
+
+                const existingEditor = tinymce.get(selector.replace(/^#/, ''));
+                if (existingEditor) {
+                    existingEditor.remove();
+                }
+
+                const isDark = document.documentElement.classList.contains('dark');
+                const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+                const uploadUrl = customOptions.uploadUrl || '/bank-solusi/upload-image';
+
+                function uploadAndInsertFile(editor, file) {
+                    if (!file || !file.type || !file.type.startsWith('image/')) {
+                        return;
+                    }
+
+                    if (file.size > 1024 * 1024) {
+                        const sizeMb = (file.size / (1024 * 1024)).toFixed(2);
+                        const msg = 'Ukuran file gambar maksimal 1 MB (1024 KB). File yang dipilih: ' + sizeMb + ' MB.';
+                        if (typeof Swal !== 'undefined') {
+                            Swal.fire({
+                                icon: 'warning',
+                                title: 'Ukuran Terlalu Besar',
+                                text: msg,
+                                confirmButtonColor: '#2563eb'
+                            });
+                        } else {
+                            alert(msg);
+                        }
+                        return;
+                    }
+
+                    if (typeof Swal !== 'undefined') {
+                        Swal.fire({
+                            title: 'Mengunggah Gambar...',
+                            text: 'Menyimpan gambar dari perangkat ke server...',
+                            allowOutsideClick: false,
+                            didOpen: () => {
+                                Swal.showLoading();
+                            }
+                        });
+                    }
+
+                    const formData = new FormData();
+                    formData.append('image', file);
+                    formData.append('_token', csrfToken);
+
+                    fetch(uploadUrl, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': csrfToken,
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        body: formData
+                    })
+                    .then(res => {
+                        if (!res.ok) {
+                            return res.json().then(err => { throw new Error(err.message || 'Gagal mengunggah gambar'); });
+                        }
+                        return res.json();
+                    })
+                    .then(data => {
+                        if (typeof Swal !== 'undefined') {
+                            Swal.close();
+                        }
+                        if (data.location || data.url) {
+                            const imgUrl = data.location || data.url;
+                            editor.insertContent(`<p><img src="${imgUrl}" alt="${file.name || 'Gambar'}" style="max-width: 100%; height: auto; border-radius: 8px; margin: 12px 0;" /></p><p></p>`);
+                        } else {
+                            throw new Error(data.message || 'Respon server tidak valid.');
+                        }
+                    })
+                    .catch(err => {
+                        if (typeof Swal !== 'undefined') {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Gagal Unggah Gambar',
+                                text: err.message,
+                                confirmButtonColor: '#2563eb'
+                            });
+                        } else {
+                            alert('Gagal unggah gambar: ' + err.message);
+                        }
+                    });
+                }
+
+                const baseConfig = {
+                    selector: selector,
+                    height: customOptions.height || 580,
+                    promotion: false,
+                    branding: false,
+                    skin: isDark ? 'oxide-dark' : 'oxide',
+                    content_css: isDark ? 'dark' : 'default',
+                    menubar: 'file edit view insert format tools table help',
+                    plugins: [
+                        'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
+                        'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
+                        'insertdatetime', 'media', 'table', 'help', 'wordcount'
+                    ],
+                    toolbar: 'undo redo | blocks fontsize | bold italic underline | ' +
+                             'alignleft aligncenter alignright | bullist numlist | ' +
+                             'probus_image table link | forecolor backcolor | code preview fullscreen',
+                    toolbar_mode: 'wrap',
+                    image_advtab: true,
+                    image_caption: true,
+                    image_title: true,
+                    paste_data_images: true,
+                    automatic_uploads: true,
+                    file_picker_types: 'image',
+                    file_picker_callback: function (callback, value, meta) {
+                        if (meta.filetype === 'image') {
+                            const input = document.createElement('input');
+                            input.type = 'file';
+                            input.accept = 'image/*';
+                            input.onchange = function () {
+                                const file = this.files[0];
+                                if (!file) return;
+
+                                if (file.size > 1024 * 1024) {
+                                    alert('Ukuran file gambar maksimal 1 MB (1024 KB).');
+                                    return;
+                                }
+
+                                const formData = new FormData();
+                                formData.append('image', file);
+                                formData.append('_token', csrfToken);
+
+                                fetch(uploadUrl, {
+                                    method: 'POST',
+                                    headers: {
+                                        'X-CSRF-TOKEN': csrfToken,
+                                        'X-Requested-With': 'XMLHttpRequest'
+                                    },
+                                    body: formData
+                                })
+                                .then(res => res.json())
+                                .then(data => {
+                                    if (data.location || data.url) {
+                                        callback(data.location || data.url, { alt: file.name, title: file.name });
+                                    } else {
+                                        alert(data.message || 'Gagal mengunggah gambar');
+                                    }
+                                })
+                                .catch(err => alert('Gagal mengunggah gambar: ' + err.message));
+                            };
+                            input.click();
+                        }
+                    },
+                    images_upload_handler: function (blobInfo, progress) {
+                        return new Promise((resolve, reject) => {
+                            const file = blobInfo.blob();
+                            if (file.size > 1024 * 1024) {
+                                reject('Ukuran file gambar maksimal 1 MB (1024 KB).');
+                                return;
+                            }
+
+                            const formData = new FormData();
+                            formData.append('image', file, blobInfo.filename());
+                            formData.append('_token', csrfToken);
+
+                            fetch(uploadUrl, {
+                                method: 'POST',
+                                headers: {
+                                    'X-CSRF-TOKEN': csrfToken,
+                                    'X-Requested-With': 'XMLHttpRequest'
+                                },
+                                body: formData
+                            })
+                            .then(res => {
+                                if (!res.ok) {
+                                    return res.json().then(err => { throw new Error(err.message || 'Gagal mengunggah gambar'); });
+                                }
+                                return res.json();
+                            })
+                            .then(result => {
+                                if (result.location || result.url) {
+                                    resolve(result.location || result.url);
+                                } else {
+                                    reject('Respon server tidak valid.');
+                                }
+                            })
+                            .catch(error => {
+                                reject(error.message || 'Terjadi kesalahan saat mengunggah gambar.');
+                            });
+                        });
+                    },
+                    table_default_attributes: {
+                        border: '1'
+                    },
+                    table_default_styles: {
+                        'border-collapse': 'collapse',
+                        'width': '100%'
+                    },
+                    content_style: `
+                        body { 
+                            font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
+                            font-size: 14px; 
+                            color: ${isDark ? '#e2e8f0' : '#1e293b'}; 
+                            background-color: ${isDark ? '#0b1324' : '#ffffff'};
+                            padding: 16px; 
+                            line-height: 1.6; 
+                        }
+                        table { 
+                            border-collapse: collapse; 
+                            width: 100%; 
+                            margin: 16px 0; 
+                            border: 1.5px solid #64748b; 
+                        }
+                        th { 
+                            background-color: #0b1a36; 
+                            color: #ffffff; 
+                            font-weight: 700; 
+                            border: 1px solid #64748b; 
+                            padding: 10px 14px; 
+                        }
+                        td { 
+                            border: 1px solid ${isDark ? '#475569' : '#cbd5e1'}; 
+                            padding: 10px 14px; 
+                        }
+                        img { 
+                            max-width: 100%; 
+                            height: auto; 
+                            border-radius: 8px; 
+                            margin: 12px 0;
+                        }
+                        h1, h2, h3, h4 { color: ${isDark ? '#f8fafc' : '#0f172a'}; font-weight: 700; }
+                    `,
+                    setup: function (editor) {
+                        editor.ui.registry.addButton('probus_image', {
+                            text: 'Gambar',
+                            icon: 'image',
+                            tooltip: 'Pilih & Unggah Gambar dari Perangkat / Komputer (Maks. 1MB)',
+                            onAction: function () {
+                                const input = document.createElement('input');
+                                input.type = 'file';
+                                input.accept = 'image/*';
+                                input.onchange = function () {
+                                    const file = this.files[0];
+                                    if (file) {
+                                        uploadAndInsertFile(editor, file);
+                                    }
+                                };
+                                input.click();
+                            }
+                        });
+
+                        editor.on('dragover', function (e) {
+                            e.preventDefault();
+                        });
+
+                        editor.on('drop', function (e) {
+                            const dt = e.dataTransfer;
+                            if (dt && dt.files && dt.files.length > 0) {
+                                const file = dt.files[0];
+                                if (file.type && file.type.startsWith('image/')) {
+                                    e.preventDefault();
+                                    uploadAndInsertFile(editor, file);
+                                }
+                            }
+                        });
+
+                        editor.on('paste', function (e) {
+                            const clipboard = e.clipboardData;
+                            if (clipboard && clipboard.files && clipboard.files.length > 0) {
+                                const file = clipboard.files[0];
+                                if (file.type && file.type.startsWith('image/')) {
+                                    e.preventDefault();
+                                    uploadAndInsertFile(editor, file);
+                                }
+                            }
+                        });
+
+                        editor.on('init', function () {
+                            const container = editor.getContainer();
+                            if (container) {
+                                container.addEventListener('dragover', function (e) {
+                                    e.preventDefault();
+                                });
+                                container.addEventListener('drop', function (e) {
+                                    if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                                        const file = e.dataTransfer.files[0];
+                                        if (file.type && file.type.startsWith('image/')) {
+                                            e.preventDefault();
+                                            uploadAndInsertFile(editor, file);
+                                        }
+                                    }
+                                });
+                            }
+                        });
+
+                        if (typeof customOptions.setup === 'function') {
+                            customOptions.setup(editor);
+                        }
+                    }
+                };
+
+                return tinymce.init(baseConfig);
+            };
+        </script>
         <!-- SweetAlert2 Reliable Global CDN -->
         <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
         <script src="{{ asset('js/app.js') }}" defer></script>

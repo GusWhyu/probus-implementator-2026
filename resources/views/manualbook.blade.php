@@ -45,128 +45,25 @@ function manualBookApp() {
                 },
 
                 initTinyMCE() {
-                    if (typeof tinymce === 'undefined') return;
-
-                    if (tinymce.get('manualBookCanvas')) {
-                        tinymce.get('manualBookCanvas').remove();
-                    }
-
                     const self = this;
-                    const isDark = document.documentElement.classList.contains('dark');
-
-                    tinymce.init({
-                        selector: '#manualBookCanvas',
-                        height: 520,
-                        promotion: false,
-                        branding: false,
-                        skin: isDark ? 'oxide-dark' : 'oxide',
-                        content_css: isDark ? 'dark' : 'default',
-                        menubar: 'file edit view insert format tools table help',
-                        plugins: [
-                            'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
-                            'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
-                            'insertdatetime', 'media', 'table', 'help', 'wordcount'
-                        ],
-                        toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | ' +
-                                 'alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | ' +
-                                 'forecolor backcolor | link image table media | code preview fullscreen help',
-                        toolbar_mode: 'sliding',
-                        image_advtab: true,
-                        image_caption: true,
-                        image_title: true,
-                        automatic_uploads: true,
-                        file_picker_types: 'image',
-                        images_upload_handler: function (blobInfo, progress) {
-                            return new Promise((resolve, reject) => {
-                                const file = blobInfo.blob();
-                                if (file.size > 1024 * 1024) {
-                                    reject('Ukuran file gambar maksimal 1 MB (1024 KB).');
-                                    return;
-                                }
-
-                                const formData = new FormData();
-                                formData.append('image', file, blobInfo.filename());
-                                formData.append('_token', '{{ csrf_token() }}');
-
-                                fetch('{{ route("bank-solusi.upload_image") }}', {
-                                    method: 'POST',
-                                    body: formData,
-                                    headers: {
-                                        'X-Requested-With': 'XMLHttpRequest'
+                    if (window.initProbusTinyMCE) {
+                        window.initProbusTinyMCE('#manualBookCanvas', {
+                            height: 520,
+                            uploadUrl: '{{ route("bank-solusi.upload_image") }}',
+                            setup: function(editor) {
+                                editor.on('init', function() {
+                                    if (self.currentModule) {
+                                        editor.setContent(self.currentModule.content || '<p class="text-slate-400 italic">Belum ada panduan tata cara yang ditulis untuk modul ini. Silakan mulai tulis panduan Anda di sini...</p>');
                                     }
-                                })
-                                .then(response => {
-                                    if (!response.ok) {
-                                        return response.json().then(err => { throw new Error(err.message || 'Gagal mengunggah gambar'); });
-                                    }
-                                    return response.json();
-                                })
-                                .then(result => {
-                                    if (result.location || result.url) {
-                                        resolve(result.location || result.url);
-                                    } else {
-                                        reject('Respon server tidak valid.');
-                                    }
-                                })
-                                .catch(error => {
-                                    reject(error.message || 'Terjadi kesalahan saat mengunggah gambar.');
                                 });
-                            });
-                        },
-                        table_default_attributes: {
-                            border: '1'
-                        },
-                        table_default_styles: {
-                            'border-collapse': 'collapse',
-                            'width': '100%'
-                        },
-                        content_style: `
-                            body { 
-                                font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
-                                font-size: 14px; 
-                                color: ${isDark ? '#e2e8f0' : '#1e293b'}; 
-                                background-color: ${isDark ? '#0b1324' : '#ffffff'};
-                                padding: 16px; 
-                                line-height: 1.6; 
+                                editor.on('change keyup input', function() {
+                                    if (self.currentModule) {
+                                        self.currentModule.content = editor.getContent();
+                                    }
+                                });
                             }
-                            table { 
-                                border-collapse: collapse; 
-                                width: 100%; 
-                                margin: 16px 0; 
-                                border: 1.5px solid #64748b; 
-                            }
-                            th { 
-                                background-color: #0b1a36; 
-                                color: #ffffff; 
-                                font-weight: 700; 
-                                border: 1px solid #64748b; 
-                                padding: 10px 14px; 
-                            }
-                            td { 
-                                border: 1px solid ${isDark ? '#475569' : '#cbd5e1'}; 
-                                padding: 10px 14px; 
-                            }
-                            img { 
-                                max-width: 100%; 
-                                height: auto; 
-                                border-radius: 8px; 
-                                margin: 12px 0; 
-                            }
-                            h1, h2, h3, h4 { color: ${isDark ? '#f8fafc' : '#0f172a'}; font-weight: 700; }
-                        `,
-                        setup: function(editor) {
-                            editor.on('init', function() {
-                                if (self.currentModule) {
-                                    editor.setContent(self.currentModule.content || '<p class="text-slate-400 italic">Belum ada panduan tata cara yang ditulis untuk modul ini. Silakan mulai tulis panduan Anda di sini...</p>');
-                                }
-                            });
-                            editor.on('change keyup input', function() {
-                                if (self.currentModule) {
-                                    self.currentModule.content = editor.getContent();
-                                }
-                            });
-                        }
-                    });
+                        });
+                    }
                 },
 
                 get modules() {
