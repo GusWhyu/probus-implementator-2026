@@ -53,6 +53,7 @@ class MenuSystemController extends Controller
         $totalModules = MenuSystem::count();
         $totalCategories = $categories->count();
         $totalConnected = MenuSystem::has('articles')->orHas('manualBooks')->count();
+        $systemModuleCounts = $categories->pluck('menu_systems_count', 'id')->toArray();
 
         return view('menu_system.index', compact(
             'modules',
@@ -60,7 +61,8 @@ class MenuSystemController extends Controller
             'activeCategoryId',
             'totalModules',
             'totalCategories',
-            'totalConnected'
+            'totalConnected',
+            'systemModuleCounts'
         ));
     }
 

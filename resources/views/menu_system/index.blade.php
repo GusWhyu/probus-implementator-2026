@@ -1,4 +1,113 @@
 <x-app-layout>
+    @php
+        if (!function_exists('getSystemTheme')) {
+            function getSystemTheme($name) {
+                $name = strtoupper(trim((string)$name));
+                if (strpos($name, 'PRESTO') !== false) {
+                    return [
+                        'name' => 'PRESTO',
+                        'badge' => 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/30',
+                        'pill_active' => 'bg-amber-600 text-white border-amber-600 shadow-sm shadow-amber-500/30',
+                        'header' => 'bg-amber-50/80 dark:bg-amber-950/40 border-y-2 border-amber-300/80 dark:border-amber-800/80',
+                        'accent' => 'border-l-4 border-l-amber-500',
+                        'icon' => 'fa-solid fa-utensils text-amber-600 dark:text-amber-400',
+                        'icon_bg' => 'bg-amber-100 dark:bg-amber-900/60 text-amber-600 dark:text-amber-300',
+                    ];
+                } elseif (strpos($name, 'PHIS') !== false) {
+                    return [
+                        'name' => 'PHIS',
+                        'badge' => 'bg-sky-500/10 text-sky-700 dark:text-sky-400 border border-sky-500/30',
+                        'pill_active' => 'bg-sky-600 text-white border-sky-600 shadow-sm shadow-sky-500/30',
+                        'header' => 'bg-sky-50/80 dark:bg-sky-950/40 border-y-2 border-sky-300/80 dark:border-sky-800/80',
+                        'accent' => 'border-l-4 border-l-sky-500',
+                        'icon' => 'fa-solid fa-hotel text-sky-600 dark:text-sky-400',
+                        'icon_bg' => 'bg-sky-100 dark:bg-sky-900/60 text-sky-600 dark:text-sky-300',
+                    ];
+                } elseif (strpos($name, 'PPOS') !== false) {
+                    return [
+                        'name' => 'PPOS',
+                        'badge' => 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30',
+                        'pill_active' => 'bg-emerald-600 text-white border-emerald-600 shadow-sm shadow-emerald-500/30',
+                        'header' => 'bg-emerald-50/80 dark:bg-emerald-950/40 border-y-2 border-emerald-300/80 dark:border-emerald-800/80',
+                        'accent' => 'border-l-4 border-l-emerald-500',
+                        'icon' => 'fa-solid fa-cash-register text-emerald-600 dark:text-emerald-400',
+                        'icon_bg' => 'bg-emerald-100 dark:bg-emerald-900/60 text-emerald-600 dark:text-emerald-300',
+                    ];
+                } elseif (strpos($name, 'SELF ORDER') !== false) {
+                    return [
+                        'name' => 'SELF ORDER',
+                        'badge' => 'bg-purple-500/10 text-purple-700 dark:text-purple-400 border border-purple-500/30',
+                        'pill_active' => 'bg-purple-600 text-white border-purple-600 shadow-sm shadow-purple-500/30',
+                        'header' => 'bg-purple-50/80 dark:bg-purple-950/40 border-y-2 border-purple-300/80 dark:border-purple-800/80',
+                        'accent' => 'border-l-4 border-l-purple-500',
+                        'icon' => 'fa-solid fa-mobile-screen-button text-purple-600 dark:text-purple-400',
+                        'icon_bg' => 'bg-purple-100 dark:bg-purple-900/60 text-purple-600 dark:text-purple-300',
+                    ];
+                } elseif (strpos($name, 'PR-PO') !== false) {
+                    return [
+                        'name' => 'PR-PO ONLINE',
+                        'badge' => 'bg-teal-500/10 text-teal-700 dark:text-teal-400 border border-teal-500/30',
+                        'pill_active' => 'bg-teal-600 text-white border-teal-600 shadow-sm shadow-teal-500/30',
+                        'header' => 'bg-teal-50/80 dark:bg-teal-950/40 border-y-2 border-teal-300/80 dark:border-teal-800/80',
+                        'accent' => 'border-l-4 border-l-teal-500',
+                        'icon' => 'fa-solid fa-file-invoice-dollar text-teal-600 dark:text-teal-400',
+                        'icon_bg' => 'bg-teal-100 dark:bg-teal-900/60 text-teal-600 dark:text-teal-300',
+                    ];
+                } elseif (strpos($name, 'ORDER TAKER') !== false) {
+                    return [
+                        'name' => 'ORDER TAKER',
+                        'badge' => 'bg-indigo-500/10 text-indigo-700 dark:text-indigo-400 border border-indigo-500/30',
+                        'pill_active' => 'bg-indigo-600 text-white border-indigo-600 shadow-sm shadow-indigo-500/30',
+                        'header' => 'bg-indigo-50/80 dark:bg-indigo-950/40 border-y-2 border-indigo-300/80 dark:border-indigo-800/80',
+                        'accent' => 'border-l-4 border-l-indigo-500',
+                        'icon' => 'fa-solid fa-clipboard-list text-indigo-600 dark:text-indigo-400',
+                        'icon_bg' => 'bg-indigo-100 dark:bg-indigo-900/60 text-indigo-600 dark:text-indigo-300',
+                    ];
+                } elseif (strpos($name, 'VRESTROPICAL') !== false) {
+                    return [
+                        'name' => 'VRESTROPICAL',
+                        'badge' => 'bg-rose-500/10 text-rose-700 dark:text-rose-400 border border-rose-500/30',
+                        'pill_active' => 'bg-rose-600 text-white border-rose-600 shadow-sm shadow-rose-500/30',
+                        'header' => 'bg-rose-50/80 dark:bg-rose-950/40 border-y-2 border-rose-300/80 dark:border-rose-800/80',
+                        'accent' => 'border-l-4 border-l-rose-500',
+                        'icon' => 'fa-solid fa-umbrella-beach text-rose-600 dark:text-rose-400',
+                        'icon_bg' => 'bg-rose-100 dark:bg-rose-900/60 text-rose-600 dark:text-rose-300',
+                    ];
+                } elseif (strpos($name, 'BARONG') !== false) {
+                    return [
+                        'name' => 'BARONG POS',
+                        'badge' => 'bg-red-500/10 text-red-700 dark:text-red-400 border border-red-500/30',
+                        'pill_active' => 'bg-red-600 text-white border-red-600 shadow-sm shadow-red-500/30',
+                        'header' => 'bg-red-50/80 dark:bg-red-950/40 border-y-2 border-red-300/80 dark:border-red-800/80',
+                        'accent' => 'border-l-4 border-l-red-500',
+                        'icon' => 'fa-solid fa-dragon text-red-600 dark:text-red-400',
+                        'icon_bg' => 'bg-red-100 dark:bg-red-900/60 text-red-600 dark:text-red-300',
+                    ];
+                } elseif (strpos($name, 'PPE') !== false) {
+                    return [
+                        'name' => 'PPE',
+                        'badge' => 'bg-blue-500/10 text-blue-700 dark:text-blue-400 border border-blue-500/30',
+                        'pill_active' => 'bg-blue-600 text-white border-blue-600 shadow-sm shadow-blue-500/30',
+                        'header' => 'bg-blue-50/80 dark:bg-blue-950/40 border-y-2 border-blue-300/80 dark:border-blue-800/80',
+                        'accent' => 'border-l-4 border-l-blue-500',
+                        'icon' => 'fa-solid fa-network-wired text-blue-600 dark:text-blue-400',
+                        'icon_bg' => 'bg-blue-100 dark:bg-blue-900/60 text-blue-600 dark:text-blue-300',
+                    ];
+                } else {
+                    return [
+                        'name' => $name,
+                        'badge' => 'bg-cyan-500/10 text-cyan-700 dark:text-cyan-400 border border-cyan-500/30',
+                        'pill_active' => 'bg-cyan-600 text-white border-cyan-600 shadow-sm shadow-cyan-500/30',
+                        'header' => 'bg-cyan-50/80 dark:bg-cyan-950/40 border-y-2 border-cyan-300/80 dark:border-cyan-800/80',
+                        'accent' => 'border-l-4 border-l-cyan-500',
+                        'icon' => 'fa-solid fa-server text-cyan-600 dark:text-cyan-400',
+                        'icon_bg' => 'bg-cyan-100 dark:bg-cyan-900/60 text-cyan-600 dark:text-cyan-300',
+                    ];
+                }
+            }
+        }
+    @endphp
+
     <div class="py-8 px-6 md:px-10">
         <!-- Breadcrumb & Header Section -->
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
@@ -73,15 +182,21 @@
             <div class="flex flex-wrap gap-2">
                 <a href="{{ route('menu-system.index') }}" 
                    class="px-3.5 py-1.5 rounded-xl text-xs font-bold border transition-all cursor-pointer flex items-center gap-1.5 {{ empty($activeCategoryId) ? 'bg-blue-600 text-white border-blue-600 shadow-sm shadow-blue-500/30' : 'bg-white dark:bg-[#0f172a] text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800' }}">
+                    <i class="fa-solid fa-layer-group text-[10px]"></i>
                     <span>Semua Sistem</span>
                     <span class="text-[10px] px-1.5 py-0.2 rounded-full {{ empty($activeCategoryId) ? 'bg-blue-700/60 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500' }}">{{ $totalModules }}</span>
                 </a>
 
                 @foreach ($categories as $cat)
+                    @php
+                        $catTheme = getSystemTheme($cat->name);
+                        $isActive = ((string) $activeCategoryId === (string) $cat->id);
+                    @endphp
                     <a href="{{ route('menu-system.index', ['kategori_id' => $cat->id]) }}" 
-                       class="px-3.5 py-1.5 rounded-xl text-xs font-bold border transition-all cursor-pointer flex items-center gap-1.5 {{ (string) $activeCategoryId === (string) $cat->id ? 'bg-blue-600 text-white border-blue-600 shadow-sm shadow-blue-500/30' : 'bg-white dark:bg-[#0f172a] text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800' }}">
+                       class="px-3.5 py-1.5 rounded-xl text-xs font-bold border transition-all cursor-pointer flex items-center gap-1.5 {{ $isActive ? $catTheme['pill_active'] : 'bg-white dark:bg-[#0f172a] text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800' }}">
+                        <i class="{{ $catTheme['icon'] }} text-[10px] {{ $isActive ? '!text-white' : '' }}"></i>
                         <span>{{ $cat->name }}</span>
-                        <span class="text-[10px] px-1.5 py-0.2 rounded-full {{ (string) $activeCategoryId === (string) $cat->id ? 'bg-blue-700/60 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500' }}">
+                        <span class="text-[10px] px-1.5 py-0.2 rounded-full {{ $isActive ? 'bg-black/20 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500' }}">
                             {{ $cat->menu_systems_count }}
                         </span>
                     </a>
@@ -142,8 +257,8 @@
                 <table class="w-full text-left border-collapse" id="modul-table">
                     <thead>
                         <tr class="bg-slate-50/70 dark:bg-[#131e38]/50 border-b border-slate-100 dark:border-slate-800 text-[11px] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-extrabold">
-                            <th class="px-5 py-3.5 w-14 text-center">Urutan</th>
-                            <th class="px-5 py-3.5 w-36">Sistem / Kategori</th>
+                            <th class="px-5 py-3.5 w-16 text-center">Urutan</th>
+                            <th class="px-5 py-3.5 w-40">Sistem / Kategori</th>
                             <th class="px-5 py-3.5">Nama Modul</th>
                             <th class="px-5 py-3.5">Deskripsi Modul</th>
                             <th class="px-5 py-3.5 w-40 text-center">Konten Terkait</th>
@@ -151,24 +266,71 @@
                         </tr>
                     </thead>
                     <tbody class="text-sm divide-y divide-slate-100 dark:divide-slate-800" id="modul-tbody">
+                        @php
+                            $lastKategoriId = null;
+                        @endphp
                         @forelse ($modules as $item)
-                        <tr class="hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition-colors group modul-item modul-row" 
+                        @php
+                            $sysTheme = getSystemTheme($item->kategori->name ?? '');
+                            $isNewSystem = ($lastKategoriId !== $item->kategori_id);
+                            $lastKategoriId = $item->kategori_id;
+                        @endphp
+
+                        {{-- SEPARATOR BARIS ANTAR SISTEM / KATEGORI --}}
+                        @if ($isNewSystem)
+                        <tr class="system-header-row {{ $sysTheme['header'] }} transition-colors" data-system-id="{{ $item->kategori_id }}" data-system-name="{{ strtolower($item->kategori->name ?? '') }}">
+                            <td colspan="6" class="px-5 py-3">
+                                <div class="flex items-center justify-between gap-3">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-8 h-8 rounded-xl {{ $sysTheme['icon_bg'] }} flex items-center justify-center text-xs font-bold shrink-0 shadow-2xs">
+                                            <i class="{{ $sysTheme['icon'] }}"></i>
+                                        </div>
+                                        <div>
+                                            <div class="flex items-center gap-2">
+                                                <span class="text-xs sm:text-sm font-black uppercase tracking-wider text-slate-800 dark:text-slate-100">
+                                                    SISTEM: {{ $item->kategori->name ?? '-' }}
+                                                </span>
+                                                <span class="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full {{ $sysTheme['badge'] }}">
+                                                    {{ $systemModuleCounts[$item->kategori_id] ?? 10 }} MODUL
+                                                </span>
+                                            </div>
+                                            <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                                                Daftar modul operasional untuk kategori {{ $item->kategori->name ?? '-' }}.
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div class="shrink-0 flex items-center gap-2">
+                                        @if (empty($activeCategoryId))
+                                            <a href="{{ route('menu-system.index', ['kategori_id' => $item->kategori_id]) }}" 
+                                               class="px-3 py-1 rounded-lg text-[11px] font-bold bg-white dark:bg-[#0f172a] hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700/80 transition-all flex items-center gap-1.5 shadow-2xs">
+                                                <span>Filter Sistem Ini</span>
+                                                <i class="fa-solid fa-arrow-right text-[9px]"></i>
+                                            </a>
+                                        @endif
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        @endif
+
+                        <tr class="hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition-colors group modul-item modul-row {{ $sysTheme['accent'] }}" 
                             data-name="{{ strtolower($item->name) }}" 
                             data-system="{{ strtolower($item->kategori->name ?? '') }}"
+                            data-system-id="{{ $item->kategori_id }}"
                             data-desc="{{ strtolower($item->description ?? '') }}">
                             
                             <!-- Urutan -->
                             <td class="px-5 py-4 text-center">
-                                <span class="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-mono text-xs font-black inline-flex items-center justify-center border border-slate-200 dark:border-slate-700">
+                                <span class="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-mono text-xs font-black inline-flex items-center justify-center border border-slate-200 dark:border-slate-700 shadow-2xs">
                                     #{{ $item->order }}
                                 </span>
                             </td>
 
                             <!-- Sistem / Kategori -->
                             <td class="px-5 py-4">
-                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-extrabold uppercase tracking-wider bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-200/80 dark:border-blue-900/60 shadow-2xs">
-                                    <i class="fa-solid fa-server text-[10px]"></i>
-                                    {{ $item->kategori->name ?? '-' }}
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-extrabold uppercase tracking-wider {{ $sysTheme['badge'] }} shadow-2xs">
+                                    <i class="{{ $sysTheme['icon'] }} text-[10px]"></i>
+                                    <span>{{ $item->kategori->name ?? '-' }}</span>
                                 </span>
                             </td>
 
@@ -241,20 +403,46 @@
 
             <!-- Mobile Card View (Visible only on Mobile < sm) -->
             <div class="block sm:hidden divide-y divide-slate-100 dark:divide-slate-800" id="modul-mobile-list">
+                @php
+                    $lastMobileKategoriId = null;
+                @endphp
                 @forelse ($modules as $item)
-                <div class="p-4 hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition-colors modul-item modul-card" 
+                @php
+                    $mobileTheme = getSystemTheme($item->kategori->name ?? '');
+                    $isNewMobileSystem = ($lastMobileKategoriId !== $item->kategori_id);
+                    $lastMobileKategoriId = $item->kategori_id;
+                @endphp
+
+                @if ($isNewMobileSystem)
+                <div class="mobile-system-header p-3 {{ $mobileTheme['header'] }} flex items-center justify-between gap-2" data-system-id="{{ $item->kategori_id }}">
+                    <div class="flex items-center gap-2">
+                        <i class="{{ $mobileTheme['icon'] }} text-xs"></i>
+                        <span class="text-xs font-black uppercase tracking-wider text-slate-800 dark:text-slate-100">
+                            SISTEM: {{ $item->kategori->name ?? '-' }}
+                        </span>
+                    </div>
+                    <span class="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full {{ $mobileTheme['badge'] }}">
+                        {{ $systemModuleCounts[$item->kategori_id] ?? 10 }} MODUL
+                    </span>
+                </div>
+                @endif
+
+                <div class="p-4 hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition-colors modul-item modul-card {{ $mobileTheme['accent'] }}" 
                      data-name="{{ strtolower($item->name) }}" 
                      data-system="{{ strtolower($item->kategori->name ?? '') }}"
+                     data-system-id="{{ $item->kategori_id }}"
                      data-desc="{{ strtolower($item->description ?? '') }}">
                     
                     <div class="flex items-start justify-between gap-3 mb-2">
                         <div class="flex items-center gap-2.5">
-                            <span class="w-6 h-6 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-mono text-[11px] font-black inline-flex items-center justify-center border border-slate-200 dark:border-slate-700">
+                            <span class="w-6 h-6 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-mono text-[11px] font-black inline-flex items-center justify-center border border-slate-200 dark:border-slate-700">
                                 #{{ $item->order }}
                             </span>
                             <div>
                                 <h4 class="font-extrabold text-slate-800 dark:text-slate-100 text-sm leading-snug">{{ $item->name }}</h4>
-                                <span class="text-[10px] text-blue-600 font-bold uppercase tracking-wider">{{ $item->kategori->name ?? '-' }}</span>
+                                <span class="text-[10px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-md inline-block mt-0.5 {{ $mobileTheme['badge'] }}">
+                                    {{ $item->kategori->name ?? '-' }}
+                                </span>
                             </div>
                         </div>
                         <div class="flex items-center gap-1">
@@ -291,17 +479,19 @@
         </div>
     </div>
 
-    <!-- Live Search Script -->
+    <!-- Live Search Script with Group Header Awareness -->
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             const searchInput = document.getElementById('module-search');
             const clearBtn = document.getElementById('clear-search');
             const counter = document.getElementById('module-counter');
-            const rows = document.querySelectorAll('.modul-item');
+            const moduleRows = document.querySelectorAll('.modul-item');
+            const systemHeaders = document.querySelectorAll('.system-header-row, .mobile-system-header');
 
             function filterModules() {
                 const query = searchInput.value.toLowerCase().trim();
                 let visibleCount = 0;
+                const systemHasVisible = {};
 
                 if (query.length > 0) {
                     clearBtn.classList.remove('hidden');
@@ -309,16 +499,31 @@
                     clearBtn.classList.add('hidden');
                 }
 
-                rows.forEach(item => {
+                moduleRows.forEach(item => {
                     const name = item.getAttribute('data-name') || '';
                     const system = item.getAttribute('data-system') || '';
                     const desc = item.getAttribute('data-desc') || '';
+                    const sysId = item.getAttribute('data-system-id');
 
-                    if (name.includes(query) || system.includes(query) || desc.includes(query)) {
+                    const isMatch = name.includes(query) || system.includes(query) || desc.includes(query);
+                    if (isMatch) {
                         item.style.display = '';
                         visibleCount++;
+                        if (sysId) {
+                            systemHasVisible[sysId] = true;
+                        }
                     } else {
                         item.style.display = 'none';
+                    }
+                });
+
+                // Update system separator header rows
+                systemHeaders.forEach(header => {
+                    const sysId = header.getAttribute('data-system-id');
+                    if (query === '' || systemHasVisible[sysId]) {
+                        header.style.display = '';
+                    } else {
+                        header.style.display = 'none';
                     }
                 });
 
