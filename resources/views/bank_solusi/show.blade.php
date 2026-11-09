@@ -444,17 +444,17 @@ function showArtikelSolusi() {
             line-height: 1.6;
         }
 
-        /* Tabel Responsif & Indikator (Probus Navy dengan Garis Tepi Tegas) */
+        /* Tabel Responsif & Indikator (Probus Navy dengan Garis Tepi Tegas & Jelas) */
         .article-content table {
             width: 100% !important;
             border-collapse: collapse !important;
             margin: 1.5em 0 !important;
-            border: 1.5px solid #64748b !important;
-            border-radius: 0.5rem;
-            overflow: hidden;
+            border: 2px solid #64748b !important;
+            box-shadow: 0 0 0 1px #64748b !important;
         }
         .dark .article-content table {
             border-color: #64748b !important;
+            box-shadow: 0 0 0 1px #64748b !important;
         }
         .article-content th, 
         .article-content td {
@@ -463,8 +463,35 @@ function showArtikelSolusi() {
             font-size: 0.875rem !important;
         }
         .dark .article-content td {
-            border-color: #475569 !important;
+            border: 1px solid #475569 !important;
         }
+        .dark .article-content th {
+            border: 1px solid #64748b !important;
+        }
+
+        /* Garis Tepi Luar (Outer Border / Border Tepi) Selalu Terlihat & Tegas */
+        .article-content table > tbody > tr:first-child > td,
+        .article-content table > tbody > tr:first-child > th,
+        .article-content table > thead > tr:first-child > td,
+        .article-content table > thead > tr:first-child > th {
+            border-top: 2px solid #64748b !important;
+        }
+        .article-content table > tbody > tr:last-child > td,
+        .article-content table > tbody > tr:last-child > th {
+            border-bottom: 2px solid #64748b !important;
+        }
+        .article-content table tr > td:first-child,
+        .article-content table tr > th:first-child {
+            border-left: 2px solid #64748b !important;
+        }
+        .article-content table tr > td:last-child,
+        .article-content table tr > th:last-child {
+            border-right: 2px solid #64748b !important;
+        }
+
+        /* Header Tabel (Probus Navy) */
+        .article-content thead th,
+        .article-content thead td,
         .article-content th {
             background-color: #0b1a36 !important;
             font-weight: 700 !important;
