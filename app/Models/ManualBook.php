@@ -14,6 +14,7 @@ class ManualBook extends Model
     protected $fillable = [
         'user_id',
         'title',
+        'order',
         'description',
         'content',
         'status', // 'draft' | 'published'

@@ -46,6 +46,8 @@ Route::get('/daftartiket', [HomeController::class, 'daftartiket'])->middleware([
 Route::get('/inbox-manajemen', [HomeController::class, 'inbox'])->middleware(['auth'])->name('inbox');
 Route::get('/manual-book', [ManualBookController::class, 'index'])->middleware(['auth'])->name('manualbook');
 Route::post('/manual-book/save', [ManualBookController::class, 'saveModule'])->middleware(['auth'])->name('manualbook.save');
+Route::delete('/manual-book/chapter/{id}', [ManualBookController::class, 'deleteChapter'])->middleware(['auth'])->name('manualbook.chapter.delete');
+Route::post('/manual-book/import-word', [ManualBookController::class, 'importWord'])->middleware(['auth'])->name('manualbook.import_word');
 Route::post('/manual-book/system', [ManualBookController::class, 'addSystem'])->middleware(['auth'])->name('manualbook.system.add');
 Route::delete('/manual-book/system/{id}', [ManualBookController::class, 'deleteSystem'])->middleware(['auth'])->name('manualbook.system.delete');
 Route::post('/manual-book/module', [ManualBookController::class, 'addModule'])->middleware(['auth'])->name('manualbook.module.add');

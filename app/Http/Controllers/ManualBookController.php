@@ -4,21 +4,23 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 use App\Models\Kategori;
 use App\Models\MenuSystem;
 use App\Models\ManualBook;
+use App\Helpers\DocxParser;
 
 class ManualBookController extends Controller
 {
     /**
-     * Tampilan UI Manual Book & Tata Cara Penggunaan Sistem
+     * Tampilan UI Manual Book & Tata Cara Penggunaan Sistem (Struktur Opsi A: Sistem -> Modul -> Daftar Bab)
      */
     public function index(Request $request)
     {
-        // 1. Ambil kategori yang memiliki menuSystems (atau semua kategori)
+        // 1. Ambil kategori yang memiliki menuSystems beserta semua bab manualBooks
         $categories = Kategori::with(['menuSystems' => function ($q) {
             $q->orderBy('order')->with(['manualBooks' => function ($mb) {
-                $mb->latest();
+                $mb->orderBy('order')->orderBy('id');
             }]);
         }])->get();
 
@@ -29,38 +31,72 @@ class ManualBookController extends Controller
             $modList = [];
 
             foreach ($cat->menuSystems as $ms) {
-                $latestBook = $ms->manualBooks->first();
-                $hasContent = $latestBook && !empty(trim($latestBook->content));
-                $isDraft = $latestBook && $latestBook->status === 'draft';
+                $chapters = [];
+                foreach ($ms->manualBooks as $idx => $book) {
+                    $orderNum = $book->order ? (int) $book->order : ($idx + 1);
+                    $hasContent = !empty(trim(strip_tags($book->content, '<img>')));
+                    $isPublished = $book->status === 'published';
 
-                $statusLabel = 'Belum Diisi • Draft';
-                $statusClass = 'text-amber-600 dark:text-amber-400';
+                    $statusLabel = 'Belum Diisi • Draft';
+                    $statusClass = 'text-amber-600 dark:text-amber-400';
+                    if ($hasContent) {
+                        if ($isPublished) {
+                            $statusLabel = 'Panduan Terisi ✓';
+                            $statusClass = 'text-emerald-600 dark:text-emerald-400';
+                        } else {
+                            $statusLabel = 'Sedang Diedit ✎';
+                            $statusClass = 'text-blue-600 dark:text-blue-400';
+                        }
+                    }
 
-                if ($hasContent) {
-                    if ($isDraft) {
-                        $statusLabel = 'Sedang Diedit ✎';
-                        $statusClass = 'text-blue-600 dark:text-blue-400';
-                    } else {
-                        $statusLabel = 'Panduan Terisi ✓';
+                    $chapters[] = [
+                        'id' => (string) $book->id,
+                        'order' => $orderNum,
+                        'title' => $book->title,
+                        'description' => $book->description ? $book->description : '',
+                        'content' => $book->content ? $book->content : '',
+                        'status' => $book->status ? $book->status : 'draft',
+                        'statusLabel' => $statusLabel,
+                        'statusClass' => $statusClass,
+                        'updated_at' => $book->updated_at ? $book->updated_at->format('d M Y H:i') : '-',
+                    ];
+                }
+
+                $totalChapters = count($chapters);
+                $publishedCount = 0;
+                foreach ($chapters as $c) {
+                    if ($c['status'] === 'published') {
+                        $publishedCount++;
+                    }
+                }
+
+                $statusLabel = 'Belum Ada Bab';
+                $statusClass = 'text-slate-400 dark:text-slate-500';
+                if ($totalChapters > 0) {
+                    if ($publishedCount === $totalChapters) {
+                        $statusLabel = $totalChapters . ' Bab • Terisi Lengkap ✓';
                         $statusClass = 'text-emerald-600 dark:text-emerald-400';
+                    } else {
+                        $statusLabel = $totalChapters . ' Bab (' . $publishedCount . ' Terbit)';
+                        $statusClass = 'text-blue-600 dark:text-blue-400';
                     }
                 }
 
                 $orderPrefix = $ms->order ? str_pad($ms->order, 2, '0', STR_PAD_LEFT) . '. ' : '';
-                $defaultTitle = $latestBook ? $latestBook->title : ($orderPrefix ? $orderPrefix . $ms->name : $ms->name);
+                $defaultTitle = $orderPrefix ? $orderPrefix . $ms->name : $ms->name;
 
                 $modList[] = [
                     'id' => (string) $ms->id,
                     'menu_system_id' => $ms->id,
                     'title' => $defaultTitle,
                     'raw_name' => $ms->name,
+                    'order' => $ms->order,
+                    'description' => $ms->description ? $ms->description : '',
                     'statusLabel' => $statusLabel,
                     'statusClass' => $statusClass,
-                    'breadcrumb' => strtoupper($cat->name) . ' • ' . strtoupper($ms->name) . ' • PENGISIAN TATA CARA PENGGUNAAN',
-                    'description' => $latestBook ? ($latestBook->description ? $latestBook->description : $ms->description) : ($ms->description ? $ms->description : ''),
-                    'content' => $latestBook ? $latestBook->content : '',
-                    'manual_book_id' => $latestBook ? $latestBook->id : null,
-                    'status' => $latestBook ? $latestBook->status : 'draft',
+                    'chapterCount' => $totalChapters,
+                    'breadcrumb' => strtoupper($cat->name) . ' • ' . strtoupper($ms->name) . ' • BUKU PANDUAN PENGGUNAAN',
+                    'chapters' => $chapters,
                 ];
             }
 
@@ -81,13 +117,15 @@ class ManualBookController extends Controller
     }
 
     /**
-     * Menyimpan atau memperbarui panduan tata cara modul (Manual Book)
+     * Menyimpan atau memperbarui bab / dokumen panduan tata cara modul
      */
     public function saveModule(Request $request)
     {
         $request->validate([
             'menu_system_id' => 'required|exists:menu_systems,id',
-            'title' => 'required|string|max:100',
+            'chapter_id' => 'nullable',
+            'order' => 'nullable|integer',
+            'title' => 'required|string|max:150',
             'description' => 'nullable|string',
             'content' => 'required|string',
             'status' => 'required|in:draft,published',
@@ -96,13 +134,28 @@ class ManualBookController extends Controller
         $menuSystem = MenuSystem::findOrFail($request->menu_system_id);
         $userId = Auth::id() ? Auth::id() : 1;
 
-        // Cari apakah modul ini sudah memiliki manual book
-        $manualBook = $menuSystem->manualBooks()->first();
+        $manualBook = null;
+        if ($request->filled('chapter_id') && is_numeric($request->chapter_id)) {
+            $manualBook = ManualBook::whereHas('menuSystems', function ($q) use ($menuSystem) {
+                $q->where('menu_systems.id', $menuSystem->id);
+            })->find($request->chapter_id);
+        }
+
+        $order = $request->order ? (int) $request->order : null;
+        if (!$order) {
+            if ($manualBook && $manualBook->order) {
+                $order = (int) $manualBook->order;
+            } else {
+                $maxOrder = $menuSystem->manualBooks()->max('order');
+                $order = $maxOrder ? $maxOrder + 1 : 1;
+            }
+        }
 
         if ($manualBook) {
             $manualBook->update([
                 'user_id' => $userId,
-                'title' => $request->title,
+                'title' => trim($request->title),
+                'order' => $order,
                 'description' => $request->description,
                 'content' => $request->content,
                 'status' => $request->status,
@@ -110,7 +163,8 @@ class ManualBookController extends Controller
         } else {
             $manualBook = ManualBook::create([
                 'user_id' => $userId,
-                'title' => $request->title,
+                'title' => trim($request->title),
+                'order' => $order,
                 'description' => $request->description,
                 'content' => $request->content,
                 'status' => $request->status,
@@ -119,22 +173,100 @@ class ManualBookController extends Controller
             $menuSystem->manualBooks()->attach($manualBook->id);
         }
 
-        // Perbarui juga deskripsi di modul jika diisi
-        if ($request->filled('description')) {
-            $menuSystem->update(['description' => $request->description]);
-        }
+        $hasContent = !empty(trim(strip_tags($manualBook->content, '<img>')));
+        $statusLabel = $request->status === 'published' ? 'Panduan Terisi ✓' : 'Sedang Diedit ✎';
+        $statusClass = $request->status === 'published' ? 'text-emerald-600 dark:text-emerald-400' : 'text-blue-600 dark:text-blue-400';
+
+        $chapterData = [
+            'id' => (string) $manualBook->id,
+            'order' => (int) $manualBook->order,
+            'title' => $manualBook->title,
+            'description' => $manualBook->description ? $manualBook->description : '',
+            'content' => $manualBook->content ? $manualBook->content : '',
+            'status' => $manualBook->status,
+            'statusLabel' => $statusLabel,
+            'statusClass' => $statusClass,
+            'updated_at' => $manualBook->updated_at ? $manualBook->updated_at->format('d M Y H:i') : '-',
+        ];
 
         $message = $request->status === 'published'
-            ? 'Tata cara modul "' . $manualBook->title . '" berhasil disimpan dan dipublikasikan ke Manual Book!'
-            : 'Draft panduan modul "' . $manualBook->title . '" berhasil disimpan!';
+            ? 'Bab panduan "' . $manualBook->title . '" berhasil disimpan dan dipublikasikan!'
+            : 'Draft bab panduan "' . $manualBook->title . '" berhasil disimpan!';
 
         return response()->json([
             'success' => true,
             'message' => $message,
-            'manual_book' => $manualBook,
-            'statusLabel' => $request->status === 'published' ? 'Panduan Terisi ✓' : 'Sedang Diedit ✎',
-            'statusClass' => $request->status === 'published' ? 'text-emerald-600 dark:text-emerald-400' : 'text-blue-600 dark:text-blue-400',
+            'chapter' => $chapterData,
+            'menu_system_id' => (string) $menuSystem->id,
         ]);
+    }
+
+    /**
+     * Menghapus bab / dokumen panduan spesifik
+     */
+    public function deleteChapter($id)
+    {
+        $manualBook = ManualBook::findOrFail($id);
+        $title = $manualBook->title;
+
+        // Lepas relasi pivot
+        $manualBook->menuSystems()->detach();
+        $manualBook->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Bab panduan "' . $title . '" berhasil dihapus!',
+            'deleted_id' => (string) $id,
+        ]);
+    }
+
+    /**
+     * Import file Microsoft Word (.docx) secara otomatis ke format web TinyMCE
+     */
+    public function importWord(Request $request)
+    {
+        $request->validate([
+            'menu_system_id' => 'required|exists:menu_systems,id',
+            'word_file' => 'required|file|max:25600', // maksimal 25 MB
+        ]);
+
+        $file = $request->file('word_file');
+        $ext = strtolower($file->getClientOriginalExtension());
+        if ($ext !== 'docx') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Format file harus berupa Microsoft Word Document (.docx)!',
+            ], 422);
+        }
+
+        $rawName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+
+        // Bersihkan nama & deteksi nomor urutan jika ada (misal: "12.Balance Sheet" -> order: 12, title: "12. Balance Sheet")
+        $order = 1;
+        $title = $rawName;
+        if (preg_match('/^(\d+)[\.\s_-]*(.*)$/', $rawName, $m)) {
+            $order = (int) $m[1];
+            $cleanTitle = trim($m[2]);
+            $title = $order . '. ' . ($cleanTitle ? $cleanTitle : $rawName);
+        }
+
+        try {
+            $parsed = DocxParser::parse($file->getPathname());
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'File Word "' . $rawName . '" berhasil dibaca!',
+                'title' => $title,
+                'order' => $order,
+                'content' => $parsed['html'],
+                'image_count' => $parsed['image_count'],
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal membaca isi file Word: ' . $e->getMessage(),
+            ], 500);
+        }
     }
 
     /**
