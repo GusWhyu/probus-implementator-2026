@@ -72,8 +72,7 @@
             </div>
             <div class="flex flex-wrap gap-2">
                 <a href="{{ route('menu-system.index') }}" 
-                   class="px-3.5 py-1.5 rounded-xl text-xs font-bold border transition-all cursor-pointer flex items-center gap-1.5 {{ empty($activeCategoryId) ? 'bg-blue-600 text-white border-blue-600 shadow-sm shadow-blue-500/30' : 'bg-white dark:bg-[#0f172a] text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800' }}">
-                    <i class="fa-solid fa-layer-group text-[10px]"></i>
+                   class="px-3.5 py-1.5 rounded-xl text-xs font-bold border transition-all cursor-pointer flex items-center gap-2 {{ empty($activeCategoryId) ? 'bg-blue-600 text-white border-blue-600 shadow-sm shadow-blue-500/30' : 'bg-white dark:bg-[#0f172a] text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800' }}">
                     <span>Semua Sistem</span>
                     <span class="text-[10px] px-1.5 py-0.2 rounded-full {{ empty($activeCategoryId) ? 'bg-blue-700/60 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400' }}">{{ $totalModules }}</span>
                 </a>
@@ -83,8 +82,7 @@
                         $isActive = ((string) $activeCategoryId === (string) $cat->id);
                     @endphp
                     <a href="{{ route('menu-system.index', ['kategori_id' => $cat->id]) }}" 
-                       class="px-3.5 py-1.5 rounded-xl text-xs font-bold border transition-all cursor-pointer flex items-center gap-1.5 {{ $isActive ? 'bg-blue-600 text-white border-blue-600 shadow-sm shadow-blue-500/30' : 'bg-white dark:bg-[#0f172a] text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800' }}">
-                        <i class="fa-solid fa-network-wired text-[10px] {{ $isActive ? 'text-white' : 'text-blue-500 dark:text-blue-400' }}"></i>
+                       class="px-3.5 py-1.5 rounded-xl text-xs font-bold border transition-all cursor-pointer flex items-center gap-2 {{ $isActive ? 'bg-blue-600 text-white border-blue-600 shadow-sm shadow-blue-500/30' : 'bg-white dark:bg-[#0f172a] text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800' }}">
                         <span>{{ $cat->name }}</span>
                         <span class="text-[10px] px-1.5 py-0.2 rounded-full {{ $isActive ? 'bg-blue-700/60 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400' }}">
                             {{ $cat->menu_systems_count }}
@@ -217,9 +215,8 @@
 
                             <!-- Sistem / Kategori (Selaras 1 Warna Biru) -->
                             <td class="px-5 py-4">
-                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-extrabold uppercase tracking-wider bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 shadow-2xs">
-                                    <i class="fa-solid fa-network-wired text-[10px]"></i>
-                                    <span>{{ $item->kategori->name ?? '-' }}</span>
+                                <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-extrabold uppercase tracking-wider bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 shadow-2xs">
+                                    {{ $item->kategori->name ?? '-' }}
                                 </span>
                             </td>
 
