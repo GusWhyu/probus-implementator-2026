@@ -537,44 +537,7 @@ function createArtikelSolusi() {
 
             {{-- TinyMCE Visual Editor Container --}}
             <div id="editorContainer" class="border border-slate-300 dark:border-slate-700/80 rounded-2xl overflow-hidden shadow-xs bg-white text-slate-900">
-                <textarea id="editorCanvas" name="content" class="w-full">
-<p>Ikuti langkah pengecekan berikut secara berurutan untuk mengatasi printer kasir atau dapur yang mendadak tidak mencetak struk.</p>
-<h2>1. Periksa Fisik Printer &amp; Lampu Indikator (LED)</h2>
-<p>Langkah awal adalah memeriksa bagian fisik luar printer thermal Anda di meja kasir. Perhatikan tuas penutup kertas dan status lampu indikator pada panel depan printer:</p>
-<table class="probus-table">
-    <thead>
-        <tr>
-            <th style="width: 50px; text-align: center;">No</th>
-            <th style="width: 180px;">Bagian / Indikator</th>
-            <th>Deskripsi &amp; Solusi</th>
-        </tr>
-    </thead>
-    <tbody>
-        <tr>
-            <td style="text-align: center;">1</td>
-            <td><strong>Cover Kertas Thermal</strong></td>
-            <td>Tekan penutup kertas hingga berbunyi klik di kedua sisi agar sensor printer siap mencetak.</td>
-        </tr>
-        <tr>
-            <td style="text-align: center;">2</td>
-            <td><strong>Lampu ERROR (Merah)</strong></td>
-            <td>Bila berkedip merah, penutup kertas belum rapat atau kertas macet di pemotong (cutter).</td>
-        </tr>
-        <tr>
-            <td style="text-align: center;">3</td>
-            <td><strong>Lampu PAPER (Kuning)</strong></td>
-            <td>Bila menyala kuning, gulungan kertas thermal habis atau posisi pemasangannya terbalik.</td>
-        </tr>
-    </tbody>
-</table>
-<h2>2. Pastikan Posisi Kertas &amp; Restart Printer (Power Cycle)</h2>
-<ul>
-    <li>Pastikan gulungan kertas thermal tidak terbalik (goreskan kuku pada permukaan kertas; sisi yang meninggalkan goresan hitam harus menghadap pemanas).</li>
-    <li>Matikan saklar power printer (OFF), tunggu 10 detik untuk mengosongkan antrean memori (spooler), lalu nyalakan kembali (ON).</li>
-</ul>
-<h2>3. Lakukan Uji Cetak dari Layar Order Taker</h2>
-<p>Setelah lampu indikator printer menyala normal, buka menu Pengaturan Printer pada aplikasi Order Taker lalu klik tombol Uji Cetak Struk Sample.</p>
-                </textarea>
+                <textarea id="editorCanvas" name="content" class="w-full"></textarea>
             </div>
         </div>
 

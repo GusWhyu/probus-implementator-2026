@@ -53,7 +53,7 @@ function manualBookApp() {
                             setup: function(editor) {
                                 editor.on('init', function() {
                                     if (self.currentModule) {
-                                        editor.setContent(self.currentModule.content || '<p class="text-slate-400 italic">Belum ada panduan tata cara yang ditulis untuk modul ini. Silakan mulai tulis panduan Anda di sini...</p>');
+                                        editor.setContent(self.currentModule.content || '');
                                     }
                                 });
                                 editor.on('change keyup input', function() {
@@ -118,7 +118,7 @@ function manualBookApp() {
 
                 updateCanvasContent() {
                     if (typeof tinymce !== 'undefined' && tinymce.get('manualBookCanvas') && this.currentModule) {
-                        tinymce.get('manualBookCanvas').setContent(this.currentModule.content || '<p class="text-slate-400 italic">Belum ada panduan tata cara yang ditulis untuk modul ini. Silakan mulai tulis panduan Anda di sini...</p>');
+                        tinymce.get('manualBookCanvas').setContent(this.currentModule.content || '');
                     }
                 },
 
