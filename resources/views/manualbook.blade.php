@@ -40,9 +40,131 @@ function manualBookApp() {
                     }
 
                     this.$nextTick(() => {
-                        this.updateCanvasContent();
-                        if (window.ProbusEditorEnhancer) {
-                            window.ProbusEditorEnhancer.init('manualBookCanvas', 'manualBookContainer');
+                        this.initTinyMCE();
+                    });
+                },
+
+                initTinyMCE() {
+                    if (typeof tinymce === 'undefined') return;
+
+                    if (tinymce.get('manualBookCanvas')) {
+                        tinymce.get('manualBookCanvas').remove();
+                    }
+
+                    const self = this;
+                    const isDark = document.documentElement.classList.contains('dark');
+
+                    tinymce.init({
+                        selector: '#manualBookCanvas',
+                        height: 520,
+                        promotion: false,
+                        branding: false,
+                        skin: isDark ? 'oxide-dark' : 'oxide',
+                        content_css: isDark ? 'dark' : 'default',
+                        menubar: 'file edit view insert format tools table help',
+                        plugins: [
+                            'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
+                            'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
+                            'insertdatetime', 'media', 'table', 'help', 'wordcount'
+                        ],
+                        toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | ' +
+                                 'alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | ' +
+                                 'forecolor backcolor | link image table media | code preview fullscreen help',
+                        toolbar_mode: 'sliding',
+                        image_advtab: true,
+                        image_caption: true,
+                        image_title: true,
+                        automatic_uploads: true,
+                        file_picker_types: 'image',
+                        images_upload_handler: function (blobInfo, progress) {
+                            return new Promise((resolve, reject) => {
+                                const file = blobInfo.blob();
+                                if (file.size > 1024 * 1024) {
+                                    reject('Ukuran file gambar maksimal 1 MB (1024 KB).');
+                                    return;
+                                }
+
+                                const formData = new FormData();
+                                formData.append('image', file, blobInfo.filename());
+                                formData.append('_token', '{{ csrf_token() }}');
+
+                                fetch('{{ route("bank-solusi.upload_image") }}', {
+                                    method: 'POST',
+                                    body: formData,
+                                    headers: {
+                                        'X-Requested-With': 'XMLHttpRequest'
+                                    }
+                                })
+                                .then(response => {
+                                    if (!response.ok) {
+                                        return response.json().then(err => { throw new Error(err.message || 'Gagal mengunggah gambar'); });
+                                    }
+                                    return response.json();
+                                })
+                                .then(result => {
+                                    if (result.location || result.url) {
+                                        resolve(result.location || result.url);
+                                    } else {
+                                        reject('Respon server tidak valid.');
+                                    }
+                                })
+                                .catch(error => {
+                                    reject(error.message || 'Terjadi kesalahan saat mengunggah gambar.');
+                                });
+                            });
+                        },
+                        table_default_attributes: {
+                            border: '1'
+                        },
+                        table_default_styles: {
+                            'border-collapse': 'collapse',
+                            'width': '100%'
+                        },
+                        content_style: `
+                            body { 
+                                font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
+                                font-size: 14px; 
+                                color: ${isDark ? '#e2e8f0' : '#1e293b'}; 
+                                background-color: ${isDark ? '#0b1324' : '#ffffff'};
+                                padding: 16px; 
+                                line-height: 1.6; 
+                            }
+                            table { 
+                                border-collapse: collapse; 
+                                width: 100%; 
+                                margin: 16px 0; 
+                                border: 1.5px solid #64748b; 
+                            }
+                            th { 
+                                background-color: #0b1a36; 
+                                color: #ffffff; 
+                                font-weight: 700; 
+                                border: 1px solid #64748b; 
+                                padding: 10px 14px; 
+                            }
+                            td { 
+                                border: 1px solid ${isDark ? '#475569' : '#cbd5e1'}; 
+                                padding: 10px 14px; 
+                            }
+                            img { 
+                                max-width: 100%; 
+                                height: auto; 
+                                border-radius: 8px; 
+                                margin: 12px 0; 
+                            }
+                            h1, h2, h3, h4 { color: ${isDark ? '#f8fafc' : '#0f172a'}; font-weight: 700; }
+                        `,
+                        setup: function(editor) {
+                            editor.on('init', function() {
+                                if (self.currentModule) {
+                                    editor.setContent(self.currentModule.content || '<p class="text-slate-400 italic">Belum ada panduan tata cara yang ditulis untuk modul ini. Silakan mulai tulis panduan Anda di sini...</p>');
+                                }
+                            });
+                            editor.on('change keyup input', function() {
+                                if (self.currentModule) {
+                                    self.currentModule.content = editor.getContent();
+                                }
+                            });
                         }
                     });
                 },
@@ -68,11 +190,8 @@ function manualBookApp() {
 
                 selectSystem(id) {
                     // Simpan canvas konten modul sebelumnya ke memori lokal
-                    if (this.currentModule) {
-                        const canvas = document.getElementById('manualBookCanvas');
-                        if (canvas) {
-                            this.currentModule.content = canvas.innerHTML;
-                        }
+                    if (this.currentModule && typeof tinymce !== 'undefined' && tinymce.get('manualBookCanvas')) {
+                        this.currentModule.content = tinymce.get('manualBookCanvas').getContent();
                     }
 
                     this.activeSystem = String(id);
@@ -85,35 +204,24 @@ function manualBookApp() {
 
                     this.$nextTick(() => {
                         this.updateCanvasContent();
-                        if (window.ProbusEditorEnhancer) {
-                            window.ProbusEditorEnhancer.init('manualBookCanvas', 'manualBookContainer');
-                        }
                     });
                 },
 
                 selectModule(id) {
                     // Simpan canvas konten modul sebelumnya ke memori lokal
-                    if (this.currentModule) {
-                        const canvas = document.getElementById('manualBookCanvas');
-                        if (canvas) {
-                            this.currentModule.content = canvas.innerHTML;
-                        }
+                    if (this.currentModule && typeof tinymce !== 'undefined' && tinymce.get('manualBookCanvas')) {
+                        this.currentModule.content = tinymce.get('manualBookCanvas').getContent();
                     }
 
                     this.activeModuleId = String(id);
                     this.$nextTick(() => {
                         this.updateCanvasContent();
-                        if (window.ProbusEditorEnhancer) {
-                            window.ProbusEditorEnhancer.init('manualBookCanvas', 'manualBookContainer');
-                        }
                     });
                 },
 
                 updateCanvasContent() {
-                    const canvas = document.getElementById('manualBookCanvas');
-                    if (canvas && this.currentModule) {
-                        canvas.innerHTML = this.currentModule.content || '<p class="text-slate-400 italic">Belum ada panduan tata cara yang ditulis untuk modul ini. Silakan mulai tulis panduan Anda di sini...</p>';
-                        this.updateWordCount();
+                    if (typeof tinymce !== 'undefined' && tinymce.get('manualBookCanvas') && this.currentModule) {
+                        tinymce.get('manualBookCanvas').setContent(this.currentModule.content || '<p class="text-slate-400 italic">Belum ada panduan tata cara yang ditulis untuk modul ini. Silakan mulai tulis panduan Anda di sini...</p>');
                     }
                 },
 
@@ -297,8 +405,13 @@ function manualBookApp() {
                         return;
                     }
 
-                    const canvas = document.getElementById('manualBookCanvas');
-                    const content = canvas ? canvas.innerHTML.trim() : '';
+                    let content = '';
+                    if (typeof tinymce !== 'undefined' && tinymce.get('manualBookCanvas')) {
+                        content = tinymce.get('manualBookCanvas').getContent().trim();
+                    } else {
+                        const canvas = document.getElementById('manualBookCanvas');
+                        content = canvas ? (canvas.value || canvas.innerHTML).trim() : '';
+                    }
 
                     this.isSubmitting = true;
                     this.submitTarget = targetStatus;
@@ -786,82 +899,8 @@ function manualBookApp() {
                     </div>
 
                     {{-- Editor Outer Container --}}
-                    <div id="manualBookContainer" class="relative rounded-xl border border-slate-200 dark:border-slate-700/80 overflow-hidden shadow-sm bg-white dark:bg-white text-slate-900 flex flex-col">
-                        
-                        {{-- Editor Menu Bar Mockup --}}
-                        <div class="bg-slate-100 border-b border-slate-200 px-3 py-1.5 flex items-center gap-3 text-xs text-slate-700 font-medium select-none overflow-x-auto">
-                            <span class="hover:bg-slate-200 px-1.5 py-0.5 rounded cursor-pointer">File</span>
-                            <span class="hover:bg-slate-200 px-1.5 py-0.5 rounded cursor-pointer">Edit</span>
-                            <span class="hover:bg-slate-200 px-1.5 py-0.5 rounded cursor-pointer">View</span>
-                            <span class="hover:bg-slate-200 px-1.5 py-0.5 rounded cursor-pointer">Insert</span>
-                            <span class="hover:bg-slate-200 px-1.5 py-0.5 rounded cursor-pointer">Format</span>
-                            <span class="hover:bg-slate-200 px-1.5 py-0.5 rounded cursor-pointer">Tools</span>
-                            <span class="hover:bg-slate-200 px-1.5 py-0.5 rounded cursor-pointer">Table</span>
-                            <span class="hover:bg-slate-200 px-1.5 py-0.5 rounded cursor-pointer">Help</span>
-                        </div>
-
-                        {{-- Editor Toolbar (Functional Tools) --}}
-                        <div class="bg-slate-50 border-b border-slate-200 px-3 py-2 flex flex-wrap items-center gap-1.5 sm:gap-2 text-xs text-slate-700 select-none">
-                            <button type="button" @click="formatDoc('undo')" class="p-1.5 hover:bg-slate-200 rounded text-slate-600 cursor-pointer" title="Undo"><i class="fa-solid fa-rotate-left"></i></button>
-                            <button type="button" @click="formatDoc('redo')" class="p-1.5 hover:bg-slate-200 rounded text-slate-600 cursor-pointer" title="Redo"><i class="fa-solid fa-rotate-right"></i></button>
-                            <span class="h-4 w-px bg-slate-300"></span>
-
-                            <select @change="formatHeading($event.target.value)" class="px-2 py-1 bg-white border border-slate-200 rounded text-xs font-semibold focus:outline-none cursor-pointer">
-                                <option value="p">Paragraph</option>
-                                <option value="h2">Heading 2</option>
-                                <option value="h3" selected>Heading 3</option>
-                                <option value="h4">Heading 4</option>
-                            </select>
-                            <span class="h-4 w-px bg-slate-300"></span>
-
-                            <button type="button" @click="formatDoc('bold')" class="p-1.5 hover:bg-slate-200 rounded font-bold cursor-pointer" title="Bold">B</button>
-                            <button type="button" @click="formatDoc('italic')" class="p-1.5 hover:bg-slate-200 rounded italic font-serif font-bold cursor-pointer" title="Italic">I</button>
-                            <button type="button" @click="formatDoc('underline')" class="p-1.5 hover:bg-slate-200 rounded underline cursor-pointer" title="Underline">U</button>
-                            <span class="h-4 w-px bg-slate-300"></span>
-
-                            <button type="button" @click="formatDoc('insertUnorderedList')" class="p-1.5 hover:bg-slate-200 rounded cursor-pointer" title="Bullet List"><i class="fa-solid fa-list-ul"></i></button>
-                            <button type="button" @click="formatDoc('insertOrderedList')" class="p-1.5 hover:bg-slate-200 rounded cursor-pointer" title="Numbered List"><i class="fa-solid fa-list-ol"></i></button>
-                            <span class="h-4 w-px bg-slate-300"></span>
-
-                            <button type="button" @click="$refs.imageInput.click()" class="px-2 py-1 hover:bg-slate-200 rounded flex items-center gap-1 text-slate-700 font-semibold cursor-pointer border border-transparent hover:border-slate-300 transition-colors" title="Unggah Gambar / Screenshot (Tersimpan ke media_uploads)">
-                                <i class="fa-regular fa-image text-blue-600 text-xs"></i>
-                                <span>Gambar</span>
-                            </button>
-                            <input type="file" x-ref="imageInput" @change="handleImageFileSelect($event)" accept="image/*" class="hidden">
-
-                            <button type="button" @click="insertTableSample()" class="px-2 py-1 hover:bg-slate-200 rounded flex items-center gap-1 text-slate-700 font-semibold cursor-pointer border border-transparent hover:border-slate-300 transition-colors" title="Sisipkan & Kustomisasi Tabel">
-                                <i class="fa-solid fa-table text-blue-600 text-xs"></i>
-                                <span>Tabel</span>
-                            </button>
-                            <button type="button" @click="insertLinkPrompt()" class="px-2 py-1 hover:bg-slate-200 rounded flex items-center gap-1 text-slate-700 font-medium cursor-pointer" title="Sisipkan Link">
-                                <i class="fa-solid fa-link text-xs"></i>
-                                <span>Link</span>
-                            </button>
-                        </div>
-
-                        {{-- Editor Content Body (Pre-rendered Rich Documentation Canvas) --}}
-                        <div id="manualBookCanvas"
-                             class="p-5 sm:p-8 bg-white text-slate-900 text-sm leading-relaxed min-h-[460px] space-y-6 focus:outline-none" 
-                             contenteditable="true"
-                             @input="updateWordCount()"
-                             @paste="handleEditorPaste($event)"
-                             @drop.prevent="handleEditorDrop($event)"
-                             @dragover.prevent>
-                        </div>
-
-                        {{-- Editor Status Bar Mockup --}}
-                        <div class="bg-slate-100 border-t border-slate-200 px-3 py-1.5 flex items-center justify-between text-[11px] text-slate-500 select-none">
-                            <div class="flex items-center gap-2">
-                                <span class="font-mono">div &gt; p</span>
-                            </div>
-                            <div class="flex items-center gap-3">
-                                <span>Press Alt+0 for help</span>
-                                <span x-text="wordCount + ' words'"></span>
-                                <span class="text-blue-600 font-semibold flex items-center gap-1">
-                                    Build with tinyMCE <i class="fa-solid fa-arrow-up-right-from-square text-[9px]"></i>
-                                </span>
-                            </div>
-                        </div>
+                    <div id="manualBookContainer" class="border border-slate-200 dark:border-slate-700/80 rounded-2xl overflow-hidden shadow-sm bg-white text-slate-900">
+                        <textarea id="manualBookCanvas" name="content" class="w-full"></textarea>
                     </div>
                 </div>
 
@@ -975,8 +1014,5 @@ function manualBookApp() {
         </div>
 
     </div>
-
-    {{-- Partial Enhancements: Resize Gambar, Batas Upload 1MB, & Tabel Interaktif --}}
-    @include('partials.editor-enhancements')
 </x-app-layout>
 

@@ -13,19 +13,121 @@ function editArtikelSolusi() {
                 wordCount: 0,
 
                 init() {
-                    // Populate existing content into canvas
-                    const canvas = document.getElementById('editorCanvas');
-                    if (canvas) {
-                        canvas.innerHTML = {!! json_encode($article->content) !!};
-                        this.updateWordCount();
-                        canvas.addEventListener('input', () => this.updateWordCount());
+                    this.$nextTick(() => {
+                        this.initTinyMCE();
+                    });
+                },
 
-                        this.$nextTick(() => {
-                            if (window.ProbusEditorEnhancer) {
-                                window.ProbusEditorEnhancer.init('editorCanvas', 'editorContainer');
-                            }
-                        });
+                initTinyMCE() {
+                    if (typeof tinymce === 'undefined') return;
+
+                    if (tinymce.get('editorCanvas')) {
+                        tinymce.get('editorCanvas').remove();
                     }
+
+                    const isDark = document.documentElement.classList.contains('dark');
+
+                    tinymce.init({
+                        selector: '#editorCanvas',
+                        height: 580,
+                        promotion: false,
+                        branding: false,
+                        skin: isDark ? 'oxide-dark' : 'oxide',
+                        content_css: isDark ? 'dark' : 'default',
+                        menubar: 'file edit view insert format tools table help',
+                        plugins: [
+                            'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
+                            'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
+                            'insertdatetime', 'media', 'table', 'help', 'wordcount'
+                        ],
+                        toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | ' +
+                                 'alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | ' +
+                                 'forecolor backcolor | link image table media | code preview fullscreen help',
+                        toolbar_mode: 'sliding',
+                        image_advtab: true,
+                        image_caption: true,
+                        image_title: true,
+                        automatic_uploads: true,
+                        file_picker_types: 'image',
+                        images_upload_handler: function (blobInfo, progress) {
+                            return new Promise((resolve, reject) => {
+                                const file = blobInfo.blob();
+                                if (file.size > 1024 * 1024) {
+                                    reject('Ukuran file gambar maksimal 1 MB (1024 KB).');
+                                    return;
+                                }
+
+                                const formData = new FormData();
+                                formData.append('image', file, blobInfo.filename());
+                                formData.append('_token', '{{ csrf_token() }}');
+
+                                fetch('{{ route("bank-solusi.upload_image") }}', {
+                                    method: 'POST',
+                                    body: formData,
+                                    headers: {
+                                        'X-Requested-With': 'XMLHttpRequest'
+                                    }
+                                })
+                                .then(response => {
+                                    if (!response.ok) {
+                                        return response.json().then(err => { throw new Error(err.message || 'Gagal mengunggah gambar'); });
+                                    }
+                                    return response.json();
+                                })
+                                .then(result => {
+                                    if (result.location || result.url) {
+                                        resolve(result.location || result.url);
+                                    } else {
+                                        reject('Respon server tidak valid.');
+                                    }
+                                })
+                                .catch(error => {
+                                    reject(error.message || 'Terjadi kesalahan saat mengunggah gambar.');
+                                });
+                            });
+                        },
+                        table_default_attributes: {
+                            border: '1'
+                        },
+                        table_default_styles: {
+                            'border-collapse': 'collapse',
+                            'width': '100%'
+                        },
+                        content_style: `
+                            body { 
+                                font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
+                                font-size: 14px; 
+                                color: ${isDark ? '#e2e8f0' : '#1e293b'}; 
+                                background-color: ${isDark ? '#0b1324' : '#ffffff'};
+                                padding: 16px; 
+                                line-height: 1.6; 
+                            }
+                            table { 
+                                border-collapse: collapse; 
+                                width: 100%; 
+                                margin: 16px 0; 
+                                border: 1.5px solid #64748b; 
+                            }
+                            th { 
+                                background-color: #0b1a36; 
+                                color: #ffffff; 
+                                font-weight: 700; 
+                                border: 1px solid #64748b; 
+                                padding: 10px 14px; 
+                            }
+                            td { 
+                                border: 1px solid ${isDark ? '#475569' : '#cbd5e1'}; 
+                                padding: 10px 14px; 
+                            }
+                            img { 
+                                max-width: 100%; 
+                                height: auto; 
+                                border-radius: 8px; 
+                                margin: 12px 0;
+                            }
+                            h1, h2, h3, h4 { color: ${isDark ? '#f8fafc' : '#0f172a'}; font-weight: 700; }
+                        `
+                    });
                 },
 
                 get currentModules() {
@@ -230,8 +332,14 @@ function editArtikelSolusi() {
                         return;
                     }
 
-                    const canvas = document.getElementById('editorCanvas');
-                    const content = canvas ? canvas.innerHTML.trim() : '';
+                    let content = '';
+                    if (typeof tinymce !== 'undefined' && tinymce.get('editorCanvas')) {
+                        content = tinymce.get('editorCanvas').getContent().trim();
+                    } else {
+                        const canvas = document.getElementById('editorCanvas');
+                        content = canvas ? (canvas.value || canvas.innerHTML).trim() : '';
+                    }
+
                     if (!content) {
                         if (typeof Swal !== 'undefined') {
                             Swal.fire({
@@ -514,117 +622,8 @@ function editArtikelSolusi() {
             </div>
 
             {{-- TinyMCE Visual Editor Container --}}
-            <div id="editorContainer" class="relative border border-slate-300 dark:border-slate-700/80 rounded-2xl overflow-hidden shadow-xs bg-white text-slate-900">
-                
-                {{-- Menu Bar TinyMCE (File, Edit, View, Insert, Format, Tools, Table, Help) --}}
-                <div class="bg-slate-50 border-b border-slate-200 px-3 py-1.5 flex flex-wrap items-center gap-4 text-xs font-medium text-slate-700 select-none">
-                    <span class="hover:text-blue-600 cursor-pointer">File</span>
-                    <span class="hover:text-blue-600 cursor-pointer">Edit</span>
-                    <span class="hover:text-blue-600 cursor-pointer">View</span>
-                    <span class="hover:text-blue-600 cursor-pointer">Insert</span>
-                    <span class="hover:text-blue-600 cursor-pointer">Format</span>
-                    <span class="hover:text-blue-600 cursor-pointer">Tools</span>
-                    <span class="hover:text-blue-600 cursor-pointer flex items-center gap-1">Table</span>
-                    <span class="hover:text-blue-600 cursor-pointer">Help</span>
-                </div>
-
-                {{-- Toolbar TinyMCE --}}
-                <div class="bg-white border-b border-slate-200 px-3 py-2 flex flex-wrap items-center gap-2 sm:gap-2.5 text-xs text-slate-700 select-none">
-                    {{-- Undo / Redo --}}
-                    <div class="flex items-center gap-1 pr-2 border-r border-slate-200">
-                        <button type="button" @click="formatDoc('undo')" class="p-1.5 hover:bg-slate-100 rounded text-slate-600 hover:text-slate-900" title="Undo">
-                            <i class="fa-solid fa-arrow-rotate-left"></i>
-                        </button>
-                        <button type="button" @click="formatDoc('redo')" class="p-1.5 hover:bg-slate-100 rounded text-slate-600 hover:text-slate-900" title="Redo">
-                            <i class="fa-solid fa-arrow-rotate-right"></i>
-                        </button>
-                    </div>
-
-                    {{-- Format Dropdown --}}
-                    <div class="relative">
-                        <select @change="formatHeading($event.target.value)" class="text-xs font-semibold px-2.5 py-1 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded cursor-pointer pr-6">
-                            <option value="p">Paragraph</option>
-                            <option value="h1">Heading 1</option>
-                            <option value="h2" selected>Heading 2</option>
-                            <option value="h3">Heading 3</option>
-                        </select>
-                    </div>
-
-                    {{-- Bold, Italic, Underline --}}
-                    <div class="flex items-center gap-0.5 px-2 border-x border-slate-200">
-                        <button type="button" @click="formatDoc('bold')" class="w-7 h-7 hover:bg-slate-100 rounded font-bold text-slate-800 text-xs flex items-center justify-center" title="Bold">
-                            B
-                        </button>
-                        <button type="button" @click="formatDoc('italic')" class="w-7 h-7 hover:bg-slate-100 rounded italic font-serif text-slate-800 text-xs flex items-center justify-center" title="Italic">
-                            I
-                        </button>
-                        <button type="button" @click="formatDoc('underline')" class="w-7 h-7 hover:bg-slate-100 rounded underline text-slate-800 text-xs flex items-center justify-center" title="Underline">
-                            U
-                        </button>
-                    </div>
-
-                    {{-- Lists & Alignments --}}
-                    <div class="flex items-center gap-1 pr-2 border-r border-slate-200">
-                        <button type="button" @click="formatDoc('justifyLeft')" class="p-1.5 hover:bg-slate-100 rounded text-slate-600" title="Align Left">
-                            <i class="fa-solid fa-align-left text-xs"></i>
-                        </button>
-                        <button type="button" @click="formatDoc('justifyCenter')" class="p-1.5 hover:bg-slate-100 rounded text-slate-600" title="Align Center">
-                            <i class="fa-solid fa-align-center text-xs"></i>
-                        </button>
-                        <button type="button" @click="formatDoc('insertUnorderedList')" class="p-1.5 hover:bg-slate-100 rounded text-slate-600" title="Bullet List">
-                            <i class="fa-solid fa-list-ul text-xs"></i>
-                        </button>
-                    </div>
-
-                    {{-- Insert Buttons --}}
-                    <div class="flex items-center gap-1.5">
-                        <button type="button" 
-                                @click="$refs.imageInput.click()" 
-                                class="inline-flex items-center gap-1 px-2.5 py-1 hover:bg-slate-100 rounded text-slate-700 text-xs font-semibold cursor-pointer border border-transparent hover:border-slate-300 transition-colors"
-                                title="Unggah Gambar / Screenshot ke Editor (Tersimpan ke media_uploads)">
-                            <i class="fa-regular fa-image text-blue-600"></i>
-                            <span>Gambar</span>
-                        </button>
-                        <input type="file" 
-                               x-ref="imageInput" 
-                               @change="handleImageFileSelect($event)" 
-                               accept="image/*" 
-                               class="hidden">
-
-                        <button type="button" @click="insertTableSample()" class="inline-flex items-center gap-1 px-2 py-1 hover:bg-slate-100 rounded text-slate-700 text-xs font-semibold cursor-pointer border border-transparent hover:border-slate-300 transition-colors" title="Sisipkan & Kustomisasi Tabel">
-                            <i class="fa-solid fa-table text-blue-600"></i>
-                            <span>Tabel</span>
-                        </button>
-
-                        <button type="button" @click="insertLinkPrompt()" class="inline-flex items-center gap-1 px-2 py-1 hover:bg-slate-100 rounded text-slate-700 text-xs font-medium cursor-pointer" title="Sisipkan Tautan">
-                            <i class="fa-solid fa-link text-slate-500"></i>
-                            <span>Link</span>
-                        </button>
-                    </div>
-                </div>
-
-                {{-- Document Canvas --}}
-                <div id="editorCanvas" 
-                     contenteditable="true" 
-                     @paste="handleEditorPaste($event)"
-                     @dragover.prevent
-                     @drop.prevent="handleEditorDrop($event)"
-                     class="p-6 sm:p-10 min-h-[580px] bg-white text-slate-800 text-sm leading-relaxed focus:outline-none">
-                </div>
-
-                {{-- Status Bar Bawah TinyMCE --}}
-                <div class="bg-slate-50 border-t border-slate-200 px-4 py-1.5 flex items-center justify-between text-[11px] text-slate-400 font-mono select-none">
-                    <div class="flex items-center gap-3">
-                        <span>div &gt; p</span>
-                        <span>Press Alt+0 for help</span>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <span x-text="wordCount + ' words'"></span>
-                        <span>•</span>
-                        <span class="font-sans font-medium text-slate-500">Build with tinyMCE</span>
-                        <i class="fa-solid fa-caret-right text-[9px] text-slate-400"></i>
-                    </div>
-                </div>
+            <div id="editorContainer" class="border border-slate-300 dark:border-slate-700/80 rounded-2xl overflow-hidden shadow-xs bg-white text-slate-900">
+                <textarea id="editorCanvas" name="content" class="w-full">{!! $article->content !!}</textarea>
             </div>
         </div>
 
@@ -669,7 +668,4 @@ function editArtikelSolusi() {
         </div>
 
     </div>
-
-    {{-- Partial Enhancements: Resize Gambar, Batas Upload 1MB, & Tabel Interaktif --}}
-    @include('partials.editor-enhancements')
 </x-app-layout>

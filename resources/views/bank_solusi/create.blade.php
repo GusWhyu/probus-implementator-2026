@@ -22,9 +22,119 @@ function createArtikelSolusi() {
                     }
 
                     this.$nextTick(() => {
-                        if (window.ProbusEditorEnhancer) {
-                            window.ProbusEditorEnhancer.init('editorCanvas', 'editorContainer');
-                        }
+                        this.initTinyMCE();
+                    });
+                },
+
+                initTinyMCE() {
+                    if (typeof tinymce === 'undefined') return;
+
+                    if (tinymce.get('editorCanvas')) {
+                        tinymce.get('editorCanvas').remove();
+                    }
+
+                    const isDark = document.documentElement.classList.contains('dark');
+
+                    tinymce.init({
+                        selector: '#editorCanvas',
+                        height: 580,
+                        promotion: false,
+                        branding: false,
+                        skin: isDark ? 'oxide-dark' : 'oxide',
+                        content_css: isDark ? 'dark' : 'default',
+                        menubar: 'file edit view insert format tools table help',
+                        plugins: [
+                            'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
+                            'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
+                            'insertdatetime', 'media', 'table', 'help', 'wordcount'
+                        ],
+                        toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | ' +
+                                 'alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | ' +
+                                 'forecolor backcolor | link image table media | code preview fullscreen help',
+                        toolbar_mode: 'sliding',
+                        image_advtab: true,
+                        image_caption: true,
+                        image_title: true,
+                        automatic_uploads: true,
+                        file_picker_types: 'image',
+                        images_upload_handler: function (blobInfo, progress) {
+                            return new Promise((resolve, reject) => {
+                                const file = blobInfo.blob();
+                                if (file.size > 1024 * 1024) {
+                                    reject('Ukuran file gambar maksimal 1 MB (1024 KB).');
+                                    return;
+                                }
+
+                                const formData = new FormData();
+                                formData.append('image', file, blobInfo.filename());
+                                formData.append('_token', '{{ csrf_token() }}');
+
+                                fetch('{{ route("bank-solusi.upload_image") }}', {
+                                    method: 'POST',
+                                    body: formData,
+                                    headers: {
+                                        'X-Requested-With': 'XMLHttpRequest'
+                                    }
+                                })
+                                .then(response => {
+                                    if (!response.ok) {
+                                        return response.json().then(err => { throw new Error(err.message || 'Gagal mengunggah gambar'); });
+                                    }
+                                    return response.json();
+                                })
+                                .then(result => {
+                                    if (result.location || result.url) {
+                                        resolve(result.location || result.url);
+                                    } else {
+                                        reject('Respon server tidak valid.');
+                                    }
+                                })
+                                .catch(error => {
+                                    reject(error.message || 'Terjadi kesalahan saat mengunggah gambar.');
+                                });
+                            });
+                        },
+                        table_default_attributes: {
+                            border: '1'
+                        },
+                        table_default_styles: {
+                            'border-collapse': 'collapse',
+                            'width': '100%'
+                        },
+                        content_style: `
+                            body { 
+                                font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
+                                font-size: 14px; 
+                                color: ${isDark ? '#e2e8f0' : '#1e293b'}; 
+                                background-color: ${isDark ? '#0b1324' : '#ffffff'};
+                                padding: 16px; 
+                                line-height: 1.6; 
+                            }
+                            table { 
+                                border-collapse: collapse; 
+                                width: 100%; 
+                                margin: 16px 0; 
+                                border: 1.5px solid #64748b; 
+                            }
+                            th { 
+                                background-color: #0b1a36; 
+                                color: #ffffff; 
+                                font-weight: 700; 
+                                border: 1px solid #64748b; 
+                                padding: 10px 14px; 
+                            }
+                            td { 
+                                border: 1px solid ${isDark ? '#475569' : '#cbd5e1'}; 
+                                padding: 10px 14px; 
+                            }
+                            img { 
+                                max-width: 100%; 
+                                height: auto; 
+                                border-radius: 8px; 
+                                margin: 12px 0;
+                            }
+                            h1, h2, h3, h4 { color: ${isDark ? '#f8fafc' : '#0f172a'}; font-weight: 700; }
+                        `
                     });
                 },
 
@@ -245,10 +355,25 @@ function createArtikelSolusi() {
                         return;
                     }
 
-                    const canvas = document.getElementById('editorCanvas');
-                    const content = canvas ? canvas.innerHTML.trim() : '';
+                    let content = '';
+                    if (typeof tinymce !== 'undefined' && tinymce.get('editorCanvas')) {
+                        content = tinymce.get('editorCanvas').getContent().trim();
+                    } else {
+                        const canvas = document.getElementById('editorCanvas');
+                        content = canvas ? (canvas.value || canvas.innerHTML).trim() : '';
+                    }
+
                     if (!content) {
-                        alert('Isi artikel panduan tidak boleh kosong.');
+                        if (typeof Swal !== 'undefined') {
+                            Swal.fire({
+                                icon: 'warning',
+                                title: 'Konten Wajib Diisi',
+                                text: 'Isi artikel panduan tidak boleh kosong.',
+                                confirmButtonColor: '#2563eb'
+                            });
+                        } else {
+                            alert('Isi artikel panduan tidak boleh kosong.');
+                        }
                         return;
                     }
 
@@ -514,224 +639,45 @@ function createArtikelSolusi() {
             </div>
 
             {{-- TinyMCE Visual Editor Container --}}
-            <div id="editorContainer" class="relative border border-slate-300 dark:border-slate-700/80 rounded-2xl overflow-hidden shadow-xs bg-white text-slate-900">
-                
-                {{-- Menu Bar TinyMCE (File, Edit, View, Insert, Format, Tools, Table, Help) --}}
-                <div class="bg-slate-50 border-b border-slate-200 px-3 py-1.5 flex flex-wrap items-center gap-4 text-xs font-medium text-slate-700 select-none">
-                    <span class="hover:text-blue-600 cursor-pointer">File</span>
-                    <span class="hover:text-blue-600 cursor-pointer">Edit</span>
-                    <span class="hover:text-blue-600 cursor-pointer">View</span>
-                    <span class="hover:text-blue-600 cursor-pointer">Insert</span>
-                    <span class="hover:text-blue-600 cursor-pointer">Format</span>
-                    <span class="hover:text-blue-600 cursor-pointer">Tools</span>
-                    <span class="hover:text-blue-600 cursor-pointer flex items-center gap-1">Table</span>
-                    <span class="hover:text-blue-600 cursor-pointer">Help</span>
-                </div>
-
-                {{-- Toolbar TinyMCE --}}
-                <div class="bg-white border-b border-slate-200 px-3 py-2 flex flex-wrap items-center gap-2 sm:gap-2.5 text-xs text-slate-700 select-none">
-                    {{-- Undo / Redo --}}
-                    <div class="flex items-center gap-1 pr-2 border-r border-slate-200">
-                        <button type="button" @click="formatDoc('undo')" class="p-1.5 hover:bg-slate-100 rounded text-slate-600 hover:text-slate-900" title="Undo">
-                            <i class="fa-solid fa-arrow-rotate-left"></i>
-                        </button>
-                        <button type="button" @click="formatDoc('redo')" class="p-1.5 hover:bg-slate-100 rounded text-slate-600 hover:text-slate-900" title="Redo">
-                            <i class="fa-solid fa-arrow-rotate-right"></i>
-                        </button>
-                    </div>
-
-                    {{-- Format Dropdown --}}
-                    <div class="relative">
-                        <select @change="formatHeading($event.target.value)" class="text-xs font-semibold px-2.5 py-1 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded cursor-pointer pr-6">
-                            <option value="p">Paragraph</option>
-                            <option value="h1">Heading 1</option>
-                            <option value="h2" selected>Heading 2</option>
-                            <option value="h3">Heading 3</option>
-                        </select>
-                    </div>
-
-                    {{-- Font Size --}}
-                    <div class="flex items-center border border-slate-200 rounded px-1.5 py-0.5 bg-slate-50 text-[11px] gap-1.5">
-                        <span class="text-slate-400 cursor-pointer">-</span>
-                        <span class="font-semibold text-slate-700">14px</span>
-                        <span class="text-slate-400 cursor-pointer">+</span>
-                    </div>
-
-                    {{-- Bold, Italic, Underline --}}
-                    <div class="flex items-center gap-0.5 px-2 border-x border-slate-200">
-                        <button type="button" @click="formatDoc('bold')" class="w-7 h-7 hover:bg-slate-100 rounded font-bold text-slate-800 text-xs flex items-center justify-center" title="Bold">
-                            B
-                        </button>
-                        <button type="button" @click="formatDoc('italic')" class="w-7 h-7 hover:bg-slate-100 rounded italic font-serif text-slate-800 text-xs flex items-center justify-center" title="Italic">
-                            I
-                        </button>
-                        <button type="button" @click="formatDoc('underline')" class="w-7 h-7 hover:bg-slate-100 rounded underline text-slate-800 text-xs flex items-center justify-center" title="Underline">
-                            U
-                        </button>
-                    </div>
-
-                    {{-- Lists & Alignments --}}
-                    <div class="flex items-center gap-1 pr-2 border-r border-slate-200">
-                        <button type="button" @click="formatDoc('justifyLeft')" class="p-1.5 hover:bg-slate-100 rounded text-slate-600" title="Align Left">
-                            <i class="fa-solid fa-align-left text-xs"></i>
-                        </button>
-                        <button type="button" @click="formatDoc('justifyCenter')" class="p-1.5 hover:bg-slate-100 rounded text-slate-600" title="Align Center">
-                            <i class="fa-solid fa-align-center text-xs"></i>
-                        </button>
-                        <button type="button" @click="formatDoc('insertUnorderedList')" class="p-1.5 hover:bg-slate-100 rounded text-slate-600" title="Bullet List">
-                            <i class="fa-solid fa-list-ul text-xs"></i>
-                        </button>
-                    </div>
-
-                    {{-- Insert Buttons --}}
-                    <div class="flex items-center gap-1.5">
-                        <button type="button" 
-                                @click="$refs.imageInput.click()" 
-                                class="inline-flex items-center gap-1 px-2.5 py-1 hover:bg-slate-100 rounded text-slate-700 text-xs font-semibold cursor-pointer border border-transparent hover:border-slate-300 transition-colors"
-                                title="Unggah Gambar / Screenshot ke Editor (Tersimpan ke media_uploads)">
-                            <i class="fa-regular fa-image text-blue-600"></i>
-                            <span>Gambar</span>
-                        </button>
-                        <input type="file" 
-                               x-ref="imageInput" 
-                               @change="handleImageFileSelect($event)" 
-                               accept="image/*" 
-                               class="hidden">
-
-                        <button type="button" @click="insertTableSample()" class="inline-flex items-center gap-1 px-2 py-1 hover:bg-slate-100 rounded text-slate-700 text-xs font-semibold cursor-pointer border border-transparent hover:border-slate-300 transition-colors" title="Sisipkan & Kustomisasi Tabel">
-                            <i class="fa-solid fa-table text-blue-600"></i>
-                            <span>Tabel</span>
-                        </button>
-
-                        <button type="button" @click="insertLinkPrompt()" class="inline-flex items-center gap-1 px-2 py-1 hover:bg-slate-100 rounded text-slate-700 text-xs font-medium cursor-pointer" title="Sisipkan Tautan">
-                            <i class="fa-solid fa-link text-slate-500"></i>
-                            <span>Link</span>
-                        </button>
-                    </div>
-                </div>
-
-                {{-- Document Canvas (Identik 100% dengan Gambar User) --}}
-                <div id="editorCanvas" 
-                     contenteditable="true" 
-                     @paste="handleEditorPaste($event)"
-                     @dragover.prevent
-                     @drop.prevent="handleEditorDrop($event)"
-                     class="p-6 sm:p-10 min-h-[580px] bg-white text-slate-800 text-sm leading-relaxed focus:outline-none">
-                    
-                    {{-- Intro Text --}}
-                    <p class="mb-4 text-slate-700 text-sm">
-                        Ikuti langkah pengecekan berikut secara berurutan untuk mengatasi printer kasir atau dapur yang mendadak tidak mencetak struk.
-                    </p>
-
-                    {{-- Subheading 1 --}}
-                    <h2 class="text-base font-bold text-slate-900 mt-5 mb-2.5">
-                        1. Periksa Fisik Printer &amp; Lampu Indikator (LED)
-                    </h2>
-
-                    <p class="mb-4 text-slate-700 text-sm">
-                        Langkah awal adalah memeriksa bagian fisik luar printer thermal Anda di meja kasir. Perhatikan tuas penutup kertas dan status lampu indikator pada panel depan printer:
-                    </p>
-
-                    {{-- Graphic / Mockup Diagram 1 (fisik_printer_thermal.png) --}}
-                    <div class="my-4 max-w-lg bg-slate-50 border border-slate-200 rounded-xl p-3 select-none">
-                        <div class="text-[11px] font-mono text-slate-400 mb-2.5 flex items-center gap-1.5">
-                            <i class="fa-regular fa-file-image"></i>
-                            <span>fisik_printer_thermal.png [480 × 180 px]</span>
-                        </div>
-
-                        {{-- Diagram Frame Red Outline --}}
-                        <div class="space-y-2">
-                            <div class="border-2 border-red-500 rounded-lg p-2.5 text-center text-xs font-bold text-red-600 bg-white shadow-2xs">
-                                [1] Cover Penutup Kertas Thermal (Pastikan Rapat)
-                            </div>
-                            <div class="border-2 border-red-500 rounded-lg p-2.5 text-center text-xs font-bold text-red-600 bg-white shadow-2xs flex items-center justify-center gap-4">
-                                <span>[2] Panel Indikator LED:</span>
-                                <span class="inline-flex items-center gap-1 text-slate-800"><span class="w-2 h-2 rounded-full bg-emerald-500"></span> Power</span>
-                                <span class="inline-flex items-center gap-1 text-slate-800"><span class="w-2 h-2 rounded-full bg-rose-500"></span> Error</span>
-                                <span class="inline-flex items-center gap-1 text-slate-800"><span class="w-2 h-2 rounded-full bg-amber-500"></span> Paper</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <p class="text-xs font-bold text-slate-700 mb-2 mt-4">Keterangan:</p>
-
-                    {{-- Table Penjelasan Indikator --}}
-                    <div class="overflow-x-auto my-3">
-                        <table class="w-full text-left border-collapse text-xs border border-slate-200">
-                            <thead>
-                                <tr class="bg-slate-50 border-b border-slate-200 text-slate-700 font-bold">
-                                    <th class="py-2.5 px-4 w-12 border-r border-slate-200 text-center">No</th>
-                                    <th class="py-2.5 px-4 w-48 border-r border-slate-200">Bagian / Indikator</th>
-                                    <th class="py-2.5 px-4">Deskripsi &amp; Solusi</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-slate-200">
-                                <tr class="hover:bg-slate-50/50">
-                                    <td class="py-2.5 px-4 text-center font-semibold border-r border-slate-200">1</td>
-                                    <td class="py-2.5 px-4 font-bold border-r border-slate-200 text-slate-800">Cover Kertas Thermal</td>
-                                    <td class="py-2.5 px-4 text-slate-700">Tekan penutup kertas hingga berbunyi klik di kedua sisi agar sensor printer siap mencetak.</td>
-                                </tr>
-                                <tr class="hover:bg-slate-50/50">
-                                    <td class="py-2.5 px-4 text-center font-semibold border-r border-slate-200">2</td>
-                                    <td class="py-2.5 px-4 font-bold border-r border-slate-200 text-slate-800">Lampu ERROR (Merah)</td>
-                                    <td class="py-2.5 px-4 text-slate-700">Bila berkedip merah, penutup kertas belum rapat atau kertas macet di pemotong (cutter).</td>
-                                </tr>
-                                <tr class="hover:bg-slate-50/50">
-                                    <td class="py-2.5 px-4 text-center font-semibold border-r border-slate-200">3</td>
-                                    <td class="py-2.5 px-4 font-bold border-r border-slate-200 text-slate-800">Lampu PAPER (Kuning)</td>
-                                    <td class="py-2.5 px-4 text-slate-700">Bila menyala kuning, gulungan kertas thermal habis atau posisi pemasangannya terbalik.</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-
-                    {{-- Subheading 2 --}}
-                    <h2 class="text-base font-bold text-slate-900 mt-6 mb-2.5">
-                        2. Pastikan Posisi Kertas &amp; Restart Printer (Power Cycle)
-                    </h2>
-
-                    <ul class="list-disc pl-5 space-y-2 mb-4 text-slate-700 text-sm">
-                        <li>Pastikan gulungan kertas thermal tidak terbalik (goreskan kuku pada permukaan kertas; sisi yang meninggalkan goresan hitam harus menghadap pemanas).</li>
-                        <li>Matikan saklar power printer (OFF), tunggu 10 detik untuk mengosongkan antrean memori (spooler), lalu nyalakan kembali (ON).</li>
-                    </ul>
-
-                    {{-- Subheading 3 --}}
-                    <h2 class="text-base font-bold text-slate-900 mt-6 mb-2.5">
-                        3. Lakukan Uji Cetak dari Layar Order Taker
-                    </h2>
-
-                    <p class="mb-4 text-slate-700 text-sm">
-                        Setelah lampu indikator printer menyala normal, buka menu Pengaturan Printer pada aplikasi Order Taker lalu klik tombol Uji Cetak Struk Sample:
-                    </p>
-
-                    {{-- Graphic / Mockup Diagram 2 (pengaturan_printer_order_taker.png) --}}
-                    <div class="my-4 max-w-lg bg-slate-50 border border-slate-200 rounded-xl p-3 select-none">
-                        <div class="text-[11px] font-mono text-slate-400 mb-2 flex items-center gap-1.5">
-                            <i class="fa-regular fa-file-image"></i>
-                            <span>pengaturan_printer_order_taker.png [480 × 140 px]</span>
-                        </div>
-
-                        {{-- Diagram Frame Red Button --}}
-                        <div class="border-2 border-red-500 rounded-lg p-3 text-center text-xs font-bold text-red-600 bg-white shadow-2xs">
-                            [3] Tombol Uji Cetak Struk Sample (IP: 192.168.1.150 • Port: 9100)
-                        </div>
-                    </div>
-
-                </div>
-
-                {{-- Status Bar Bawah TinyMCE --}}
-                <div class="bg-slate-50 border-t border-slate-200 px-4 py-1.5 flex items-center justify-between text-[11px] text-slate-400 font-mono select-none">
-                    <div class="flex items-center gap-3">
-                        <span>div &gt; p</span>
-                        <span>Press Alt+0 for help</span>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <span>148 words</span>
-                        <span>•</span>
-                        <span class="font-sans font-medium text-slate-500">Build with tinyMCE</span>
-                        <i class="fa-solid fa-caret-right text-[9px] text-slate-400"></i>
-                    </div>
-                </div>
+            <div id="editorContainer" class="border border-slate-300 dark:border-slate-700/80 rounded-2xl overflow-hidden shadow-xs bg-white text-slate-900">
+                <textarea id="editorCanvas" name="content" class="w-full">
+<p>Ikuti langkah pengecekan berikut secara berurutan untuk mengatasi printer kasir atau dapur yang mendadak tidak mencetak struk.</p>
+<h2>1. Periksa Fisik Printer &amp; Lampu Indikator (LED)</h2>
+<p>Langkah awal adalah memeriksa bagian fisik luar printer thermal Anda di meja kasir. Perhatikan tuas penutup kertas dan status lampu indikator pada panel depan printer:</p>
+<table class="probus-table">
+    <thead>
+        <tr>
+            <th style="width: 50px; text-align: center;">No</th>
+            <th style="width: 180px;">Bagian / Indikator</th>
+            <th>Deskripsi &amp; Solusi</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td style="text-align: center;">1</td>
+            <td><strong>Cover Kertas Thermal</strong></td>
+            <td>Tekan penutup kertas hingga berbunyi klik di kedua sisi agar sensor printer siap mencetak.</td>
+        </tr>
+        <tr>
+            <td style="text-align: center;">2</td>
+            <td><strong>Lampu ERROR (Merah)</strong></td>
+            <td>Bila berkedip merah, penutup kertas belum rapat atau kertas macet di pemotong (cutter).</td>
+        </tr>
+        <tr>
+            <td style="text-align: center;">3</td>
+            <td><strong>Lampu PAPER (Kuning)</strong></td>
+            <td>Bila menyala kuning, gulungan kertas thermal habis atau posisi pemasangannya terbalik.</td>
+        </tr>
+    </tbody>
+</table>
+<h2>2. Pastikan Posisi Kertas &amp; Restart Printer (Power Cycle)</h2>
+<ul>
+    <li>Pastikan gulungan kertas thermal tidak terbalik (goreskan kuku pada permukaan kertas; sisi yang meninggalkan goresan hitam harus menghadap pemanas).</li>
+    <li>Matikan saklar power printer (OFF), tunggu 10 detik untuk mengosongkan antrean memori (spooler), lalu nyalakan kembali (ON).</li>
+</ul>
+<h2>3. Lakukan Uji Cetak dari Layar Order Taker</h2>
+<p>Setelah lampu indikator printer menyala normal, buka menu Pengaturan Printer pada aplikasi Order Taker lalu klik tombol Uji Cetak Struk Sample.</p>
+                </textarea>
             </div>
         </div>
 
@@ -774,8 +720,5 @@ function createArtikelSolusi() {
         </div>
 
     </div>
-
-    {{-- Partial Enhancements: Resize Gambar, Batas Upload 1MB, & Tabel Interaktif --}}
-    @include('partials.editor-enhancements')
 </x-app-layout>
 
