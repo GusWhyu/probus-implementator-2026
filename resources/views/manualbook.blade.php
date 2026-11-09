@@ -787,18 +787,12 @@ function manualBookApp() {
                 {{-- Form Input 3: WYSIWYG EDITOR --}}
                 <div class="space-y-1.5">
                     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                        <div class="flex flex-wrap items-center gap-2">
-                            <label class="text-[11px] font-extrabold tracking-wider text-slate-500 dark:text-slate-400 uppercase">
-                                TATA CARA PENGGUNAAN MODUL (TINYMCE RICH TEXT EDITOR)
-                            </label>
-                            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
-                                <i class="fa-solid fa-triangle-exclamation text-[9px]"></i>
-                                <span>Maks. Gambar: 1 MB (Tidak Boleh Lebih)</span>
-                            </span>
-                        </div>
+                        <label class="text-[11px] font-extrabold tracking-wider text-slate-500 dark:text-slate-400 uppercase">
+                            TATA CARA PENGGUNAAN MODUL (TINYMCE RICH TEXT EDITOR)
+                        </label>
                         <span class="text-[11px] text-amber-600 dark:text-amber-400 font-semibold italic flex items-center gap-1">
                             <i class="fa-regular fa-image text-xs"></i>
-                            Bisa Drag &amp; Drop / Paste Gambar (&le; 1 MB)
+                            Bisa Drag &amp; Drop / Paste Gambar (Maks. 1 MB)
                         </span>
                     </div>
 
