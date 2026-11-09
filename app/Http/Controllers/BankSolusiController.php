@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use App\Models\Article;
 use App\Models\Kategori;
@@ -432,11 +433,26 @@ class BankSolusiController extends Controller
      */
     public function uploadImage(Request $request)
     {
-        $request->validate([
-            'image' => 'nullable|file|mimes:jpeg,png,jpg,gif,webp,svg|max:10240',
-            'file' => 'nullable|file|mimes:jpeg,png,jpg,gif,webp,svg|max:10240',
-            'upload' => 'nullable|file|mimes:jpeg,png,jpg,gif,webp,svg|max:10240',
+        // Validasi file gambar maksimal 1 MB (1024 KB) sesuai instruksi
+        $validator = Validator::make($request->all(), [
+            'image'  => 'nullable|file|mimes:jpeg,png,jpg,gif,webp,svg|max:1024',
+            'file'   => 'nullable|file|mimes:jpeg,png,jpg,gif,webp,svg|max:1024',
+            'upload' => 'nullable|file|mimes:jpeg,png,jpg,gif,webp,svg|max:1024',
+        ], [
+            'image.max'   => 'Ukuran file gambar maksimal 1 MB (1024 KB).',
+            'file.max'    => 'Ukuran file gambar maksimal 1 MB (1024 KB).',
+            'upload.max'  => 'Ukuran file gambar maksimal 1 MB (1024 KB).',
+            'image.mimes' => 'Format file harus berupa gambar valid (JPEG, PNG, JPG, GIF, WebP, SVG).',
+            'file.mimes'  => 'Format file harus berupa gambar valid (JPEG, PNG, JPG, GIF, WebP, SVG).',
+            'upload.mimes'=> 'Format file harus berupa gambar valid (JPEG, PNG, JPG, GIF, WebP, SVG).',
         ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => $validator->errors()->first(),
+            ], 422);
+        }
 
         $file = $request->file('image');
         if (!$file) {

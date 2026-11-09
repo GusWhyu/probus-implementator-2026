@@ -20,6 +20,12 @@ function createArtikelSolusi() {
                             this.selectedModuleId = defaultCat.menu_systems[0].id;
                         }
                     }
+
+                    this.$nextTick(() => {
+                        if (window.ProbusEditorEnhancer) {
+                            window.ProbusEditorEnhancer.init('editorCanvas', 'editorContainer');
+                        }
+                    });
                 },
 
                 get currentModules() {
@@ -46,30 +52,34 @@ function createArtikelSolusi() {
                 },
 
                 insertTableSample() {
-                    const tableHtml = `
-                        <table style="width: 100%; border-collapse: collapse; margin: 15px 0; border: 1px solid #cbd5e1;">
-                            <thead>
-                                <tr style="background-color: #f8fafc; font-weight: bold; text-align: left;">
-                                    <th style="padding: 8px 12px; border: 1px solid #cbd5e1; width: 40px; text-align: center;">No</th>
-                                    <th style="padding: 8px 12px; border: 1px solid #cbd5e1; width: 160px;">Kolom 1</th>
-                                    <th style="padding: 8px 12px; border: 1px solid #cbd5e1;">Keterangan & Penjelasan</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td style="padding: 8px 12px; border: 1px solid #cbd5e1; text-align: center;">1</td>
-                                    <td style="padding: 8px 12px; border: 1px solid #cbd5e1; font-weight: 600;">Item Pertama</td>
-                                    <td style="padding: 8px 12px; border: 1px solid #cbd5e1;">Deskripsi atau langkah yang perlu diperiksa.</td>
-                                </tr>
-                                <tr>
-                                    <td style="padding: 8px 12px; border: 1px solid #cbd5e1; text-align: center;">2</td>
-                                    <td style="padding: 8px 12px; border: 1px solid #cbd5e1; font-weight: 600;">Item Kedua</td>
-                                    <td style="padding: 8px 12px; border: 1px solid #cbd5e1;">Deskripsi atau langkah lanjutan.</td>
-                                </tr>
-                            </tbody>
-                        </table><p></p>
-                    `;
-                    document.execCommand('insertHTML', false, tableHtml);
+                    if (window.ProbusEditorEnhancer) {
+                        window.ProbusEditorEnhancer.openTableModal();
+                    } else {
+                        const tableHtml = `
+                            <table style="width: 100%; border-collapse: collapse; margin: 15px 0; border: 1px solid #cbd5e1;">
+                                <thead>
+                                    <tr style="background-color: #0e1f3d; color: #ffffff; font-weight: bold; text-align: left;">
+                                        <th style="padding: 10px 14px; border: 1px solid #334155; width: 50px; text-align: center;">No</th>
+                                        <th style="padding: 10px 14px; border: 1px solid #334155; width: 180px;">Kolom 1</th>
+                                        <th style="padding: 10px 14px; border: 1px solid #334155;">Keterangan & Penjelasan</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td style="padding: 10px 14px; border: 1px solid #334155; text-align: center;">1</td>
+                                        <td style="padding: 10px 14px; border: 1px solid #334155; font-weight: 600;">Item Pertama</td>
+                                        <td style="padding: 10px 14px; border: 1px solid #334155;">Deskripsi atau langkah yang perlu diperiksa.</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 10px 14px; border: 1px solid #334155; text-align: center;">2</td>
+                                        <td style="padding: 10px 14px; border: 1px solid #334155; font-weight: 600;">Item Kedua</td>
+                                        <td style="padding: 10px 14px; border: 1px solid #334155;">Deskripsi atau langkah lanjutan.</td>
+                                    </tr>
+                                </tbody>
+                            </table><p></p>
+                        `;
+                        document.execCommand('insertHTML', false, tableHtml);
+                    }
                 },
 
                 insertLinkPrompt() {
@@ -113,6 +123,11 @@ function createArtikelSolusi() {
                 uploadAndInsertImage(file) {
                     if (!file) return;
 
+                    // Validasi batas ukuran gambar maksimal 1 MB (< 1024 KB)
+                    if (window.ProbusEditorEnhancer && !window.ProbusEditorEnhancer.validateImageFile(file)) {
+                        return;
+                    }
+
                     const formData = new FormData();
                     formData.append('image', file);
                     formData.append('_token', '{{ csrf_token() }}');
@@ -121,7 +136,7 @@ function createArtikelSolusi() {
                     if (typeof Swal !== 'undefined') {
                         Swal.fire({
                             title: 'Mengunggah Gambar...',
-                            text: 'Gambar sedang disimpan ke server.',
+                            text: 'Memverifikasi dan menyimpan gambar ke server.',
                             allowOutsideClick: false,
                             didOpen: () => {
                                 Swal.showLoading();
@@ -133,17 +148,24 @@ function createArtikelSolusi() {
                         method: 'POST',
                         body: formData,
                         headers: {
-                            'X-Requested-With': 'XMLHttpRequest'
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'Accept': 'application/json'
                         }
                     })
                     .then(response => {
-                        if (!response.ok) throw new Error('Gagal mengunggah gambar');
+                        if (!response.ok) {
+                            return response.json().then(err => { throw err; });
+                        }
                         return response.json();
                     })
                     .then(data => {
+                        if (typeof Swal !== 'undefined') {
+                            Swal.close();
+                        }
                         if (data.location || data.url) {
                             const imgUrl = data.location || data.url;
-                            const imgHtml = `<p><img src="${imgUrl}" alt="Screenshot Panduan" style="max-width: 100%; height: auto; border-radius: 12px; margin: 12px 0; border: 1px solid #cbd5e1; box-shadow: 0 1px 3px rgba(0,0,0,0.1);" /></p><p></p>`;
+                            const imgHtml = `<p><img src="${imgUrl}" alt="Screenshot Panduan" style="max-width: 100%; height: auto; border-radius: 12px; margin: 16px auto; display: block; border: 1px solid #cbd5e1; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);" /></p><p></p>`;
                             
                             // Sisipkan ke posisi kursor atau canvas
                             const canvas = document.getElementById('editorCanvas');
@@ -155,22 +177,37 @@ function createArtikelSolusi() {
                                     icon: 'success',
                                     title: 'Gambar Berhasil Diunggah!',
                                     text: 'Gambar telah dimasukkan ke editor dan dicatat ke tabel media_uploads.',
-                                    timer: 2000,
+                                    timer: 1800,
                                     showConfirmButton: false
                                 });
                             }
+
+                            // Auto-select image for resizing
+                            this.$nextTick(() => {
+                                if (canvas && window.ProbusEditorEnhancer) {
+                                    const allImgs = canvas.querySelectorAll('img');
+                                    const latestImg = allImgs[allImgs.length - 1];
+                                    if (latestImg) {
+                                        window.ProbusEditorEnhancer.selectImage(latestImg);
+                                    }
+                                }
+                            });
                         }
                     })
                     .catch(error => {
                         console.error('Error upload:', error);
+                        let errMsg = 'Terjadi kesalahan saat mengunggah gambar. Pastikan format gambar valid (PNG/JPG/WEBP) dan ukuran file di bawah 1 MB.';
+                        if (error && error.message) errMsg = error.message;
+
                         if (typeof Swal !== 'undefined') {
                             Swal.fire({
                                 icon: 'error',
                                 title: 'Gagal Mengunggah',
-                                text: 'Terjadi kesalahan saat mengunggah gambar. Pastikan format gambar valid (PNG/JPG/WEBP).',
+                                text: errMsg,
+                                confirmButtonColor: '#2563eb'
                             });
                         } else {
-                            alert('Gagal mengunggah gambar.');
+                            alert(errMsg);
                         }
                     });
                 },
@@ -477,7 +514,7 @@ function createArtikelSolusi() {
             </div>
 
             {{-- TinyMCE Visual Editor Container --}}
-            <div class="border border-slate-300 dark:border-slate-700/80 rounded-2xl overflow-hidden shadow-xs bg-white text-slate-900">
+            <div id="editorContainer" class="relative border border-slate-300 dark:border-slate-700/80 rounded-2xl overflow-hidden shadow-xs bg-white text-slate-900">
                 
                 {{-- Menu Bar TinyMCE (File, Edit, View, Insert, Format, Tools, Table, Help) --}}
                 <div class="bg-slate-50 border-b border-slate-200 px-3 py-1.5 flex flex-wrap items-center gap-4 text-xs font-medium text-slate-700 select-none">
@@ -561,8 +598,8 @@ function createArtikelSolusi() {
                                accept="image/*" 
                                class="hidden">
 
-                        <button type="button" @click="insertTableSample()" class="inline-flex items-center gap-1 px-2 py-1 hover:bg-slate-100 rounded text-slate-700 text-xs font-medium cursor-pointer" title="Sisipkan Tabel Standar">
-                            <i class="fa-solid fa-table text-slate-500"></i>
+                        <button type="button" @click="insertTableSample()" class="inline-flex items-center gap-1 px-2 py-1 hover:bg-slate-100 rounded text-slate-700 text-xs font-semibold cursor-pointer border border-transparent hover:border-slate-300 transition-colors" title="Sisipkan & Kustomisasi Tabel">
+                            <i class="fa-solid fa-table text-blue-600"></i>
                             <span>Tabel</span>
                         </button>
 
@@ -738,6 +775,7 @@ function createArtikelSolusi() {
 
     </div>
 
-    {{-- Alpine.js Controller Logic --}}
+    {{-- Partial Enhancements: Resize Gambar, Batas Upload 1MB, & Tabel Interaktif --}}
+    @include('partials.editor-enhancements')
 </x-app-layout>
 

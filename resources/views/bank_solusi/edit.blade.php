@@ -19,6 +19,12 @@ function editArtikelSolusi() {
                         canvas.innerHTML = {!! json_encode($article->content) !!};
                         this.updateWordCount();
                         canvas.addEventListener('input', () => this.updateWordCount());
+
+                        this.$nextTick(() => {
+                            if (window.ProbusEditorEnhancer) {
+                                window.ProbusEditorEnhancer.init('editorCanvas', 'editorContainer');
+                            }
+                        });
                     }
                 },
 
@@ -48,26 +54,30 @@ function editArtikelSolusi() {
                 },
 
                 insertTableSample() {
-                    const tableHtml = `
-                        <table style="width: 100%; border-collapse: collapse; margin: 15px 0; border: 1px solid #cbd5e1;">
-                            <thead>
-                                <tr style="background-color: #f8fafc; font-weight: bold; text-align: left;">
-                                    <th style="padding: 8px 12px; border: 1px solid #cbd5e1; width: 40px; text-align: center;">No</th>
-                                    <th style="padding: 8px 12px; border: 1px solid #cbd5e1; width: 160px;">Bagian / Indikator</th>
-                                    <th style="padding: 8px 12px; border: 1px solid #cbd5e1;">Deskripsi & Solusi</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td style="padding: 8px 12px; border: 1px solid #cbd5e1; text-align: center;">1</td>
-                                    <td style="padding: 8px 12px; border: 1px solid #cbd5e1; font-weight: 600;">Item Pertama</td>
-                                    <td style="padding: 8px 12px; border: 1px solid #cbd5e1;">Deskripsi atau langkah yang perlu diperiksa.</td>
-                                </tr>
-                            </tbody>
-                        </table><p></p>
-                    `;
-                    document.execCommand('insertHTML', false, tableHtml);
-                    this.updateWordCount();
+                    if (window.ProbusEditorEnhancer) {
+                        window.ProbusEditorEnhancer.openTableModal();
+                    } else {
+                        const tableHtml = `
+                            <table style="width: 100%; border-collapse: collapse; margin: 15px 0; border: 1px solid #cbd5e1;">
+                                <thead>
+                                    <tr style="background-color: #0e1f3d; color: #ffffff; font-weight: bold; text-align: left;">
+                                        <th style="padding: 10px 14px; border: 1px solid #334155; width: 50px; text-align: center;">No</th>
+                                        <th style="padding: 10px 14px; border: 1px solid #334155; width: 180px;">Bagian / Indikator</th>
+                                        <th style="padding: 10px 14px; border: 1px solid #334155;">Deskripsi & Solusi</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td style="padding: 10px 14px; border: 1px solid #334155; text-align: center;">1</td>
+                                        <td style="padding: 10px 14px; border: 1px solid #334155; font-weight: 600;">Item Pertama</td>
+                                        <td style="padding: 10px 14px; border: 1px solid #334155;">Deskripsi atau langkah yang perlu diperiksa.</td>
+                                    </tr>
+                                </tbody>
+                            </table><p></p>
+                        `;
+                        document.execCommand('insertHTML', false, tableHtml);
+                        this.updateWordCount();
+                    }
                 },
 
                 insertLinkPrompt() {
@@ -107,6 +117,11 @@ function editArtikelSolusi() {
                 uploadAndInsertImage(file) {
                     if (!file) return;
 
+                    // Validasi ukuran gambar maksimal 1 MB (< 1024 KB)
+                    if (window.ProbusEditorEnhancer && !window.ProbusEditorEnhancer.validateImageFile(file)) {
+                        return;
+                    }
+
                     const formData = new FormData();
                     formData.append('image', file);
                     formData.append('_token', '{{ csrf_token() }}');
@@ -114,7 +129,7 @@ function editArtikelSolusi() {
                     if (typeof Swal !== 'undefined') {
                         Swal.fire({
                             title: 'Mengunggah Gambar...',
-                            text: 'Gambar sedang disimpan ke server.',
+                            text: 'Memverifikasi dan menyimpan gambar ke server.',
                             allowOutsideClick: false,
                             didOpen: () => {
                                 Swal.showLoading();
@@ -132,7 +147,7 @@ function editArtikelSolusi() {
                     })
                     .then(response => {
                         if (!response.ok) {
-                            throw new Error('Gagal mengunggah gambar ke server.');
+                            return response.json().then(err => { throw err; });
                         }
                         return response.json();
                     })
@@ -142,22 +157,37 @@ function editArtikelSolusi() {
                         }
                         const imgUrl = data.url || data.location;
                         if (imgUrl) {
-                            const imgHtml = `<p><img src="${imgUrl}" alt="Screenshot Panduan" style="max-width: 100%; border-radius: 8px; margin: 12px 0; border: 1px solid #e2e8f0; box-shadow: 0 2px 4px rgba(0,0,0,0.05);"></p><p></p>`;
+                            const imgHtml = `<p><img src="${imgUrl}" alt="Screenshot Panduan" style="max-width: 100%; border-radius: 8px; margin: 16px auto; display: block; border: 1px solid #cbd5e1; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);"></p><p></p>`;
                             document.execCommand('insertHTML', false, imgHtml);
                             this.updateWordCount();
+
+                            // Seleksi gambar yang baru dimasukkan untuk langsung dapat di-resize
+                            this.$nextTick(() => {
+                                const canvas = document.getElementById('editorCanvas');
+                                if (canvas && window.ProbusEditorEnhancer) {
+                                    const allImgs = canvas.querySelectorAll('img');
+                                    const latestImg = allImgs[allImgs.length - 1];
+                                    if (latestImg) {
+                                        window.ProbusEditorEnhancer.selectImage(latestImg);
+                                    }
+                                }
+                            });
                         }
                     })
                     .catch(err => {
                         console.error('Upload error:', err);
+                        let errMsg = 'Gagal mengunggah gambar. Pastikan format file PNG/JPG/WebP valid dan ukuran file di bawah 1 MB.';
+                        if (err && err.message) errMsg = err.message;
+
                         if (typeof Swal !== 'undefined') {
                             Swal.fire({
                                 icon: 'error',
                                 title: 'Gagal Upload',
-                                text: 'Gagal mengunggah gambar. Pastikan format file PNG/JPG/WebP valid.',
+                                text: errMsg,
                                 confirmButtonColor: '#2563eb'
                             });
                         } else {
-                            alert('Gagal mengunggah gambar.');
+                            alert(errMsg);
                         }
                     });
                 },
@@ -484,7 +514,7 @@ function editArtikelSolusi() {
             </div>
 
             {{-- TinyMCE Visual Editor Container --}}
-            <div class="border border-slate-300 dark:border-slate-700/80 rounded-2xl overflow-hidden shadow-xs bg-white text-slate-900">
+            <div id="editorContainer" class="relative border border-slate-300 dark:border-slate-700/80 rounded-2xl overflow-hidden shadow-xs bg-white text-slate-900">
                 
                 {{-- Menu Bar TinyMCE (File, Edit, View, Insert, Format, Tools, Table, Help) --}}
                 <div class="bg-slate-50 border-b border-slate-200 px-3 py-1.5 flex flex-wrap items-center gap-4 text-xs font-medium text-slate-700 select-none">
@@ -561,8 +591,8 @@ function editArtikelSolusi() {
                                accept="image/*" 
                                class="hidden">
 
-                        <button type="button" @click="insertTableSample()" class="inline-flex items-center gap-1 px-2 py-1 hover:bg-slate-100 rounded text-slate-700 text-xs font-medium cursor-pointer" title="Sisipkan Tabel Standar">
-                            <i class="fa-solid fa-table text-slate-500"></i>
+                        <button type="button" @click="insertTableSample()" class="inline-flex items-center gap-1 px-2 py-1 hover:bg-slate-100 rounded text-slate-700 text-xs font-semibold cursor-pointer border border-transparent hover:border-slate-300 transition-colors" title="Sisipkan & Kustomisasi Tabel">
+                            <i class="fa-solid fa-table text-blue-600"></i>
                             <span>Tabel</span>
                         </button>
 
@@ -640,5 +670,6 @@ function editArtikelSolusi() {
 
     </div>
 
-    {{-- Alpine.js Controller Logic --}}
+    {{-- Partial Enhancements: Resize Gambar, Batas Upload 1MB, & Tabel Interaktif --}}
+    @include('partials.editor-enhancements')
 </x-app-layout>

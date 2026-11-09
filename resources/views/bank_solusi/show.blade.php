@@ -388,14 +388,14 @@ function showArtikelSolusi() {
             border-color: rgba(51, 65, 85, 0.6) !important;
         }
         .article-content th {
-            background-color: rgba(241, 245, 249, 0.8) !important;
+            background-color: rgba(241, 245, 249, 0.8);
             font-weight: 700 !important;
-            color: #1e293b !important;
+            color: #1e293b;
             text-align: left !important;
         }
-        .dark .article-content th {
-            background-color: rgba(30, 41, 59, 0.8) !important;
-            color: #f1f5f9 !important;
+        .dark .article-content th:not([style*="background"]) {
+            background-color: rgba(30, 41, 59, 0.8);
+            color: #f1f5f9;
         }
         .article-content tr:last-child td {
             border-bottom: none !important;
