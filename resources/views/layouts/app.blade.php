@@ -233,7 +233,7 @@
                     table_default_styles: {
                         'border-collapse': 'collapse',
                         'width': '100%',
-                        'border': '2px solid #64748b'
+                        'border': '1px solid #cbd5e1'
                     },
                     content_style: `
                         body { 
@@ -248,13 +248,13 @@
                             border-collapse: collapse; 
                             width: 100%; 
                             margin: 16px 0; 
-                            border: 2px solid #64748b; 
+                            border: 1px solid ${isDark ? '#475569' : '#cbd5e1'}; 
                         }
                         th { 
                             background-color: #0b1a36; 
                             color: #ffffff; 
                             font-weight: 700; 
-                            border: 1px solid #64748b; 
+                            border: 1px solid ${isDark ? '#475569' : '#cbd5e1'}; 
                             padding: 10px 14px; 
                         }
                         td { 
@@ -265,19 +265,19 @@
                         table > tbody > tr:first-child > th,
                         table > thead > tr:first-child > td,
                         table > thead > tr:first-child > th {
-                            border-top: 2px solid #64748b;
+                            border-top: 1px solid ${isDark ? '#475569' : '#cbd5e1'};
                         }
                         table > tbody > tr:last-child > td,
                         table > tbody > tr:last-child > th {
-                            border-bottom: 2px solid #64748b;
+                            border-bottom: 1px solid ${isDark ? '#475569' : '#cbd5e1'};
                         }
                         table tr > td:first-child,
                         table tr > th:first-child {
-                            border-left: 2px solid #64748b;
+                            border-left: 1px solid ${isDark ? '#475569' : '#cbd5e1'};
                         }
                         table tr > td:last-child,
                         table tr > th:last-child {
-                            border-right: 2px solid #64748b;
+                            border-right: 1px solid ${isDark ? '#475569' : '#cbd5e1'};
                         }
                         img { 
                             max-width: 100%; 

@@ -444,17 +444,15 @@ function showArtikelSolusi() {
             line-height: 1.6;
         }
 
-        /* Tabel Responsif & Indikator (Probus Navy dengan Garis Tepi Tegas & Jelas) */
+        /* Tabel Responsif & Indikator (Probus Navy: Border Seragam 1px Selaras Kolom) */
         .article-content table {
             width: 100% !important;
             border-collapse: collapse !important;
             margin: 1.5em 0 !important;
-            border: 2px solid #64748b !important;
-            box-shadow: 0 0 0 1px #64748b !important;
+            border: 1px solid #cbd5e1 !important;
         }
         .dark .article-content table {
-            border-color: #64748b !important;
-            box-shadow: 0 0 0 1px #64748b !important;
+            border: 1px solid #475569 !important;
         }
         .article-content th, 
         .article-content td {
@@ -462,31 +460,50 @@ function showArtikelSolusi() {
             border: 1px solid #cbd5e1 !important;
             font-size: 0.875rem !important;
         }
-        .dark .article-content td {
+        .dark .article-content td,
+        .dark .article-content th {
             border: 1px solid #475569 !important;
         }
-        .dark .article-content th {
-            border: 1px solid #64748b !important;
-        }
 
-        /* Garis Tepi Luar (Outer Border / Border Tepi) Selalu Terlihat & Tegas */
+        /* Garis Tepi Luar (Border Tepi) Seragam 1px Sesuai Kolom */
         .article-content table > tbody > tr:first-child > td,
         .article-content table > tbody > tr:first-child > th,
         .article-content table > thead > tr:first-child > td,
         .article-content table > thead > tr:first-child > th {
-            border-top: 2px solid #64748b !important;
+            border-top: 1px solid #cbd5e1 !important;
         }
+        .dark .article-content table > tbody > tr:first-child > td,
+        .dark .article-content table > tbody > tr:first-child > th,
+        .dark .article-content table > thead > tr:first-child > td,
+        .dark .article-content table > thead > tr:first-child > th {
+            border-top: 1px solid #475569 !important;
+        }
+
         .article-content table > tbody > tr:last-child > td,
         .article-content table > tbody > tr:last-child > th {
-            border-bottom: 2px solid #64748b !important;
+            border-bottom: 1px solid #cbd5e1 !important;
         }
+        .dark .article-content table > tbody > tr:last-child > td,
+        .dark .article-content table > tbody > tr:last-child > th {
+            border-bottom: 1px solid #475569 !important;
+        }
+
         .article-content table tr > td:first-child,
         .article-content table tr > th:first-child {
-            border-left: 2px solid #64748b !important;
+            border-left: 1px solid #cbd5e1 !important;
         }
+        .dark .article-content table tr > td:first-child,
+        .dark .article-content table tr > th:first-child {
+            border-left: 1px solid #475569 !important;
+        }
+
         .article-content table tr > td:last-child,
         .article-content table tr > th:last-child {
-            border-right: 2px solid #64748b !important;
+            border-right: 1px solid #cbd5e1 !important;
+        }
+        .dark .article-content table tr > td:last-child,
+        .dark .article-content table tr > th:last-child {
+            border-right: 1px solid #475569 !important;
         }
 
         /* Header Tabel (Probus Navy) */
@@ -496,7 +513,7 @@ function showArtikelSolusi() {
             background-color: #0b1a36 !important;
             font-weight: 700 !important;
             color: #ffffff !important;
-            border-color: #64748b !important;
+            border-color: #475569 !important;
             text-align: left !important;
         }
 
