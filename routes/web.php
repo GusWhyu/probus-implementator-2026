@@ -20,6 +20,7 @@ use App\Http\Controllers\ManualBookController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\BankSolusiController;
 use App\Http\Controllers\MenuSystemController;
+use App\Http\Controllers\KontenSayaController;
 
 /*
 |--------------------------------------------------------------------------
@@ -65,6 +66,9 @@ Route::get('/bank-solusi/{id}/edit', [BankSolusiController::class, 'edit'])->mid
 Route::match(['put', 'post'], '/bank-solusi/{id}', [BankSolusiController::class, 'update'])->middleware(['auth'])->name('bank-solusi.update');
 Route::post('/bank-solusi/{id}/toggle-visibility', [BankSolusiController::class, 'toggleVisibility'])->middleware(['auth'])->name('bank-solusi.toggle_visibility');
 Route::delete('/bank-solusi/{id}', [BankSolusiController::class, 'destroy'])->middleware(['auth'])->name('bank-solusi.destroy');
+
+// Konten & Publikasi Saya (Knowledge Base User Workspace)
+Route::get('/konten-saya', [KontenSayaController::class, 'index'])->middleware(['auth'])->name('konten-saya.index');
 
 // Master Menu Modul Sistem Routes
 Route::get('/menu-system', [MenuSystemController::class, 'index'])->middleware(['auth'])->name('menu-system.index');

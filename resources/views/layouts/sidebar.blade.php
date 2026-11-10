@@ -13,6 +13,10 @@
               ->orWhere('pending_advisor_expires_at', '>', now());
         })
         ->count();
+
+    // Jumlah konten yang dibuat oleh user saat ini (Bank Solusi + Manual Book)
+    $myContentCount = \App\Models\Article::where('user_id', Auth::id())->count() +
+                      \App\Models\ManualBook::where('user_id', Auth::id())->count();
 @endphp
 
 <!-- Mobile overlay -->
@@ -117,6 +121,17 @@
                             <span>Manual Book</span>
                         </div>
                         <span class="text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded tracking-wider bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">MODUL</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ route('konten-saya.index') }}" class="flex items-center justify-between px-3 py-2 text-sm {{ request()->routeIs('konten-saya.*') ? 'text-blue-600 bg-blue-50 dark:bg-blue-900/30 font-medium' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800' }} rounded-lg transition-colors group">
+                        <div class="flex items-center">
+                            <i class="fa-solid fa-file-signature w-5 text-center mr-2 {{ request()->routeIs('konten-saya.*') ? 'text-blue-600 dark:text-blue-400' : 'text-slate-400 group-hover:text-blue-500' }} transition-colors"></i>
+                            <span>Konten Saya</span>
+                        </div>
+                        @if ($myContentCount > 0)
+                            <span class="bg-blue-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full" title="{{ $myContentCount }} konten Anda">{{ $myContentCount }}</span>
+                        @endif
                     </a>
                 </li>
                 <li>
