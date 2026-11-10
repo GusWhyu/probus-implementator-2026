@@ -450,10 +450,6 @@
                             <span>Edit / Kelola</span>
                         </a>
                     </div>
-                            <i class="fa-solid fa-pen-to-square text-[10px]"></i>
-                            <span>Edit / Kelola</span>
-                        </a>
-                    </div>
                 </div>
             </template>
         </div>
