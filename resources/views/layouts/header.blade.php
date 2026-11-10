@@ -137,11 +137,6 @@
                 <i class="fa-solid fa-floppy-disk text-xs"></i>
                 <span class="hidden sm:inline">Simpan Manual Modul</span>
             </button>
-        @elseif(request()->routeIs('manualbook*'))
-            <a href="{{ route('manualbook.manage') }}" class="inline-flex items-center gap-2 px-3.5 py-1.5 sm:py-2 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white rounded-xl text-xs font-semibold shadow-sm shadow-blue-500/20 transition-all cursor-pointer">
-                <i class="fa-solid fa-plus text-xs"></i>
-                <span>Tambah Manual Book</span>
-            </a>
         @endif
         <!-- Dark Mode Toggle Button (sebelah lonceng notifikasi) -->
         <button type="button" 
