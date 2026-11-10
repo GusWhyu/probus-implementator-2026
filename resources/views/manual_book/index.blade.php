@@ -22,17 +22,77 @@
                 currentPage: 1,
 
                 init() {
-                    // Cek jika ada parameter system di URL
+                    // Cek jika ada parameter di URL
                     const urlParams = new URLSearchParams(window.location.search);
                     const qSys = urlParams.get('system');
+                    const qMod = urlParams.get('module');
+                    const qChap = urlParams.get('chapter');
+                    const qSearch = urlParams.get('search');
+
                     if (qSys && (qSys === 'all' || this.systems.some(s => String(s.id) === String(qSys)))) {
                         this.activeSystem = qSys;
+                    }
+
+                    if (qSearch) {
+                        this.searchQuery = qSearch;
                     }
 
                     // Reset halaman ke 1 setiap kali filter atau pencarian berubah
                     this.$watch('searchQuery', () => { this.currentPage = 1; });
                     this.$watch('activeSystem', () => { this.currentPage = 1; });
                     this.$watch('filterStatus', () => { this.currentPage = 1; });
+
+                    // Jika ada parameter module atau chapter, otomatis buka reader modal ke panduan & bab yang sesuai
+                    if (qMod || qChap) {
+                        this.$nextTick(() => {
+                            let targetMod = null;
+
+                            // 1. Cari jika qMod adalah modul utama
+                            if (qMod) {
+                                targetMod = this.allModules.find(m => String(m.id) === String(qMod));
+                                // Jika bukan modul utama, cek apakah qMod adalah sub menu
+                                if (!targetMod) {
+                                    for (const m of this.allModules) {
+                                        if (m.sub_menus && m.sub_menus.some(s => String(s.id) === String(qMod))) {
+                                            targetMod = m;
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+
+                            // 2. Jika modul belum ketemu atau qMod tidak diberikan, cari modul berdasarkan qChap
+                            if (!targetMod && qChap) {
+                                const chapTargetStr = String(qChap).trim().toLowerCase();
+                                for (const m of this.allModules) {
+                                    const inMain = (m.chapters || []).some(c => 
+                                        String(c.id) === String(qChap) || 
+                                        (c.title && c.title.trim().toLowerCase() === chapTargetStr) ||
+                                        (c.title && this.cleanChapterTitle(c.title).trim().toLowerCase() === chapTargetStr)
+                                    );
+                                    const inSub = (m.sub_menus || []).some(s => 
+                                        (s.chapters || []).some(sc => 
+                                            String(sc.id) === String(qChap) || 
+                                            (sc.title && sc.title.trim().toLowerCase() === chapTargetStr) ||
+                                            (sc.title && this.cleanChapterTitle(sc.title).trim().toLowerCase() === chapTargetStr)
+                                        )
+                                    );
+                                    if (inMain || inSub) {
+                                        targetMod = m;
+                                        break;
+                                    }
+                                }
+                            }
+
+                            // 3. Jika target modul ditemukan, buka reader modal ke bab tersebut
+                            if (targetMod) {
+                                if (targetMod.system_id) {
+                                    this.activeSystem = String(targetMod.system_id);
+                                }
+                                this.openReader(targetMod, qChap);
+                            }
+                        });
+                    }
                 },
 
                 // Total Halaman berdasarkan filteredModules
@@ -222,7 +282,12 @@
                     }
 
                     if (targetChapId !== null && targetChapId !== undefined) {
-                        const found = allChaps.find(c => String(c.id) === String(targetChapId));
+                        const targetStr = String(targetChapId).trim().toLowerCase();
+                        const found = allChaps.find(c => 
+                            String(c.id) === String(targetChapId) ||
+                            (c.title && c.title.trim().toLowerCase() === targetStr) ||
+                            (c.title && this.cleanChapterTitle(c.title).trim().toLowerCase() === targetStr)
+                        );
                         if (found) {
                             this.activeReadingChapterId = String(found.id);
                         } else if (typeof targetChapId === 'number' && allChaps[targetChapId]) {

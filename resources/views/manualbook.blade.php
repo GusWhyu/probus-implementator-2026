@@ -43,6 +43,7 @@
                         const urlParams = new URLSearchParams(window.location.search);
                         const qSys = urlParams.get('system');
                         const qMod = urlParams.get('module');
+                        const qChap = urlParams.get('chapter');
 
                         // Cek apakah ada parameter system di URL
                         let chosenSys = null;
@@ -62,6 +63,25 @@
                             if (qMod) {
                                 initialMod = mods.find(m => String(m.id) === String(qMod));
                             }
+
+                            // Jika ada qChap tapi initialMod belum memiliki bab tersebut, cari modul yang memuat qChap
+                            if (qChap && (!initialMod || !(initialMod.chapters || []).some(c => String(c.id) === String(qChap)))) {
+                                for (const m of mods) {
+                                    if ((m.chapters || []).some(c => String(c.id) === String(qChap))) {
+                                        initialMod = m;
+                                        break;
+                                    }
+                                    if (m.sub_menus && m.sub_menus.length > 0) {
+                                        const sub = m.sub_menus.find(s => (s.chapters || []).some(sc => String(sc.id) === String(qChap)));
+                                        if (sub) {
+                                            initialMod = sub;
+                                            this.expandedModules[m.id] = true;
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+
                             if (!initialMod) {
                                 const acctMod = mods.find(m => (m.title || '').toLowerCase().includes('accounting'));
                                 const salesMod = mods.find(m => (m.title || '').toLowerCase().includes('sales'));
@@ -70,13 +90,24 @@
                             this.activeModuleId = initialMod.id;
 
                             if (initialMod.chapters && initialMod.chapters.length > 0) {
-                                const firstChap = initialMod.chapters[0];
-                                this.activeChapterId = firstChap.id;
+                                let chosenChap = null;
+                                if (qChap) {
+                                    const chapTargetStr = String(qChap).trim().toLowerCase();
+                                    chosenChap = initialMod.chapters.find(c => 
+                                        String(c.id) === String(qChap) || 
+                                        (c.title && c.title.trim().toLowerCase() === chapTargetStr)
+                                    );
+                                }
+                                if (!chosenChap) {
+                                    chosenChap = initialMod.chapters[0];
+                                }
+
+                                this.activeChapterId = chosenChap.id;
                                 this.isNewChapter = false;
-                                this.chapterOrder = firstChap.order || 1;
-                                this.chapterTitle = firstChap.title || '';
-                                this.chapterDescription = firstChap.description || '';
-                                this.chapterStatus = firstChap.status || 'draft';
+                                this.chapterOrder = chosenChap.order || 1;
+                                this.chapterTitle = chosenChap.title || '';
+                                this.chapterDescription = chosenChap.description || '';
+                                this.chapterStatus = chosenChap.status || 'draft';
                             } else {
                                 this.startNewChapter();
                             }

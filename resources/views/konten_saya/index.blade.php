@@ -661,9 +661,15 @@
                                     class="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all cursor-pointer">
                                 Tutup
                             </button>
+                            <a :href="modalItem?.view_url" 
+                               class="inline-flex items-center gap-1.5 px-4 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-bold transition-all cursor-pointer">
+                                <i class="fa-solid fa-arrow-up-right-from-square text-[11px]"></i>
+                                <span>Buka Lengkap</span>
+                            </a>
                             <a :href="modalItem?.edit_url" 
-                               class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-sm transition-all cursor-pointer">
-                                Buka di Editor
+                               class="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-sm transition-all cursor-pointer">
+                                <i class="fa-solid fa-pen-to-square text-[11px]"></i>
+                                <span>Buka di Editor</span>
                             </a>
                         </div>
                     </div>

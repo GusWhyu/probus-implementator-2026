@@ -88,6 +88,22 @@ class KontenSayaController extends Controller
                 $subtitle = "Dokumentasi SOP Operasional • Bab #{$orderNum}";
             }
 
+            $viewParams = ['chapter' => $mb->id];
+            if ($systemId && $systemId !== 'general') {
+                $viewParams['system'] = $systemId;
+            }
+            if ($moduleId) {
+                $viewParams['module'] = $moduleId;
+            }
+
+            $editParams = ['chapter' => $mb->id];
+            if ($systemId && $systemId !== 'general') {
+                $editParams['system'] = $systemId;
+            }
+            if ($moduleId) {
+                $editParams['module'] = $moduleId;
+            }
+
             $contentList[] = [
                 'id' => (string) $mb->id,
                 'content_type' => 'manual_book',
@@ -104,12 +120,8 @@ class KontenSayaController extends Controller
                 'raw_content' => $mb->content,
                 'updated_at' => $mb->updated_at ? $mb->updated_at->timestamp : 0,
                 'updated_at_formatted' => $this->formatHumanDate($mb->updated_at),
-                'edit_url' => route('manualbook.manage', [
-                    'system' => $systemId,
-                    'module' => $moduleId,
-                    'chapter' => $mb->id,
-                ]),
-                'view_url' => route('manualbook', ['system' => $systemId, 'search' => $cleanTitle]),
+                'edit_url' => route('manualbook.manage', $editParams),
+                'view_url' => route('manualbook', $viewParams),
                 'delete_url' => route('manualbook.chapter.delete', $mb->id),
             ];
         }
