@@ -83,19 +83,21 @@ class ManualBookController extends Controller
                 }
 
                 $orderPrefix = $ms->order ? str_pad($ms->order, 2, '0', STR_PAD_LEFT) . '. ' : '';
-                $defaultTitle = $orderPrefix ? $orderPrefix . $ms->name : $ms->name;
+                $cleanName = trim(preg_replace('/^\d+[\.\s\-]+/', '', $ms->name));
+                $cleanName = $cleanName ? $cleanName : $ms->name;
+                $defaultTitle = $orderPrefix ? $orderPrefix . $cleanName : $cleanName;
 
                 $modList[] = [
                     'id' => (string) $ms->id,
                     'menu_system_id' => $ms->id,
                     'title' => $defaultTitle,
-                    'raw_name' => $ms->name,
+                    'raw_name' => $cleanName,
                     'order' => $ms->order,
                     'description' => $ms->description ? $ms->description : '',
                     'statusLabel' => $statusLabel,
                     'statusClass' => $statusClass,
                     'chapterCount' => $totalChapters,
-                    'breadcrumb' => strtoupper($cat->name) . ' • ' . strtoupper($ms->name) . ' • BUKU PANDUAN PENGGUNAAN',
+                    'breadcrumb' => strtoupper($cat->name) . ' • ' . strtoupper($cleanName) . ' • BUKU PANDUAN PENGGUNAAN',
                     'chapters' => $chapters,
                 ];
             }

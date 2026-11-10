@@ -107,7 +107,7 @@
                             Sistem "{{ $selectedCatObj ? $selectedCatObj->name : 'Ini' }}" belum memiliki modul!
                         </h4>
                         <p class="text-xs text-amber-700 dark:text-amber-400 mt-0.5">
-                            Buat otomatis 10 modul standar (Sales, Production, Cost Control, Tools, dll.) hanya dengan 1 klik.
+                            Buat otomatis 10 modul standar (Setup Master, Transaksi, Outlet Activity, Cost Control, dll.) hanya dengan 1 klik.
                         </p>
                     </div>
                 </div>

@@ -199,16 +199,16 @@ class MenuSystemController extends Controller
         $kategori = Kategori::findOrFail($kategoriId);
 
         $standardModules = [
-            ['name' => 'Sales', 'desc' => 'Modul transaksi penjualan, kasir POS, reservasi meja, dan pendapatan.', 'order' => 1],
-            ['name' => 'Production', 'desc' => 'Modul pengolahan dapur, resep, kitchen display system (KDS), dan produksi makanan/minuman.', 'order' => 2],
-            ['name' => 'Cost Control', 'desc' => 'Modul pengendalian biaya, food & beverage cost, dan laporan analisa selisih.', 'order' => 3],
-            ['name' => 'Purchasing / AP', 'desc' => 'Modul pengadaan barang, purchase request (PR), purchase order (PO), receiving, dan hutang usaha.', 'order' => 4],
-            ['name' => 'Accounts Receivable / AR', 'desc' => 'Modul piutang usaha, city ledger, penagihan invoice klien, dan pelunasan.', 'order' => 5],
-            ['name' => 'Accounting System', 'desc' => 'Modul sistem akuntansi, jurnal umum, buku besar (GL), neraca, dan laporan keuangan.', 'order' => 6],
-            ['name' => 'Tools', 'desc' => 'Modul utilitas sistem, konfigurasi hardware & printer, cash drawer, dan diagnostik perangkat.', 'order' => 7],
-            ['name' => 'Calendar', 'desc' => 'Modul kalender kerja, reservasi event, jadwal operasional, dan agenda sistem.', 'order' => 8],
-            ['name' => 'Calculator', 'desc' => 'Modul kalkulator sistem, simulasi perhitungan harga, diskon, dan konversi kurs.', 'order' => 9],
-            ['name' => 'Reconnecting', 'desc' => 'Modul pemulihan koneksi offline/online, sinkronisasi data cloud, dan pemulihan jaringan.', 'order' => 10],
+            ['name' => 'Setup Master', 'desc' => 'Modul setup master data, parameter sistem, konfigurasi outlet, dan pengaturan master.', 'order' => 1],
+            ['name' => 'Transaksi', 'desc' => 'Modul transaksi penjualan operasional kasir POS, order taker, meja, dan split bill.', 'order' => 2],
+            ['name' => 'Outlet Activity', 'desc' => 'Modul aktivitas dan operasional outlet, shift kerja kasir, dan pantauan kegiatan harian.', 'order' => 3],
+            ['name' => 'Cost Control', 'desc' => 'Modul pengendalian biaya, resep, food & beverage cost, dan laporan analisa selisih.', 'order' => 4],
+            ['name' => 'Purcashing AP', 'desc' => 'Modul pengadaan barang, purchasing / AP, purchase request (PR), purchase order (PO), receiving, dan hutang usaha.', 'order' => 5],
+            ['name' => 'AR', 'desc' => 'Modul piutang usaha (Accounts Receivable / AR), penagihan invoice klien, city ledger, dan rekonsiliasi.', 'order' => 6],
+            ['name' => 'General Cashier', 'desc' => 'Modul kasir umum, pencatatan penerimaan & pengeluaran kas, serta rekonsiliasi kas harian.', 'order' => 7],
+            ['name' => 'Accounting System', 'desc' => 'Modul sistem akuntansi, jurnal umum, buku besar (GL), neraca, dan laporan keuangan.', 'order' => 8],
+            ['name' => 'Report', 'desc' => 'Modul pusat laporan operasional, laporan penjualan harian/bulanan, analitik, dan statistik performa.', 'order' => 9],
+            ['name' => 'Tools', 'desc' => 'Modul utilitas sistem, konfigurasi hardware & printer, cash drawer, dan diagnostik perangkat.', 'order' => 10],
         ];
 
         foreach ($standardModules as $m) {

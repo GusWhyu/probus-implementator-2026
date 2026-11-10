@@ -17,53 +17,53 @@ class MenuSystemSeeder extends Seeder
     {
         $targetModules = [
             [
-                'name' => 'Sales',
-                'description' => 'Modul transaksi penjualan, kasir POS, reservasi meja, dan pendapatan.',
+                'name' => 'Setup Master',
+                'description' => 'Modul setup master data, parameter sistem, konfigurasi outlet, dan pengaturan master.',
                 'order' => 1,
             ],
             [
-                'name' => 'Production',
-                'description' => 'Modul pengolahan dapur, resep, kitchen display system (KDS), dan produksi makanan/minuman.',
+                'name' => 'Transaksi',
+                'description' => 'Modul transaksi penjualan operasional kasir POS, order taker, meja, dan split bill.',
                 'order' => 2,
             ],
             [
-                'name' => 'Cost Control',
-                'description' => 'Modul pengendalian biaya, food & beverage cost, dan laporan analisa selisih.',
+                'name' => 'Outlet Activity',
+                'description' => 'Modul aktivitas dan operasional outlet, shift kerja kasir, dan pantauan kegiatan harian.',
                 'order' => 3,
             ],
             [
-                'name' => 'Purchasing / AP',
-                'description' => 'Modul pengadaan barang, purchase request (PR), purchase order (PO), receiving, dan hutang usaha.',
+                'name' => 'Cost Control',
+                'description' => 'Modul pengendalian biaya, resep, food & beverage cost, dan laporan analisa selisih.',
                 'order' => 4,
             ],
             [
-                'name' => 'Accounts Receivable / AR',
-                'description' => 'Modul piutang usaha, city ledger, penagihan invoice klien, dan pelunasan.',
+                'name' => 'Purcashing AP',
+                'description' => 'Modul pengadaan barang, purchasing / AP, purchase request (PR), purchase order (PO), receiving, dan hutang usaha.',
                 'order' => 5,
+            ],
+            [
+                'name' => 'AR',
+                'description' => 'Modul piutang usaha (Accounts Receivable / AR), penagihan invoice klien, city ledger, dan rekonsiliasi.',
+                'order' => 6,
+            ],
+            [
+                'name' => 'General Cashier',
+                'description' => 'Modul kasir umum, pencatatan penerimaan & pengeluaran kas, serta rekonsiliasi kas harian.',
+                'order' => 7,
             ],
             [
                 'name' => 'Accounting System',
                 'description' => 'Modul sistem akuntansi, jurnal umum, buku besar (GL), neraca, dan laporan keuangan.',
-                'order' => 6,
+                'order' => 8,
+            ],
+            [
+                'name' => 'Report',
+                'description' => 'Modul pusat laporan operasional, laporan penjualan harian/bulanan, analitik, dan statistik performa.',
+                'order' => 9,
             ],
             [
                 'name' => 'Tools',
                 'description' => 'Modul utilitas sistem, konfigurasi hardware & printer, cash drawer, dan diagnostik perangkat.',
-                'order' => 7,
-            ],
-            [
-                'name' => 'Calendar',
-                'description' => 'Modul kalender kerja, reservasi event, jadwal operasional, dan agenda sistem.',
-                'order' => 8,
-            ],
-            [
-                'name' => 'Calculator',
-                'description' => 'Modul kalkulator sistem, simulasi perhitungan harga, diskon, dan konversi kurs.',
-                'order' => 9,
-            ],
-            [
-                'name' => 'Reconnecting',
-                'description' => 'Modul pemulihan koneksi offline/online, sinkronisasi data cloud, dan pemulihan jaringan.',
                 'order' => 10,
             ],
         ];
