@@ -34,7 +34,8 @@ class ManualBookController extends Controller
                 $chapters = [];
                 foreach ($ms->manualBooks as $idx => $book) {
                     $orderNum = $book->order ? (int) $book->order : ($idx + 1);
-                    $hasContent = !empty(trim(strip_tags($book->content, '<img>')));
+                    $hasPdf = !empty($book->pdf_path);
+                    $hasContent = !empty(trim(strip_tags($book->content, '<img>'))) || $hasPdf;
                     $isPublished = $book->status === 'published';
 
                     $statusLabel = 'Belum Diisi • Draft';
@@ -56,6 +57,11 @@ class ManualBookController extends Controller
                         'description' => $book->description ? $book->description : '',
                         'content' => $book->content ? $book->content : '',
                         'status' => $book->status ? $book->status : 'draft',
+                        'pdf_path' => $book->pdf_path,
+                        'pdf_url' => $book->pdf_url,
+                        'pdf_name' => $book->pdf_name ? $book->pdf_name : '',
+                        'pdf_size' => $book->pdf_size ? (int) $book->pdf_size : null,
+                        'pdf_size_formatted' => $book->pdf_size_formatted ? $book->pdf_size_formatted : '',
                         'statusLabel' => $statusLabel,
                         'statusClass' => $statusClass,
                         'updated_at' => $book->updated_at ? $book->updated_at->format('d M Y H:i') : '-',
@@ -127,8 +133,11 @@ class ManualBookController extends Controller
             'order' => 'nullable|integer',
             'title' => 'required|string|max:100',
             'description' => 'nullable|string',
-            'content' => 'required|string',
+            'content' => 'nullable|string',
             'status' => 'required|in:draft,published',
+            'pdf_path' => 'nullable|string',
+            'pdf_name' => 'nullable|string',
+            'pdf_size' => 'nullable|numeric',
         ]);
 
         $menuSystem = MenuSystem::findOrFail($request->menu_system_id);
@@ -151,29 +160,37 @@ class ManualBookController extends Controller
             }
         }
 
-        if ($manualBook) {
-            $manualBook->update([
-                'user_id' => $userId,
-                'title' => trim($request->title),
-                'order' => $order,
-                'description' => $request->description,
-                'content' => $request->content,
-                'status' => $request->status,
-            ]);
-        } else {
-            $manualBook = ManualBook::create([
-                'user_id' => $userId,
-                'title' => trim($request->title),
-                'order' => $order,
-                'description' => $request->description,
-                'content' => $request->content,
-                'status' => $request->status,
-            ]);
+        $pdfPath = $request->pdf_path ? $request->pdf_path : null;
+        $pdfName = $request->pdf_name ? $request->pdf_name : null;
+        $pdfSize = $request->pdf_size ? (int) $request->pdf_size : null;
 
+        $saveData = [
+            'user_id' => $userId,
+            'title' => trim($request->title),
+            'order' => $order,
+            'description' => $request->description,
+            'content' => $request->content !== null ? $request->content : '',
+            'status' => $request->status,
+            'pdf_path' => $pdfPath,
+            'pdf_name' => $pdfName,
+            'pdf_size' => $pdfSize,
+        ];
+
+        if ($manualBook) {
+            // Jika PDF lama diganti atau dihapus, bersihkan berkas lama dari disk
+            if (!empty($manualBook->pdf_path) && $manualBook->pdf_path !== $pdfPath) {
+                $oldPdf = public_path($manualBook->pdf_path);
+                if (file_exists($oldPdf)) {
+                    @unlink($oldPdf);
+                }
+            }
+            $manualBook->update($saveData);
+        } else {
+            $manualBook = ManualBook::create($saveData);
             $menuSystem->manualBooks()->attach($manualBook->id);
         }
 
-        $hasContent = !empty(trim(strip_tags($manualBook->content, '<img>')));
+        $hasContent = !empty(trim(strip_tags($manualBook->content, '<img>'))) || !empty($manualBook->pdf_path);
         $statusLabel = $request->status === 'published' ? 'Panduan Terisi ✓' : 'Sedang Diedit ✎';
         $statusClass = $request->status === 'published' ? 'text-emerald-600 dark:text-emerald-400' : 'text-blue-600 dark:text-blue-400';
 
@@ -184,6 +201,11 @@ class ManualBookController extends Controller
             'description' => $manualBook->description ? $manualBook->description : '',
             'content' => $manualBook->content ? $manualBook->content : '',
             'status' => $manualBook->status,
+            'pdf_path' => $manualBook->pdf_path,
+            'pdf_url' => $manualBook->pdf_url,
+            'pdf_name' => $manualBook->pdf_name ? $manualBook->pdf_name : '',
+            'pdf_size' => $manualBook->pdf_size ? (int) $manualBook->pdf_size : null,
+            'pdf_size_formatted' => $manualBook->pdf_size_formatted ? $manualBook->pdf_size_formatted : '',
             'statusLabel' => $statusLabel,
             'statusClass' => $statusClass,
             'updated_at' => $manualBook->updated_at ? $manualBook->updated_at->format('d M Y H:i') : '-',
@@ -209,6 +231,14 @@ class ManualBookController extends Controller
         $manualBook = ManualBook::findOrFail($id);
         $title = $manualBook->title;
 
+        // Jika memiliki berkas PDF fisik, hapus dari penyimpanan server
+        if (!empty($manualBook->pdf_path)) {
+            $pdfFullPath = public_path($manualBook->pdf_path);
+            if (file_exists($pdfFullPath)) {
+                @unlink($pdfFullPath);
+            }
+        }
+
         // Lepas relasi pivot
         $manualBook->menuSystems()->detach();
         $manualBook->delete();
@@ -217,6 +247,90 @@ class ManualBookController extends Controller
             'success' => true,
             'message' => 'Bab panduan "' . $title . '" berhasil dihapus!',
             'deleted_id' => (string) $id,
+        ]);
+    }
+
+    /**
+     * Unggah berkas dokumen PDF untuk bab panduan manual book
+     */
+    public function uploadPdf(Request $request)
+    {
+        $request->validate([
+            'menu_system_id' => 'required|exists:menu_systems,id',
+            'pdf_file' => 'required|file|mimes:pdf|max:51200', // maksimal 50 MB
+        ]);
+
+        $file = $request->file('pdf_file');
+        $originalName = $file->getClientOriginalName();
+        $fileSize = $file->getSize();
+        $rawName = pathinfo($originalName, PATHINFO_FILENAME);
+
+        // Deteksi urutan dan judul dari nama file (misal: "1. Panduan POS.pdf" -> order: 1, title: "1. Panduan POS")
+        $order = null;
+        $title = $rawName;
+        if (preg_match('/^(\d+)[\.\s_-]*(.*)$/', $rawName, $m)) {
+            $order = (int) $m[1];
+            $cleanTitle = trim($m[2]);
+            $title = $order . '. ' . ($cleanTitle ? $cleanTitle : $rawName);
+        }
+
+        if (mb_strlen($title) > 100) {
+            $title = mb_substr($title, 0, 100);
+        }
+
+        // Simpan file ke public/uploads/pdf/manual_books/
+        $targetDir = public_path('uploads/pdf/manual_books');
+        if (!file_exists($targetDir)) {
+            @mkdir($targetDir, 0777, true);
+        }
+
+        $safeName = 'manual_' . time() . '_' . substr(md5(microtime() . $originalName), 0, 8) . '.pdf';
+        $file->move($targetDir, $safeName);
+
+        $relativePath = 'uploads/pdf/manual_books/' . $safeName;
+        $url = asset($relativePath);
+
+        // Format ukuran file (KB / MB)
+        $formattedSize = $fileSize >= 1048576 
+            ? number_format($fileSize / 1048576, 2) . ' MB'
+            : number_format($fileSize / 1024, 1) . ' KB';
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Berkas PDF "' . $originalName . '" berhasil diunggah!',
+            'pdf_path' => $relativePath,
+            'pdf_url' => $url,
+            'pdf_name' => $originalName,
+            'pdf_size' => $fileSize,
+            'pdf_size_formatted' => $formattedSize,
+            'detected_title' => $title,
+            'detected_order' => $order,
+        ]);
+    }
+
+    /**
+     * Hapus berkas PDF dari bab tertentu
+     */
+    public function removePdf($id)
+    {
+        $manualBook = ManualBook::findOrFail($id);
+
+        if (!empty($manualBook->pdf_path)) {
+            $pdfFullPath = public_path($manualBook->pdf_path);
+            if (file_exists($pdfFullPath)) {
+                @unlink($pdfFullPath);
+            }
+        }
+
+        $manualBook->update([
+            'pdf_path' => null,
+            'pdf_name' => null,
+            'pdf_size' => null,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Berkas PDF pada bab ini berhasil dihapus!',
         ]);
     }
 

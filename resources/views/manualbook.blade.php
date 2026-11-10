@@ -26,6 +26,14 @@
                 chapterDescription: '',
                 chapterStatus: 'draft',
 
+                // State Dokumen PDF Terlampir
+                chapterPdfPath: null,
+                chapterPdfUrl: null,
+                chapterPdfName: '',
+                chapterPdfSize: null,
+                chapterPdfSizeFormatted: '',
+                showPdfViewer: true,
+
                 initEditor() {
                     const self = this;
                     // Sinkronisasi dengan tombol 'Simpan Manual Modul' di header layout atas
@@ -55,6 +63,12 @@
                                 this.chapterTitle = firstChap.title || '';
                                 this.chapterDescription = firstChap.description || '';
                                 this.chapterStatus = firstChap.status || 'draft';
+                                this.chapterPdfPath = firstChap.pdf_path || null;
+                                this.chapterPdfUrl = firstChap.pdf_url || null;
+                                this.chapterPdfName = firstChap.pdf_name || '';
+                                this.chapterPdfSize = firstChap.pdf_size || null;
+                                this.chapterPdfSizeFormatted = firstChap.pdf_size_formatted || '';
+                                this.showPdfViewer = true;
                             } else {
                                 this.startNewChapter();
                             }
@@ -172,6 +186,12 @@
                         this.chapterTitle = chap.title || '';
                         this.chapterDescription = chap.description || '';
                         this.chapterStatus = chap.status || 'draft';
+                        this.chapterPdfPath = chap.pdf_path || null;
+                        this.chapterPdfUrl = chap.pdf_url || null;
+                        this.chapterPdfName = chap.pdf_name || '';
+                        this.chapterPdfSize = chap.pdf_size || null;
+                        this.chapterPdfSizeFormatted = chap.pdf_size_formatted || '';
+                        this.showPdfViewer = true;
                         this.setCanvasContent(chap.content || '');
                     }
                 },
@@ -193,7 +213,195 @@
                     this.chapterTitle = '';
                     this.chapterDescription = '';
                     this.chapterStatus = 'draft';
+                    this.chapterPdfPath = null;
+                    this.chapterPdfUrl = null;
+                    this.chapterPdfName = '';
+                    this.chapterPdfSize = null;
+                    this.chapterPdfSizeFormatted = '';
+                    this.showPdfViewer = true;
                     this.setCanvasContent('');
+                },
+
+                triggerPdfUpload() {
+                    const input = document.getElementById('pdfFileInput');
+                    if (input) {
+                        input.value = '';
+                        input.click();
+                    }
+                },
+
+                handlePdfFileChange(event) {
+                    const file = event.target.files && event.target.files[0];
+                    if (!file) return;
+
+                    if (!file.name.toLowerCase().endsWith('.pdf') && file.type !== 'application/pdf') {
+                        if (typeof Swal !== 'undefined') {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Format File Tidak Sesuai',
+                                text: 'Harap pilih file dokumen berformat PDF (.pdf)'
+                            });
+                        } else {
+                            alert('Harap pilih file .pdf');
+                        }
+                        return;
+                    }
+
+                    if (file.size > 50 * 1024 * 1024) {
+                        if (typeof Swal !== 'undefined') {
+                            Swal.fire({
+                                icon: 'warning',
+                                title: 'Ukuran PDF Melebihi Batas',
+                                text: 'Ukuran file PDF maksimal adalah 50 MB.'
+                            });
+                        } else {
+                            alert('Ukuran file PDF maksimal 50 MB.');
+                        }
+                        return;
+                    }
+
+                    if (!this.currentModule || !this.currentModule.menu_system_id) {
+                        alert('Silakan pilih modul terlebih dahulu.');
+                        return;
+                    }
+
+                    const formData = new FormData();
+                    formData.append('pdf_file', file);
+                    formData.append('menu_system_id', this.currentModule.menu_system_id);
+                    formData.append('_token', '{{ csrf_token() }}');
+
+                    if (typeof Swal !== 'undefined') {
+                        Swal.fire({
+                            title: 'Mengunggah Dokumen PDF...',
+                            html: `Menyimpan berkas <strong>${file.name}</strong> ke server.<br><span class="text-xs text-slate-400">Mohon tunggu sebentar...</span>`,
+                            allowOutsideClick: false,
+                            didOpen: () => {
+                                Swal.showLoading();
+                            }
+                        });
+                    }
+
+                    fetch('{{ route("manualbook.upload_pdf") }}', {
+                        method: 'POST',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'Accept': 'application/json'
+                        },
+                        body: formData
+                    })
+                    .then(res => {
+                        if (!res.ok) return res.json().then(e => { throw e; });
+                        return res.json();
+                    })
+                    .then(data => {
+                        if (typeof Swal !== 'undefined') Swal.close();
+
+                        // Simpan info PDF ke state aktif
+                        this.chapterPdfPath = data.pdf_path;
+                        this.chapterPdfUrl = data.pdf_url;
+                        this.chapterPdfName = data.pdf_name;
+                        this.chapterPdfSize = data.pdf_size;
+                        this.chapterPdfSizeFormatted = data.pdf_size_formatted;
+                        this.showPdfViewer = true;
+
+                        // Jika judul bab masih kosong, gunakan nama file PDF yang terdeteksi
+                        if (!this.chapterTitle) {
+                            this.chapterTitle = data.detected_title || file.name.replace(/\.pdf$/i, '');
+                        }
+                        if (data.detected_order && this.isNewChapter) {
+                            this.chapterOrder = data.detected_order;
+                        }
+
+                        if (typeof Swal !== 'undefined') {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'PDF Berhasil Diunggah!',
+                                html: `Dokumen <strong>${data.pdf_name}</strong> (${data.pdf_size_formatted}) berhasil tersimpan dan siap dipratinjau di bawah.<br><br>` +
+                                      `<span class="text-xs text-blue-600 dark:text-blue-400 font-semibold">Silakan klik "Simpan Bab" di bawah untuk mempublikasikan bab ini.</span>`,
+                                confirmButtonColor: '#2563eb',
+                                confirmButtonText: 'Lanjutkan'
+                            });
+                        }
+                    })
+                    .catch(err => {
+                        console.error('Error upload pdf:', err);
+                        const msg = (err && err.message) ? err.message : 'Terjadi kesalahan saat mengunggah dokumen PDF.';
+                        if (typeof Swal !== 'undefined') {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Gagal Mengunggah PDF',
+                                text: msg,
+                                confirmButtonColor: '#2563eb'
+                            });
+                        } else {
+                            alert(msg);
+                        }
+                    });
+                },
+
+                confirmRemovePdf() {
+                    if (typeof Swal !== 'undefined') {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Hapus Lampiran PDF?',
+                            html: `Apakah Anda yakin ingin menghapus lampiran dokumen PDF <strong>"${this.chapterPdfName}"</strong> dari bab ini?`,
+                            showCancelButton: true,
+                            confirmButtonColor: '#e11d48',
+                            cancelButtonColor: '#64748b',
+                            confirmButtonText: 'Ya, Hapus PDF',
+                            cancelButtonText: 'Batal'
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                this.executeRemovePdf();
+                            }
+                        });
+                    } else {
+                        if (confirm(`Yakin ingin menghapus PDF "${this.chapterPdfName}"?`)) {
+                            this.executeRemovePdf();
+                        }
+                    }
+                },
+
+                executeRemovePdf() {
+                    if (!this.isNewChapter && this.activeChapterId) {
+                        fetch(`/manual-book/chapter/${this.activeChapterId}/remove-pdf`, {
+                            method: 'DELETE',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                'Accept': 'application/json',
+                                'X-Requested-With': 'XMLHttpRequest'
+                            }
+                        })
+                        .then(res => res.json())
+                        .catch(e => console.error(e));
+                    }
+
+                    this.chapterPdfPath = null;
+                    this.chapterPdfUrl = null;
+                    this.chapterPdfName = '';
+                    this.chapterPdfSize = null;
+                    this.chapterPdfSizeFormatted = '';
+
+                    if (this.currentChapter) {
+                        this.currentChapter.pdf_path = null;
+                        this.currentChapter.pdf_url = null;
+                        this.currentChapter.pdf_name = '';
+                        this.currentChapter.pdf_size = null;
+                        this.currentChapter.pdf_size_formatted = '';
+                    }
+
+                    if (typeof Swal !== 'undefined') {
+                        Swal.fire({
+                            toast: true,
+                            position: 'top-end',
+                            icon: 'success',
+                            title: 'Lampiran PDF telah dihapus.',
+                            showConfirmButton: false,
+                            timer: 2000
+                        });
+                    }
                 },
 
                 triggerWordImport() {
@@ -329,15 +537,15 @@
                         content = canvas ? (canvas.value || canvas.innerHTML).trim() : '';
                     }
 
-                    if (!content) {
+                    if (!content && !this.chapterPdfPath) {
                         if (typeof Swal !== 'undefined') {
                             Swal.fire({
                                 icon: 'warning',
-                                title: 'Konten Masih Kosong',
-                                text: 'Harap isi teks atau langkah tata cara penggunaan bab ini terlebih dahulu.'
+                                title: 'Konten atau PDF Masih Kosong',
+                                text: 'Harap isi teks atau unggah berkas dokumen PDF terlebih dahulu sebelum menyimpan.'
                             });
                         } else {
-                            alert('Konten panduan masih kosong.');
+                            alert('Konten atau PDF masih kosong.');
                         }
                         return;
                     }
@@ -353,6 +561,9 @@
                         description: this.chapterDescription || '',
                         content: content,
                         status: targetStatus,
+                        pdf_path: this.chapterPdfPath,
+                        pdf_name: this.chapterPdfName,
+                        pdf_size: this.chapterPdfSize,
                         _token: '{{ csrf_token() }}'
                     };
 
@@ -397,6 +608,11 @@
                         this.chapterTitle = savedChapter.title;
                         this.chapterDescription = savedChapter.description;
                         this.chapterStatus = savedChapter.status;
+                        this.chapterPdfPath = savedChapter.pdf_path;
+                        this.chapterPdfUrl = savedChapter.pdf_url;
+                        this.chapterPdfName = savedChapter.pdf_name;
+                        this.chapterPdfSize = savedChapter.pdf_size;
+                        this.chapterPdfSizeFormatted = savedChapter.pdf_size_formatted;
 
                         // Perbarui statistik jumlah bab pada modul
                         this.updateModuleStats(this.currentModule);
@@ -960,7 +1176,15 @@
                                     @click="triggerWordImport()"
                                     class="px-3 py-1.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 active:scale-95 text-white text-xs font-bold shadow-sm shadow-blue-500/20 transition flex items-center gap-1.5 cursor-pointer">
                                 <i class="fa-regular fa-file-word text-xs"></i>
-                                <span>Import Word (.docx)</span>
+                                <span>Import Word</span>
+                            </button>
+
+                            {{-- Tombol Upload PDF (.pdf) --}}
+                            <button type="button" 
+                                    @click="triggerPdfUpload()"
+                                    class="px-3 py-1.5 rounded-xl bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-700 hover:to-red-700 active:scale-95 text-white text-xs font-bold shadow-sm shadow-rose-500/20 transition flex items-center gap-1.5 cursor-pointer">
+                                <i class="fa-solid fa-file-pdf text-xs"></i>
+                                <span>Upload PDF</span>
                             </button>
 
                             {{-- Hidden File Input untuk Dokumen Word --}}
@@ -968,6 +1192,13 @@
                                    id="wordFileInput" 
                                    accept=".docx" 
                                    @change="handleWordFileChange($event)" 
+                                   class="hidden">
+
+                            {{-- Hidden File Input untuk Dokumen PDF --}}
+                            <input type="file" 
+                                   id="pdfFileInput" 
+                                   accept=".pdf,application/pdf" 
+                                   @change="handlePdfFileChange($event)" 
                                    class="hidden">
                         </div>
                     </div>
@@ -978,6 +1209,9 @@
                         <template x-if="isNewChapter">
                             <div class="px-3 py-1.5 rounded-xl bg-blue-600 text-white font-bold text-xs shadow-md shadow-blue-500/25 border border-blue-600 flex items-center gap-2 shrink-0">
                                 <span class="px-1.5 py-0.5 rounded bg-white/20 text-[10px] font-black" x-text="'#' + chapterOrder"></span>
+                                <template x-if="chapterPdfPath">
+                                    <span class="text-[9px] px-1 py-0.2 rounded bg-rose-500 text-white font-black tracking-tight">PDF</span>
+                                </template>
                                 <span x-text="chapterTitle || 'Bab Baru (Draft)'"></span>
                                 <span class="text-[9px] bg-amber-400 text-slate-900 px-1.5 py-0.2 rounded font-black uppercase">Baru</span>
                             </div>
@@ -997,6 +1231,15 @@
                                         : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'"
                                       class="px-1.5 py-0.5 rounded text-[10px] font-black"
                                       x-text="'#' + chap.order"></span>
+
+                                {{-- PDF Badge jika memiliki PDF --}}
+                                <template x-if="chap.pdf_path">
+                                    <span class="text-[9px] px-1.5 py-0.2 rounded font-black tracking-tight"
+                                          :class="(!isNewChapter && String(activeChapterId) === String(chap.id))
+                                              ? 'bg-rose-500 text-white shadow-xs'
+                                              : 'bg-rose-500/15 text-rose-500 dark:text-rose-400 border border-rose-400/30'"
+                                          title="Memiliki Berkas Dokumen PDF">PDF</span>
+                                </template>
 
                                 {{-- Judul Bab --}}
                                 <span class="max-w-[180px] sm:max-w-[240px] truncate" x-text="chap.title"></span>
@@ -1082,6 +1325,96 @@
                                   placeholder="Ringkasan penjelasan pengantar tujuan bab panduan ini..."
                                   class="w-full px-4 py-2 text-xs bg-slate-50 dark:bg-[#090d16] border border-slate-200 dark:border-slate-700/80 rounded-xl text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all leading-relaxed"></textarea>
                     </div>
+                </div>
+
+                {{-- ======================================================== --}}
+                {{-- PDF ATTACHMENT CARD & INTERACTIVE PREVIEW VIEWER         --}}
+                {{-- ======================================================== --}}
+                <template x-if="chapterPdfUrl">
+                    <div class="space-y-3 bg-gradient-to-br from-rose-50/70 via-white to-slate-50 dark:from-rose-950/20 dark:via-[#0f172a] dark:to-slate-900 rounded-2xl border border-rose-200/80 dark:border-rose-900/40 p-4 shadow-sm">
+                        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                            <div class="flex items-center gap-3">
+                                <div class="w-11 h-11 rounded-xl bg-rose-500/10 dark:bg-rose-500/20 text-rose-600 dark:text-rose-400 flex items-center justify-center shrink-0 border border-rose-200 dark:border-rose-800">
+                                    <i class="fa-solid fa-file-pdf text-xl"></i>
+                                </div>
+                                <div class="min-w-0">
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-xs font-black text-slate-800 dark:text-slate-100 truncate max-w-[240px] sm:max-w-[380px]" x-text="chapterPdfName"></span>
+                                        <span class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-rose-100 dark:bg-rose-900/50 text-rose-700 dark:text-rose-300 uppercase tracking-wider shrink-0">PDF</span>
+                                    </div>
+                                    <div class="text-[11px] text-slate-500 dark:text-slate-400 flex items-center gap-2 mt-0.5">
+                                        <span x-text="chapterPdfSizeFormatted"></span>
+                                        <span>•</span>
+                                        <span class="text-emerald-600 dark:text-emerald-400 font-semibold">Dokumen PDF Terlampir Siap Baca</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="flex items-center gap-2 self-end sm:self-auto shrink-0 flex-wrap">
+                                {{-- Toggle Preview --}}
+                                <button type="button" 
+                                        @click="showPdfViewer = !showPdfViewer"
+                                        class="px-3 py-1.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-750 text-slate-700 dark:text-slate-200 text-xs font-semibold shadow-xs flex items-center gap-1.5 transition cursor-pointer">
+                                    <i class="fa-solid text-xs" :class="showPdfViewer ? 'fa-eye-slash text-slate-400' : 'fa-eye text-blue-500'"></i>
+                                    <span x-text="showPdfViewer ? 'Tutup Preview' : 'Buka Preview'"></span>
+                                </button>
+
+                                {{-- Buka Tab Baru --}}
+                                <a :href="chapterPdfUrl" 
+                                   target="_blank" 
+                                   class="px-3 py-1.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-750 text-slate-700 dark:text-slate-200 text-xs font-semibold shadow-xs flex items-center gap-1.5 transition cursor-pointer"
+                                   title="Buka PDF di tab baru">
+                                    <i class="fa-solid fa-up-right-from-square text-xs text-blue-500"></i>
+                                    <span>Tab Baru</span>
+                                </a>
+
+                                {{-- Download PDF --}}
+                                <a :href="chapterPdfUrl" 
+                                   :download="chapterPdfName" 
+                                   class="px-3 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold shadow-sm shadow-rose-500/20 flex items-center gap-1.5 transition cursor-pointer"
+                                   title="Unduh Berkas PDF">
+                                    <i class="fa-solid fa-download text-xs"></i>
+                                    <span>Unduh PDF</span>
+                                </a>
+
+                                {{-- Hapus PDF --}}
+                                <button type="button" 
+                                        @click="confirmRemovePdf()"
+                                        class="p-2 rounded-xl hover:bg-rose-100 dark:hover:bg-rose-950/60 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 transition cursor-pointer"
+                                        title="Hapus Dokumen PDF ini">
+                                    <i class="fa-regular fa-trash-can text-sm"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        {{-- Embedded Interactive PDF Viewer Frame --}}
+                        <div x-show="showPdfViewer" x-collapse>
+                            <div class="mt-2 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-inner bg-slate-900">
+                                <iframe :src="chapterPdfUrl + '#toolbar=1&navpanes=1&scrollbar=1'" 
+                                        class="w-full h-[580px] border-0" 
+                                        type="application/pdf">
+                                    <div class="p-6 text-center text-xs text-slate-400">
+                                        Browser Anda tidak mendukung preview PDF langsung. 
+                                        <a :href="chapterPdfUrl" target="_blank" class="text-blue-500 underline font-semibold">Klik di sini untuk membuka dokumen PDF</a>.
+                                    </div>
+                                </iframe>
+                            </div>
+                        </div>
+                    </div>
+                </template>
+
+                {{-- Opsi Upload PDF jika belum ada PDF terlampir --}}
+                <div x-show="!chapterPdfUrl" class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 p-3.5 rounded-xl border border-dashed border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-900/30 text-xs">
+                    <div class="flex items-center gap-2 text-slate-500 dark:text-slate-400">
+                        <i class="fa-solid fa-file-pdf text-rose-500 text-base"></i>
+                        <span>Memiliki buku panduan format PDF untuk bab ini?</span>
+                    </div>
+                    <button type="button" 
+                            @click="triggerPdfUpload()"
+                            class="text-xs font-bold text-rose-600 dark:text-rose-400 hover:text-rose-700 dark:hover:text-rose-300 flex items-center gap-1.5 cursor-pointer self-start sm:self-auto">
+                        <i class="fa-solid fa-cloud-arrow-up text-xs"></i>
+                        <span>Upload PDF Bab Ini</span>
+                    </button>
                 </div>
 
                 {{-- ======================================================== --}}

@@ -18,7 +18,33 @@ class ManualBook extends Model
         'description',
         'content',
         'status', // 'draft' | 'published'
+        'pdf_path',
+        'pdf_name',
+        'pdf_size',
     ];
+
+    /**
+     * URL lengkap berkas PDF
+     */
+    public function getPdfUrlAttribute()
+    {
+        return $this->pdf_path ? asset($this->pdf_path) : null;
+    }
+
+    /**
+     * Format ukuran berkas PDF yang mudah dibaca (KB / MB)
+     */
+    public function getPdfSizeFormattedAttribute()
+    {
+        if (!$this->pdf_size) return null;
+        $bytes = (int) $this->pdf_size;
+        if ($bytes >= 1048576) {
+            return number_format($bytes / 1048576, 2) . ' MB';
+        } elseif ($bytes >= 1024) {
+            return number_format($bytes / 1024, 1) . ' KB';
+        }
+        return $bytes . ' B';
+    }
 
     /**
      * Relasi ke User pembuat panduan
