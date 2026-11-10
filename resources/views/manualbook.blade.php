@@ -5,12 +5,15 @@
             return {
                 openAddSystemModal: false,
                 openAddModuleModal: false,
+                newModuleType: 'main', // 'main' atau 'sub'
+                newModuleParentId: '',
                 newSystemName: '',
                 newModuleNumber: '',
                 newModuleName: '',
                 isSubmitting: false,
                 submitTarget: null,
                 showDescriptionField: false,
+                expandedModules: {},
 
                 systems: @json($systems ?? []),
                 modulesBySystem: @json($modulesBySystem ?? []),
@@ -25,6 +28,31 @@
                 chapterTitle: '',
                 chapterDescription: '',
                 chapterStatus: 'draft',
+
+                toggleExpand(id) {
+                    this.expandedModules[id] = !this.isExpanded(id);
+                },
+
+                isExpanded(id) {
+                    // Default terbuka (true) agar sub-menu terlihat jelas
+                    return this.expandedModules[id] !== false;
+                },
+
+                openCreateMainModuleModal() {
+                    this.newModuleType = 'main';
+                    this.newModuleParentId = '';
+                    this.newModuleName = '';
+                    this.newModuleNumber = (this.modules ? this.modules.length + 1 : 1);
+                    this.openAddModuleModal = true;
+                },
+
+                openCreateSubMenuModal(parentMod) {
+                    this.newModuleType = 'sub';
+                    this.newModuleParentId = String(parentMod.id);
+                    this.newModuleName = '';
+                    this.newModuleNumber = (parentMod.sub_menus ? parentMod.sub_menus.length + 1 : 1);
+                    this.openAddModuleModal = true;
+                },
 
                 initEditor() {
                     const self = this;
@@ -55,6 +83,18 @@
                             let initialMod = null;
                             if (qMod) {
                                 initialMod = mods.find(m => String(m.id) === String(qMod));
+                                if (!initialMod) {
+                                    for (const m of mods) {
+                                        if (m.sub_menus && m.sub_menus.length > 0) {
+                                            const sub = m.sub_menus.find(s => String(s.id) === String(qMod));
+                                            if (sub) {
+                                                initialMod = sub;
+                                                this.expandedModules[m.id] = true;
+                                                break;
+                                            }
+                                        }
+                                    }
+                                }
                             }
                             if (!initialMod) {
                                 const acctMod = mods.find(m => (m.title || '').toLowerCase().includes('accounting'));
@@ -112,11 +152,19 @@
                 },
 
                 get currentModule() {
-                    const found = this.modules.find(m => String(m.id) === String(this.activeModuleId));
-                    return found || this.modules[0] || {
+                    for (const m of this.modules) {
+                        if (String(m.id) === String(this.activeModuleId)) return m;
+                        if (m.sub_menus && m.sub_menus.length > 0) {
+                            const subFound = m.sub_menus.find(s => String(s.id) === String(this.activeModuleId));
+                            if (subFound) return subFound;
+                        }
+                    }
+                    return this.modules[0] || {
                         id: null,
+                        parent_id: null,
                         menu_system_id: null,
                         title: '',
+                        raw_name: '',
                         description: '',
                         chapters: [],
                         chapterCount: 0,
@@ -170,6 +218,10 @@
 
                     this.activeModuleId = String(id);
                     const mod = this.currentModule;
+                    if (mod && mod.parent_id) {
+                        this.expandedModules[mod.parent_id] = true;
+                    }
+
                     if (mod && mod.chapters && mod.chapters.length > 0) {
                         this.selectChapter(mod.chapters[0].id);
                     } else {
@@ -532,6 +584,7 @@
                     for (let c of mod.chapters) {
                         if (c.status === 'published') published++;
                     }
+                    mod.publishedCount = published;
 
                     if (total === 0) {
                         mod.statusLabel = 'Belum Ada Bab';
@@ -542,6 +595,22 @@
                     } else {
                         mod.statusLabel = total + ' Bab (' + published + ' Terbit)';
                         mod.statusClass = 'text-blue-600 dark:text-blue-400';
+                    }
+
+                    // Jika ini sub-menu, perbarui juga kalkulasi modul induknya
+                    if (mod.parent_id) {
+                        const parent = this.modules.find(m => String(m.id) === String(mod.parent_id));
+                        if (parent && parent.sub_menus) {
+                            let parentTotal = (parent.ownChapterCount || (parent.chapters ? parent.chapters.length : 0));
+                            let parentPub = (parent.chapters ? parent.chapters.filter(c => c.status === 'published').length : 0);
+                            for (let s of parent.sub_menus) {
+                                parentTotal += (s.chapterCount || 0);
+                                parentPub += (s.publishedCount || 0);
+                            }
+                            parent.chapterCount = parentTotal;
+                            parent.publishedCount = parentPub;
+                            parent.statusLabel = parent.sub_menus.length + ' Sub Menu • ' + (parentTotal > 0 ? parentTotal + ' Bab' : 'Belum Ada Bab');
+                        }
                     }
                 },
 
@@ -590,10 +659,12 @@
                     });
                 },
 
-                // Tambah Modul Baru ke Database menu_systems
+                // Tambah Modul Baru atau Sub Menu ke Database menu_systems
                 submitAddModule() {
                     const name = (this.newModuleName || '').trim();
                     if (!name) return;
+
+                    const parentId = (this.newModuleType === 'sub' && this.newModuleParentId) ? this.newModuleParentId : null;
 
                     fetch('{{ route("manualbook.module.add") }}', {
                         method: 'POST',
@@ -605,6 +676,7 @@
                         },
                         body: JSON.stringify({
                             kategori_id: this.activeSystem,
+                            parent_id: parentId,
                             name: name,
                             order: this.newModuleNumber || null,
                             _token: '{{ csrf_token() }}'
@@ -618,21 +690,34 @@
                         const newMod = data.module;
                         newMod.chapters = [];
                         newMod.chapterCount = 0;
+                        newMod.publishedCount = 0;
                         newMod.statusLabel = 'Belum Ada Bab';
                         newMod.statusClass = 'text-slate-400 dark:text-slate-500';
 
-                        if (!this.modulesBySystem[this.activeSystem]) {
-                            this.modulesBySystem[this.activeSystem] = [];
-                        }
-                        this.modulesBySystem[this.activeSystem].push(newMod);
+                        if (parentId) {
+                            const parent = this.modules.find(m => String(m.id) === String(parentId));
+                            if (parent) {
+                                if (!parent.sub_menus) parent.sub_menus = [];
+                                parent.sub_menus.push(newMod);
+                                parent.has_sub_menus = true;
+                                this.expandedModules[parentId] = true;
+                                this.updateModuleStats(parent);
+                            }
+                        } else {
+                            if (!this.modulesBySystem[this.activeSystem]) {
+                                this.modulesBySystem[this.activeSystem] = [];
+                            }
+                            this.modulesBySystem[this.activeSystem].push(newMod);
 
-                        // Perbarui jumlah modul pada sistem
-                        const sys = this.systems.find(s => String(s.id) === String(this.activeSystem));
-                        if (sys) sys.moduleCount = (sys.moduleCount || 0) + 1;
+                            const sys = this.systems.find(s => String(s.id) === String(this.activeSystem));
+                            if (sys) sys.moduleCount = (sys.moduleCount || 0) + 1;
+                        }
 
                         this.activeModuleId = newMod.id;
                         this.newModuleName = '';
                         this.newModuleNumber = '';
+                        this.newModuleParentId = '';
+                        this.newModuleType = 'main';
                         this.openAddModuleModal = false;
 
                         this.startNewChapter();
@@ -642,7 +727,7 @@
                                 toast: true,
                                 position: 'top-end',
                                 icon: 'success',
-                                title: data.message || 'Modul baru berhasil ditambahkan!',
+                                title: data.message || 'Berhasil ditambahkan!',
                                 showConfirmButton: false,
                                 timer: 2000
                             });
@@ -650,21 +735,22 @@
                     })
                     .catch(err => {
                         console.error('Error add module:', err);
-                        alert(err.message || 'Gagal menambahkan modul baru.');
+                        alert(err.message || 'Gagal menambahkan modul/sub menu.');
                     });
                 },
 
                 // Konfirmasi & Hapus Modul dari Database
                 confirmDeleteModule(mod) {
                     if (typeof Swal !== 'undefined') {
+                        const isSub = !!mod.parent_id;
                         Swal.fire({
                             icon: 'warning',
-                            title: 'Hapus Modul?',
-                            html: `Apakah Anda yakin ingin menghapus modul <strong>"${mod.title}"</strong>?<br><span class="text-xs text-rose-500 font-semibold">Semua bab manual book terkait modul ini akan terhapus.</span>`,
+                            title: isSub ? 'Hapus Sub Menu?' : 'Hapus Modul?',
+                            html: `Apakah Anda yakin ingin menghapus ${isSub ? 'sub menu' : 'modul'} <strong>"${mod.title}"</strong>?<br><span class="text-xs text-rose-500 font-semibold">Semua bab manual book terkait ${isSub ? 'sub menu' : 'modul'} ini akan terhapus.</span>`,
                             showCancelButton: true,
                             confirmButtonColor: '#e11d48',
                             cancelButtonColor: '#64748b',
-                            confirmButtonText: 'Ya, Hapus Modul',
+                            confirmButtonText: 'Ya, Hapus',
                             cancelButtonText: 'Batal'
                         }).then((result) => {
                             if (result.isConfirmed) {
@@ -672,7 +758,7 @@
                             }
                         });
                     } else {
-                        if (confirm(`Yakin ingin menghapus modul "${mod.title}"?`)) {
+                        if (confirm(`Yakin ingin menghapus "${mod.title}"?`)) {
                             this.executeDeleteModule(mod);
                         }
                     }
@@ -693,11 +779,22 @@
                         return res.json();
                     })
                     .then(data => {
-                        const list = this.modulesBySystem[this.activeSystem] || [];
-                        this.modulesBySystem[this.activeSystem] = list.filter(m => String(m.id) !== String(mod.id));
+                        if (mod.parent_id) {
+                            const parent = this.modules.find(m => String(m.id) === String(mod.parent_id));
+                            if (parent && parent.sub_menus) {
+                                parent.sub_menus = parent.sub_menus.filter(s => String(s.id) !== String(mod.id));
+                                if (parent.sub_menus.length === 0) {
+                                    parent.has_sub_menus = false;
+                                }
+                                this.updateModuleStats(parent);
+                            }
+                        } else {
+                            const list = this.modulesBySystem[this.activeSystem] || [];
+                            this.modulesBySystem[this.activeSystem] = list.filter(m => String(m.id) !== String(mod.id));
 
-                        const sys = this.systems.find(s => String(s.id) === String(this.activeSystem));
-                        if (sys && sys.moduleCount > 0) sys.moduleCount--;
+                            const sys = this.systems.find(s => String(s.id) === String(this.activeSystem));
+                            if (sys && sys.moduleCount > 0) sys.moduleCount--;
+                        }
 
                         if (String(this.activeModuleId) === String(mod.id)) {
                             const remaining = this.modules;
@@ -712,7 +809,7 @@
                         if (typeof Swal !== 'undefined') {
                             Swal.fire({
                                 icon: 'success',
-                                title: 'Modul Dihapus',
+                                title: mod.parent_id ? 'Sub Menu Dihapus' : 'Modul Dihapus',
                                 text: data.message,
                                 timer: 1800,
                                 showConfirmButton: false
@@ -892,41 +989,160 @@
                         </p>
                     </div>
                     <button type="button" 
-                            @click="openAddModuleModal = true"
+                            @click="openCreateMainModuleModal()"
                             class="text-xs font-bold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 flex items-center gap-1 cursor-pointer">
                         <i class="fa-solid fa-plus text-[10px]"></i>
                         <span>Modul Baru</span>
                     </button>
                 </div>
 
-                {{-- List Modul Cards --}}
+                {{-- List Modul Cards & Tree Sub Menus --}}
                 <div class="space-y-2">
                     <template x-for="mod in modules" :key="mod.id">
-                        <div @click="selectModule(mod.id)"
-                             :class="activeModuleId === mod.id 
-                                ? 'border-blue-500 bg-blue-50/70 dark:bg-blue-950/20 ring-1 ring-blue-500/50 shadow-sm' 
-                                : 'border-slate-200 dark:border-slate-800/90 bg-slate-50/50 dark:bg-slate-900/60 hover:bg-slate-100/70 dark:hover:bg-slate-800/60'"
-                             class="p-3.5 rounded-xl border transition-all duration-200 cursor-pointer text-left group">
-                            
-                            {{-- Judul Modul & Hapus --}}
-                            <div class="flex items-start justify-between gap-2">
-                                <div class="text-xs sm:text-[13px] font-bold text-slate-800 dark:text-slate-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors leading-snug"
-                                     x-text="mod.title">
-                                </div>
-                                <button type="button" 
-                                        @click.stop="confirmDeleteModule(mod)" 
-                                        class="opacity-0 group-hover:opacity-100 p-1 hover:bg-rose-100 dark:hover:bg-rose-950/60 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 rounded-md transition-all shrink-0 cursor-pointer" 
-                                        title="Hapus Modul">
-                                    <i class="fa-regular fa-trash-can text-[11px]"></i>
-                                </button>
-                            </div>
+                        <div>
+                            {{-- Case A: Modul Induk dengan Sub Menu (Accordion Tree) --}}
+                            <template x-if="mod.has_sub_menus">
+                                <div class="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/40 dark:bg-slate-900/40 overflow-hidden transition-all duration-200 shadow-2xs">
+                                    {{-- Header Modul Induk --}}
+                                    <div class="p-3 flex items-center justify-between gap-2 bg-slate-100/60 dark:bg-slate-800/60 hover:bg-slate-200/50 dark:hover:bg-slate-800 transition-colors group">
+                                        <div class="flex items-center gap-2 min-w-0 flex-1">
+                                            {{-- Tombol Expand/Collapse Chevron --}}
+                                            <button type="button" 
+                                                    @click.stop="toggleExpand(mod.id)" 
+                                                    class="w-6 h-6 rounded-lg flex items-center justify-center text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all cursor-pointer shrink-0"
+                                                    title="Buka/Tutup Sub Menu">
+                                                <i class="fa-solid fa-chevron-down text-[10px] transition-transform duration-200" 
+                                                   :class="isExpanded(mod.id) ? 'rotate-0' : '-rotate-90'"></i>
+                                            </button>
 
-                            {{-- Status Pengisian & Bab Count --}}
-                            <div class="mt-2 flex items-center justify-between text-[11px] font-semibold">
-                                <span :class="mod.statusClass" x-text="mod.statusLabel"></span>
-                                <span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-slate-200/60 dark:bg-slate-800 text-slate-600 dark:text-slate-300"
-                                      x-text="(mod.chapters ? mod.chapters.length : 0) + ' Bab'"></span>
-                            </div>
+                                            {{-- Folder Icon --}}
+                                            <i class="fa-solid fa-folder text-blue-500 text-xs shrink-0"></i>
+
+                                            {{-- Judul Modul Induk (Bisa diklik untuk pilih) --}}
+                                            <button type="button" 
+                                                    @click="selectModule(mod.id)" 
+                                                    class="text-left font-bold text-xs sm:text-[13px] truncate transition-colors cursor-pointer"
+                                                    :class="String(activeModuleId) === String(mod.id) ? 'text-blue-600 dark:text-blue-400' : 'text-slate-800 dark:text-slate-100 group-hover:text-blue-600 dark:group-hover:text-blue-400'"
+                                                    x-text="mod.title">
+                                            </button>
+                                        </div>
+
+                                        {{-- Badge & Quick Actions --}}
+                                        <div class="flex items-center gap-1.5 shrink-0">
+                                            <span class="px-1.5 py-0.5 rounded text-[10px] font-black bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 border border-indigo-200/60 dark:border-indigo-800" 
+                                                  x-text="(mod.sub_menus ? mod.sub_menus.length : 0) + ' Sub'"></span>
+                                            
+                                            <button type="button" 
+                                                    @click.stop="openCreateSubMenuModal(mod)" 
+                                                    class="opacity-0 group-hover:opacity-100 px-1.5 py-0.5 bg-blue-100 hover:bg-blue-200 dark:bg-blue-900/40 dark:hover:bg-blue-900/70 text-blue-700 dark:text-blue-300 rounded text-[10px] font-bold transition-all cursor-pointer" 
+                                                    title="Tambah Sub Menu di modul ini">
+                                                + Sub
+                                            </button>
+
+                                            <button type="button" 
+                                                    @click.stop="confirmDeleteModule(mod)" 
+                                                    class="opacity-0 group-hover:opacity-100 p-1 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 rounded transition-all shrink-0 cursor-pointer" 
+                                                    title="Hapus Modul & Semua Sub Menunya">
+                                                <i class="fa-regular fa-trash-can text-[11px]"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    {{-- Sub Menus Container (Collapsible Tree View) --}}
+                                    <div x-show="isExpanded(mod.id)" 
+                                         class="p-2 space-y-1.5 border-t border-slate-200 dark:border-slate-800 bg-white/50 dark:bg-slate-900/50">
+                                        
+                                        {{-- Opsi Bab Induk (Jika modul utama memiliki bab sendiri) --}}
+                                        <template x-if="mod.chapters && mod.chapters.length > 0">
+                                            <div @click="selectModule(mod.id)" 
+                                                 :class="String(activeModuleId) === String(mod.id) 
+                                                    ? 'border-blue-500 bg-blue-50/80 dark:bg-blue-950/40 ring-1 ring-blue-500/50 text-blue-700 dark:text-blue-300 font-bold' 
+                                                    : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:bg-slate-100/70 dark:hover:bg-slate-800/60 text-slate-700 dark:text-slate-300'"
+                                                 class="p-2.5 rounded-xl border text-xs cursor-pointer transition-all flex items-center justify-between group/sub ml-3">
+                                                <div class="flex items-center gap-2 truncate min-w-0">
+                                                    <i class="fa-solid fa-bookmark text-xs text-blue-500 shrink-0"></i>
+                                                    <span class="truncate font-medium" x-text="'Ringkasan Utama ' + mod.raw_name"></span>
+                                                </div>
+                                                <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 shrink-0" 
+                                                      x-text="(mod.chapters ? mod.chapters.length : 0) + ' Bab'"></span>
+                                            </div>
+                                        </template>
+
+                                        {{-- Daftar Sub Menu --}}
+                                        <template x-for="sub in mod.sub_menus" :key="sub.id">
+                                            <div @click="selectModule(sub.id)" 
+                                                 :class="String(activeModuleId) === String(sub.id) 
+                                                    ? 'border-blue-500 bg-blue-50/80 dark:bg-blue-950/40 ring-1 ring-blue-500/50 text-blue-700 dark:text-blue-300 font-bold' 
+                                                    : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:bg-slate-100/70 dark:hover:bg-slate-800/60 text-slate-700 dark:text-slate-300'"
+                                                 class="p-2.5 rounded-xl border text-xs cursor-pointer transition-all flex items-center justify-between group/sub ml-3">
+                                                <div class="flex items-center gap-2 truncate min-w-0">
+                                                    <i class="fa-regular fa-file-lines text-xs text-slate-400 group-hover/sub:text-blue-500 shrink-0"></i>
+                                                    <span class="truncate font-medium" x-text="sub.title"></span>
+                                                </div>
+                                                <div class="flex items-center gap-1.5 shrink-0">
+                                                    <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400" 
+                                                          x-text="(sub.chapters ? sub.chapters.length : 0) + ' Bab'"></span>
+                                                    <button type="button" 
+                                                            @click.stop="confirmDeleteModule(sub)" 
+                                                            class="opacity-0 group-hover/sub:opacity-100 p-0.5 text-slate-400 hover:text-rose-600 rounded transition-opacity cursor-pointer" 
+                                                            title="Hapus Sub Menu">
+                                                        <i class="fa-regular fa-trash-can text-[10px]"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </template>
+
+                                        {{-- Tombol Tambah Sub Menu di Bawah Daftar --}}
+                                        <button type="button" 
+                                                @click.stop="openCreateSubMenuModal(mod)" 
+                                                class="w-[calc(100%-0.75rem)] ml-3 py-1.5 px-2 rounded-lg border border-dashed border-slate-300 dark:border-slate-700 hover:border-blue-400 hover:bg-blue-50/50 dark:hover:bg-blue-950/30 text-[11px] font-semibold text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 flex items-center justify-center gap-1.5 transition-all cursor-pointer">
+                                            <i class="fa-solid fa-plus text-[9px]"></i>
+                                            <span>Tambah Sub Menu</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </template>
+
+                            {{-- Case B: Modul Biasa Tanpa Sub Menu --}}
+                            <template x-if="!mod.has_sub_menus">
+                                <div @click="selectModule(mod.id)"
+                                     :class="String(activeModuleId) === String(mod.id) 
+                                        ? 'border-blue-500 bg-blue-50/70 dark:bg-blue-950/20 ring-1 ring-blue-500/50 shadow-sm' 
+                                        : 'border-slate-200 dark:border-slate-800/90 bg-slate-50/50 dark:bg-slate-900/60 hover:bg-slate-100/70 dark:hover:bg-slate-800/60'"
+                                     class="p-3.5 rounded-xl border transition-all duration-200 cursor-pointer text-left group">
+                                    
+                                    {{-- Judul Modul & Aksi --}}
+                                    <div class="flex items-start justify-between gap-2">
+                                        <div class="flex items-center gap-1.5 min-w-0">
+                                            <i class="fa-regular fa-folder text-slate-400 group-hover:text-blue-500 text-xs shrink-0"></i>
+                                            <div class="text-xs sm:text-[13px] font-bold text-slate-800 dark:text-slate-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors leading-snug truncate"
+                                                 x-text="mod.title">
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center gap-1 shrink-0">
+                                            <button type="button" 
+                                                    @click.stop="openCreateSubMenuModal(mod)" 
+                                                    class="opacity-0 group-hover:opacity-100 px-1.5 py-0.5 hover:bg-blue-100 dark:hover:bg-blue-900/40 text-blue-600 dark:text-blue-400 rounded text-[10px] font-bold transition-all cursor-pointer" 
+                                                    title="Tambah Sub Menu di modul ini">
+                                                + Sub
+                                            </button>
+                                            <button type="button" 
+                                                    @click.stop="confirmDeleteModule(mod)" 
+                                                    class="opacity-0 group-hover:opacity-100 p-1 hover:bg-rose-100 dark:hover:bg-rose-950/60 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 rounded-md transition-all shrink-0 cursor-pointer" 
+                                                    title="Hapus Modul">
+                                                <i class="fa-regular fa-trash-can text-[11px]"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    {{-- Status Pengisian & Bab Count --}}
+                                    <div class="mt-2 flex items-center justify-between text-[11px] font-semibold">
+                                        <span :class="mod.statusClass" x-text="mod.statusLabel"></span>
+                                        <span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-slate-200/60 dark:bg-slate-800 text-slate-600 dark:text-slate-300"
+                                              x-text="(mod.chapters ? mod.chapters.length : 0) + ' Bab'"></span>
+                                    </div>
+                                </div>
+                            </template>
                         </div>
                     </template>
 
@@ -1221,7 +1437,7 @@
         </div>
 
         {{-- ======================================================== --}}
-        {{-- MODAL: TAMBAH MODUL BARU (TERHUBUNG KE DATABASE)          --}}
+        {{-- MODAL: TAMBAH MODUL / SUB MENU (TERHUBUNG KE DATABASE)    --}}
         {{-- ======================================================== --}}
         <div x-show="openAddModuleModal" 
              x-cloak
@@ -1230,8 +1446,8 @@
             <div @click.outside="openAddModuleModal = false"
                  class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-md p-6 shadow-xl space-y-4">
                 <div class="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
-                    <h3 class="text-sm font-black text-slate-800 dark:text-white uppercase tracking-wider">
-                        Tambah Modul Baru
+                    <h3 class="text-sm font-black text-slate-800 dark:text-white uppercase tracking-wider"
+                        x-text="newModuleType === 'sub' ? 'Tambah Sub Menu Baru' : 'Tambah Modul Baru'">
                     </h3>
                     <button type="button" @click="openAddModuleModal = false" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer">
                         <i class="fa-solid fa-xmark text-base"></i>
@@ -1239,22 +1455,51 @@
                 </div>
 
                 <form @submit.prevent="submitAddModule()">
-                    <div class="space-y-3">
+                    <div class="space-y-3.5">
+                        {{-- Pilihan Tipe: Modul Utama vs Sub Menu --}}
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1.5">Tipe Modul</label>
+                            <div class="grid grid-cols-2 gap-2">
+                                <label class="flex items-center gap-2 p-2.5 rounded-xl border cursor-pointer text-xs transition-all"
+                                       :class="newModuleType === 'main' ? 'border-blue-500 bg-blue-50/60 dark:bg-blue-950/30 text-blue-700 dark:text-blue-300 font-bold' : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400'">
+                                    <input type="radio" value="main" x-model="newModuleType" class="text-blue-600 focus:ring-blue-500">
+                                    <span>Modul Utama</span>
+                                </label>
+                                <label class="flex items-center gap-2 p-2.5 rounded-xl border cursor-pointer text-xs transition-all"
+                                       :class="newModuleType === 'sub' ? 'border-blue-500 bg-blue-50/60 dark:bg-blue-950/30 text-blue-700 dark:text-blue-300 font-bold' : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400'">
+                                    <input type="radio" value="sub" x-model="newModuleType" class="text-blue-600 focus:ring-blue-500">
+                                    <span>Sub Menu</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        {{-- Dropdown Pilih Modul Induk (Parent) jika Sub Menu --}}
+                        <div x-show="newModuleType === 'sub'" x-cloak class="transition-all">
+                            <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">Pilih Modul Induk</label>
+                            <select x-model="newModuleParentId" :required="newModuleType === 'sub'" class="w-full px-3.5 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
+                                <option value="">-- Pilih Modul Induk --</option>
+                                <template x-for="m in modules" :key="m.id">
+                                    <option :value="m.id" x-text="m.title"></option>
+                                </template>
+                            </select>
+                        </div>
+
                         <div>
                             <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">Nomor / Urutan</label>
-                            <input type="number" x-model="newModuleNumber" placeholder="Contoh: 7" class="w-full px-3.5 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
+                            <input type="number" x-model="newModuleNumber" placeholder="Contoh: 1, 2, dst." class="w-full px-3.5 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
                         </div>
+
                         <div>
-                            <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">Nama Modul</label>
-                            <input type="text" x-model="newModuleName" required placeholder="Contoh: Reservasi & Manajemen Event" class="w-full px-3.5 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
+                            <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1" x-text="newModuleType === 'sub' ? 'Nama Sub Menu' : 'Nama Modul'"></label>
+                            <input type="text" x-model="newModuleName" required :placeholder="newModuleType === 'sub' ? 'Contoh: Order Taker & Kasir' : 'Contoh: Reservasi & Manajemen Event'" class="w-full px-3.5 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
                         </div>
                     </div>
+
                     <div class="flex items-center justify-end gap-2 pt-4">
                         <button type="button" @click="openAddModuleModal = false" class="px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer">
                             Batal
                         </button>
-                        <button type="submit" class="px-4 py-2 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white shadow-sm shadow-blue-500/20 cursor-pointer">
-                            Simpan Modul
+                        <button type="submit" class="px-4 py-2 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white shadow-sm shadow-blue-500/20 cursor-pointer" x-text="newModuleType === 'sub' ? 'Simpan Sub Menu' : 'Simpan Modul'">
                         </button>
                     </div>
                 </form>

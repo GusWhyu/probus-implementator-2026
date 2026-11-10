@@ -59,11 +59,21 @@ class ManualBookController extends Controller
      */
     private function getManualBookData(): array
     {
-        // 1. Ambil kategori yang memiliki menuSystems beserta semua bab manualBooks
+        // 1. Ambil kategori beserta modul utama (parent_id is null) dan sub-menu bersarangnya
         $categories = Kategori::with(['menuSystems' => function ($q) {
-            $q->orderBy('order')->with(['manualBooks' => function ($mb) {
-                $mb->orderBy('order')->orderBy('id');
-            }]);
+            $q->whereNull('parent_id')
+              ->orderBy('order')
+              ->orderBy('id')
+              ->with([
+                  'manualBooks' => function ($mb) {
+                      $mb->orderBy('order')->orderBy('id');
+                  },
+                  'subMenus' => function ($sm) {
+                      $sm->orderBy('order')->orderBy('id')->with(['manualBooks' => function ($mb) {
+                          $mb->orderBy('order')->orderBy('id');
+                      }]);
+                  }
+              ]);
         }])->get();
 
         $systems = [];
@@ -73,48 +83,83 @@ class ManualBookController extends Controller
             $modList = [];
 
             foreach ($cat->menuSystems as $ms) {
+                // Bab langsung dari modul utama
                 $chapters = [];
                 foreach ($ms->manualBooks as $idx => $book) {
-                    $orderNum = $book->order ? (int) $book->order : ($idx + 1);
-                    $hasContent = !empty(trim(strip_tags($book->content, '<img>')));
-                    $isPublished = $book->status === 'published';
+                    $chapters[] = $this->formatChapterItem($book, $idx);
+                }
 
-                    $statusLabel = 'Belum Diisi • Draft';
-                    $statusClass = 'text-amber-600 dark:text-amber-400';
-                    if ($hasContent) {
-                        if ($isPublished) {
-                            $statusLabel = 'Panduan Terisi ✓';
-                            $statusClass = 'text-emerald-600 dark:text-emerald-400';
+                $cleanName = trim(preg_replace('/^\d+[\.\s\-]+/', '', $ms->name));
+                $cleanName = $cleanName ?: $ms->name;
+
+                // Format daftar sub-menu jika ada
+                $subMenusList = [];
+                foreach ($ms->subMenus as $sIdx => $sub) {
+                    $subChapters = [];
+                    foreach ($sub->manualBooks as $sbIdx => $sBook) {
+                        $subChapters[] = $this->formatChapterItem($sBook, $sbIdx);
+                    }
+
+                    $subTotalChapters = count($subChapters);
+                    $subPublishedCount = count(array_filter($subChapters, function ($c) {
+                        return $c['status'] === 'published';
+                    }));
+
+                    $subCleanName = trim(preg_replace('/^\d+[\.\s\-]+/', '', $sub->name));
+                    $subCleanName = $subCleanName ?: $sub->name;
+                    $subOrderPrefix = $sub->order ? $sub->order . '. ' : (($sIdx + 1) . '. ');
+                    $subTitle = $subOrderPrefix . $subCleanName;
+
+                    $subStatusLabel = 'Belum Ada Bab';
+                    $subStatusClass = 'text-slate-400 dark:text-slate-500';
+                    if ($subTotalChapters > 0) {
+                        if ($subPublishedCount === $subTotalChapters) {
+                            $subStatusLabel = $subTotalChapters . ' Bab • Terisi Lengkap ✓';
+                            $subStatusClass = 'text-emerald-600 dark:text-emerald-400';
                         } else {
-                            $statusLabel = 'Sedang Diedit ✎';
-                            $statusClass = 'text-blue-600 dark:text-blue-400';
+                            $subStatusLabel = $subTotalChapters . ' Bab (' . $subPublishedCount . ' Terbit)';
+                            $subStatusClass = 'text-blue-600 dark:text-blue-400';
                         }
                     }
 
-                    $chapters[] = [
-                        'id' => (string) $book->id,
-                        'order' => $orderNum,
-                        'title' => $book->title,
-                        'description' => $book->description ? $book->description : '',
-                        'content' => $book->content ? $book->content : '',
-                        'status' => $book->status ? $book->status : 'draft',
-                        'statusLabel' => $statusLabel,
-                        'statusClass' => $statusClass,
-                        'updated_at' => $book->updated_at ? $book->updated_at->format('d M Y H:i') : '-',
+                    $subMenusList[] = [
+                        'id' => (string) $sub->id,
+                        'parent_id' => (string) $ms->id,
+                        'menu_system_id' => $sub->id,
+                        'system_id' => (string) $cat->id,
+                        'system_name' => $cat->name,
+                        'title' => $subTitle,
+                        'raw_name' => $subCleanName,
+                        'order' => $sub->order,
+                        'description' => $sub->description ?: '',
+                        'statusLabel' => $subStatusLabel,
+                        'statusClass' => $subStatusClass,
+                        'chapterCount' => $subTotalChapters,
+                        'publishedCount' => $subPublishedCount,
+                        'breadcrumb' => strtoupper($cat->name) . ' • ' . strtoupper($cleanName) . ' • ' . strtoupper($subCleanName) . ' • BUKU PANDUAN PENGGUNAAN',
+                        'chapters' => $subChapters,
                     ];
                 }
 
-                $totalChapters = count($chapters);
-                $publishedCount = 0;
-                foreach ($chapters as $c) {
-                    if ($c['status'] === 'published') {
-                        $publishedCount++;
-                    }
-                }
+                // Kalkulasi total bab (modul utama + semua sub menu)
+                $ownChapterCount = count($chapters);
+                $subChapterCount = array_sum(array_column($subMenusList, 'chapterCount'));
+                $totalChapters = $ownChapterCount + $subChapterCount;
+
+                $ownPublished = count(array_filter($chapters, function ($c) {
+                    return $c['status'] === 'published';
+                }));
+                $subPublished = array_sum(array_column($subMenusList, 'publishedCount'));
+                $publishedCount = $ownPublished + $subPublished;
+
+                $hasSubMenus = count($subMenusList) > 0;
 
                 $statusLabel = 'Belum Ada Bab';
                 $statusClass = 'text-slate-400 dark:text-slate-500';
-                if ($totalChapters > 0) {
+                if ($hasSubMenus) {
+                    $statusLabel = count($subMenusList) . ' Sub Menu • ' . ($totalChapters > 0 ? $totalChapters . ' Bab' : 'Belum Ada Bab');
+                    $statusClass = 'text-indigo-600 dark:text-indigo-400';
+                } elseif ($totalChapters > 0) {
                     if ($publishedCount === $totalChapters) {
                         $statusLabel = $totalChapters . ' Bab • Terisi Lengkap ✓';
                         $statusClass = 'text-emerald-600 dark:text-emerald-400';
@@ -125,21 +170,23 @@ class ManualBookController extends Controller
                 }
 
                 $orderPrefix = $ms->order ? str_pad($ms->order, 2, '0', STR_PAD_LEFT) . '. ' : '';
-                $cleanName = trim(preg_replace('/^\d+[\.\s\-]+/', '', $ms->name));
-                $cleanName = $cleanName ? $cleanName : $ms->name;
                 $defaultTitle = $orderPrefix ? $orderPrefix . $cleanName : $cleanName;
 
                 $modList[] = [
                     'id' => (string) $ms->id,
+                    'parent_id' => null,
                     'menu_system_id' => $ms->id,
                     'system_id' => (string) $cat->id,
                     'system_name' => $cat->name,
                     'title' => $defaultTitle,
                     'raw_name' => $cleanName,
                     'order' => $ms->order,
-                    'description' => $ms->description ? $ms->description : '',
+                    'description' => $ms->description ?: '',
+                    'has_sub_menus' => $hasSubMenus,
+                    'sub_menus' => $subMenusList,
                     'statusLabel' => $statusLabel,
                     'statusClass' => $statusClass,
+                    'ownChapterCount' => $ownChapterCount,
                     'chapterCount' => $totalChapters,
                     'publishedCount' => $publishedCount,
                     'breadcrumb' => strtoupper($cat->name) . ' • ' . strtoupper($cleanName) . ' • BUKU PANDUAN PENGGUNAAN',
@@ -160,6 +207,40 @@ class ManualBookController extends Controller
             'systems' => $systems,
             'modulesBySystem' => $modulesBySystem,
             'categories' => $categories,
+        ];
+    }
+
+    /**
+     * Helper untuk memformat item bab buku manual
+     */
+    private function formatChapterItem($book, $idx): array
+    {
+        $orderNum = $book->order ? (int) $book->order : ($idx + 1);
+        $hasContent = !empty(trim(strip_tags($book->content, '<img>')));
+        $isPublished = $book->status === 'published';
+
+        $statusLabel = 'Belum Diisi • Draft';
+        $statusClass = 'text-amber-600 dark:text-amber-400';
+        if ($hasContent) {
+            if ($isPublished) {
+                $statusLabel = 'Panduan Terisi ✓';
+                $statusClass = 'text-emerald-600 dark:text-emerald-400';
+            } else {
+                $statusLabel = 'Sedang Diedit ✎';
+                $statusClass = 'text-blue-600 dark:text-blue-400';
+            }
+        }
+
+        return [
+            'id' => (string) $book->id,
+            'order' => $orderNum,
+            'title' => $book->title,
+            'description' => $book->description ?: '',
+            'content' => $book->content ?: '',
+            'status' => $book->status ?: 'draft',
+            'statusLabel' => $statusLabel,
+            'statusClass' => $statusClass,
+            'updated_at' => $book->updated_at ? $book->updated_at->format('d M Y H:i') : '-',
         ];
     }
 
@@ -319,9 +400,17 @@ class ManualBookController extends Controller
      */
     public function deleteModule($id)
     {
-        $menuSystem = MenuSystem::findOrFail($id);
+        $menuSystem = MenuSystem::with('subMenus')->findOrFail($id);
         $name = $menuSystem->name;
         $kategoriId = $menuSystem->kategori_id;
+        $parentId = $menuSystem->parent_id;
+
+        // Jika modul utama memiliki sub-menus, lepas juga relasi sub-menus
+        foreach ($menuSystem->subMenus as $sub) {
+            $sub->manualBooks()->detach();
+            $sub->articles()->detach();
+            $sub->delete();
+        }
 
         // Lepas relasi pivot manual books & articles
         $menuSystem->manualBooks()->detach();
@@ -330,8 +419,9 @@ class ManualBookController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Modul "' . $name . '" berhasil dihapus!',
+            'message' => ($parentId ? 'Sub Menu "' : 'Modul "') . $name . '" berhasil dihapus!',
             'deleted_id' => (string) $id,
+            'parent_id' => $parentId ? (string) $parentId : null,
             'kategori_id' => (string) $kategoriId,
         ]);
     }
@@ -385,47 +475,75 @@ class ManualBookController extends Controller
     }
 
     /**
-     * Menambahkan modul baru (MenuSystem Level 2)
+     * Menambahkan modul baru atau sub menu (MenuSystem Level 2/3)
      */
     public function addModule(Request $request)
     {
         $request->validate([
             'kategori_id' => 'required|exists:kategori,id',
+            'parent_id' => 'nullable|exists:menu_systems,id',
             'name' => 'required|string|max:100',
             'order' => 'nullable|integer',
         ]);
 
+        $parentId = $request->parent_id ?: null;
         $order = $request->order ? (int) $request->order : 0;
+
         if ($order === 0) {
-            $maxOrder = MenuSystem::where('kategori_id', $request->kategori_id)->max('order');
+            if ($parentId) {
+                $maxOrder = MenuSystem::where('parent_id', $parentId)->max('order');
+            } else {
+                $maxOrder = MenuSystem::where('kategori_id', $request->kategori_id)
+                    ->whereNull('parent_id')
+                    ->max('order');
+            }
             $order = $maxOrder ? $maxOrder + 1 : 1;
         }
 
         $menuSystem = MenuSystem::create([
             'kategori_id' => $request->kategori_id,
+            'parent_id' => $parentId,
             'name' => trim($request->name),
             'order' => $order,
         ]);
 
         $kategori = $menuSystem->kategori;
-        $orderPrefix = str_pad($order, 2, '0', STR_PAD_LEFT) . '. ';
-        $fullTitle = $orderPrefix . $menuSystem->name;
+        $cleanName = trim(preg_replace('/^\d+[\.\s\-]+/', '', $menuSystem->name));
+        $cleanName = $cleanName ?: $menuSystem->name;
+
+        if ($parentId) {
+            $parent = MenuSystem::find($parentId);
+            $parentCleanName = $parent ? trim(preg_replace('/^\d+[\.\s\-]+/', '', $parent->name)) : '';
+            $subOrderPrefix = $order ? $order . '. ' : '';
+            $fullTitle = $subOrderPrefix . $cleanName;
+            $breadcrumb = strtoupper($kategori ? $kategori->name : 'SISTEM') . ' • ' . strtoupper($parentCleanName) . ' • ' . strtoupper($cleanName) . ' • BUKU PANDUAN PENGGUNAAN';
+        } else {
+            $orderPrefix = str_pad($order, 2, '0', STR_PAD_LEFT) . '. ';
+            $fullTitle = $orderPrefix . $cleanName;
+            $breadcrumb = strtoupper($kategori ? $kategori->name : 'SISTEM') . ' • MODUL ' . str_pad($order, 2, '0', STR_PAD_LEFT) . ' • PENGISIAN TATA CARA PENGGUNAAN';
+        }
 
         return response()->json([
             'success' => true,
-            'message' => 'Modul baru "' . $menuSystem->name . '" berhasil ditambahkan!',
+            'message' => ($parentId ? 'Sub Menu baru "' : 'Modul baru "') . $menuSystem->name . '" berhasil ditambahkan!',
             'module' => [
                 'id' => (string) $menuSystem->id,
+                'parent_id' => $parentId ? (string) $parentId : null,
                 'menu_system_id' => $menuSystem->id,
+                'system_id' => (string) $menuSystem->kategori_id,
+                'system_name' => $kategori ? $kategori->name : '',
                 'title' => $fullTitle,
-                'raw_name' => $menuSystem->name,
-                'statusLabel' => 'Belum Diisi • Draft',
-                'statusClass' => 'text-amber-600 dark:text-amber-400',
-                'breadcrumb' => strtoupper($kategori ? $kategori->name : 'SISTEM') . ' • MODUL ' . str_pad($order, 2, '0', STR_PAD_LEFT) . ' • PENGISIAN TATA CARA PENGGUNAAN',
-                'description' => 'Panduan langkah demi langkah untuk modul ' . $menuSystem->name,
-                'content' => '',
-                'manual_book_id' => null,
-                'status' => 'draft',
+                'raw_name' => $cleanName,
+                'order' => $order,
+                'statusLabel' => 'Belum Ada Bab',
+                'statusClass' => 'text-slate-400 dark:text-slate-500',
+                'chapterCount' => 0,
+                'publishedCount' => 0,
+                'breadcrumb' => $breadcrumb,
+                'description' => 'Panduan langkah demi langkah untuk ' . $menuSystem->name,
+                'chapters' => [],
+                'has_sub_menus' => false,
+                'sub_menus' => [],
             ],
         ]);
     }

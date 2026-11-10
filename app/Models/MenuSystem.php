@@ -13,6 +13,7 @@ class MenuSystem extends Model
 
     protected $fillable = [
         'kategori_id',
+        'parent_id',
         'name',
         'description',
         'order',
@@ -24,6 +25,22 @@ class MenuSystem extends Model
     public function kategori()
     {
         return $this->belongsTo(Kategori::class, 'kategori_id');
+    }
+
+    /**
+     * Relasi ke Modul Induk (Parent Menu) jika ini adalah Sub Menu
+     */
+    public function parent()
+    {
+        return $this->belongsTo(MenuSystem::class, 'parent_id');
+    }
+
+    /**
+     * Relasi ke Sub Menu di bawah Modul Ini
+     */
+    public function subMenus()
+    {
+        return $this->hasMany(MenuSystem::class, 'parent_id')->orderBy('order')->orderBy('id');
     }
 
     /**
