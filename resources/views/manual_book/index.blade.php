@@ -152,17 +152,7 @@
                             (c.description || '').toLowerCase().includes(q) ||
                             (c.content || '').toLowerCase().includes(q)
                         );
-                        const subMatch = (m.sub_menus || []).some(s => 
-                            (s.title || '').toLowerCase().includes(q) ||
-                            (s.raw_name || '').toLowerCase().includes(q) ||
-                            (s.description || '').toLowerCase().includes(q) ||
-                            (s.chapters || []).some(sc =>
-                                (sc.title || '').toLowerCase().includes(q) ||
-                                (sc.description || '').toLowerCase().includes(q) ||
-                                (sc.content || '').toLowerCase().includes(q)
-                            )
-                        );
-                        return titleMatch || rawMatch || descMatch || sysMatch || chapterMatch || subMatch;
+                        return titleMatch || rawMatch || descMatch || sysMatch || chapterMatch;
                     });
                 },
 
@@ -172,48 +162,13 @@
                     return title.replace(/^\d+[\.\s\-_]+/, '').trim() || title;
                 },
 
-                // Seluruh bab dari modul utama + bab dari sub-menu bersarang (urut membaca)
+                // Seluruh bab dari modul yang sedang dibaca (urut membaca)
                 get allReadingChapters() {
-                    if (!this.readingModule) return [];
-                    let list = [];
-
-                    // 1. Bab langsung dari modul utama
-                    if (this.readingModule.chapters && this.readingModule.chapters.length > 0) {
-                        for (const c of this.readingModule.chapters) {
-                            list.push({
-                                ...c,
-                                isSubMenu: false,
-                                parentModuleId: this.readingModule.id,
-                                parentModuleTitle: this.readingModule.title,
-                                subMenuId: null,
-                                subMenuTitle: null,
-                                subMenuRawName: null,
-                                menuSystemId: this.readingModule.id,
-                            });
-                        }
-                    }
-
-                    // 2. Bab dari sub-menu bersarang
-                    if (this.readingModule.sub_menus && this.readingModule.sub_menus.length > 0) {
-                        for (const sub of this.readingModule.sub_menus) {
-                            if (sub.chapters && sub.chapters.length > 0) {
-                                for (const sc of sub.chapters) {
-                                    list.push({
-                                        ...sc,
-                                        isSubMenu: true,
-                                        parentModuleId: this.readingModule.id,
-                                        parentModuleTitle: this.readingModule.title,
-                                        subMenuId: sub.id,
-                                        subMenuTitle: sub.title,
-                                        subMenuRawName: sub.raw_name,
-                                        menuSystemId: sub.id,
-                                    });
-                                }
-                            }
-                        }
-                    }
-
-                    return list;
+                    if (!this.readingModule || !this.readingModule.chapters) return [];
+                    return this.readingModule.chapters.map((c, idx) => ({
+                        ...c,
+                        menuSystemId: this.readingModule.id
+                    }));
                 },
 
                 // Bab yang sedang aktif dibaca
@@ -252,26 +207,17 @@
                 },
 
                 // Buka Modal Pembaca Panduan Lengkap
-                openReader(modOrSub, targetChapId = null) {
-                    if (!modOrSub) return;
+                openReader(mod, targetChapId = null) {
+                    if (!mod) return;
 
-                    let mainMod = modOrSub;
-                    // Jika yang diklik adalah sub-menu yang memiliki parent_id, temukan parent modulnya
-                    if (modOrSub.parent_id) {
-                        const parent = this.allModules.find(m => String(m.id) === String(modOrSub.parent_id));
-                        if (parent) {
-                            mainMod = parent;
-                        }
-                    }
-
-                    this.readingModule = mainMod;
+                    this.readingModule = mod;
                     this.tocSearchQuery = '';
                     this.isTocOpenMobile = false;
 
                     const allChaps = this.allReadingChapters;
                     if (!allChaps || allChaps.length === 0) {
                         // Jika belum ada bab panduan sama sekali, arahkan ke editor
-                        window.location.href = `/manual-book/manage?system=${mainMod.system_id}&module=${mainMod.id}`;
+                        window.location.href = `/manual-book/manage?system=${mod.system_id}&module=${mod.id}`;
                         return;
                     }
 
@@ -524,7 +470,7 @@
                             <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold"
                                   :class="mod.chapterCount > 0 ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 border border-slate-200 dark:border-slate-700'">
                                 <i :class="mod.chapterCount > 0 ? 'fa-solid fa-circle-check text-[9px]' : 'fa-regular fa-clock text-[9px]'"></i>
-                                <span x-text="mod.has_sub_menus ? (mod.sub_menus.length + ' Sub Menu • ' + mod.chapterCount + ' Bab') : (mod.chapterCount > 0 ? mod.chapterCount + ' Bab Panduan' : 'Belum Ada Bab')"></span>
+                                <span x-text="mod.chapterCount > 0 ? mod.chapterCount + ' Bab Panduan' : 'Belum Ada Bab'"></span>
                             </span>
                         </div>
 
@@ -538,106 +484,38 @@
                            x-text="mod.description ? mod.description : 'Panduan penggunaan modul dan tata cara alur kerja sistem.'">
                         </p>
 
-                        {{-- Preview Daftar Bab Dokumen (Hirarki Tree View Bersih) --}}
+                        {{-- Preview Daftar Bab Dokumen (Sesuai Arahan PM: Sub Menu = Bab) --}}
                         <div class="mb-5 space-y-2">
                             <div class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 flex items-center justify-between pb-1 border-b border-slate-100 dark:border-slate-800/80">
-                                <span>DAFTAR MATERI PANDUAN</span>
-                                <span class="font-bold text-blue-600 dark:text-blue-400" x-text="mod.chapterCount + ' Bab'"></span>
+                                <span>DAFTAR BAB (SUB MENU)</span>
+                                <span class="font-bold text-blue-600 dark:text-blue-400" x-text="(mod.chapters ? mod.chapters.length : 0) + ' Bab'"></span>
                             </div>
 
-                            {{-- Case A: Jika modul memiliki Sub-Menus (Tree Hierarchy: Folder vs Dokumen) --}}
-                            <template x-if="mod.has_sub_menus">
-                                <div class="space-y-3 pt-1">
-                                    {{-- Bab langsung dari modul utama jika ada --}}
-                                    <template x-if="mod.chapters && mod.chapters.length > 0">
-                                        <div class="space-y-1">
-                                            <template x-for="(chap, cIdx) in mod.chapters.slice(0, 2)" :key="chap.id">
-                                                <div @click="openReader(mod, chap.id)"
-                                                     class="flex items-center justify-between py-1.5 px-2.5 rounded-xl bg-slate-50/80 dark:bg-slate-900/60 hover:bg-blue-50 dark:hover:bg-blue-950/40 border border-slate-200/60 dark:border-slate-800 text-xs transition-all cursor-pointer group/chap">
-                                                    <div class="flex items-center gap-2 truncate">
-                                                        <span class="w-4 h-4 rounded bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-[9px] font-bold text-blue-600 dark:text-blue-400 shrink-0"
-                                                              x-text="'#' + (chap.order || (cIdx + 1))"></span>
-                                                        <span class="font-medium text-slate-700 dark:text-slate-300 group-hover/chap:text-blue-600 truncate"
-                                                              x-text="cleanChapterTitle(chap.title)"></span>
-                                                    </div>
-                                                    <i class="fa-solid fa-chevron-right text-[8px] text-slate-400 group-hover/chap:text-blue-500 shrink-0 ml-1"></i>
-                                                </div>
-                                            </template>
+                            <template x-if="mod.chapters && mod.chapters.length > 0">
+                                <div class="space-y-1.5 pt-1">
+                                    <template x-for="(chap, cIdx) in (mod.chapters || []).slice(0, 3)" :key="chap.id">
+                                        <div @click="openReader(mod, chap.id)"
+                                             class="flex items-center justify-between p-2 rounded-xl bg-slate-50/70 dark:bg-slate-900/50 hover:bg-blue-50 dark:hover:bg-blue-950/40 border border-slate-100 dark:border-slate-800/80 text-xs transition-colors cursor-pointer group/chap">
+                                            <div class="flex items-center gap-2 truncate">
+                                                <span class="w-5 h-5 rounded-md bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-[10px] font-bold text-blue-600 dark:text-blue-400 shrink-0"
+                                                      x-text="'#' + (chap.order || (cIdx + 1))"></span>
+                                                <span class="font-medium text-slate-700 dark:text-slate-300 group-hover/chap:text-blue-600 truncate"
+                                                      x-text="cleanChapterTitle(chap.title)"></span>
+                                            </div>
+                                            <i class="fa-solid fa-chevron-right text-[9px] text-slate-400 group-hover/chap:text-blue-500 shrink-0 ml-1"></i>
                                         </div>
                                     </template>
-
-                                    {{-- Tree View Sub-Menus: Folder Header + Indented Bab Items --}}
-                                    <template x-for="sub in mod.sub_menus" :key="sub.id">
-                                        <div class="space-y-1">
-                                            {{-- Header Folder Sub-Menu --}}
-                                            <div class="flex items-center justify-between text-[11px] font-bold text-slate-700 dark:text-slate-300 px-1">
-                                                <div class="flex items-center gap-1.5 truncate">
-                                                    <i class="fa-regular fa-folder-closed text-indigo-500 text-xs shrink-0"></i>
-                                                    <span class="truncate text-slate-800 dark:text-slate-200" x-text="sub.title"></span>
-                                                </div>
-                                                <span class="text-[10px] font-semibold text-slate-400 shrink-0" x-text="sub.chapterCount + ' Bab'"></span>
-                                            </div>
-
-                                            {{-- Garis Hierarki Pohon ke Bab Dokumen --}}
-                                            <div class="ml-2 pl-3 border-l-2 border-indigo-200/80 dark:border-indigo-900/60 space-y-1 py-0.5">
-                                                <template x-if="sub.chapters && sub.chapters.length > 0">
-                                                    <div>
-                                                        <template x-for="(sChap, scIdx) in sub.chapters.slice(0, 2)" :key="sChap.id">
-                                                            <div @click="openReader(mod, sChap.id)"
-                                                                 class="flex items-center justify-between py-1.5 px-2 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-950/40 text-xs transition-colors cursor-pointer group/chap border border-transparent hover:border-blue-200 dark:hover:border-blue-900/40">
-                                                                <div class="flex items-center gap-2 truncate">
-                                                                    <span class="w-4 h-4 rounded bg-slate-100 dark:bg-slate-800 text-[9px] font-bold text-slate-600 dark:text-slate-400 flex items-center justify-center shrink-0"
-                                                                          x-text="'#' + (sChap.order || (scIdx + 1))"></span>
-                                                                    <span class="font-medium text-slate-600 dark:text-slate-300 group-hover/chap:text-blue-600 truncate"
-                                                                          x-text="cleanChapterTitle(sChap.title)"></span>
-                                                                </div>
-                                                                <i class="fa-solid fa-chevron-right text-[8px] text-slate-400 group-hover/chap:text-blue-500 shrink-0 ml-1"></i>
-                                                            </div>
-                                                        </template>
-                                                        <template x-if="sub.chapters.length > 2">
-                                                            <div class="text-[10px] text-slate-400 italic pl-6" x-text="'+ ' + (sub.chapters.length - 2) + ' bab lainnya...'"></div>
-                                                        </template>
-                                                    </div>
-                                                </template>
-                                                <template x-if="!sub.chapters || sub.chapters.length === 0">
-                                                    <div class="text-[10px] text-slate-400 italic py-0.5 pl-2">Belum ada bab panduan.</div>
-                                                </template>
-                                            </div>
+                                    <template x-if="mod.chapters.length > 3">
+                                        <div class="text-[11px] text-slate-400 italic pl-1">
+                                            <span x-text="'+ ' + (mod.chapters.length - 3) + ' bab lainnya...'"></span>
                                         </div>
                                     </template>
                                 </div>
                             </template>
 
-                            {{-- Case B: Modul Standalone Tanpa Sub-Menus --}}
-                            <template x-if="!mod.has_sub_menus">
-                                <div class="pt-1">
-                                    <template x-if="mod.chapters && mod.chapters.length > 0">
-                                        <div class="space-y-1.5">
-                                            <template x-for="(chap, cIdx) in (mod.chapters || []).slice(0, 3)" :key="chap.id">
-                                                <div @click="openReader(mod, chap.id)"
-                                                     class="flex items-center justify-between p-2 rounded-xl bg-slate-50/70 dark:bg-slate-900/50 hover:bg-blue-50 dark:hover:bg-blue-950/40 border border-slate-100 dark:border-slate-800/80 text-xs transition-colors cursor-pointer group/chap">
-                                                    <div class="flex items-center gap-2 truncate">
-                                                        <span class="w-5 h-5 rounded-md bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-[10px] font-bold text-slate-600 dark:text-slate-300 shrink-0"
-                                                              x-text="'#' + (chap.order || (cIdx + 1))"></span>
-                                                        <span class="font-medium text-slate-700 dark:text-slate-300 group-hover/chap:text-blue-600 truncate"
-                                                              x-text="cleanChapterTitle(chap.title)"></span>
-                                                    </div>
-                                                    <i class="fa-solid fa-chevron-right text-[9px] text-slate-400 group-hover/chap:text-blue-500 shrink-0 ml-1"></i>
-                                                </div>
-                                            </template>
-                                            <template x-if="mod.chapters.length > 3">
-                                                <div class="text-[11px] text-slate-400 italic pl-1">
-                                                    <span x-text="'+ ' + (mod.chapters.length - 3) + ' bab lainnya...'"></span>
-                                                </div>
-                                            </template>
-                                        </div>
-                                    </template>
-
-                                    <template x-if="!mod.chapters || mod.chapters.length === 0">
-                                        <div class="p-3 rounded-xl border border-dashed border-slate-200 dark:border-slate-800 bg-slate-50/40 dark:bg-slate-900/20 text-center">
-                                            <p class="text-[11px] text-slate-400 font-medium">Belum ada bab panduan pada modul ini.</p>
-                                        </div>
-                                    </template>
+                            <template x-if="!mod.chapters || mod.chapters.length === 0">
+                                <div class="p-3.5 rounded-xl border border-dashed border-slate-200 dark:border-slate-800 bg-slate-50/40 dark:bg-slate-900/20 text-center">
+                                    <p class="text-[11px] text-slate-400 font-medium">Belum ada bab panduan pada modul ini.</p>
                                 </div>
                             </template>
                         </div>
@@ -870,91 +748,34 @@
                         </div>
 
                         {{-- TOC Tree List (Scrollable) --}}
-                        <div class="flex-1 overflow-y-auto p-3 space-y-3 custom-scrollbar text-xs">
+                        <div class="flex-1 overflow-y-auto p-3 space-y-1.5 custom-scrollbar text-xs">
                             <template x-if="readingModule">
-                                <div class="space-y-3">
-                                    
-                                    {{-- Kategori A: Bab Langsung Modul Utama (jika ada) --}}
-                                    <template x-if="readingModule.chapters && readingModule.chapters.length > 0">
-                                        <div class="space-y-1">
-                                            <div class="text-[10px] font-black uppercase tracking-wider text-slate-400 px-2 py-0.5">
-                                                Bab Utama / Ringkasan
-                                            </div>
-                                            <template x-for="(chap, cIdx) in readingModule.chapters" :key="'toc-main-' + chap.id">
-                                                <div x-show="!tocSearchQuery || chap.title.toLowerCase().includes(tocSearchQuery.toLowerCase())">
-                                                    <button type="button" 
-                                                            @click="selectReadingChapter(chap.id)" 
-                                                            :class="currentReadingChapter && String(currentReadingChapter.id) === String(chap.id)
-                                                                ? 'bg-blue-600 text-white font-bold shadow-xs'
-                                                                : 'text-slate-700 dark:text-slate-300 hover:bg-slate-200/60 dark:hover:bg-slate-800/80 font-medium'"
-                                                            class="w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-left transition-colors cursor-pointer group">
-                                                        <div class="flex items-center gap-2 truncate">
-                                                            <span :class="currentReadingChapter && String(currentReadingChapter.id) === String(chap.id)
-                                                                    ? 'bg-white/20 text-white'
-                                                                    : 'bg-slate-200/80 dark:bg-slate-800 text-slate-600 dark:text-slate-400'"
-                                                                  class="w-4 h-4 rounded text-[9px] font-bold flex items-center justify-center shrink-0"
-                                                                  x-text="'#' + (chap.order || (cIdx + 1))"></span>
-                                                            <span class="truncate" x-text="cleanChapterTitle(chap.title)"></span>
-                                                        </div>
-                                                        <i x-show="currentReadingChapter && String(currentReadingChapter.id) === String(chap.id)" 
-                                                           class="fa-solid fa-chevron-right text-[9px] shrink-0 ml-1"></i>
-                                                    </button>
+                                <div class="space-y-1">
+                                    <template x-for="(chap, cIdx) in (readingModule.chapters || [])" :key="'toc-chap-' + chap.id">
+                                        <div x-show="!tocSearchQuery || cleanChapterTitle(chap.title).toLowerCase().includes(tocSearchQuery.toLowerCase())">
+                                            <button type="button" 
+                                                    @click="selectReadingChapter(chap.id)" 
+                                                    :class="currentReadingChapter && String(currentReadingChapter.id) === String(chap.id)
+                                                        ? 'bg-blue-600 text-white font-bold shadow-xs'
+                                                        : 'text-slate-700 dark:text-slate-300 hover:bg-slate-200/60 dark:hover:bg-slate-800/80 font-medium'"
+                                                    class="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-left transition-colors cursor-pointer group">
+                                                <div class="flex items-center gap-2.5 truncate">
+                                                    <span :class="currentReadingChapter && String(currentReadingChapter.id) === String(chap.id)
+                                                            ? 'bg-white/20 text-white'
+                                                            : 'bg-slate-200/80 dark:bg-slate-800 text-slate-600 dark:text-slate-400'"
+                                                          class="w-5 h-5 rounded-md text-[10px] font-bold flex items-center justify-center shrink-0"
+                                                          x-text="'#' + (chap.order || (cIdx + 1))"></span>
+                                                    <span class="truncate" x-text="cleanChapterTitle(chap.title)"></span>
                                                 </div>
-                                            </template>
+                                                <i x-show="currentReadingChapter && String(currentReadingChapter.id) === String(chap.id)" 
+                                                   class="fa-solid fa-chevron-right text-[10px] shrink-0 ml-1"></i>
+                                            </button>
                                         </div>
                                     </template>
 
-                                    {{-- Kategori B: Bab dari Sub-Menus --}}
-                                    <template x-if="readingModule.sub_menus && readingModule.sub_menus.length > 0">
-                                        <div class="space-y-3">
-                                            <template x-for="sub in readingModule.sub_menus" :key="'toc-sub-' + sub.id">
-                                                <div class="space-y-1">
-                                                    {{-- Header Sub-Menu --}}
-                                                    <div class="flex items-center justify-between px-2 py-1 text-[11px] font-bold text-slate-800 dark:text-slate-200">
-                                                        <div class="flex items-center gap-1.5 truncate">
-                                                            <i class="fa-regular fa-folder-closed text-indigo-500 text-xs shrink-0"></i>
-                                                            <span class="truncate" x-text="sub.title"></span>
-                                                        </div>
-                                                        <span class="text-[9px] font-bold text-slate-400 shrink-0 ml-1" 
-                                                              x-text="(sub.chapters ? sub.chapters.length : 0) + ' Bab'"></span>
-                                                    </div>
-
-                                                    {{-- Daftar Bab Sub-Menu --}}
-                                                    <div class="ml-2 pl-2 border-l-2 border-indigo-200 dark:border-indigo-900/50 space-y-0.5">
-                                                        <template x-if="sub.chapters && sub.chapters.length > 0">
-                                                            <div>
-                                                                <template x-for="(sChap, scIdx) in sub.chapters" :key="'toc-sc-' + sChap.id">
-                                                                    <div x-show="!tocSearchQuery || sChap.title.toLowerCase().includes(tocSearchQuery.toLowerCase()) || sub.title.toLowerCase().includes(tocSearchQuery.toLowerCase())">
-                                                                        <button type="button" 
-                                                                                @click="selectReadingChapter(sChap.id)" 
-                                                                                :class="currentReadingChapter && String(currentReadingChapter.id) === String(sChap.id)
-                                                                                    ? 'bg-blue-600 text-white font-bold shadow-xs'
-                                                                                    : 'text-slate-600 dark:text-slate-300 hover:bg-slate-200/60 dark:hover:bg-slate-800/80 font-medium'"
-                                                                                class="w-full flex items-center justify-between px-2 py-1.5 rounded-lg text-left transition-colors cursor-pointer group text-[11px]">
-                                                                            <div class="flex items-center gap-1.5 truncate">
-                                                                                <span :class="currentReadingChapter && String(currentReadingChapter.id) === String(sChap.id)
-                                                                                        ? 'bg-white/20 text-white'
-                                                                                        : 'bg-slate-200/80 dark:bg-slate-800 text-slate-500 dark:text-slate-400'"
-                                                                                      class="w-4 h-4 rounded text-[9px] font-bold flex items-center justify-center shrink-0"
-                                                                                      x-text="'#' + (sChap.order || (scIdx + 1))"></span>
-                                                                                <span class="truncate" x-text="cleanChapterTitle(sChap.title)"></span>
-                                                                            </div>
-                                                                            <i x-show="currentReadingChapter && String(currentReadingChapter.id) === String(sChap.id)" 
-                                                                               class="fa-solid fa-chevron-right text-[8px] shrink-0 ml-1"></i>
-                                                                        </button>
-                                                                    </div>
-                                                                </template>
-                                                            </div>
-                                                        </template>
-                                                        <template x-if="!sub.chapters || sub.chapters.length === 0">
-                                                            <div class="text-[10px] text-slate-400 italic py-1 pl-2">Belum ada bab.</div>
-                                                        </template>
-                                                    </div>
-                                                </div>
-                                            </template>
-                                        </div>
+                                    <template x-if="!readingModule.chapters || readingModule.chapters.length === 0">
+                                        <div class="text-xs text-slate-400 italic py-6 text-center">Belum ada bab panduan.</div>
                                     </template>
-
                                 </div>
                             </template>
                         </div>
@@ -987,14 +808,6 @@
                                         <span x-text="readingModule ? readingModule.system_name : ''"></span>
                                         <i class="fa-solid fa-chevron-right text-[9px] text-slate-300 dark:text-slate-600"></i>
                                         <span x-text="readingModule ? readingModule.raw_name || readingModule.title : ''"></span>
-                                        
-                                        <template x-if="currentReadingChapter.subMenuTitle">
-                                            <div class="inline-flex items-center gap-1.5">
-                                                <i class="fa-solid fa-chevron-right text-[9px] text-slate-300 dark:text-slate-600"></i>
-                                                <span class="text-indigo-600 dark:text-indigo-400 font-bold" x-text="currentReadingChapter.subMenuTitle"></span>
-                                            </div>
-                                        </template>
-
                                         <i class="fa-solid fa-chevron-right text-[9px] text-slate-300 dark:text-slate-600"></i>
                                         <span class="text-blue-600 dark:text-blue-400 font-bold" 
                                               x-text="'Bab ' + (currentReadingChapter.order || (currentReadingIndex + 1))"></span>
@@ -1049,9 +862,6 @@
                                             </div>
                                             <div class="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-200 group-hover:text-blue-600 truncate mt-0.5" 
                                                  x-text="cleanChapterTitle(prevReadingChapter.title)"></div>
-                                            <template x-if="prevReadingChapter.subMenuTitle">
-                                                <div class="text-[10px] text-slate-400 truncate" x-text="prevReadingChapter.subMenuTitle"></div>
-                                            </template>
                                         </div>
                                     </button>
                                 </template>
@@ -1070,9 +880,6 @@
                                             </div>
                                             <div class="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-200 group-hover:text-blue-600 truncate mt-0.5" 
                                                  x-text="cleanChapterTitle(nextReadingChapter.title)"></div>
-                                            <template x-if="nextReadingChapter.subMenuTitle">
-                                                <div class="text-[10px] text-slate-400 truncate" x-text="nextReadingChapter.subMenuTitle"></div>
-                                            </template>
                                         </div>
                                         <div class="w-9 h-9 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-500 group-hover:text-blue-600 group-hover:border-blue-200 transition-colors shrink-0">
                                             <i class="fa-solid fa-arrow-right text-xs group-hover:translate-x-0.5 transition-transform"></i>
