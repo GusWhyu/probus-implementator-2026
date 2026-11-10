@@ -337,9 +337,9 @@
         {{-- SEARCH & DROPDOWN FILTER BAR                            --}}
         {{-- ======================================================== --}}
         <div class="p-3.5 bg-white dark:bg-[#0c1324] border border-slate-200 dark:border-slate-800 rounded-2xl mb-6 shadow-xs">
-            <div class="grid grid-cols-1 md:grid-cols-12 gap-3">
+            <div class="flex flex-col lg:flex-row items-stretch lg:items-center gap-2.5">
                 {{-- Search Box --}}
-                <div class="md:col-span-5 relative">
+                <div class="relative flex-1 min-w-[220px]">
                     <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
                         <i class="fa-solid fa-magnifying-glass text-xs"></i>
                     </div>
@@ -350,52 +350,55 @@
                     <button type="button" 
                             x-show="searchQuery.length > 0" 
                             @click="searchQuery = ''" 
-                            class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600"
+                            class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 cursor-pointer"
                             style="display: none;">
                         <i class="fa-solid fa-circle-xmark text-xs"></i>
                     </button>
                 </div>
 
-                {{-- Dropdown Filter Sistem --}}
-                <div class="md:col-span-2">
-                    <select x-model="selectedSystem" 
-                            class="w-full py-2 px-3 bg-slate-50 dark:bg-[#111c35] border border-slate-200 dark:border-slate-700/70 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/40 cursor-pointer">
-                        <option value="all">Sistem: Semua Sistem</option>
-                        <template x-for="sys in systems" :key="sys.id">
-                            <option :value="sys.id" x-text="sys.name"></option>
-                        </template>
-                    </select>
-                </div>
+                {{-- Dropdown Filters (Responsif & Lebar Cukup Tanpa Terpotong) --}}
+                <div class="grid grid-cols-2 sm:flex sm:flex-wrap lg:flex-nowrap items-center gap-2 shrink-0">
+                    {{-- Dropdown Filter Sistem --}}
+                    <div class="w-full sm:w-auto min-w-[155px]">
+                        <select x-model="selectedSystem" 
+                                class="w-full py-2 pl-3 pr-7 bg-slate-50 dark:bg-[#111c35] border border-slate-200 dark:border-slate-700/70 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/40 cursor-pointer">
+                            <option value="all">Sistem: Semua Sistem</option>
+                            <template x-for="sys in systems" :key="sys.id">
+                                <option :value="sys.id" x-text="'Sistem: ' + sys.name"></option>
+                            </template>
+                        </select>
+                    </div>
 
-                {{-- Dropdown Filter Visibilitas --}}
-                <div class="md:col-span-2">
-                    <select x-model="selectedVisibility" 
-                            class="w-full py-2 px-3 bg-slate-50 dark:bg-[#111c35] border border-slate-200 dark:border-slate-700/70 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/40 cursor-pointer">
-                        <option value="all">Visibilitas: Semua</option>
-                        <option value="publik">Publik</option>
-                        <option value="internal">Internal</option>
-                    </select>
-                </div>
+                    {{-- Dropdown Filter Visibilitas --}}
+                    <div class="w-full sm:w-auto min-w-[135px]">
+                        <select x-model="selectedVisibility" 
+                                class="w-full py-2 pl-3 pr-7 bg-slate-50 dark:bg-[#111c35] border border-slate-200 dark:border-slate-700/70 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/40 cursor-pointer">
+                            <option value="all">Visibilitas: Semua</option>
+                            <option value="publik">Visibilitas: Publik</option>
+                            <option value="internal">Visibilitas: Internal</option>
+                        </select>
+                    </div>
 
-                {{-- Dropdown Filter Status --}}
-                <div class="md:col-span-1.5">
-                    <select x-model="selectedStatus" 
-                            class="w-full py-2 px-3 bg-slate-50 dark:bg-[#111c35] border border-slate-200 dark:border-slate-700/70 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/40 cursor-pointer">
-                        <option value="all">Status: Semua</option>
-                        <option value="published">Terbit</option>
-                        <option value="draft">Draft</option>
-                    </select>
-                </div>
+                    {{-- Dropdown Filter Status --}}
+                    <div class="w-full sm:w-auto min-w-[150px]">
+                        <select x-model="selectedStatus" 
+                                class="w-full py-2 pl-3 pr-7 bg-slate-50 dark:bg-[#111c35] border border-slate-200 dark:border-slate-700/70 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/40 cursor-pointer">
+                            <option value="all">Status: Semua Status</option>
+                            <option value="published">Status: Terbit</option>
+                            <option value="draft">Status: Draft</option>
+                        </select>
+                    </div>
 
-                {{-- Dropdown Pengurutan --}}
-                <div class="md:col-span-1.5">
-                    <select x-model="sortBy" 
-                            class="w-full py-2 px-3 bg-slate-50 dark:bg-[#111c35] border border-slate-200 dark:border-slate-700/70 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/40 cursor-pointer">
-                        <option value="newest">Urutan: Terbaru</option>
-                        <option value="oldest">Urutan: Terlama</option>
-                        <option value="title_asc">Judul: A - Z</option>
-                        <option value="title_desc">Judul: Z - A</option>
-                    </select>
+                    {{-- Dropdown Pengurutan --}}
+                    <div class="w-full sm:w-auto min-w-[140px]">
+                        <select x-model="sortBy" 
+                                class="w-full py-2 pl-3 pr-7 bg-slate-50 dark:bg-[#111c35] border border-slate-200 dark:border-slate-700/70 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/40 cursor-pointer">
+                            <option value="newest">Urutan: Terbaru</option>
+                            <option value="oldest">Urutan: Terlama</option>
+                            <option value="title_asc">Judul: A - Z</option>
+                            <option value="title_desc">Judul: Z - A</option>
+                        </select>
+                    </div>
                 </div>
             </div>
         </div>
@@ -670,3 +673,4 @@
 
     </div>
 </x-app-layout>
+

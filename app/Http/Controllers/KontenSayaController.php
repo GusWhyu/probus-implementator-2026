@@ -176,3 +176,4 @@ class KontenSayaController extends Controller
         return $c->format('d M Y');
     }
 }
+

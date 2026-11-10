@@ -122,18 +122,6 @@
         @endif
     </div>
     <div class="flex items-center gap-2 sm:gap-3">
-        @if(request()->routeIs('konten-saya.*'))
-            <a href="{{ route('bank-solusi.create') }}" class="inline-flex items-center gap-2 px-3 py-1.5 sm:px-3.5 sm:py-2 bg-blue-500/10 hover:bg-blue-500/20 text-blue-600 dark:text-blue-400 border border-blue-500/20 rounded-xl text-xs font-bold transition-all cursor-pointer">
-                <i class="fa-solid fa-lightbulb text-xs"></i>
-                <span class="hidden sm:inline">+ Buat Solusi Baru</span>
-                <span class="sm:hidden">+ Solusi</span>
-            </a>
-            <a href="{{ route('manualbook.manage') }}" class="inline-flex items-center gap-2 px-3 py-1.5 sm:px-3.5 sm:py-2 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white rounded-xl text-xs font-bold shadow-sm shadow-blue-500/20 transition-all cursor-pointer">
-                <i class="fa-solid fa-plus text-xs"></i>
-                <span class="hidden sm:inline">+ Tulis Manual Book</span>
-                <span class="sm:hidden">+ Manual</span>
-            </a>
-        @endif
         @if(request()->routeIs('bank-solusi.show') && isset($article))
             <a href="{{ route('bank-solusi.index') }}" class="hidden lg:inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-semibold transition-colors">
                 <i class="fa-solid fa-arrow-left text-[11px]"></i>
