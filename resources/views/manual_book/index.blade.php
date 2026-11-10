@@ -15,12 +15,70 @@
                 readingModule: null,
                 readingChapterIndex: 0,
 
+                // Pagination State (Maksimal 9 data per halaman)
+                perPage: 9,
+                currentPage: 1,
+
                 init() {
                     // Cek jika ada parameter system di URL
                     const urlParams = new URLSearchParams(window.location.search);
                     const qSys = urlParams.get('system');
                     if (qSys && (qSys === 'all' || this.systems.some(s => String(s.id) === String(qSys)))) {
                         this.activeSystem = qSys;
+                    }
+
+                    // Reset halaman ke 1 setiap kali filter atau pencarian berubah
+                    this.$watch('searchQuery', () => { this.currentPage = 1; });
+                    this.$watch('activeSystem', () => { this.currentPage = 1; });
+                    this.$watch('filterStatus', () => { this.currentPage = 1; });
+                },
+
+                // Total Halaman berdasarkan filteredModules
+                get totalPages() {
+                    return Math.ceil(this.filteredModules.length / this.perPage) || 1;
+                },
+
+                // Data yang ditampilkan di halaman saat ini (Maksimal 9 data)
+                get paginatedModules() {
+                    const start = (this.currentPage - 1) * this.perPage;
+                    return this.filteredModules.slice(start, start + this.perPage);
+                },
+
+                // Deretan nomor halaman untuk pagination
+                get visiblePages() {
+                    const current = this.currentPage;
+                    const total = this.totalPages;
+                    if (total <= 7) {
+                        return Array.from({ length: total }, (_, i) => i + 1);
+                    }
+                    if (current <= 4) {
+                        return [1, 2, 3, 4, 5, '...', total];
+                    }
+                    if (current >= total - 3) {
+                        return [1, '...', total - 4, total - 3, total - 2, total - 1, total];
+                    }
+                    return [1, '...', current - 1, current, current + 1, '...', total];
+                },
+
+                goToPage(p) {
+                    if (p >= 1 && p <= this.totalPages) {
+                        this.currentPage = p;
+                        const gridEl = document.getElementById('catalogModuleGrid');
+                        if (gridEl) {
+                            gridEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        }
+                    }
+                },
+
+                nextPage() {
+                    if (this.currentPage < this.totalPages) {
+                        this.goToPage(this.currentPage + 1);
+                    }
+                },
+
+                prevPage() {
+                    if (this.currentPage > 1) {
+                        this.goToPage(this.currentPage - 1);
                     }
                 },
 
@@ -114,6 +172,7 @@
                     this.searchQuery = '';
                     this.activeSystem = 'all';
                     this.filterStatus = 'all';
+                    this.currentPage = 1;
                 }
             };
         }
@@ -289,10 +348,10 @@
         </div>
 
         {{-- ======================================================== --}}
-        {{-- GRID DAFTAR MODUL (MODAL CARDS)                          --}}
+        {{-- GRID DAFTAR MODUL (MODAL CARDS - MAX 9 PER HALAMAN)      --}}
         {{-- ======================================================== --}}
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-            <template x-for="mod in filteredModules" :key="mod.id">
+        <div id="catalogModuleGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            <template x-for="mod in paginatedModules" :key="mod.id">
                 <div class="bg-white dark:bg-[#0c1324] border border-slate-200 dark:border-slate-800 rounded-3xl p-5 sm:p-6 shadow-xs hover:border-blue-500/50 dark:hover:border-blue-500/50 hover:shadow-md transition-all flex flex-col justify-between group">
                     <div>
                         {{-- Top Badges: Sistem & Status Panduan (Bersih tanpa duplikasi) --}}
@@ -453,6 +512,72 @@
                     </div>
                 </div>
             </template>
+        </div>
+
+        {{-- ======================================================== --}}
+        {{-- PAGINATION CONTROLS (JIKA DATA LEBIH DARI 9 MODUL)       --}}
+        {{-- ======================================================== --}}
+        <div x-show="totalPages > 1 && filteredModules.length > 0" 
+             class="mt-8 flex flex-col sm:flex-row items-center justify-between gap-4 p-4 bg-white dark:bg-[#0c1324] border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xs">
+            
+            {{-- Info Halaman & Total Data --}}
+            <div class="text-xs font-medium text-slate-500 dark:text-slate-400">
+                Menampilkan 
+                <span class="font-bold text-slate-700 dark:text-slate-200" x-text="((currentPage - 1) * perPage) + 1"></span>
+                sampai 
+                <span class="font-bold text-slate-700 dark:text-slate-200" x-text="Math.min(currentPage * perPage, filteredModules.length)"></span>
+                dari 
+                <span class="font-bold text-blue-600 dark:text-blue-400" x-text="filteredModules.length"></span>
+                modul
+            </div>
+
+            {{-- Tombol Navigasi Halaman --}}
+            <div class="flex items-center gap-1.5 flex-wrap justify-center">
+                {{-- Tombol Prev --}}
+                <button type="button" 
+                        @click="prevPage()" 
+                        :disabled="currentPage === 1"
+                        :class="currentPage === 1 
+                            ? 'opacity-40 cursor-not-allowed text-slate-400 dark:text-slate-600' 
+                            : 'hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 cursor-pointer'"
+                        class="px-3 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all">
+                    <i class="fa-solid fa-chevron-left text-[10px]"></i>
+                    <span class="hidden sm:inline">Sebelumnya</span>
+                </button>
+
+                {{-- Nomor Halaman --}}
+                <div class="flex items-center gap-1">
+                    <template x-for="(p, pIdx) in visiblePages" :key="'p-' + pIdx + '-' + p">
+                        <div>
+                            <template x-if="p === '...'">
+                                <span class="px-2 py-1.5 text-xs text-slate-400 font-bold select-none">...</span>
+                            </template>
+                            <template x-if="p !== '...'">
+                                <button type="button" 
+                                        @click="goToPage(p)"
+                                        :class="currentPage === p 
+                                            ? 'bg-blue-600 text-white font-bold shadow-sm shadow-blue-500/30' 
+                                            : 'bg-slate-50 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 font-medium'"
+                                        class="w-8 h-8 rounded-xl text-xs flex items-center justify-center transition-all cursor-pointer"
+                                        x-text="p">
+                                </button>
+                            </template>
+                        </div>
+                    </template>
+                </div>
+
+                {{-- Tombol Next --}}
+                <button type="button" 
+                        @click="nextPage()" 
+                        :disabled="currentPage === totalPages"
+                        :class="currentPage === totalPages 
+                            ? 'opacity-40 cursor-not-allowed text-slate-400 dark:text-slate-600' 
+                            : 'hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 cursor-pointer'"
+                        class="px-3 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all">
+                    <span class="hidden sm:inline">Selanjutnya</span>
+                    <i class="fa-solid fa-chevron-right text-[10px]"></i>
+                </button>
+            </div>
         </div>
 
         {{-- ======================================================== --}}
