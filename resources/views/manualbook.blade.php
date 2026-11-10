@@ -215,9 +215,6 @@
 
                     this.activeModuleId = String(id);
                     const mod = this.currentModule;
-                    if (mod && mod.parent_id) {
-                        this.expandedModules[mod.parent_id] = true;
-                    }
 
                     if (mod && mod.chapters && mod.chapters.length > 0) {
                         this.selectChapter(mod.chapters[0].id);
@@ -765,20 +762,6 @@
                                 title: 'Modul Dihapus',
                                 text: data.message,
                                 timer: 1800,
-                                showConfirmButton: false
-                            });
-                        }
-                    })
-                    .catch(err => {
-                        console.error('Error delete module:', err);
-                        const msg = (err && err.message) ? err.message : 'Gagal menghapus modul.';
-                        if (typeof Swal !== 'undefined') {
-                            Swal.fire({ icon: 'error', title: 'Gagal', text: msg });
-                        } else {
-                            alert(msg);
-                        }
-                    });
-                },
                                 showConfirmButton: false
                             });
                         }
