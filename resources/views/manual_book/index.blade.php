@@ -92,6 +92,34 @@
                     return all;
                 },
 
+                // Daftar modul untuk sistem yang sedang aktif (sebelum difilter status dan search query)
+                get currentSystemModules() {
+                    if (this.activeSystem === 'all') {
+                        return this.allModules;
+                    }
+                    return this.modulesBySystem[this.activeSystem] || [];
+                },
+
+                // Total modul pada sistem aktif
+                get countAll() {
+                    return this.currentSystemModules.length;
+                },
+
+                // Total modul yang ada panduan (chapterCount > 0) pada sistem aktif
+                get countDocumented() {
+                    return this.currentSystemModules.filter(m => (m.chapterCount || 0) > 0).length;
+                },
+
+                // Total modul yang belum ada bab (chapterCount === 0) pada sistem aktif
+                get countEmpty() {
+                    return this.currentSystemModules.filter(m => (m.chapterCount || 0) === 0).length;
+                },
+
+                // Total bab materi panduan pada sistem aktif
+                get countChapters() {
+                    return this.currentSystemModules.reduce((acc, m) => acc + (m.chapterCount || 0), 0);
+                },
+
                 // Modul yang sudah difilter berdasarkan sistem, pencarian, dan status
                 get filteredModules() {
                     let list = [];
@@ -255,7 +283,7 @@
                 <div>
                     <div class="text-[10px] sm:text-[11px] font-extrabold uppercase tracking-wider text-slate-400">Total Modul ERP</div>
                     <div class="text-lg sm:text-xl font-black text-slate-800 dark:text-slate-100 mt-0.5">
-                        {{ $totalModules }} <span class="text-xs font-semibold text-slate-400">Modul</span>
+                        <span x-text="countAll">{{ $totalModules }}</span> <span class="text-xs font-semibold text-slate-400">Modul</span>
                     </div>
                 </div>
             </div>
@@ -268,7 +296,7 @@
                 <div>
                     <div class="text-[10px] sm:text-[11px] font-extrabold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">Panduan Siap Baca</div>
                     <div class="text-lg sm:text-xl font-black text-slate-800 dark:text-slate-100 mt-0.5">
-                        {{ $documentedModules }} <span class="text-xs font-semibold text-slate-400">Modul ({{ $totalChapters }} Bab)</span>
+                        <span x-text="countDocumented">{{ $documentedModules }}</span> <span class="text-xs font-semibold text-slate-400">Modul (<span x-text="countChapters">{{ $totalChapters }}</span> Bab)</span>
                     </div>
                 </div>
             </div>
@@ -281,7 +309,7 @@
                 <div>
                     <div class="text-[10px] sm:text-[11px] font-extrabold uppercase tracking-wider text-amber-600 dark:text-amber-400">Perlu Dokumentasi</div>
                     <div class="text-lg sm:text-xl font-black text-slate-800 dark:text-slate-100 mt-0.5">
-                        {{ max(0, $totalModules - $documentedModules) }} <span class="text-xs font-semibold text-slate-400">Modul Kosong</span>
+                        <span x-text="countEmpty">{{ max(0, $totalModules - $documentedModules) }}</span> <span class="text-xs font-semibold text-slate-400">Modul Kosong</span>
                     </div>
                 </div>
             </div>
@@ -297,7 +325,7 @@
                     <span>PILIH SISTEM PROBUS</span>
                 </div>
 
-                {{-- Status Filter Pills --}}
+                {{-- Status Filter Pills (Dinamis Berdasarkan Sistem Terpilih) --}}
                 <div class="inline-flex items-center p-1 bg-slate-100 dark:bg-[#0c1324] border border-slate-200/80 dark:border-slate-800 rounded-xl text-xs font-bold">
                     <button type="button" 
                             @click="filterStatus = 'all'"
@@ -309,13 +337,13 @@
                             @click="filterStatus = 'documented'"
                             :class="filterStatus === 'documented' ? 'bg-white dark:bg-slate-800 text-emerald-600 dark:text-emerald-400 shadow-2xs' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800'"
                             class="px-2.5 py-1 rounded-lg transition-all cursor-pointer">
-                        Ada Panduan ({{ $documentedModules }})
+                        Ada Panduan (<span x-text="countDocumented">{{ $documentedModules }}</span>)
                     </button>
                     <button type="button" 
                             @click="filterStatus = 'empty'"
                             :class="filterStatus === 'empty' ? 'bg-white dark:bg-slate-800 text-amber-600 dark:text-amber-400 shadow-2xs' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800'"
                             class="px-2.5 py-1 rounded-lg transition-all cursor-pointer">
-                        Belum Ada Bab ({{ max(0, $totalModules - $documentedModules) }})
+                        Belum Ada Bab (<span x-text="countEmpty">{{ max(0, $totalModules - $documentedModules) }}</span>)
                     </button>
                 </div>
             </div>
