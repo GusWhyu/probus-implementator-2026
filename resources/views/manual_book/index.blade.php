@@ -10,10 +10,12 @@
                 systems: @json($systems),
                 modulesBySystem: @json($modulesBySystem),
 
-                // State Modal Pembaca Panduan
+                // State Modal Pembaca Panduan (Dokumentasi Penuh / Book Reader)
                 isReaderOpen: false,
                 readingModule: null,
-                readingChapterIndex: 0,
+                activeReadingChapterId: null,
+                isTocOpenMobile: false,
+                tocSearchQuery: '',
 
                 // Pagination State (Maksimal 9 data per halaman)
                 perPage: 9,
@@ -170,30 +172,160 @@
                     return title.replace(/^\d+[\.\s\-_]+/, '').trim() || title;
                 },
 
-                // Buka Modal Pembaca Panduan Cepat
-                openReader(mod, chapterIdx = 0) {
-                    if (!mod || !mod.chapters || mod.chapters.length === 0) {
-                        // Jika belum ada bab, arahkan langsung ke editor
-                        window.location.href = `/manual-book/manage?system=${mod.system_id}&module=${mod.id}`;
+                // Seluruh bab dari modul utama + bab dari sub-menu bersarang (urut membaca)
+                get allReadingChapters() {
+                    if (!this.readingModule) return [];
+                    let list = [];
+
+                    // 1. Bab langsung dari modul utama
+                    if (this.readingModule.chapters && this.readingModule.chapters.length > 0) {
+                        for (const c of this.readingModule.chapters) {
+                            list.push({
+                                ...c,
+                                isSubMenu: false,
+                                parentModuleId: this.readingModule.id,
+                                parentModuleTitle: this.readingModule.title,
+                                subMenuId: null,
+                                subMenuTitle: null,
+                                subMenuRawName: null,
+                                menuSystemId: this.readingModule.id,
+                            });
+                        }
+                    }
+
+                    // 2. Bab dari sub-menu bersarang
+                    if (this.readingModule.sub_menus && this.readingModule.sub_menus.length > 0) {
+                        for (const sub of this.readingModule.sub_menus) {
+                            if (sub.chapters && sub.chapters.length > 0) {
+                                for (const sc of sub.chapters) {
+                                    list.push({
+                                        ...sc,
+                                        isSubMenu: true,
+                                        parentModuleId: this.readingModule.id,
+                                        parentModuleTitle: this.readingModule.title,
+                                        subMenuId: sub.id,
+                                        subMenuTitle: sub.title,
+                                        subMenuRawName: sub.raw_name,
+                                        menuSystemId: sub.id,
+                                    });
+                                }
+                            }
+                        }
+                    }
+
+                    return list;
+                },
+
+                // Bab yang sedang aktif dibaca
+                get currentReadingChapter() {
+                    const all = this.allReadingChapters;
+                    if (!all || all.length === 0) return null;
+                    if (this.activeReadingChapterId) {
+                        const found = all.find(c => String(c.id) === String(this.activeReadingChapterId));
+                        if (found) return found;
+                    }
+                    return all[0];
+                },
+
+                // Posisi indeks bab aktif (0-based)
+                get currentReadingIndex() {
+                    if (!this.currentReadingChapter) return -1;
+                    return this.allReadingChapters.findIndex(c => String(c.id) === String(this.currentReadingChapter.id));
+                },
+
+                // Bab sebelumnya dalam urutan membaca
+                get prevReadingChapter() {
+                    const idx = this.currentReadingIndex;
+                    if (idx > 0) {
+                        return this.allReadingChapters[idx - 1];
+                    }
+                    return null;
+                },
+
+                // Bab selanjutnya dalam urutan membaca
+                get nextReadingChapter() {
+                    const idx = this.currentReadingIndex;
+                    if (idx >= 0 && idx < this.allReadingChapters.length - 1) {
+                        return this.allReadingChapters[idx + 1];
+                    }
+                    return null;
+                },
+
+                // Buka Modal Pembaca Panduan Lengkap
+                openReader(modOrSub, targetChapId = null) {
+                    if (!modOrSub) return;
+
+                    let mainMod = modOrSub;
+                    // Jika yang diklik adalah sub-menu yang memiliki parent_id, temukan parent modulnya
+                    if (modOrSub.parent_id) {
+                        const parent = this.allModules.find(m => String(m.id) === String(modOrSub.parent_id));
+                        if (parent) {
+                            mainMod = parent;
+                        }
+                    }
+
+                    this.readingModule = mainMod;
+                    this.tocSearchQuery = '';
+                    this.isTocOpenMobile = false;
+
+                    const allChaps = this.allReadingChapters;
+                    if (!allChaps || allChaps.length === 0) {
+                        // Jika belum ada bab panduan sama sekali, arahkan ke editor
+                        window.location.href = `/manual-book/manage?system=${mainMod.system_id}&module=${mainMod.id}`;
                         return;
                     }
-                    this.readingModule = mod;
-                    this.readingChapterIndex = chapterIdx;
+
+                    if (targetChapId !== null && targetChapId !== undefined) {
+                        const found = allChaps.find(c => String(c.id) === String(targetChapId));
+                        if (found) {
+                            this.activeReadingChapterId = String(found.id);
+                        } else if (typeof targetChapId === 'number' && allChaps[targetChapId]) {
+                            this.activeReadingChapterId = String(allChaps[targetChapId].id);
+                        } else {
+                            this.activeReadingChapterId = String(allChaps[0].id);
+                        }
+                    } else {
+                        this.activeReadingChapterId = String(allChaps[0].id);
+                    }
+
                     this.isReaderOpen = true;
                     document.body.classList.add('overflow-hidden');
+
+                    this.$nextTick(() => {
+                        const pane = document.getElementById('readerContentPane');
+                        if (pane) pane.scrollTop = 0;
+                    });
+                },
+
+                // Memilih bab dari Table of Contents sidebar
+                selectReadingChapter(chapId) {
+                    this.activeReadingChapterId = String(chapId);
+                    this.isTocOpenMobile = false;
+                    this.$nextTick(() => {
+                        const pane = document.getElementById('readerContentPane');
+                        if (pane) pane.scrollTop = 0;
+                    });
+                },
+
+                goToPrevChapter() {
+                    if (this.prevReadingChapter) {
+                        this.selectReadingChapter(this.prevReadingChapter.id);
+                    }
+                },
+
+                goToNextChapter() {
+                    if (this.nextReadingChapter) {
+                        this.selectReadingChapter(this.nextReadingChapter.id);
+                    }
                 },
 
                 closeReader() {
                     this.isReaderOpen = false;
                     this.readingModule = null;
-                    this.readingChapterIndex = 0;
+                    this.activeReadingChapterId = null;
+                    this.isTocOpenMobile = false;
+                    this.tocSearchQuery = '';
                     document.body.classList.remove('overflow-hidden');
-                },
-
-                // Bab yang sedang aktif di modal pembaca
-                get currentReadingChapter() {
-                    if (!this.readingModule || !this.readingModule.chapters) return null;
-                    return this.readingModule.chapters[this.readingChapterIndex] || this.readingModule.chapters[0] || null;
                 },
 
                 resetFilters() {
@@ -420,7 +552,7 @@
                                     <template x-if="mod.chapters && mod.chapters.length > 0">
                                         <div class="space-y-1">
                                             <template x-for="(chap, cIdx) in mod.chapters.slice(0, 2)" :key="chap.id">
-                                                <div @click="openReader(mod, cIdx)"
+                                                <div @click="openReader(mod, chap.id)"
                                                      class="flex items-center justify-between py-1.5 px-2.5 rounded-xl bg-slate-50/80 dark:bg-slate-900/60 hover:bg-blue-50 dark:hover:bg-blue-950/40 border border-slate-200/60 dark:border-slate-800 text-xs transition-all cursor-pointer group/chap">
                                                     <div class="flex items-center gap-2 truncate">
                                                         <span class="w-4 h-4 rounded bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-[9px] font-bold text-blue-600 dark:text-blue-400 shrink-0"
@@ -451,7 +583,7 @@
                                                 <template x-if="sub.chapters && sub.chapters.length > 0">
                                                     <div>
                                                         <template x-for="(sChap, scIdx) in sub.chapters.slice(0, 2)" :key="sChap.id">
-                                                            <div @click="openReader(sub, scIdx)"
+                                                            <div @click="openReader(mod, sChap.id)"
                                                                  class="flex items-center justify-between py-1.5 px-2 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-950/40 text-xs transition-colors cursor-pointer group/chap border border-transparent hover:border-blue-200 dark:hover:border-blue-900/40">
                                                                 <div class="flex items-center gap-2 truncate">
                                                                     <span class="w-4 h-4 rounded bg-slate-100 dark:bg-slate-800 text-[9px] font-bold text-slate-600 dark:text-slate-400 flex items-center justify-center shrink-0"
@@ -482,7 +614,7 @@
                                     <template x-if="mod.chapters && mod.chapters.length > 0">
                                         <div class="space-y-1.5">
                                             <template x-for="(chap, cIdx) in (mod.chapters || []).slice(0, 3)" :key="chap.id">
-                                                <div @click="openReader(mod, cIdx)"
+                                                <div @click="openReader(mod, chap.id)"
                                                      class="flex items-center justify-between p-2 rounded-xl bg-slate-50/70 dark:bg-slate-900/50 hover:bg-blue-50 dark:hover:bg-blue-950/40 border border-slate-100 dark:border-slate-800/80 text-xs transition-colors cursor-pointer group/chap">
                                                     <div class="flex items-center gap-2 truncate">
                                                         <span class="w-5 h-5 rounded-md bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-[10px] font-bold text-slate-600 dark:text-slate-300 shrink-0"
@@ -515,7 +647,7 @@
                     <div class="pt-3.5 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-2">
                         <template x-if="mod.chapterCount > 0">
                             <button type="button" 
-                                    @click="openReader(mod.has_sub_menus && (!mod.chapters || mod.chapters.length === 0) ? mod.sub_menus[0] : mod, 0)"
+                                    @click="openReader(mod)"
                                     class="inline-flex items-center gap-1.5 text-xs font-bold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors cursor-pointer">
                                 <i class="fa-solid fa-book-open text-[11px]"></i>
                                 <span>Baca Panduan</span>
@@ -629,113 +761,337 @@
         </div>
 
         {{-- ======================================================== --}}
-        {{-- MODAL BACA PANDUAN CEPAT (QUICK READER MODAL)           --}}
+        {{-- MODAL BACA PANDUAN LENGKAP (DOCUMENTATION BOOK READER)   --}}
         {{-- ======================================================== --}}
         <div x-show="isReaderOpen" 
-             class="fixed inset-0 z-50 overflow-y-auto" 
+             class="fixed inset-0 z-50 overflow-hidden flex items-center justify-center p-2 sm:p-4 md:p-6" 
              style="display: none;"
-             x-cloak>
+             x-cloak
+             @keydown.escape.window="closeReader()">
             
-            {{-- Backdrop --}}
-            <div class="fixed inset-0 bg-slate-900/70 backdrop-blur-xs transition-opacity"
+            {{-- Backdrop Blur --}}
+            <div class="fixed inset-0 bg-slate-900/75 backdrop-blur-xs transition-opacity"
                  @click="closeReader()"></div>
 
-            {{-- Dialog Box --}}
-            <div class="min-h-screen px-4 py-8 flex items-center justify-center">
-                <div class="relative bg-white dark:bg-[#0c1324] border border-slate-200 dark:border-slate-800 rounded-3xl max-w-4xl w-full p-6 sm:p-8 shadow-2xl z-10 max-h-[90vh] flex flex-col"
-                     @click.stop>
-                    
-                    {{-- Modal Header --}}
-                    <div class="flex items-start justify-between gap-4 pb-4 border-b border-slate-100 dark:border-slate-800 shrink-0">
-                        <div>
-                            <div class="flex items-center gap-2 mb-1.5">
-                                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/20"
-                                      x-text="readingModule ? readingModule.system_name : 'PROBUS'"></span>
-                                <span class="text-xs text-slate-400 font-semibold">• BUKU PANDUAN PENGGUNAAN</span>
-                            </div>
-                            <h2 class="text-lg sm:text-xl font-black text-slate-800 dark:text-slate-100 leading-snug"
+            {{-- Dialog Box: Book Reader Layout --}}
+            <div class="relative bg-white dark:bg-[#0c1324] border border-slate-200 dark:border-slate-800 rounded-2xl sm:rounded-3xl max-w-6xl w-full h-full max-h-[92vh] shadow-2xl z-10 flex flex-col overflow-hidden"
+                 @click.stop>
+                
+                {{-- 1. MODAL TOP HEADER --}}
+                <div class="flex items-center justify-between gap-3 px-4 sm:px-6 py-3.5 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0c1324] shrink-0 z-20">
+                    <div class="flex items-center gap-2.5 truncate">
+                        {{-- Tombol Toggle TOC di Mobile --}}
+                        <button type="button" 
+                                @click="isTocOpenMobile = !isTocOpenMobile" 
+                                class="md:hidden w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 flex items-center justify-center shrink-0 text-xs"
+                                title="Buka Daftar Isi">
+                            <i class="fa-solid fa-bars-staggered"></i>
+                        </button>
+
+                        <div class="flex items-center gap-2 truncate">
+                            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/20 shrink-0"
+                                  x-text="readingModule ? readingModule.system_name : 'PROBUS'"></span>
+                            <span class="text-xs text-slate-400 font-semibold hidden sm:inline">•</span>
+                            <h2 class="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-100 truncate"
                                 x-text="readingModule ? readingModule.title : ''"></h2>
                         </div>
-
-                        <div class="flex items-center gap-2 shrink-0">
-                            {{-- Tombol Edit Bab di Editor Penuh --}}
-                            <template x-if="readingModule">
-                                <a :href="'/manual-book/manage?system=' + readingModule.system_id + '&module=' + readingModule.id" 
-                                   class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition-all shadow-sm">
-                                    <i class="fa-solid fa-pen-to-square text-[10px]"></i>
-                                    <span class="hidden sm:inline">Edit di Editor Penuh</span>
-                                </a>
-                            </template>
-
-                            <button type="button" 
-                                    @click="closeReader()" 
-                                    class="w-9 h-9 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 flex items-center justify-center transition-colors cursor-pointer">
-                                <i class="fa-solid fa-xmark text-sm"></i>
-                            </button>
-                        </div>
                     </div>
 
-                    {{-- Chapter Switcher Tabs (Jika modul memiliki lebih dari 1 bab) --}}
-                    <template x-if="readingModule && readingModule.chapters && readingModule.chapters.length > 1">
-                        <div class="flex items-center gap-2 overflow-x-auto py-3 border-b border-slate-100 dark:border-slate-800 shrink-0 custom-scrollbar">
-                            <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 shrink-0 mr-1">PILIH BAB:</span>
-                            <template x-for="(chap, cIdx) in readingModule.chapters" :key="chap.id">
-                                <button type="button" 
-                                        @click="readingChapterIndex = cIdx"
-                                        :class="readingChapterIndex === cIdx
-                                            ? 'bg-blue-600 text-white font-bold shadow-xs'
-                                            : 'bg-slate-100 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 hover:bg-slate-200 font-semibold'"
-                                        class="px-3 py-1.5 rounded-xl text-xs whitespace-nowrap transition-all cursor-pointer shrink-0">
-                                    <span x-text="'Bab ' + (chap.order || (cIdx + 1)) + ': ' + cleanChapterTitle(chap.title)"></span>
-                                </button>
-                            </template>
-                        </div>
-                    </template>
-
-                    {{-- Modal Body: Isi Konten Dokumen Bab --}}
-                    <div class="flex-1 overflow-y-auto py-6 pr-2 custom-scrollbar">
-                        <template x-if="currentReadingChapter">
-                            <div class="space-y-4">
-                                {{-- Header Bab --}}
-                                <div class="pb-3 border-b border-slate-100 dark:border-slate-800">
-                                    <div class="text-[11px] font-extrabold uppercase tracking-wider text-blue-600 dark:text-blue-400">
-                                        <span x-text="'BAB ' + (currentReadingChapter.order || 1)"></span>
-                                    </div>
-                                    <h3 class="text-xl font-black text-slate-900 dark:text-white mt-0.5" 
-                                        x-text="cleanChapterTitle(currentReadingChapter.title)"></h3>
-                                    
-                                    <template x-if="currentReadingChapter.description">
-                                        <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 italic mt-1 bg-slate-50 dark:bg-slate-900/50 p-3 rounded-xl border border-slate-100 dark:border-slate-800" 
-                                           x-text="currentReadingChapter.description"></p>
-                                    </template>
-                                </div>
-
-                                {{-- Isi Konten TinyMCE --}}
-                                <div class="article-content prose prose-slate dark:prose-invert max-w-none text-slate-800 dark:text-slate-200 text-xs sm:text-sm leading-relaxed overflow-x-auto" 
-                                     x-html="currentReadingChapter.content ? currentReadingChapter.content : '<div class=\'py-12 text-center text-slate-400 font-medium\'>Belum ada isi konten pada bab ini.</div>'">
-                                </div>
-                            </div>
+                    <div class="flex items-center gap-2 shrink-0">
+                        {{-- Tombol Edit Bab di Editor CRUD --}}
+                        <template x-if="readingModule">
+                            <a :href="'/manual-book/manage?system=' + readingModule.system_id + '&module=' + (currentReadingChapter && currentReadingChapter.menuSystemId ? currentReadingChapter.menuSystemId : readingModule.id) + (currentReadingChapter ? '&chapter=' + currentReadingChapter.id : '')" 
+                               class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer"
+                               title="Buka bab ini langsung di editor">
+                                <i class="fa-solid fa-pen-to-square text-[10px]"></i>
+                                <span class="hidden sm:inline">Edit di Editor</span>
+                            </a>
                         </template>
 
-                        <template x-if="!currentReadingChapter">
-                            <div class="py-16 text-center text-slate-400 font-medium">
-                                Tidak ada bab panduan untuk ditampilkan.
-                            </div>
-                        </template>
-                    </div>
-
-                    {{-- Modal Footer --}}
-                    <div class="pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between shrink-0">
-                        <div class="text-[11px] text-slate-400 font-medium">
-                            <span>Selesai membaca panduan modul</span>
-                        </div>
+                        {{-- Tombol Close --}}
                         <button type="button" 
                                 @click="closeReader()" 
-                                class="px-4 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-bold transition-all cursor-pointer">
-                            Tutup Pembaca
+                                class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 flex items-center justify-center transition-colors cursor-pointer"
+                                title="Tutup (Esc)">
+                            <i class="fa-solid fa-xmark text-sm"></i>
                         </button>
                     </div>
                 </div>
+
+                {{-- 2. MODAL BODY (2-COLUMN: SIDEBAR TOC + READER PANE) --}}
+                <div class="flex flex-1 overflow-hidden relative">
+
+                    {{-- ======================================================== --}}
+                    {{-- LEFT COLUMN: TABLE OF CONTENTS (DAFTAR ISI SIDEBAR)      --}}
+                    {{-- ======================================================== --}}
+                    {{-- Backdrop khusus TOC di mobile saat drawer terbuka --}}
+                    <div x-show="isTocOpenMobile" 
+                         @click="isTocOpenMobile = false"
+                         class="fixed inset-0 bg-slate-900/50 z-20 md:hidden"
+                         style="display: none;"></div>
+
+                    <div :class="isTocOpenMobile 
+                            ? 'fixed inset-y-0 left-0 z-30 w-72 sm:w-80 shadow-2xl flex flex-col bg-white dark:bg-[#0c1324] border-r border-slate-200 dark:border-slate-800' 
+                            : 'hidden md:flex md:w-72 lg:w-80 border-r border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-[#080d19]/80 flex-col shrink-0 overflow-hidden'">
+                        
+                        {{-- TOC Sidebar Header --}}
+                        <div class="p-3.5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between shrink-0">
+                            <div class="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-slate-700 dark:text-slate-300">
+                                <i class="fa-solid fa-book-bookmark text-blue-600 dark:text-blue-400"></i>
+                                <span>Daftar Isi Panduan</span>
+                            </div>
+                            <div class="flex items-center gap-1.5">
+                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/10 text-blue-600 dark:text-blue-400"
+                                      x-text="allReadingChapters.length + ' Bab'"></span>
+                                <button type="button" 
+                                        @click="isTocOpenMobile = false" 
+                                        class="md:hidden w-6 h-6 rounded flex items-center justify-center text-slate-400 hover:text-slate-600">
+                                    <i class="fa-solid fa-xmark text-xs"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        {{-- TOC Mini Search Filter --}}
+                        <div class="p-2.5 border-b border-slate-200/80 dark:border-slate-800/80 bg-white/50 dark:bg-[#0c1324]/50 shrink-0">
+                            <div class="relative">
+                                <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-[11px] text-slate-400"></i>
+                                <input type="text" 
+                                       x-model="tocSearchQuery" 
+                                       placeholder="Cari dalam daftar bab..." 
+                                       class="w-full pl-8 pr-7 py-1.5 bg-white dark:bg-[#0c1324] border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-700 dark:text-slate-200 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-blue-500">
+                                <button type="button" 
+                                        x-show="tocSearchQuery.length > 0" 
+                                        @click="tocSearchQuery = ''" 
+                                        class="absolute right-2.5 top-2 text-slate-400 hover:text-slate-600 text-[10px]"
+                                        style="display: none;">
+                                    <i class="fa-solid fa-circle-xmark"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        {{-- TOC Tree List (Scrollable) --}}
+                        <div class="flex-1 overflow-y-auto p-3 space-y-3 custom-scrollbar text-xs">
+                            <template x-if="readingModule">
+                                <div class="space-y-3">
+                                    
+                                    {{-- Kategori A: Bab Langsung Modul Utama (jika ada) --}}
+                                    <template x-if="readingModule.chapters && readingModule.chapters.length > 0">
+                                        <div class="space-y-1">
+                                            <div class="text-[10px] font-black uppercase tracking-wider text-slate-400 px-2 py-0.5">
+                                                Bab Utama / Ringkasan
+                                            </div>
+                                            <template x-for="(chap, cIdx) in readingModule.chapters" :key="'toc-main-' + chap.id">
+                                                <div x-show="!tocSearchQuery || chap.title.toLowerCase().includes(tocSearchQuery.toLowerCase())">
+                                                    <button type="button" 
+                                                            @click="selectReadingChapter(chap.id)" 
+                                                            :class="currentReadingChapter && String(currentReadingChapter.id) === String(chap.id)
+                                                                ? 'bg-blue-600 text-white font-bold shadow-xs'
+                                                                : 'text-slate-700 dark:text-slate-300 hover:bg-slate-200/60 dark:hover:bg-slate-800/80 font-medium'"
+                                                            class="w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-left transition-colors cursor-pointer group">
+                                                        <div class="flex items-center gap-2 truncate">
+                                                            <span :class="currentReadingChapter && String(currentReadingChapter.id) === String(chap.id)
+                                                                    ? 'bg-white/20 text-white'
+                                                                    : 'bg-slate-200/80 dark:bg-slate-800 text-slate-600 dark:text-slate-400'"
+                                                                  class="w-4 h-4 rounded text-[9px] font-bold flex items-center justify-center shrink-0"
+                                                                  x-text="'#' + (chap.order || (cIdx + 1))"></span>
+                                                            <span class="truncate" x-text="cleanChapterTitle(chap.title)"></span>
+                                                        </div>
+                                                        <i x-show="currentReadingChapter && String(currentReadingChapter.id) === String(chap.id)" 
+                                                           class="fa-solid fa-chevron-right text-[9px] shrink-0 ml-1"></i>
+                                                    </button>
+                                                </div>
+                                            </template>
+                                        </div>
+                                    </template>
+
+                                    {{-- Kategori B: Bab dari Sub-Menus --}}
+                                    <template x-if="readingModule.sub_menus && readingModule.sub_menus.length > 0">
+                                        <div class="space-y-3">
+                                            <template x-for="sub in readingModule.sub_menus" :key="'toc-sub-' + sub.id">
+                                                <div class="space-y-1">
+                                                    {{-- Header Sub-Menu --}}
+                                                    <div class="flex items-center justify-between px-2 py-1 text-[11px] font-bold text-slate-800 dark:text-slate-200">
+                                                        <div class="flex items-center gap-1.5 truncate">
+                                                            <i class="fa-regular fa-folder-closed text-indigo-500 text-xs shrink-0"></i>
+                                                            <span class="truncate" x-text="sub.title"></span>
+                                                        </div>
+                                                        <span class="text-[9px] font-bold text-slate-400 shrink-0 ml-1" 
+                                                              x-text="(sub.chapters ? sub.chapters.length : 0) + ' Bab'"></span>
+                                                    </div>
+
+                                                    {{-- Daftar Bab Sub-Menu --}}
+                                                    <div class="ml-2 pl-2 border-l-2 border-indigo-200 dark:border-indigo-900/50 space-y-0.5">
+                                                        <template x-if="sub.chapters && sub.chapters.length > 0">
+                                                            <div>
+                                                                <template x-for="(sChap, scIdx) in sub.chapters" :key="'toc-sc-' + sChap.id">
+                                                                    <div x-show="!tocSearchQuery || sChap.title.toLowerCase().includes(tocSearchQuery.toLowerCase()) || sub.title.toLowerCase().includes(tocSearchQuery.toLowerCase())">
+                                                                        <button type="button" 
+                                                                                @click="selectReadingChapter(sChap.id)" 
+                                                                                :class="currentReadingChapter && String(currentReadingChapter.id) === String(sChap.id)
+                                                                                    ? 'bg-blue-600 text-white font-bold shadow-xs'
+                                                                                    : 'text-slate-600 dark:text-slate-300 hover:bg-slate-200/60 dark:hover:bg-slate-800/80 font-medium'"
+                                                                                class="w-full flex items-center justify-between px-2 py-1.5 rounded-lg text-left transition-colors cursor-pointer group text-[11px]">
+                                                                            <div class="flex items-center gap-1.5 truncate">
+                                                                                <span :class="currentReadingChapter && String(currentReadingChapter.id) === String(sChap.id)
+                                                                                        ? 'bg-white/20 text-white'
+                                                                                        : 'bg-slate-200/80 dark:bg-slate-800 text-slate-500 dark:text-slate-400'"
+                                                                                      class="w-4 h-4 rounded text-[9px] font-bold flex items-center justify-center shrink-0"
+                                                                                      x-text="'#' + (sChap.order || (scIdx + 1))"></span>
+                                                                                <span class="truncate" x-text="cleanChapterTitle(sChap.title)"></span>
+                                                                            </div>
+                                                                            <i x-show="currentReadingChapter && String(currentReadingChapter.id) === String(sChap.id)" 
+                                                                               class="fa-solid fa-chevron-right text-[8px] shrink-0 ml-1"></i>
+                                                                        </button>
+                                                                    </div>
+                                                                </template>
+                                                            </div>
+                                                        </template>
+                                                        <template x-if="!sub.chapters || sub.chapters.length === 0">
+                                                            <div class="text-[10px] text-slate-400 italic py-1 pl-2">Belum ada bab.</div>
+                                                        </template>
+                                                    </div>
+                                                </div>
+                                            </template>
+                                        </div>
+                                    </template>
+
+                                </div>
+                            </template>
+                        </div>
+
+                        {{-- TOC Footer Progress Bar --}}
+                        <div class="p-3 border-t border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-[#0c1324]/70 shrink-0">
+                            <div class="flex items-center justify-between text-[10px] font-semibold text-slate-400 mb-1.5">
+                                <span>Progress Baca Modul</span>
+                                <span class="font-bold text-blue-600 dark:text-blue-400" 
+                                      x-text="(currentReadingIndex + 1) + ' / ' + allReadingChapters.length + ' Bab'"></span>
+                            </div>
+                            <div class="w-full bg-slate-200 dark:bg-slate-700 h-1.5 rounded-full overflow-hidden">
+                                <div class="bg-blue-600 h-full rounded-full transition-all duration-300"
+                                     :style="'width: ' + (((currentReadingIndex + 1) / (allReadingChapters.length || 1)) * 100) + '%'"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- ======================================================== --}}
+                    {{-- RIGHT COLUMN: READING CONTENT PANE                      --}}
+                    {{-- ======================================================== --}}
+                    <div id="readerContentPane" 
+                         class="flex-1 overflow-y-auto p-5 sm:p-8 md:p-10 custom-scrollbar bg-white dark:bg-[#0c1324] flex flex-col justify-between">
+                        
+                        <div>
+                            <template x-if="currentReadingChapter">
+                                <div class="space-y-5">
+                                    {{-- Breadcrumb Hierarki Bab --}}
+                                    <div class="flex items-center flex-wrap gap-1.5 text-xs font-semibold text-slate-400 pb-1">
+                                        <span x-text="readingModule ? readingModule.system_name : ''"></span>
+                                        <i class="fa-solid fa-chevron-right text-[9px] text-slate-300 dark:text-slate-600"></i>
+                                        <span x-text="readingModule ? readingModule.raw_name || readingModule.title : ''"></span>
+                                        
+                                        <template x-if="currentReadingChapter.subMenuTitle">
+                                            <div class="inline-flex items-center gap-1.5">
+                                                <i class="fa-solid fa-chevron-right text-[9px] text-slate-300 dark:text-slate-600"></i>
+                                                <span class="text-indigo-600 dark:text-indigo-400 font-bold" x-text="currentReadingChapter.subMenuTitle"></span>
+                                            </div>
+                                        </template>
+
+                                        <i class="fa-solid fa-chevron-right text-[9px] text-slate-300 dark:text-slate-600"></i>
+                                        <span class="text-blue-600 dark:text-blue-400 font-bold" 
+                                              x-text="'Bab ' + (currentReadingChapter.order || (currentReadingIndex + 1))"></span>
+                                    </div>
+
+                                    {{-- Judul Bab Besar --}}
+                                    <div>
+                                        <h1 class="text-xl sm:text-2xl md:text-3xl font-black text-slate-900 dark:text-white tracking-tight leading-snug"
+                                            x-text="cleanChapterTitle(currentReadingChapter.title)"></h1>
+                                        
+                                        {{-- Deskripsi Bab (Ringkasan Singkat) --}}
+                                        <template x-if="currentReadingChapter.description">
+                                            <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-400 italic mt-3 bg-slate-50 dark:bg-slate-900/60 p-3.5 rounded-2xl border border-slate-200/80 dark:border-slate-800 leading-relaxed" 
+                                               x-text="currentReadingChapter.description"></p>
+                                        </template>
+                                    </div>
+
+                                    <hr class="border-slate-100 dark:border-slate-800 my-4">
+
+                                    {{-- Isi Materi Artikel Panduan (TinyMCE Content) --}}
+                                    <div class="article-content prose prose-slate dark:prose-invert max-w-none text-slate-800 dark:text-slate-200 text-xs sm:text-sm leading-relaxed overflow-x-auto min-h-[220px]" 
+                                         x-html="currentReadingChapter.content ? currentReadingChapter.content : '<div class=\'py-16 text-center text-slate-400 font-medium\'>Belum ada isi materi tertulis pada bab panduan ini.</div>'">
+                                    </div>
+                                </div>
+                            </template>
+
+                            <template x-if="!currentReadingChapter">
+                                <div class="py-24 text-center text-slate-400 font-medium">
+                                    <div class="w-12 h-12 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-3 text-slate-400">
+                                        <i class="fa-solid fa-book text-lg"></i>
+                                    </div>
+                                    <p>Pilih salah satu bab di sebelah kiri untuk mulai membaca.</p>
+                                </div>
+                            </template>
+                        </div>
+
+                        {{-- 3. BOTTOM CHAPTER NAVIGATION (SEBELUMNYA & SELANJUTNYA) --}}
+                        <div class="mt-12 pt-6 border-t border-slate-200 dark:border-slate-800 shrink-0">
+                            <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+                                
+                                {{-- Tombol Bab Sebelumnya --}}
+                                <template x-if="prevReadingChapter">
+                                    <button type="button" 
+                                            @click="goToPrevChapter()" 
+                                            class="flex-1 group flex items-center gap-3 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-800 hover:border-blue-500/50 dark:hover:border-blue-500/50 bg-slate-50/60 dark:bg-slate-900/40 hover:bg-blue-50/40 dark:hover:bg-blue-950/20 text-left transition-all cursor-pointer">
+                                        <div class="w-9 h-9 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-500 group-hover:text-blue-600 group-hover:border-blue-200 transition-colors shrink-0">
+                                            <i class="fa-solid fa-arrow-left text-xs group-hover:-translate-x-0.5 transition-transform"></i>
+                                        </div>
+                                        <div class="truncate">
+                                            <div class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 group-hover:text-blue-600 transition-colors">
+                                                ← Bab Sebelumnya
+                                            </div>
+                                            <div class="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-200 group-hover:text-blue-600 truncate mt-0.5" 
+                                                 x-text="cleanChapterTitle(prevReadingChapter.title)"></div>
+                                            <template x-if="prevReadingChapter.subMenuTitle">
+                                                <div class="text-[10px] text-slate-400 truncate" x-text="prevReadingChapter.subMenuTitle"></div>
+                                            </template>
+                                        </div>
+                                    </button>
+                                </template>
+                                <template x-if="!prevReadingChapter">
+                                    <div class="flex-1 hidden sm:block"></div>
+                                </template>
+
+                                {{-- Tombol Bab Selanjutnya --}}
+                                <template x-if="nextReadingChapter">
+                                    <button type="button" 
+                                            @click="goToNextChapter()" 
+                                            class="flex-1 group flex items-center justify-end gap-3 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-800 hover:border-blue-500/50 dark:hover:border-blue-500/50 bg-slate-50/60 dark:bg-slate-900/40 hover:bg-blue-50/40 dark:hover:bg-blue-950/20 text-right transition-all cursor-pointer">
+                                        <div class="truncate">
+                                            <div class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 group-hover:text-blue-600 transition-colors">
+                                                Bab Selanjutnya →
+                                            </div>
+                                            <div class="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-200 group-hover:text-blue-600 truncate mt-0.5" 
+                                                 x-text="cleanChapterTitle(nextReadingChapter.title)"></div>
+                                            <template x-if="nextReadingChapter.subMenuTitle">
+                                                <div class="text-[10px] text-slate-400 truncate" x-text="nextReadingChapter.subMenuTitle"></div>
+                                            </template>
+                                        </div>
+                                        <div class="w-9 h-9 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-500 group-hover:text-blue-600 group-hover:border-blue-200 transition-colors shrink-0">
+                                            <i class="fa-solid fa-arrow-right text-xs group-hover:translate-x-0.5 transition-transform"></i>
+                                        </div>
+                                    </button>
+                                </template>
+                                <template x-if="!nextReadingChapter">
+                                    <div class="flex-1 p-3.5 rounded-2xl border border-emerald-500/20 bg-emerald-50/50 dark:bg-emerald-950/20 text-center flex items-center justify-center gap-2">
+                                        <i class="fa-solid fa-circle-check text-emerald-500 text-sm"></i>
+                                        <span class="text-xs font-bold text-emerald-700 dark:text-emerald-300">Selesai membaca seluruh materi modul ini!</span>
+                                    </div>
+                                </template>
+
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
             </div>
         </div>
 
