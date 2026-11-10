@@ -13,9 +13,51 @@ use App\Helpers\DocxParser;
 class ManualBookController extends Controller
 {
     /**
-     * Tampilan UI Manual Book & Tata Cara Penggunaan Sistem (Struktur Opsi A: Sistem -> Modul -> Daftar Bab)
+     * Halaman Ringkasan & Katalog Manual Book Sistem (Summary View)
      */
     public function index(Request $request)
+    {
+        $data = $this->getManualBookData();
+
+        $totalSystems = count($data['systems']);
+        $totalModules = 0;
+        $totalChapters = 0;
+        $documentedModules = 0;
+        $publishedChapters = 0;
+
+        foreach ($data['modulesBySystem'] as $modList) {
+            foreach ($modList as $m) {
+                $totalModules++;
+                $totalChapters += $m['chapterCount'];
+                if ($m['chapterCount'] > 0) {
+                    $documentedModules++;
+                }
+                $publishedChapters += ($m['publishedCount'] ?? 0);
+            }
+        }
+
+        return view('manual_book.index', array_merge($data, [
+            'totalSystems' => $totalSystems,
+            'totalModules' => $totalModules,
+            'totalChapters' => $totalChapters,
+            'documentedModules' => $documentedModules,
+            'publishedChapters' => $publishedChapters,
+        ]));
+    }
+
+    /**
+     * Halaman Editor & Manajemen CRUD Bab Manual Book
+     */
+    public function manage(Request $request)
+    {
+        $data = $this->getManualBookData();
+        return view('manualbook', $data);
+    }
+
+    /**
+     * Helper untuk mengambil dan memformat data sistem, modul, dan bab panduan
+     */
+    private function getManualBookData(): array
     {
         // 1. Ambil kategori yang memiliki menuSystems beserta semua bab manualBooks
         $categories = Kategori::with(['menuSystems' => function ($q) {
@@ -90,6 +132,8 @@ class ManualBookController extends Controller
                 $modList[] = [
                     'id' => (string) $ms->id,
                     'menu_system_id' => $ms->id,
+                    'system_id' => (string) $cat->id,
+                    'system_name' => $cat->name,
                     'title' => $defaultTitle,
                     'raw_name' => $cleanName,
                     'order' => $ms->order,
@@ -97,6 +141,7 @@ class ManualBookController extends Controller
                     'statusLabel' => $statusLabel,
                     'statusClass' => $statusClass,
                     'chapterCount' => $totalChapters,
+                    'publishedCount' => $publishedCount,
                     'breadcrumb' => strtoupper($cat->name) . ' • ' . strtoupper($cleanName) . ' • BUKU PANDUAN PENGGUNAAN',
                     'chapters' => $chapters,
                 ];
@@ -111,11 +156,11 @@ class ManualBookController extends Controller
             $modulesBySystem[(string) $cat->id] = $modList;
         }
 
-        return view('manualbook', [
+        return [
             'systems' => $systems,
             'modulesBySystem' => $modulesBySystem,
             'categories' => $categories,
-        ]);
+        ];
     }
 
     /**
