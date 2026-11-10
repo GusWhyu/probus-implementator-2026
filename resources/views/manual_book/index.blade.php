@@ -78,6 +78,12 @@
                     });
                 },
 
+                // Pembersih judul bab agar tidak ada nomor ganda (#1 01. Sales -> #1 Sales)
+                cleanChapterTitle(title) {
+                    if (!title) return '';
+                    return title.replace(/^\d+[\.\s\-_]+/, '').trim() || title;
+                },
+
                 // Buka Modal Pembaca Panduan Cepat
                 openReader(mod, chapterIdx = 0) {
                     if (!mod || !mod.chapters || mod.chapters.length === 0) {
@@ -289,25 +295,17 @@
             <template x-for="mod in filteredModules" :key="mod.id">
                 <div class="bg-white dark:bg-[#0c1324] border border-slate-200 dark:border-slate-800 rounded-3xl p-5 sm:p-6 shadow-xs hover:border-blue-500/50 dark:hover:border-blue-500/50 hover:shadow-md transition-all flex flex-col justify-between group">
                     <div>
-                        {{-- Top Badges: Sistem, Sub Menu & Status Panduan --}}
+                        {{-- Top Badges: Sistem & Status Panduan (Bersih tanpa duplikasi) --}}
                         <div class="flex items-center justify-between gap-2 mb-3">
-                            <div class="flex items-center gap-1.5 flex-wrap">
-                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/20">
-                                    <i class="fa-solid fa-cube text-[9px]"></i>
-                                    <span x-text="mod.system_name || 'PROBUS'"></span>
-                                </span>
-                                <template x-if="mod.has_sub_menus">
-                                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20">
-                                        <i class="fa-solid fa-folder-tree text-[9px]"></i>
-                                        <span x-text="mod.sub_menus.length + ' Sub Menu'"></span>
-                                    </span>
-                                </template>
-                            </div>
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/20">
+                                <i class="fa-solid fa-cube text-[9px]"></i>
+                                <span x-text="mod.system_name || 'PROBUS'"></span>
+                            </span>
 
-                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold"
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold"
                                   :class="mod.chapterCount > 0 ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 border border-slate-200 dark:border-slate-700'">
                                 <i :class="mod.chapterCount > 0 ? 'fa-solid fa-circle-check text-[9px]' : 'fa-regular fa-clock text-[9px]'"></i>
-                                <span x-text="mod.statusLabel"></span>
+                                <span x-text="mod.has_sub_menus ? (mod.sub_menus.length + ' Sub Menu • ' + mod.chapterCount + ' Bab') : (mod.chapterCount > 0 ? mod.chapterCount + ' Bab Panduan' : 'Belum Ada Bab')"></span>
                             </span>
                         </div>
 
@@ -321,68 +319,71 @@
                            x-text="mod.description ? mod.description : 'Panduan penggunaan modul dan tata cara alur kerja sistem.'">
                         </p>
 
-                        {{-- Preview Daftar Bab Dokumen --}}
-                        <div class="mb-5 space-y-1.5">
-                            <div class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-1 flex items-center justify-between">
-                                <span>DAFTAR BAB TERSEDIA</span>
+                        {{-- Preview Daftar Bab Dokumen (Hirarki Tree View Bersih) --}}
+                        <div class="mb-5 space-y-2">
+                            <div class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 flex items-center justify-between pb-1 border-b border-slate-100 dark:border-slate-800/80">
+                                <span>DAFTAR MATERI PANDUAN</span>
                                 <span class="font-bold text-blue-600 dark:text-blue-400" x-text="mod.chapterCount + ' Bab'"></span>
                             </div>
 
-                            {{-- Case A: Jika modul memiliki Sub-Menus --}}
+                            {{-- Case A: Jika modul memiliki Sub-Menus (Tree Hierarchy: Folder vs Dokumen) --}}
                             <template x-if="mod.has_sub_menus">
-                                <div class="space-y-2">
+                                <div class="space-y-3 pt-1">
                                     {{-- Bab langsung dari modul utama jika ada --}}
                                     <template x-if="mod.chapters && mod.chapters.length > 0">
-                                        <div class="p-2 rounded-xl bg-slate-50/80 dark:bg-slate-900/60 border border-slate-100 dark:border-slate-800">
-                                            <div class="text-[10px] font-bold text-slate-500 dark:text-slate-400 mb-1 uppercase tracking-wider">
-                                                Bab Utama / Ringkasan
-                                            </div>
-                                            <div class="space-y-1">
-                                                <template x-for="(chap, cIdx) in mod.chapters.slice(0, 2)" :key="chap.id">
-                                                    <div @click="openReader(mod, cIdx)"
-                                                         class="flex items-center justify-between p-1.5 rounded-lg bg-white dark:bg-slate-800/80 hover:bg-blue-50 dark:hover:bg-blue-950/40 border border-slate-100 dark:border-slate-800 text-xs transition-colors cursor-pointer group/chap">
-                                                        <div class="flex items-center gap-1.5 truncate">
-                                                            <span class="w-4 h-4 rounded bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-[9px] font-bold text-slate-600 dark:text-slate-300 shrink-0"
-                                                                  x-text="'#' + (chap.order || (cIdx + 1))"></span>
-                                                            <span class="font-medium text-[11px] text-slate-600 dark:text-slate-300 group-hover/chap:text-blue-600 truncate"
-                                                                  x-text="chap.title"></span>
-                                                        </div>
-                                                        <i class="fa-solid fa-chevron-right text-[8px] text-slate-400 group-hover/chap:text-blue-500 shrink-0 ml-1"></i>
+                                        <div class="space-y-1">
+                                            <template x-for="(chap, cIdx) in mod.chapters.slice(0, 2)" :key="chap.id">
+                                                <div @click="openReader(mod, cIdx)"
+                                                     class="flex items-center justify-between py-1.5 px-2.5 rounded-xl bg-slate-50/80 dark:bg-slate-900/60 hover:bg-blue-50 dark:hover:bg-blue-950/40 border border-slate-200/60 dark:border-slate-800 text-xs transition-all cursor-pointer group/chap">
+                                                    <div class="flex items-center gap-2 truncate">
+                                                        <span class="w-4 h-4 rounded bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-[9px] font-bold text-blue-600 dark:text-blue-400 shrink-0"
+                                                              x-text="'#' + (chap.order || (cIdx + 1))"></span>
+                                                        <span class="font-medium text-slate-700 dark:text-slate-300 group-hover/chap:text-blue-600 truncate"
+                                                              x-text="cleanChapterTitle(chap.title)"></span>
                                                     </div>
-                                                </template>
-                                            </div>
+                                                    <i class="fa-solid fa-chevron-right text-[8px] text-slate-400 group-hover/chap:text-blue-500 shrink-0 ml-1"></i>
+                                                </div>
+                                            </template>
                                         </div>
                                     </template>
 
-                                    {{-- Sub Menus dan Bab di dalamnya --}}
+                                    {{-- Tree View Sub-Menus: Folder Header + Indented Bab Items --}}
                                     <template x-for="sub in mod.sub_menus" :key="sub.id">
-                                        <div class="p-2 rounded-xl bg-slate-50/80 dark:bg-slate-900/60 border border-slate-100 dark:border-slate-800">
-                                            <div class="flex items-center justify-between text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
-                                                <span class="flex items-center gap-1.5 truncate">
-                                                    <i class="fa-solid fa-folder-tree text-indigo-500 text-[10px]"></i>
-                                                    <span class="truncate" x-text="sub.title"></span>
-                                                </span>
-                                                <span class="text-[10px] text-slate-400 font-semibold shrink-0" x-text="sub.chapterCount + ' Bab'"></span>
-                                            </div>
-                                            <template x-if="sub.chapters && sub.chapters.length > 0">
-                                                <div class="space-y-1 mt-1">
-                                                    <template x-for="(sChap, scIdx) in sub.chapters.slice(0, 2)" :key="sChap.id">
-                                                        <div @click="openReader(sub, scIdx)"
-                                                             class="flex items-center justify-between p-1.5 rounded-lg bg-white dark:bg-slate-800/80 hover:bg-blue-50 dark:hover:bg-blue-950/40 border border-slate-100 dark:border-slate-800 text-xs transition-colors cursor-pointer group/chap">
-                                                            <div class="flex items-center gap-1.5 truncate">
-                                                                <span class="w-4 h-4 rounded bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-[9px] font-bold text-slate-600 dark:text-slate-300 shrink-0"
-                                                                      x-text="'#' + (sChap.order || (scIdx + 1))"></span>
-                                                                <span class="font-medium text-[11px] text-slate-600 dark:text-slate-300 group-hover/chap:text-blue-600 truncate"
-                                                                      x-text="sChap.title"></span>
-                                                            </div>
-                                                            <i class="fa-solid fa-chevron-right text-[8px] text-slate-400 group-hover/chap:text-blue-500 shrink-0 ml-1"></i>
-                                                        </div>
-                                                    </template>
+                                        <div class="space-y-1">
+                                            {{-- Header Folder Sub-Menu --}}
+                                            <div class="flex items-center justify-between text-[11px] font-bold text-slate-700 dark:text-slate-300 px-1">
+                                                <div class="flex items-center gap-1.5 truncate">
+                                                    <i class="fa-regular fa-folder-closed text-indigo-500 text-xs shrink-0"></i>
+                                                    <span class="truncate text-slate-800 dark:text-slate-200" x-text="sub.title"></span>
                                                 </div>
-                                            </template>
-                                            <template x-if="!sub.chapters || sub.chapters.length === 0">
-                                                <div class="text-[10px] text-slate-400 italic py-0.5">Belum ada bab.</div>
-                                            </template>
+                                                <span class="text-[10px] font-semibold text-slate-400 shrink-0" x-text="sub.chapterCount + ' Bab'"></span>
+                                            </div>
+
+                                            {{-- Garis Hierarki Pohon ke Bab Dokumen --}}
+                                            <div class="ml-2 pl-3 border-l-2 border-indigo-200/80 dark:border-indigo-900/60 space-y-1 py-0.5">
+                                                <template x-if="sub.chapters && sub.chapters.length > 0">
+                                                    <div>
+                                                        <template x-for="(sChap, scIdx) in sub.chapters.slice(0, 2)" :key="sChap.id">
+                                                            <div @click="openReader(sub, scIdx)"
+                                                                 class="flex items-center justify-between py-1.5 px-2 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-950/40 text-xs transition-colors cursor-pointer group/chap border border-transparent hover:border-blue-200 dark:hover:border-blue-900/40">
+                                                                <div class="flex items-center gap-2 truncate">
+                                                                    <span class="w-4 h-4 rounded bg-slate-100 dark:bg-slate-800 text-[9px] font-bold text-slate-600 dark:text-slate-400 flex items-center justify-center shrink-0"
+                                                                          x-text="'#' + (sChap.order || (scIdx + 1))"></span>
+                                                                    <span class="font-medium text-slate-600 dark:text-slate-300 group-hover/chap:text-blue-600 truncate"
+                                                                          x-text="cleanChapterTitle(sChap.title)"></span>
+                                                                </div>
+                                                                <i class="fa-solid fa-chevron-right text-[8px] text-slate-400 group-hover/chap:text-blue-500 shrink-0 ml-1"></i>
+                                                            </div>
+                                                        </template>
+                                                        <template x-if="sub.chapters.length > 2">
+                                                            <div class="text-[10px] text-slate-400 italic pl-6" x-text="'+ ' + (sub.chapters.length - 2) + ' bab lainnya...'"></div>
+                                                        </template>
+                                                    </div>
+                                                </template>
+                                                <template x-if="!sub.chapters || sub.chapters.length === 0">
+                                                    <div class="text-[10px] text-slate-400 italic py-0.5 pl-2">Belum ada bab panduan.</div>
+                                                </template>
+                                            </div>
                                         </div>
                                     </template>
                                 </div>
@@ -390,7 +391,7 @@
 
                             {{-- Case B: Modul Standalone Tanpa Sub-Menus --}}
                             <template x-if="!mod.has_sub_menus">
-                                <div>
+                                <div class="pt-1">
                                     <template x-if="mod.chapters && mod.chapters.length > 0">
                                         <div class="space-y-1.5">
                                             <template x-for="(chap, cIdx) in (mod.chapters || []).slice(0, 3)" :key="chap.id">
@@ -400,7 +401,7 @@
                                                         <span class="w-5 h-5 rounded-md bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-[10px] font-bold text-slate-600 dark:text-slate-300 shrink-0"
                                                               x-text="'#' + (chap.order || (cIdx + 1))"></span>
                                                         <span class="font-medium text-slate-700 dark:text-slate-300 group-hover/chap:text-blue-600 truncate"
-                                                              x-text="chap.title"></span>
+                                                              x-text="cleanChapterTitle(chap.title)"></span>
                                                     </div>
                                                     <i class="fa-solid fa-chevron-right text-[9px] text-slate-400 group-hover/chap:text-blue-500 shrink-0 ml-1"></i>
                                                 </div>
@@ -532,7 +533,7 @@
                                             ? 'bg-blue-600 text-white font-bold shadow-xs'
                                             : 'bg-slate-100 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 hover:bg-slate-200 font-semibold'"
                                         class="px-3 py-1.5 rounded-xl text-xs whitespace-nowrap transition-all cursor-pointer shrink-0">
-                                    <span x-text="'Bab ' + (chap.order || (cIdx + 1)) + ': ' + chap.title"></span>
+                                    <span x-text="'Bab ' + (chap.order || (cIdx + 1)) + ': ' + cleanChapterTitle(chap.title)"></span>
                                 </button>
                             </template>
                         </div>
@@ -548,7 +549,7 @@
                                         <span x-text="'BAB ' + (currentReadingChapter.order || 1)"></span>
                                     </div>
                                     <h3 class="text-xl font-black text-slate-900 dark:text-white mt-0.5" 
-                                        x-text="currentReadingChapter.title"></h3>
+                                        x-text="cleanChapterTitle(currentReadingChapter.title)"></h3>
                                     
                                     <template x-if="currentReadingChapter.description">
                                         <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 italic mt-1 bg-slate-50 dark:bg-slate-900/50 p-3 rounded-xl border border-slate-100 dark:border-slate-800" 

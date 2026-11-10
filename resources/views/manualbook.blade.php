@@ -1060,8 +1060,8 @@
                                                     : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:bg-slate-100/70 dark:hover:bg-slate-800/60 text-slate-700 dark:text-slate-300'"
                                                  class="p-2.5 rounded-xl border text-xs cursor-pointer transition-all flex items-center justify-between group/sub ml-3">
                                                 <div class="flex items-center gap-2 truncate min-w-0">
-                                                    <i class="fa-solid fa-bookmark text-xs text-blue-500 shrink-0"></i>
-                                                    <span class="truncate font-medium" x-text="'Ringkasan Utama ' + mod.raw_name"></span>
+                                                    <i class="fa-solid fa-file-invoice text-xs text-blue-500 shrink-0"></i>
+                                                    <span class="truncate font-medium" x-text="'Bab Umum ' + mod.raw_name"></span>
                                                 </div>
                                                 <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 shrink-0" 
                                                       x-text="(mod.chapters ? mod.chapters.length : 0) + ' Bab'"></span>
