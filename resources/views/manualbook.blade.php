@@ -503,22 +503,22 @@
                         if (existingIdx !== -1) {
                             this.currentModule.sub_menus[existingIdx] = savedItem;
                         } else {
-                            this.currentModule.sub_menus.push(savedItem);
+                            const insertIdx = Math.max(0, Math.min((parseInt(savedItem.order, 10) || 1) - 1, this.currentModule.sub_menus.length));
+                            this.currentModule.sub_menus.splice(insertIdx, 0, savedItem);
                         }
 
                         // Pastikan chapters tetap tersinkron
                         this.currentModule.chapters = this.currentModule.sub_menus;
 
-                        // Urutkan sub menu berdasarkan nomor order
-                        this.currentModule.sub_menus.sort((a, b) => (parseInt(a.order) || 0) - (parseInt(b.order) || 0));
-
                         // Set sub menu yang baru disimpan menjadi aktif
                         this.activeSubMenuId = String(savedItem.id);
                         this.isNewSubMenu = false;
-                        this.subMenuOrder = savedItem.order;
                         this.subMenuTitle = savedItem.title;
                         this.subMenuDescription = savedItem.description;
                         this.subMenuStatus = savedItem.status;
+
+                        // Rekalkulasi urutan 1, 2, 3... dan sinkronkan ke database
+                        this.recalculateAndSyncOrders(this.currentModule);
 
                         // Perbarui statistik jumlah sub menu pada modul
                         this.updateModuleStats(this.currentModule);
@@ -772,6 +772,44 @@
                     .catch(err => {
                         console.error('Error reorder sub menu:', err);
                     });
+                },
+
+                // Dipanggil saat angka di kotak input "URUTAN SUB MENU" diubah
+                onSubMenuOrderInputChange(val) {
+                    let targetOrder = parseInt(val, 10);
+                    if (isNaN(targetOrder) || targetOrder < 1) {
+                        targetOrder = 1;
+                    }
+
+                    const mod = this.currentModule;
+                    if (!mod) return;
+                    const subList = mod.sub_menus || mod.chapters || [];
+
+                    if (this.isNewSubMenu) {
+                        // Jika sedang menambah sub menu baru, batasi maksimum ke (jumlah item + 1)
+                        const maxOrder = subList.length + 1;
+                        this.subMenuOrder = Math.max(1, Math.min(targetOrder, maxOrder));
+                        return;
+                    }
+
+                    // Jika sedang mengedit sub menu yang ada di database
+                    const maxOrder = subList.length;
+                    targetOrder = Math.max(1, Math.min(targetOrder, maxOrder));
+
+                    const fromIdx = subList.findIndex(s => String(s.id) === String(this.activeSubMenuId));
+                    const toIdx = targetOrder - 1;
+
+                    if (fromIdx !== -1 && fromIdx !== toIdx) {
+                        // Pindahkan posisi item dalam array
+                        const movedItem = subList.splice(fromIdx, 1)[0];
+                        subList.splice(toIdx, 0, movedItem);
+
+                        // Rekalkulasi urutan 1, 2, 3... dan sinkronkan ke database
+                        this.recalculateAndSyncOrders(mod);
+                    } else {
+                        // Jika angka tidak berubah atau sama dengan posisi aslinya
+                        this.subMenuOrder = fromIdx !== -1 ? fromIdx + 1 : 1;
+                    }
                 },
 
                 // Tambah Sistem Baru
@@ -1331,8 +1369,12 @@
                         </label>
                         <input type="number" 
                                min="1"
-                               x-model="subMenuOrder"
+                               :max="isNewSubMenu ? (((currentModule && (currentModule.sub_menus || currentModule.chapters)) ? (currentModule.sub_menus || currentModule.chapters).length : 0) + 1) : (((currentModule && (currentModule.sub_menus || currentModule.chapters)) ? (currentModule.sub_menus || currentModule.chapters).length : 1))"
+                               x-model.number="subMenuOrder"
+                               @change="onSubMenuOrderInputChange($event.target.value)"
+                               @keydown.enter.prevent="onSubMenuOrderInputChange($event.target.value); $event.target.blur()"
                                class="w-full px-3 py-2 text-xs font-bold bg-white dark:bg-[#090d16] border border-slate-200 dark:border-slate-700/80 rounded-xl text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-center">
+                        <p class="text-[9.5px] text-slate-400 dark:text-slate-500 leading-tight">Ubah angka untuk memindahkan posisi</p>
                     </div>
                     <div class="sm:col-span-10 space-y-1">
                         <div class="flex items-center justify-between">
