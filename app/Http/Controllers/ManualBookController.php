@@ -471,4 +471,38 @@ class ManualBookController extends Controller
             ],
         ]);
     }
+
+    /**
+     * Memperbarui urutan sub menu panduan secara batch
+     */
+    public function reorderSubMenus(Request $request)
+    {
+        $request->validate([
+            'menu_system_id' => 'required|exists:menu_systems,id',
+            'orders' => 'required|array',
+        ]);
+
+        $menuSystem = MenuSystem::findOrFail($request->menu_system_id);
+
+        \DB::transaction(function () use ($request) {
+            foreach ($request->orders as $index => $item) {
+                if (is_array($item)) {
+                    $id = $item['id'] ?? null;
+                    $order = isset($item['order']) ? (int) $item['order'] : ($index + 1);
+                } else {
+                    $id = $item;
+                    $order = $index + 1;
+                }
+
+                if ($id) {
+                    ManualBook::where('id', $id)->update(['order' => $order]);
+                }
+            }
+        });
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Urutan sub menu panduan berhasil diperbarui!',
+        ]);
+    }
 }

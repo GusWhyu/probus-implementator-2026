@@ -27,6 +27,11 @@
                 subMenuDescription: '',
                 subMenuStatus: 'draft',
 
+                // State Reorder / Drag & Drop
+                draggedIndex: null,
+                dragOverIndex: null,
+                draggedModuleId: null,
+
                 // Getter & Setter untuk kompatibilitas ke belakang (chapter aliases)
                 get activeChapterId() { return this.activeSubMenuId; },
                 set activeChapterId(val) { this.activeSubMenuId = val; },
@@ -654,6 +659,121 @@
                     }
                 },
 
+                // Pindah urutan sub menu via tombol naik / turun (direction: -1 untuk naik, +1 untuk turun)
+                moveSubMenu(mod, index, direction) {
+                    const subList = mod.sub_menus || mod.chapters || [];
+                    const targetIndex = index + direction;
+                    if (targetIndex < 0 || targetIndex >= subList.length) return;
+
+                    const temp = subList[index];
+                    subList[index] = subList[targetIndex];
+                    subList[targetIndex] = temp;
+
+                    this.recalculateAndSyncOrders(mod);
+                },
+
+                // Drag & Drop Handlers untuk Sub Menu
+                onSubMenuDragStart(event, mod, index) {
+                    this.draggedIndex = index;
+                    this.draggedModuleId = String(mod.id);
+                    if (event.dataTransfer) {
+                        event.dataTransfer.effectAllowed = 'move';
+                        event.dataTransfer.setData('text/plain', String(index));
+                    }
+                },
+
+                onSubMenuDragOver(event, mod, index) {
+                    if (String(this.draggedModuleId) === String(mod.id)) {
+                        this.dragOverIndex = index;
+                    }
+                },
+
+                onSubMenuDragLeave(event, index) {
+                    if (this.dragOverIndex === index) {
+                        this.dragOverIndex = null;
+                    }
+                },
+
+                onSubMenuDrop(event, mod, targetIndex) {
+                    if (this.draggedIndex === null || String(this.draggedModuleId) !== String(mod.id)) {
+                        this.onSubMenuDragEnd();
+                        return;
+                    }
+
+                    const fromIdx = this.draggedIndex;
+                    const toIdx = targetIndex;
+
+                    if (fromIdx !== toIdx) {
+                        const subList = mod.sub_menus || mod.chapters || [];
+                        const movedItem = subList.splice(fromIdx, 1)[0];
+                        subList.splice(toIdx, 0, movedItem);
+                        this.recalculateAndSyncOrders(mod);
+                    }
+
+                    this.onSubMenuDragEnd();
+                },
+
+                onSubMenuDragEnd() {
+                    this.draggedIndex = null;
+                    this.dragOverIndex = null;
+                    this.draggedModuleId = null;
+                },
+
+                // Menghitung ulang urutan #1, #2, dst dan sinkronisasi ke server
+                recalculateAndSyncOrders(mod) {
+                    const subList = mod.sub_menus || mod.chapters || [];
+                    const payloadOrders = [];
+
+                    subList.forEach((sub, i) => {
+                        sub.order = i + 1;
+                        payloadOrders.push({
+                            id: sub.id,
+                            order: i + 1
+                        });
+
+                        // Sinkronkan input nomor urut jika sub menu ini sedang aktif diedit
+                        if (String(this.activeSubMenuId) === String(sub.id)) {
+                            this.subMenuOrder = i + 1;
+                        }
+                    });
+
+                    mod.chapters = subList;
+                    mod.sub_menus = subList;
+
+                    fetch('{{ route("manualbook.reorder_sub_menu") }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        body: JSON.stringify({
+                            menu_system_id: mod.menu_system_id || mod.id,
+                            orders: payloadOrders
+                        })
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (typeof Swal !== 'undefined') {
+                            const Toast = Swal.mixin({
+                                toast: true,
+                                position: 'top-end',
+                                showConfirmButton: false,
+                                timer: 1600,
+                                timerProgressBar: false
+                            });
+                            Toast.fire({
+                                icon: 'success',
+                                title: 'Urutan sub menu diperbarui ✓'
+                            });
+                        }
+                    })
+                    .catch(err => {
+                        console.error('Error reorder sub menu:', err);
+                    });
+                },
+
                 // Tambah Sistem Baru
                 submitAddSystem() {
                     const name = (this.newSystemName || '').trim();
@@ -1052,13 +1172,29 @@
 
                             {{-- Daftar Sub Menu di bawah Modul --}}
                             <div x-show="expandedModules[mod.id]" class="border-t border-slate-100 dark:border-slate-800/80 bg-slate-50/70 dark:bg-slate-950/40 p-2.5 space-y-1.5">
-                                <template x-for="sub in (mod.sub_menus || mod.chapters || [])" :key="sub.id">
+                                <template x-for="(sub, sIdx) in (mod.sub_menus || mod.chapters || [])" :key="sub.id">
                                     <div @click="selectSubMenu(mod.id, sub.id)"
-                                         :class="String(activeModuleId) === String(mod.id) && String(activeSubMenuId) === String(sub.id) && !isNewSubMenu
-                                             ? 'bg-blue-600 text-white font-semibold shadow-xs'
-                                             : 'bg-white dark:bg-slate-800/90 text-slate-700 dark:text-slate-300 hover:bg-blue-50/80 dark:hover:bg-slate-800 border border-slate-200/80 dark:border-slate-700/60'"
-                                         class="p-2.5 rounded-xl transition-all duration-150 cursor-pointer flex items-center justify-between gap-2 group/sub">
+                                         draggable="true"
+                                         @dragstart="onSubMenuDragStart($event, mod, sIdx)"
+                                         @dragover.prevent="onSubMenuDragOver($event, mod, sIdx)"
+                                         @dragleave="onSubMenuDragLeave($event, sIdx)"
+                                         @drop.prevent="onSubMenuDrop($event, mod, sIdx)"
+                                         @dragend="onSubMenuDragEnd()"
+                                         :class="[
+                                             String(activeModuleId) === String(mod.id) && String(activeSubMenuId) === String(sub.id) && !isNewSubMenu
+                                                 ? 'bg-blue-600 text-white font-semibold shadow-xs'
+                                                 : 'bg-white dark:bg-slate-800/90 text-slate-700 dark:text-slate-300 hover:bg-blue-50/80 dark:hover:bg-slate-800 border border-slate-200/80 dark:border-slate-700/60',
+                                             dragOverIndex === sIdx && String(draggedModuleId) === String(mod.id)
+                                                 ? 'ring-2 ring-blue-500 scale-[1.02] shadow-md'
+                                                 : ''
+                                         ]"
+                                         class="p-2.5 rounded-xl transition-all duration-150 cursor-pointer flex items-center justify-between gap-2 group/sub select-none">
                                         <div class="flex items-center gap-2 min-w-0">
+                                            {{-- Grip Handle Drag & Drop --}}
+                                            <i class="fa-solid fa-grip-vertical text-slate-300 dark:text-slate-600 hover:text-slate-500 cursor-grab active:cursor-grabbing text-[10px] shrink-0"
+                                               :class="String(activeModuleId) === String(mod.id) && String(activeSubMenuId) === String(sub.id) && !isNewSubMenu ? 'text-white/60' : ''"
+                                               title="Geser posisi sub menu"></i>
+
                                             <span class="w-5 h-5 rounded-md flex items-center justify-center text-[10px] font-black shrink-0"
                                                   :class="String(activeModuleId) === String(mod.id) && String(activeSubMenuId) === String(sub.id) && !isNewSubMenu
                                                       ? 'bg-white/20 text-white'
@@ -1066,10 +1202,38 @@
                                                   x-text="'#' + sub.order"></span>
                                             <span class="text-xs truncate" x-text="sub.title"></span>
                                         </div>
-                                        <div class="flex items-center gap-1.5 shrink-0">
+
+                                        <div class="flex items-center gap-1 shrink-0">
+                                            {{-- Tombol Naik / Turun Cepat (Move Up & Down) --}}
+                                            <div class="flex items-center gap-0.5 opacity-0 group-hover/sub:opacity-100 transition-opacity">
+                                                <button type="button"
+                                                        @click.stop="moveSubMenu(mod, sIdx, -1)"
+                                                        :disabled="sIdx === 0"
+                                                        :class="String(activeModuleId) === String(mod.id) && String(activeSubMenuId) === String(sub.id) && !isNewSubMenu
+                                                            ? 'text-white/80 hover:text-white hover:bg-white/10'
+                                                            : 'text-slate-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-slate-700'"
+                                                        class="w-5 h-5 rounded flex items-center justify-center disabled:opacity-20 cursor-pointer transition-colors"
+                                                        title="Pindah ke Atas">
+                                                    <i class="fa-solid fa-chevron-up text-[9px]"></i>
+                                                </button>
+                                                <button type="button"
+                                                        @click.stop="moveSubMenu(mod, sIdx, 1)"
+                                                        :disabled="sIdx === ((mod.sub_menus || mod.chapters || []).length - 1)"
+                                                        :class="String(activeModuleId) === String(mod.id) && String(activeSubMenuId) === String(sub.id) && !isNewSubMenu
+                                                            ? 'text-white/80 hover:text-white hover:bg-white/10'
+                                                            : 'text-slate-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-slate-700'"
+                                                        class="w-5 h-5 rounded flex items-center justify-center disabled:opacity-20 cursor-pointer transition-colors"
+                                                        title="Pindah ke Bawah">
+                                                    <i class="fa-solid fa-chevron-down text-[9px]"></i>
+                                                </button>
+                                            </div>
+
+                                            {{-- Status Dot --}}
                                             <span class="w-2 h-2 rounded-full"
                                                   :class="sub.status === 'published' ? 'bg-emerald-400' : 'bg-amber-400'"
                                                   :title="sub.status === 'published' ? 'Terbit' : 'Draft'"></span>
+
+                                            {{-- Tombol Hapus --}}
                                             <button type="button"
                                                     @click.stop="confirmDeleteSubMenu(mod, sub)"
                                                     :class="String(activeModuleId) === String(mod.id) && String(activeSubMenuId) === String(sub.id) && !isNewSubMenu

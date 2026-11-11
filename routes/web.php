@@ -56,6 +56,7 @@ Route::delete('/manual-book/system/{id}', [ManualBookController::class, 'deleteS
 Route::post('/manual-book/module', [ManualBookController::class, 'addModule'])->middleware(['auth'])->name('manualbook.module.add');
 Route::delete('/manual-book/module/{id}', [ManualBookController::class, 'deleteModule'])->middleware(['auth'])->name('manualbook.module.delete');
 Route::get('/manual-book/module/{id}', [ManualBookController::class, 'getModuleData'])->middleware(['auth'])->name('manualbook.module.data');
+Route::post('/manual-book/reorder-sub-menu', [ManualBookController::class, 'reorderSubMenus'])->middleware(['auth'])->name('manualbook.reorder_sub_menu');
 Route::get('/laporan', [HomeController::class, 'laporan'])->middleware(['auth'])->name('laporan');
 Route::get('/bank-solusi', [BankSolusiController::class, 'index'])->middleware(['auth'])->name('bank-solusi.index');
 Route::get('/bank-solusi/create', [BankSolusiController::class, 'create'])->middleware(['auth'])->name('bank-solusi.create');
