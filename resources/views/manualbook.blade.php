@@ -1347,23 +1347,24 @@
                 {{-- ======================================================== --}}
                 {{-- FORM INPUTS: NO. URUT & JUDUL SUB MENU                   --}}
                 {{-- ======================================================== --}}
-                <div class="grid grid-cols-1 sm:grid-cols-12 gap-3 items-end bg-slate-50/50 dark:bg-slate-900/40 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-800">
-                    <div class="sm:col-span-2 space-y-1">
-                        <label class="block text-[11px] font-extrabold tracking-wider text-slate-500 dark:text-slate-400 uppercase">
-                            URUTAN SUB MENU
-                        </label>
+                <div class="flex flex-col sm:flex-row gap-3 bg-slate-50/50 dark:bg-slate-900/40 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-800">
+                    <div class="w-full sm:w-32 shrink-0 space-y-1.5">
+                        <div class="flex items-center h-5">
+                            <label class="block text-[11px] font-extrabold tracking-wider text-slate-500 dark:text-slate-400 uppercase whitespace-nowrap">
+                                URUTAN SUB MENU
+                            </label>
+                        </div>
                         <input type="number" 
                                min="1"
                                :max="isNewSubMenu ? (((currentModule && (currentModule.sub_menus || currentModule.chapters)) ? (currentModule.sub_menus || currentModule.chapters).length : 0) + 1) : (((currentModule && (currentModule.sub_menus || currentModule.chapters)) ? (currentModule.sub_menus || currentModule.chapters).length : 1))"
                                x-model.number="subMenuOrder"
                                @change="onSubMenuOrderInputChange($event.target.value)"
                                @keydown.enter.prevent="onSubMenuOrderInputChange($event.target.value); $event.target.blur()"
-                               class="w-full px-3 py-2 text-xs font-bold bg-white dark:bg-[#090d16] border border-slate-200 dark:border-slate-700/80 rounded-xl text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-center">
-                        <p class="text-[9.5px] text-slate-400 dark:text-slate-500 leading-tight">Ubah angka untuk memindahkan posisi</p>
+                               class="w-full h-10 px-3 py-2 text-xs font-bold bg-white dark:bg-[#090d16] border border-slate-200 dark:border-slate-700/80 rounded-xl text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-center">
                     </div>
-                    <div class="sm:col-span-10 space-y-1">
-                        <div class="flex items-center justify-between">
-                            <label class="block text-[11px] font-extrabold tracking-wider text-slate-500 dark:text-slate-400 uppercase">
+                    <div class="flex-1 min-w-0 space-y-1.5">
+                        <div class="flex items-center justify-between h-5">
+                            <label class="block text-[11px] font-extrabold tracking-wider text-slate-500 dark:text-slate-400 uppercase truncate">
                                 JUDUL SUB MENU / FITUR PANDUAN
                             </label>
                             <span class="text-[10px] font-mono font-bold px-2 py-0.5 rounded-md transition-colors"
@@ -1379,7 +1380,7 @@
                                maxlength="100"
                                x-model="subMenuTitle"
                                placeholder="Contoh: Order Taker & Kasir, Transaksi Meja, Split Bill, dsb."
-                               class="w-full px-4 py-2 text-xs sm:text-sm font-bold bg-white dark:bg-[#090d16] border border-slate-200 dark:border-slate-700/80 rounded-xl text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all">
+                               class="w-full h-10 px-4 py-2 text-xs sm:text-sm font-bold bg-white dark:bg-[#090d16] border border-slate-200 dark:border-slate-700/80 rounded-xl text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all">
                     </div>
                 </div>
 
@@ -1436,7 +1437,6 @@
                             <span class="w-1.5 h-1.5 rounded-full" :class="subMenuStatus === 'published' ? 'bg-emerald-500' : 'bg-amber-500'"></span>
                             <span x-text="subMenuStatus === 'published' ? 'Status: Terbit ✓' : 'Status: Draft'"></span>
                         </span>
-                        <span class="hidden sm:inline">• Target: Tersinkronisasi ke Manual Book Publik &amp; Internal</span>
                     </div>
 
                     <div class="flex items-center gap-2.5 self-end sm:self-auto">
