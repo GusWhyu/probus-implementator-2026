@@ -754,21 +754,6 @@
                         })
                     })
                     .then(res => res.json())
-                    .then(data => {
-                        if (typeof Swal !== 'undefined') {
-                            const Toast = Swal.mixin({
-                                toast: true,
-                                position: 'top-end',
-                                showConfirmButton: false,
-                                timer: 1600,
-                                timerProgressBar: false
-                            });
-                            Toast.fire({
-                                icon: 'success',
-                                title: 'Urutan sub menu diperbarui ✓'
-                            });
-                        }
-                    })
                     .catch(err => {
                         console.error('Error reorder sub menu:', err);
                     });
