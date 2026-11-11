@@ -5,6 +5,7 @@
             return {
                 openAddSystemModal: false,
                 openAddModuleModal: false,
+                openHistoryModal: false,
                 newSystemName: '',
                 newModuleNumber: '',
                 newModuleName: '',
@@ -1378,6 +1379,35 @@
                         <h2 class="text-base sm:text-lg font-black text-slate-800 dark:text-slate-100">
                             <span x-text="isNewSubMenu ? 'Tambah Sub Menu Baru' : 'Edit Sub Menu: ' + (subMenuTitle || 'Sub Menu Panduan')"></span>
                         </h2>
+
+                        {{-- Metadata Info: Dibuat Oleh & Terakhir Diedit Oleh --}}
+                        <template x-if="!isNewSubMenu && currentSubMenu">
+                            <div class="flex items-center gap-2 text-[11px] text-slate-500 dark:text-slate-400 flex-wrap pt-1">
+                                {{-- Pembuat Awal --}}
+                                <span class="inline-flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800/80 px-2.5 py-1 rounded-lg">
+                                    <i class="fa-regular fa-user text-blue-500 text-[10px]"></i>
+                                    <span>Dibuat: <strong class="text-slate-700 dark:text-slate-200" x-text="currentSubMenu.created_by_name || 'Admin'"></strong></span>
+                                    <span class="text-slate-400 text-[10px]">(<span x-text="currentSubMenu.created_at_formatted || '-'"></span>)</span>
+                                </span>
+
+                                {{-- Terakhir Diedit --}}
+                                <template x-if="currentSubMenu.updated_by_name">
+                                    <span class="inline-flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800/80 px-2.5 py-1 rounded-lg">
+                                        <i class="fa-solid fa-pen-nib text-amber-500 text-[10px]"></i>
+                                        <span>Diedit: <strong class="text-slate-700 dark:text-slate-200" x-text="currentSubMenu.updated_by_name || 'Admin'"></strong></span>
+                                        <span class="text-slate-400 text-[10px]">(<span x-text="currentSubMenu.updated_at_relative || '-'"></span>)</span>
+                                    </span>
+                                </template>
+
+                                {{-- Tombol Lihat Riwayat Histori --}}
+                                <button type="button" 
+                                        @click="openHistoryModal = true"
+                                        class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/40 font-bold transition-colors cursor-pointer shadow-2xs">
+                                    <i class="fa-solid fa-clock-rotate-left text-[10px]"></i>
+                                    <span>Riwayat Edit (<span x-text="(currentSubMenu.logs || []).length"></span>)</span>
+                                </button>
+                            </div>
+                        </template>
                     </div>
 
                     <div class="flex items-center gap-2 shrink-0">
@@ -1588,6 +1618,116 @@
                         </button>
                     </div>
                 </form>
+            </div>
+        </div>
+
+        {{-- ======================================================== --}}
+        {{-- MODAL: RIWAYAT HISTORI EDIT & AKTIVITAS SUB MENU         --}}
+        {{-- ======================================================== --}}
+        <div x-show="openHistoryModal" 
+             x-cloak
+             class="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs"
+             x-transition.opacity>
+            <div @click.outside="openHistoryModal = false"
+                 class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-lg p-6 shadow-2xl space-y-4">
+                
+                {{-- Header Modal --}}
+                <div class="flex items-start justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="w-7 h-7 rounded-lg bg-blue-100 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 flex items-center justify-center text-xs">
+                                <i class="fa-solid fa-clock-rotate-left"></i>
+                            </span>
+                            <h3 class="text-sm font-black text-slate-800 dark:text-white uppercase tracking-wider">
+                                Riwayat Aktivitas & Edit
+                            </h3>
+                        </div>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 line-clamp-1" x-text="currentSubMenu ? currentSubMenu.title : 'Sub Menu Panduan'"></p>
+                    </div>
+                    <button type="button" @click="openHistoryModal = false" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer p-1">
+                        <i class="fa-solid fa-xmark text-base"></i>
+                    </button>
+                </div>
+
+                {{-- Ringkasan Pembuat & Editor Terakhir --}}
+                <template x-if="currentSubMenu">
+                    <div class="grid grid-cols-2 gap-2.5 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60 text-xs">
+                        <div class="space-y-0.5">
+                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Pembuat Awal</span>
+                            <div class="flex items-center gap-1.5 font-bold text-slate-800 dark:text-slate-200">
+                                <i class="fa-regular fa-user text-blue-500 text-[11px]"></i>
+                                <span class="truncate" x-text="currentSubMenu.created_by_name || 'Admin'"></span>
+                            </div>
+                            <span class="text-[10px] text-slate-500 dark:text-slate-400 block" x-text="currentSubMenu.created_at_formatted || '-'"></span>
+                        </div>
+                        <div class="space-y-0.5 border-l border-slate-200 dark:border-slate-700 pl-3">
+                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Terakhir Diedit</span>
+                            <div class="flex items-center gap-1.5 font-bold text-slate-800 dark:text-slate-200">
+                                <i class="fa-solid fa-pen-nib text-amber-500 text-[11px]"></i>
+                                <span class="truncate" x-text="currentSubMenu.updated_by_name || 'Admin'"></span>
+                            </div>
+                            <span class="text-[10px] text-slate-500 dark:text-slate-400 block" x-text="currentSubMenu.updated_at_relative || currentSubMenu.updated_at_formatted || '-'"></span>
+                        </div>
+                    </div>
+                </template>
+
+                {{-- Timeline Histori Aktivitas --}}
+                <div class="space-y-2">
+                    <span class="text-[11px] font-extrabold uppercase tracking-wider text-slate-400 block">Linimasa Perubahan</span>
+                    
+                    <div class="max-h-72 overflow-y-auto space-y-3 pr-1">
+                        <template x-if="currentSubMenu && currentSubMenu.logs && currentSubMenu.logs.length > 0">
+                            <div class="relative pl-5 border-l-2 border-slate-200 dark:border-slate-800 space-y-4 py-1 ml-2">
+                                <template x-for="(log, lIdx) in currentSubMenu.logs" :key="log.id || lIdx">
+                                    <div class="relative group">
+                                        {{-- Dot on line --}}
+                                        <div class="absolute -left-[27px] top-1 w-3.5 h-3.5 rounded-full border-2 border-white dark:border-slate-900 flex items-center justify-center"
+                                             :class="{
+                                                 'bg-emerald-500 ring-2 ring-emerald-200 dark:ring-emerald-950': log.action === 'CREATED',
+                                                 'bg-blue-500 ring-2 ring-blue-200 dark:ring-blue-950': log.action === 'UPDATED',
+                                                 'bg-purple-500 ring-2 ring-purple-200 dark:ring-purple-950': log.action === 'STATUS_CHANGED',
+                                                 'bg-slate-400 ring-2 ring-slate-200 dark:ring-slate-800': !['CREATED', 'UPDATED', 'STATUS_CHANGED'].includes(log.action)
+                                             }">
+                                        </div>
+
+                                        <div class="bg-white dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/60 rounded-xl p-3 shadow-2xs space-y-1">
+                                            <div class="flex items-center justify-between gap-2 flex-wrap">
+                                                <div class="flex items-center gap-1.5">
+                                                    <span class="text-[10px] font-bold px-2 py-0.5 rounded-md uppercase tracking-wide"
+                                                          :class="{
+                                                              'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300': log.action === 'CREATED',
+                                                              'bg-blue-100 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300': log.action === 'UPDATED',
+                                                              'bg-purple-100 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300': log.action === 'STATUS_CHANGED',
+                                                              'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300': !['CREATED', 'UPDATED', 'STATUS_CHANGED'].includes(log.action)
+                                                          }"
+                                                          x-text="log.action === 'CREATED' ? 'Dibuat' : (log.action === 'UPDATED' ? 'Diedit' : (log.action === 'STATUS_CHANGED' ? 'Status Diubah' : log.action))">
+                                                    </span>
+                                                    <span class="text-xs font-bold text-slate-700 dark:text-slate-200" x-text="log.user_name"></span>
+                                                </div>
+                                                <span class="text-[10px] text-slate-400" x-text="log.created_at_relative || log.created_at"></span>
+                                            </div>
+                                            <p class="text-xs text-slate-600 dark:text-slate-300" x-text="log.description"></p>
+                                            <span class="text-[10px] text-slate-400 font-mono block pt-0.5" x-text="log.created_at"></span>
+                                        </div>
+                                    </div>
+                                </template>
+                            </div>
+                        </template>
+
+                        <template x-if="!currentSubMenu || !currentSubMenu.logs || currentSubMenu.logs.length === 0">
+                            <div class="p-6 text-center text-xs text-slate-400 border border-dashed border-slate-200 dark:border-slate-800 rounded-xl">
+                                Belum ada riwayat aktivitas tercatat untuk sub menu ini.
+                            </div>
+                        </template>
+                    </div>
+                </div>
+
+                {{-- Footer Modal --}}
+                <div class="flex items-center justify-end pt-3 border-t border-slate-100 dark:border-slate-800">
+                    <button type="button" @click="openHistoryModal = false" class="px-4 py-2 rounded-xl text-xs font-bold bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition-colors cursor-pointer">
+                        Tutup
+                    </button>
+                </div>
             </div>
         </div>
 

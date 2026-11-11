@@ -13,6 +13,7 @@ class ManualBook extends Model
 
     protected $fillable = [
         'user_id',
+        'updated_by',
         'title',
         'order',
         'description',
@@ -21,11 +22,35 @@ class ManualBook extends Model
     ];
 
     /**
-     * Relasi ke User pembuat panduan
+     * Relasi ke User pembuat panduan (Created By)
      */
     public function user()
     {
         return $this->belongsTo(User::class, 'user_id');
+    }
+
+    /**
+     * Alias relasi ke User pembuat panduan
+     */
+    public function creator()
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
+
+    /**
+     * Relasi ke User yang terakhir mengedit panduan (Updated By)
+     */
+    public function editor()
+    {
+        return $this->belongsTo(User::class, 'updated_by');
+    }
+
+    /**
+     * Relasi ke Riwayat / Audit Log Panduan
+     */
+    public function logs()
+    {
+        return $this->hasMany(ManualBookLog::class, 'manual_book_id')->orderBy('created_at', 'desc');
     }
 
     /**

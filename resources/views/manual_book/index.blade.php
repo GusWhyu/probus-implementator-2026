@@ -903,6 +903,25 @@
                                     <div>
                                         <h1 class="text-xl sm:text-2xl md:text-3xl font-black text-slate-900 dark:text-white tracking-tight leading-snug"
                                             x-text="cleanChapterTitle(currentReadingChapter.title)"></h1>
+
+                                        {{-- Informasi Pembuat & Pengedit Sub Menu --}}
+                                        <div class="flex items-center gap-2 sm:gap-3 text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 mt-2.5 flex-wrap">
+                                            {{-- Pembuat Awal --}}
+                                            <div class="inline-flex items-center gap-1.5 bg-slate-50 dark:bg-slate-900/80 border border-slate-200/60 dark:border-slate-800 px-2.5 py-1 rounded-lg">
+                                                <i class="fa-regular fa-user text-blue-500 text-[10px]"></i>
+                                                <span>Dibuat: <strong class="text-slate-700 dark:text-slate-200" x-text="currentReadingChapter.created_by_name || 'Admin'"></strong></span>
+                                                <span class="text-slate-400 text-[10px]" x-show="currentReadingChapter.created_at_formatted">(<span x-text="currentReadingChapter.created_at_formatted"></span>)</span>
+                                            </div>
+
+                                            {{-- Pengedit Terakhir --}}
+                                            <template x-if="currentReadingChapter.updated_by_name">
+                                                <div class="inline-flex items-center gap-1.5 bg-slate-50 dark:bg-slate-900/80 border border-slate-200/60 dark:border-slate-800 px-2.5 py-1 rounded-lg">
+                                                    <i class="fa-solid fa-pen-nib text-amber-500 text-[10px]"></i>
+                                                    <span>Diedit: <strong class="text-slate-700 dark:text-slate-200" x-text="currentReadingChapter.updated_by_name || 'Admin'"></strong></span>
+                                                    <span class="text-slate-400 text-[10px]" x-show="currentReadingChapter.updated_at_relative">(<span x-text="currentReadingChapter.updated_at_relative"></span>)</span>
+                                                </div>
+                                            </template>
+                                        </div>
                                         
                                         {{-- Deskripsi Sub Menu (Ringkasan Singkat) --}}
                                         <template x-if="currentReadingChapter.description">

@@ -8,6 +8,7 @@ use Illuminate\Support\Str;
 use App\Models\Kategori;
 use App\Models\MenuSystem;
 use App\Models\ManualBook;
+use App\Models\ManualBookLog;
 use App\Helpers\DocxParser;
 
 class ManualBookController extends Controller
@@ -64,7 +65,9 @@ class ManualBookController extends Controller
             $q->orderBy('order')
               ->orderBy('id')
               ->with(['manualBooks' => function ($mb) {
-                  $mb->orderBy('order')->orderBy('id');
+                  $mb->orderBy('order')
+                     ->orderBy('id')
+                     ->with(['user', 'editor', 'logs.user']);
               }]);
         }])->get();
 
@@ -166,6 +169,24 @@ class ManualBookController extends Controller
             $normalizedContent = preg_replace('/src=(["\'])uploads\/editor\//i', 'src=$1/uploads/editor/', $normalizedContent);
         }
 
+        $creatorName = $book->user ? $book->user->name : 'Superadministrator';
+        $editorName = $book->editor ? $book->editor->name : $creatorName;
+
+        // Ambil riwayat log aktivitas jika tersedia
+        $logs = [];
+        if ($book->relationLoaded('logs') && $book->logs) {
+            foreach ($book->logs as $log) {
+                $logs[] = [
+                    'id' => $log->id,
+                    'action' => $log->action,
+                    'description' => $log->description,
+                    'user_name' => $log->user ? $log->user->name : 'Sistem',
+                    'created_at' => $log->created_at ? $log->created_at->format('d M Y, H:i') : '-',
+                    'created_at_relative' => $log->created_at ? $log->created_at->diffForHumans() : '-',
+                ];
+            }
+        }
+
         return [
             'id' => (string) $book->id,
             'order' => $orderNum,
@@ -175,7 +196,15 @@ class ManualBookController extends Controller
             'status' => $book->status ?: 'draft',
             'statusLabel' => $statusLabel,
             'statusClass' => $statusClass,
+            'created_by_name' => $creatorName,
+            'created_at' => $book->created_at ? $book->created_at->format('d M Y H:i') : '-',
+            'created_at_formatted' => $book->created_at ? $book->created_at->format('d M Y, H:i') : '-',
+            'created_at_relative' => $book->created_at ? $book->created_at->diffForHumans() : '-',
+            'updated_by_name' => $editorName,
             'updated_at' => $book->updated_at ? $book->updated_at->format('d M Y H:i') : '-',
+            'updated_at_formatted' => $book->updated_at ? $book->updated_at->format('d M Y, H:i') : '-',
+            'updated_at_relative' => $book->updated_at ? $book->updated_at->diffForHumans() : '-',
+            'logs' => $logs,
         ];
     }
 
@@ -196,6 +225,7 @@ class ManualBookController extends Controller
 
         $menuSystem = MenuSystem::findOrFail($request->menu_system_id);
         $userId = Auth::id() ? Auth::id() : 1;
+        $actorName = Auth::user()->name ?? 'Superadministrator';
 
         $targetChapterId = $request->sub_menu_id ?: $request->chapter_id;
         $manualBook = null;
@@ -220,37 +250,64 @@ class ManualBookController extends Controller
             $content = preg_replace('/src=(["\'])uploads\/editor\//i', 'src=$1/uploads/editor/', $content);
         }
 
-        $saveData = [
-            'user_id' => $userId,
-            'title' => trim($request->title),
-            'order' => $order,
-            'description' => $request->description,
-            'content' => $content,
-            'status' => $request->status,
-        ];
-
         if ($manualBook) {
-            $manualBook->update($saveData);
+            $oldStatus = $manualBook->status;
+
+            // Catat pengedit ke updated_by tanpa menimpa pembuat awal (user_id)
+            $manualBook->update([
+                'updated_by' => $userId,
+                'title' => trim($request->title),
+                'order' => $order,
+                'description' => $request->description,
+                'content' => $content,
+                'status' => $request->status,
+            ]);
+
+            // Catat log jika status berubah
+            if ($oldStatus !== $request->status) {
+                $statusBefore = $oldStatus === 'published' ? 'Terbit' : 'Draft';
+                $statusAfter = $request->status === 'published' ? 'Terbit' : 'Draft';
+                ManualBookLog::create([
+                    'manual_book_id' => $manualBook->id,
+                    'user_id' => $userId,
+                    'action' => 'STATUS_CHANGED',
+                    'description' => "Status sub menu diubah dari {$statusBefore} menjadi {$statusAfter} oleh {$actorName}.",
+                ]);
+            }
+
+            // Catat log update perubahan materi
+            ManualBookLog::create([
+                'manual_book_id' => $manualBook->id,
+                'user_id' => $userId,
+                'action' => 'UPDATED',
+                'description' => "Perubahan isi materi panduan dan informasi sub menu disimpan oleh {$actorName}.",
+            ]);
+
         } else {
-            $manualBook = ManualBook::create($saveData);
+            // Pembuatan sub menu baru
+            $manualBook = ManualBook::create([
+                'user_id' => $userId,
+                'updated_by' => $userId,
+                'title' => trim($request->title),
+                'order' => $order,
+                'description' => $request->description,
+                'content' => $content,
+                'status' => $request->status,
+            ]);
             $menuSystem->manualBooks()->attach($manualBook->id);
+
+            $statusText = $request->status === 'published' ? 'Terbit' : 'Draft';
+            ManualBookLog::create([
+                'manual_book_id' => $manualBook->id,
+                'user_id' => $userId,
+                'action' => 'CREATED',
+                'description' => "Sub menu panduan \"{$manualBook->title}\" berhasil dibuat ({$statusText}) oleh {$actorName}.",
+            ]);
         }
 
-        $hasContent = !empty(trim(strip_tags($manualBook->content, '<img>')));
-        $statusLabel = $request->status === 'published' ? 'Panduan Terisi ✓' : 'Sedang Diedit ✎';
-        $statusClass = $request->status === 'published' ? 'text-emerald-600 dark:text-emerald-400' : 'text-blue-600 dark:text-blue-400';
-
-        $chapterData = [
-            'id' => (string) $manualBook->id,
-            'order' => (int) $manualBook->order,
-            'title' => $manualBook->title,
-            'description' => $manualBook->description ? $manualBook->description : '',
-            'content' => $manualBook->content ? $manualBook->content : '',
-            'status' => $manualBook->status,
-            'statusLabel' => $statusLabel,
-            'statusClass' => $statusClass,
-            'updated_at' => $manualBook->updated_at ? $manualBook->updated_at->format('d M Y H:i') : '-',
-        ];
+        // Muat ulang relasi user, editor, logs untuk respon JSON
+        $manualBook->load(['user', 'editor', 'logs.user']);
+        $chapterData = $this->formatChapterItem($manualBook, $order - 1);
 
         $message = $request->status === 'published'
             ? 'Sub Menu "' . $manualBook->title . '" berhasil disimpan dan dipublikasikan!'
