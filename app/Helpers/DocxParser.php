@@ -56,7 +56,7 @@ class DocxParser
                 $newFilename = 'word_img_' . time() . '_' . substr(md5($zipEntry . microtime()), 0, 8) . '.' . strtolower($ext);
                 $fullPath = $targetDir . DIRECTORY_SEPARATOR . $newFilename;
                 file_put_contents($fullPath, $imgData);
-                $imageMap[$rId] = asset('uploads/editor/' . $newFilename);
+                $imageMap[$rId] = '/uploads/editor/' . $newFilename;
                 $imgCount++;
             }
         }
@@ -189,6 +189,9 @@ class DocxParser
             foreach ($blip->attributes as $attr) {
                 if ($attr->localName === 'embed' && isset($imageMap[$attr->value])) {
                     $src = $imageMap[$attr->value];
+                    if (!preg_match('/^(https?:\/\/|\/)/i', $src)) {
+                        $src = '/' . ltrim($src, '/');
+                    }
                     return '<p><img src="' . $src . '" alt="Gambar Panduan" style="max-width: 100%; height: auto; border-radius: 8px; margin: 12px 0;" /></p>';
                 }
             }

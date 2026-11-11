@@ -282,5 +282,30 @@ Route::get('/storage/{path}', function ($path) {
     return response()->file($filePath);
 })->where('path', '.*');
 
+// Fallback route for editor uploads when requested directly or relatively from any subpath
+Route::get('/manual-book/uploads/{path}', function ($path) {
+    $filePath = public_path('uploads/' . $path);
+    if (!file_exists($filePath)) {
+        abort(404);
+    }
+    return response()->file($filePath);
+})->where('path', '.*');
+
+Route::get('/manual-book/manage/uploads/{path}', function ($path) {
+    $filePath = public_path('uploads/' . $path);
+    if (!file_exists($filePath)) {
+        abort(404);
+    }
+    return response()->file($filePath);
+})->where('path', '.*');
+
+Route::get('/uploads/{path}', function ($path) {
+    $filePath = public_path('uploads/' . $path);
+    if (!file_exists($filePath)) {
+        abort(404);
+    }
+    return response()->file($filePath);
+})->where('path', '.*');
+
 require __DIR__.'/auth.php';
 

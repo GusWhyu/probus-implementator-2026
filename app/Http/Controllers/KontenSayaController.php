@@ -117,7 +117,7 @@ class KontenSayaController extends Controller
                 'visibility' => 'publik', // Manual book tersinkron ke portal publik
                 'status' => strtolower($mb->status ?: 'draft'),
                 'status_label' => ($mb->status === 'published') ? 'Terbit' : 'Draft',
-                'raw_content' => $mb->content,
+                'raw_content' => $mb->content ? preg_replace('/src=(["\'])uploads\/editor\//i', 'src=$1/uploads/editor/', $mb->content) : '',
                 'updated_at' => $mb->updated_at ? $mb->updated_at->timestamp : 0,
                 'updated_at_formatted' => $this->formatHumanDate($mb->updated_at),
                 'edit_url' => route('manualbook.manage', $editParams),

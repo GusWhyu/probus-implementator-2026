@@ -161,12 +161,17 @@ class ManualBookController extends Controller
             }
         }
 
+        $normalizedContent = $book->content ?: '';
+        if ($normalizedContent) {
+            $normalizedContent = preg_replace('/src=(["\'])uploads\/editor\//i', 'src=$1/uploads/editor/', $normalizedContent);
+        }
+
         return [
             'id' => (string) $book->id,
             'order' => $orderNum,
             'title' => $book->title,
             'description' => $book->description ?: '',
-            'content' => $book->content ?: '',
+            'content' => $normalizedContent,
             'status' => $book->status ?: 'draft',
             'statusLabel' => $statusLabel,
             'statusClass' => $statusClass,
@@ -210,12 +215,17 @@ class ManualBookController extends Controller
             }
         }
 
+        $content = $request->content;
+        if ($content) {
+            $content = preg_replace('/src=(["\'])uploads\/editor\//i', 'src=$1/uploads/editor/', $content);
+        }
+
         $saveData = [
             'user_id' => $userId,
             'title' => trim($request->title),
             'order' => $order,
             'description' => $request->description,
-            'content' => $request->content,
+            'content' => $content,
             'status' => $request->status,
         ];
 
@@ -310,13 +320,17 @@ class ManualBookController extends Controller
 
         try {
             $parsed = DocxParser::parse($file->getPathname());
+            $html = $parsed['html'];
+            if ($html) {
+                $html = preg_replace('/src=(["\'])uploads\/editor\//i', 'src=$1/uploads/editor/', $html);
+            }
             
             return response()->json([
                 'success' => true,
                 'message' => 'File Word "' . $rawName . '" berhasil dibaca!',
                 'title' => $title,
                 'order' => $order,
-                'content' => $parsed['html'],
+                'content' => $html,
                 'image_count' => $parsed['image_count'],
             ]);
         } catch (\Exception $e) {
