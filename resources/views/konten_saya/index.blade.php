@@ -441,10 +441,14 @@
 
                                 {{-- 2. Judul Konten & Topik --}}
                                 <td class="py-4 px-4 align-top max-w-md">
-                                    <a :href="item.view_url" 
-                                       class="text-sm font-bold text-slate-800 dark:text-slate-100 hover:text-blue-600 dark:hover:text-blue-400 transition-colors line-clamp-1 cursor-pointer"
-                                       x-text="item.title"></a>
-                                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 line-clamp-1" 
+                                    <button type="button" 
+                                            @click="openQuickView(item)" 
+                                            class="text-left text-sm font-bold text-slate-800 dark:text-slate-100 hover:text-blue-600 dark:hover:text-blue-400 transition-colors line-clamp-1 cursor-pointer w-full group/title"
+                                            :title="'Klik untuk melihat pratinjau ' + item.title">
+                                        <span x-text="item.title" class="group-hover/title:underline"></span>
+                                    </button>
+                                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 line-clamp-1 cursor-pointer hover:text-slate-700 dark:hover:text-slate-300 transition-colors" 
+                                       @click="openQuickView(item)"
                                        x-text="item.subtitle"></p>
                                 </td>
 
@@ -501,14 +505,6 @@
                                             <i class="fa-solid fa-pen-to-square text-[10px]"></i>
                                             <span x-text="item.status === 'published' ? 'Edit' : 'Lanjut'"></span>
                                         </a>
-
-                                        {{-- Tombol Preview Cepat --}}
-                                        <button type="button" 
-                                                @click="openQuickView(item)" 
-                                                class="w-7 h-7 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center transition-all cursor-pointer"
-                                                title="Lihat Pratinjau">
-                                            <i class="fa-solid fa-eye text-xs"></i>
-                                        </button>
 
                                         {{-- Tombol Hapus --}}
                                         <button type="button" 
@@ -623,7 +619,7 @@
 
             {{-- Modal Body --}}
             <div class="min-h-screen px-4 text-center flex items-center justify-center py-8">
-                <div class="relative bg-white dark:bg-[#0c1324] border border-slate-200 dark:border-slate-800 rounded-3xl max-w-3xl w-full p-6 sm:p-8 text-left shadow-2xl transition-all"
+                <div class="relative bg-white dark:bg-[#0c1324] border border-slate-200 dark:border-slate-800 rounded-3xl max-w-4xl w-full p-6 sm:p-8 text-left shadow-2xl transition-all"
                      @click.stop>
                     
                     {{-- Header Modal --}}
@@ -633,9 +629,9 @@
                                 <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider"
                                       :class="modalItem?.content_type === 'solusi' ? 'bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/20' : 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20'"
                                       x-text="modalItem?.type_label"></span>
-                                <span class="text-xs text-slate-400" x-text="modalItem?.system_name + ' • ' + modalItem?.module_name"></span>
+                                <span class="text-xs text-slate-400 font-medium" x-text="modalItem?.system_name + ' • ' + modalItem?.module_name"></span>
                             </div>
-                            <h3 class="text-lg sm:text-xl font-extrabold text-slate-800 dark:text-slate-100 leading-snug"
+                            <h3 class="text-xl sm:text-2xl font-black text-slate-800 dark:text-slate-100 leading-snug"
                                 x-text="modalItem?.title"></h3>
                         </div>
                         <button type="button" 
@@ -646,16 +642,16 @@
                     </div>
 
                     {{-- Isi Konten HTML --}}
-                    <div class="my-6 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar text-sm text-slate-700 dark:text-slate-300 leading-relaxed prose dark:prose-invert max-w-none"
+                    <div class="my-6 max-h-[65vh] overflow-y-auto pr-2 custom-scrollbar text-sm text-slate-700 dark:text-slate-300 leading-relaxed prose dark:prose-invert max-w-none article-content"
                          x-html="modalItem?.raw_content || '<p class=\'text-slate-400 italic\'>Belum ada isi konten tertulis.</p>'">
                     </div>
 
                     {{-- Footer Modal --}}
-                    <div class="pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-3">
+                    <div class="pt-4 border-t border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                         <div class="text-xs text-slate-400">
                             Terakhir diubah: <span class="font-semibold text-slate-600 dark:text-slate-300" x-text="modalItem?.updated_at_formatted"></span>
                         </div>
-                        <div class="flex items-center gap-2">
+                        <div class="flex items-center gap-2 self-end sm:self-auto">
                             <button type="button" 
                                     @click="closeQuickView()" 
                                     class="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all cursor-pointer">
@@ -678,5 +674,45 @@
         </div>
 
     </div>
+
+    {{-- Custom styling untuk tabel & media di dalam pratinjau konten --}}
+    <style>
+        .article-content table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.25rem 0;
+            font-size: 0.85rem;
+            border: 1px solid #cbd5e1;
+            border-radius: 0.5rem;
+            overflow: hidden;
+        }
+        .dark .article-content table {
+            border-color: #334155;
+        }
+        .article-content table th, 
+        .article-content table td {
+            border: 1px solid #e2e8f0;
+            padding: 0.625rem 0.75rem;
+            text-align: left;
+        }
+        .dark .article-content table th, 
+        .dark .article-content table td {
+            border-color: #334155;
+        }
+        .article-content table th {
+            background-color: #f1f5f9;
+            font-weight: 700;
+        }
+        .dark .article-content table th {
+            background-color: #1e293b;
+        }
+        .article-content img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 0.5rem;
+            margin: 0.5rem 0;
+            display: inline-block;
+        }
+    </style>
 </x-app-layout>
 
