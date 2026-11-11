@@ -1419,44 +1419,28 @@
                 </div>
 
                 {{-- ======================================================== --}}
-                {{-- FORM INPUTS: NO. URUT & JUDUL SUB MENU                   --}}
+                {{-- FORM INPUT: JUDUL SUB MENU                               --}}
                 {{-- ======================================================== --}}
-                <div class="flex flex-col sm:flex-row gap-3 bg-slate-50/50 dark:bg-slate-900/40 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-800">
-                    <div class="w-full sm:w-32 shrink-0 space-y-1.5">
-                        <div class="flex items-center h-5">
-                            <label class="block text-[11px] font-extrabold tracking-wider text-slate-500 dark:text-slate-400 uppercase whitespace-nowrap">
-                                URUTAN SUB MENU
-                            </label>
-                        </div>
-                        <input type="number" 
-                               min="1"
-                               :max="isNewSubMenu ? (((currentModule && (currentModule.sub_menus || currentModule.chapters)) ? (currentModule.sub_menus || currentModule.chapters).length : 0) + 1) : (((currentModule && (currentModule.sub_menus || currentModule.chapters)) ? (currentModule.sub_menus || currentModule.chapters).length : 1))"
-                               x-model.number="subMenuOrder"
-                               @change="onSubMenuOrderInputChange($event.target.value)"
-                               @keydown.enter.prevent="onSubMenuOrderInputChange($event.target.value); $event.target.blur()"
-                               class="w-full h-10 px-3 py-2 text-xs font-bold bg-white dark:bg-[#090d16] border border-slate-200 dark:border-slate-700/80 rounded-xl text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-center">
+                <div class="space-y-1.5">
+                    <div class="flex items-center justify-between">
+                        <label class="block text-[11px] font-extrabold tracking-wider text-slate-500 dark:text-slate-400 uppercase">
+                            JUDUL SUB MENU / FITUR PANDUAN
+                        </label>
+                        <span class="text-[10px] font-mono font-bold px-2 py-0.5 rounded-md transition-colors"
+                              :class="(subMenuTitle || '').length >= 100 
+                                  ? 'bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 border border-rose-300 dark:border-rose-800' 
+                                  : ((subMenuTitle || '').length >= 80 
+                                      ? 'bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 border border-amber-300 dark:border-amber-800' 
+                                      : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700/60')"
+                              x-text="((subMenuTitle || '').length) + '/100'">
+                        </span>
                     </div>
-                    <div class="flex-1 min-w-0 space-y-1.5">
-                        <div class="flex items-center justify-between h-5">
-                            <label class="block text-[11px] font-extrabold tracking-wider text-slate-500 dark:text-slate-400 uppercase truncate">
-                                JUDUL SUB MENU / FITUR PANDUAN
-                            </label>
-                            <span class="text-[10px] font-mono font-bold px-2 py-0.5 rounded-md transition-colors"
-                                  :class="(subMenuTitle || '').length >= 100 
-                                      ? 'bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 border border-rose-300 dark:border-rose-800' 
-                                      : ((subMenuTitle || '').length >= 80 
-                                          ? 'bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 border border-amber-300 dark:border-amber-800' 
-                                          : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700/60')"
-                                  x-text="((subMenuTitle || '').length) + '/100'">
-                            </span>
-                        </div>
-                        <input type="text" 
-                               id="subMenuTitleInput"
-                               maxlength="100"
-                               x-model="subMenuTitle"
-                               placeholder="Contoh: Order Taker & Kasir, Transaksi Meja, Split Bill, dsb."
-                               class="w-full h-10 px-4 py-2 text-xs sm:text-sm font-bold bg-white dark:bg-[#090d16] border border-slate-200 dark:border-slate-700/80 rounded-xl text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all">
-                    </div>
+                    <input type="text" 
+                           id="subMenuTitleInput"
+                           maxlength="100"
+                           x-model="subMenuTitle"
+                           placeholder="Contoh: Order Taker & Kasir, Transaksi Meja, Split Bill, dsb."
+                           class="w-full h-10 px-4 py-2 text-xs sm:text-sm font-bold bg-white dark:bg-[#090d16] border border-slate-200 dark:border-slate-700/80 rounded-xl text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all">
                 </div>
 
                 {{-- Deskripsi Pengantar Sub Menu (Opsional) --}}
