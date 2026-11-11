@@ -37,6 +37,18 @@
                         this.searchQuery = qSearch;
                     }
 
+                    // Shortcut keyboard Ctrl + K untuk fokus pencarian
+                    window.addEventListener('keydown', (e) => {
+                        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+                            e.preventDefault();
+                            const input = document.getElementById('manualBookSearchInput');
+                            if (input) {
+                                input.focus();
+                                input.select();
+                            }
+                        }
+                    });
+
                     // Reset halaman ke 1 setiap kali filter atau pencarian berubah
                     this.$watch('searchQuery', () => { this.currentPage = 1; });
                     this.$watch('activeSystem', () => { this.currentPage = 1; });
@@ -356,17 +368,22 @@
         {{-- ======================================================== --}}
         <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-6 pb-4 border-b border-slate-200 dark:border-slate-800">
             <div class="flex items-center gap-2 text-xs sm:text-sm font-semibold text-slate-500 dark:text-slate-400">
-                <span class="hover:text-slate-700 dark:hover:text-slate-200 transition-colors">Knowledge Base</span>
+                <span class="hover:text-slate-700 dark:hover:text-slate-200 transition-colors">Dokumentasi</span>
                 <i class="fa-solid fa-chevron-right text-[10px] text-slate-400 dark:text-slate-500"></i>
-                <span class="text-blue-600 dark:text-blue-400 font-bold">Manual Book Sistem (Per Modul)</span>
+                <span class="text-blue-600 dark:text-blue-400 font-bold">Manual Book Sistem</span>
             </div>
 
-            {{-- Tombol Tambah / CRUD Manual Book di Pojok Kanan Atas --}}
+            {{-- Tombol Tambah / Action di Pojok Kanan Atas --}}
             <div class="flex items-center gap-2.5 w-full sm:w-auto justify-end">
+                <a href="{{ url('/portal-panduan') }}" target="_blank"
+                   class="inline-flex items-center gap-2 px-3.5 py-2.5 border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#0c1324] hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 rounded-xl text-xs sm:text-sm font-semibold transition-all shadow-2xs">
+                    <i class="fa-solid fa-globe text-xs text-slate-400"></i>
+                    <span>Lihat Portal Publik</span>
+                </a>
                 <a href="{{ route('manualbook.manage') }}" 
                    class="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white rounded-xl text-xs sm:text-sm font-bold shadow-md shadow-blue-500/20 transition-all hover:scale-[1.02] cursor-pointer">
                     <i class="fa-solid fa-plus text-xs"></i>
-                    <span>Tambah Manual Book</span>
+                    <span>+ Tulis Manual Book Baru</span>
                 </a>
             </div>
         </div>
@@ -376,10 +393,10 @@
         {{-- ======================================================== --}}
         <div class="max-w-4xl mx-auto text-center mb-8 px-2">
             <h1 class="text-2xl sm:text-3xl md:text-4xl font-extrabold text-slate-800 dark:text-slate-100 tracking-tight leading-tight">
-                Manual Book & Tata Cara Penggunaan Sistem
+                Pusat Manual Book & Dokumentasi Sistem
             </h1>
             <p class="text-xs sm:text-sm md:text-base text-slate-500 dark:text-slate-400 font-medium mt-2 max-w-2xl mx-auto leading-relaxed">
-                Pusat dokumentasi dan panduan tata cara penggunaan fitur sistem Probus ERP. Pilih sistem dan modul di bawah untuk mulai membaca atau mengelola bab panduan.
+                Pilih sistem Probus di bawah untuk mengakses, membaca panduan operasional modul, dan mengelola isi dokumentasi.
             </p>
 
             {{-- Big Search Input --}}
@@ -388,16 +405,20 @@
                     <i class="fa-solid fa-magnifying-glass text-sm"></i>
                 </div>
                 <input type="text" 
+                       id="manualBookSearchInput"
                        x-model="searchQuery" 
-                       placeholder="Cari modul atau materi bab panduan (contoh: setup printer, sales, closing kasir, inventory)..." 
-                       class="w-full pl-11 pr-10 py-3 sm:py-3.5 bg-white dark:bg-[#0c1324] border border-slate-200 dark:border-slate-800 rounded-2xl text-xs sm:text-sm font-medium text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 dark:focus:border-blue-400 shadow-sm transition-all">
-                <button type="button" 
-                        x-show="searchQuery.length > 0" 
-                        @click="searchQuery = ''" 
-                        class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
-                        style="display: none;">
-                    <i class="fa-solid fa-circle-xmark text-sm"></i>
-                </button>
+                       placeholder="Cari buku panduan sistem atau modul spesifik (misal: Front Desk, POS, Night Audit)..." 
+                       class="w-full pl-11 pr-24 py-3 sm:py-3.5 bg-white dark:bg-[#0c1324] border border-slate-200 dark:border-slate-800 rounded-2xl text-xs sm:text-sm font-medium text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 dark:focus:border-blue-400 shadow-sm transition-all">
+                <div class="absolute inset-y-0 right-0 pr-3.5 flex items-center gap-2">
+                    <button type="button" 
+                            x-show="searchQuery.length > 0" 
+                            @click="searchQuery = ''" 
+                            class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
+                            style="display: none;">
+                        <i class="fa-solid fa-circle-xmark text-sm"></i>
+                    </button>
+                    <kbd class="hidden sm:inline-flex items-center px-2 py-0.5 text-[10px] font-mono font-bold text-slate-400 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700/60 rounded-md select-none pointer-events-none">Ctrl + K</kbd>
+                </div>
             </div>
         </div>
 
