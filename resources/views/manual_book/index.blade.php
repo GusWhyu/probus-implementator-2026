@@ -439,12 +439,12 @@
                 <div>
                     <div class="text-[10px] sm:text-[11px] font-extrabold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">Panduan Siap Baca</div>
                     <div class="text-lg sm:text-xl font-black text-slate-800 dark:text-slate-100 mt-0.5">
-                        <span x-text="countDocumented">{{ $documentedModules }}</span> <span class="text-xs font-semibold text-slate-400">Modul (<span x-text="countChapters">{{ $totalChapters }}</span> Bab)</span>
+                        <span x-text="countDocumented">{{ $documentedModules }}</span> <span class="text-xs font-semibold text-slate-400">Modul (<span x-text="countChapters">{{ $totalChapters }}</span> Sub Menu)</span>
                     </div>
                 </div>
             </div>
 
-            {{-- Stat 4: Modul Belum Ada Bab --}}
+            {{-- Stat 4: Modul Belum Ada Sub Menu --}}
             <div class="p-4 sm:p-5 rounded-2xl bg-white dark:bg-[#0c1324] border border-slate-200 dark:border-slate-800 shadow-xs flex items-center gap-3.5">
                 <div class="w-11 h-11 rounded-xl bg-amber-500/10 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center text-lg shrink-0">
                     <i class="fa-solid fa-pen-to-square"></i>
@@ -486,7 +486,7 @@
                             @click="filterStatus = 'empty'"
                             :class="filterStatus === 'empty' ? 'bg-white dark:bg-slate-800 text-amber-600 dark:text-amber-400 shadow-2xs' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800'"
                             class="px-2.5 py-1 rounded-lg transition-all cursor-pointer">
-                        Belum Ada Bab (<span x-text="countEmpty">{{ max(0, $totalModules - $documentedModules) }}</span>)
+                        Belum Ada Sub Menu (<span x-text="countEmpty">{{ max(0, $totalModules - $documentedModules) }}</span>)
                     </button>
                 </div>
             </div>
@@ -535,7 +535,7 @@
                             <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold"
                                   :class="mod.chapterCount > 0 ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 border border-slate-200 dark:border-slate-700'">
                                 <i :class="mod.chapterCount > 0 ? 'fa-solid fa-circle-check text-[9px]' : 'fa-regular fa-clock text-[9px]'"></i>
-                                <span x-text="mod.chapterCount > 0 ? mod.chapterCount + ' Bab Panduan' : 'Belum Ada Bab'"></span>
+                                <span x-text="mod.chapterCount > 0 ? mod.chapterCount + ' Sub Menu Panduan' : 'Belum Ada Sub Menu'"></span>
                             </span>
                         </div>
 
@@ -546,14 +546,14 @@
 
                         {{-- Deskripsi Modul --}}
                         <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed line-clamp-2 mb-4"
-                           x-text="mod.description ? mod.description : 'Panduan penggunaan modul dan tata cara alur kerja sistem.'">
+                            x-text="mod.description ? mod.description : 'Panduan penggunaan modul dan tata cara alur kerja sistem.'">
                         </p>
 
-                        {{-- Preview Daftar Bab Dokumen (Sesuai Arahan PM: Sub Menu = Bab) --}}
+                        {{-- Preview Daftar Sub Menu Dokumen --}}
                         <div class="mb-5 space-y-2">
                             <div class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 flex items-center justify-between pb-1 border-b border-slate-100 dark:border-slate-800/80">
-                                <span>DAFTAR BAB (SUB MENU)</span>
-                                <span class="font-bold text-blue-600 dark:text-blue-400" x-text="(mod.chapters ? mod.chapters.length : 0) + ' Bab'"></span>
+                                <span>DAFTAR SUB MENU</span>
+                                <span class="font-bold text-blue-600 dark:text-blue-400" x-text="(mod.chapters ? mod.chapters.length : 0) + ' Sub Menu'"></span>
                             </div>
 
                             <template x-if="mod.chapters && mod.chapters.length > 0">
@@ -572,7 +572,7 @@
                                     </template>
                                     <template x-if="mod.chapters.length > 3">
                                         <div class="text-[11px] text-slate-400 italic pl-1">
-                                            <span x-text="'+ ' + (mod.chapters.length - 3) + ' bab lainnya...'"></span>
+                                            <span x-text="'+ ' + (mod.chapters.length - 3) + ' sub menu lainnya...'"></span>
                                         </div>
                                     </template>
                                 </div>
@@ -580,7 +580,7 @@
 
                             <template x-if="!mod.chapters || mod.chapters.length === 0">
                                 <div class="p-3.5 rounded-xl border border-dashed border-slate-200 dark:border-slate-800 bg-slate-50/40 dark:bg-slate-900/20 text-center">
-                                    <p class="text-[11px] text-slate-400 font-medium">Belum ada bab panduan pada modul ini.</p>
+                                    <p class="text-[11px] text-slate-400 font-medium">Belum ada sub menu panduan pada modul ini.</p>
                                 </div>
                             </template>
                         </div>
@@ -781,11 +781,11 @@
                         <div class="p-3.5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between shrink-0">
                             <div class="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-slate-700 dark:text-slate-300">
                                 <i class="fa-solid fa-book-bookmark text-blue-600 dark:text-blue-400"></i>
-                                <span>Daftar Isi Panduan</span>
+                                <span>Daftar Isi Sub Menu</span>
                             </div>
                             <div class="flex items-center gap-1.5">
                                 <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/10 text-blue-600 dark:text-blue-400"
-                                      x-text="allReadingChapters.length + ' Bab'"></span>
+                                      x-text="allReadingChapters.length + ' Sub Menu'"></span>
                                 <button type="button" 
                                         @click="isTocOpenMobile = false" 
                                         class="md:hidden w-6 h-6 rounded flex items-center justify-center text-slate-400 hover:text-slate-600">
@@ -800,7 +800,7 @@
                                 <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-[11px] text-slate-400"></i>
                                 <input type="text" 
                                        x-model="tocSearchQuery" 
-                                       placeholder="Cari dalam daftar bab..." 
+                                       placeholder="Cari dalam daftar sub menu..." 
                                        class="w-full pl-8 pr-7 py-1.5 bg-white dark:bg-[#0c1324] border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-700 dark:text-slate-200 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-blue-500">
                                 <button type="button" 
                                         x-show="tocSearchQuery.length > 0" 
@@ -839,7 +839,7 @@
                                     </template>
 
                                     <template x-if="!readingModule.chapters || readingModule.chapters.length === 0">
-                                        <div class="text-xs text-slate-400 italic py-6 text-center">Belum ada bab panduan.</div>
+                                        <div class="text-xs text-slate-400 italic py-6 text-center">Belum ada sub menu panduan.</div>
                                     </template>
                                 </div>
                             </template>
@@ -850,7 +850,7 @@
                             <div class="flex items-center justify-between text-[10px] font-semibold text-slate-400 mb-1.5">
                                 <span>Progress Baca Modul</span>
                                 <span class="font-bold text-blue-600 dark:text-blue-400" 
-                                      x-text="(currentReadingIndex + 1) + ' / ' + allReadingChapters.length + ' Bab'"></span>
+                                      x-text="(currentReadingIndex + 1) + ' / ' + allReadingChapters.length + ' Sub Menu'"></span>
                             </div>
                             <div class="w-full bg-slate-200 dark:bg-slate-700 h-1.5 rounded-full overflow-hidden">
                                 <div class="bg-blue-600 h-full rounded-full transition-all duration-300"
@@ -868,22 +868,22 @@
                         <div>
                             <template x-if="currentReadingChapter">
                                 <div class="space-y-5">
-                                    {{-- Breadcrumb Hierarki Bab --}}
+                                    {{-- Breadcrumb Hierarki Sub Menu --}}
                                     <div class="flex items-center flex-wrap gap-1.5 text-xs font-semibold text-slate-400 pb-1">
                                         <span x-text="readingModule ? readingModule.system_name : ''"></span>
                                         <i class="fa-solid fa-chevron-right text-[9px] text-slate-300 dark:text-slate-600"></i>
                                         <span x-text="readingModule ? readingModule.raw_name || readingModule.title : ''"></span>
                                         <i class="fa-solid fa-chevron-right text-[9px] text-slate-300 dark:text-slate-600"></i>
                                         <span class="text-blue-600 dark:text-blue-400 font-bold" 
-                                              x-text="'Bab ' + (currentReadingChapter.order || (currentReadingIndex + 1))"></span>
+                                              x-text="'Sub Menu #' + (currentReadingChapter.order || (currentReadingIndex + 1))"></span>
                                     </div>
 
-                                    {{-- Judul Bab Besar --}}
+                                    {{-- Judul Sub Menu Besar --}}
                                     <div>
                                         <h1 class="text-xl sm:text-2xl md:text-3xl font-black text-slate-900 dark:text-white tracking-tight leading-snug"
                                             x-text="cleanChapterTitle(currentReadingChapter.title)"></h1>
                                         
-                                        {{-- Deskripsi Bab (Ringkasan Singkat) --}}
+                                        {{-- Deskripsi Sub Menu (Ringkasan Singkat) --}}
                                         <template x-if="currentReadingChapter.description">
                                             <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-400 italic mt-3 bg-slate-50 dark:bg-slate-900/60 p-3.5 rounded-2xl border border-slate-200/80 dark:border-slate-800 leading-relaxed" 
                                                x-text="currentReadingChapter.description"></p>
@@ -894,7 +894,7 @@
 
                                     {{-- Isi Materi Artikel Panduan (TinyMCE Content) --}}
                                     <div class="article-content prose prose-slate dark:prose-invert max-w-none text-slate-800 dark:text-slate-200 text-xs sm:text-sm leading-relaxed overflow-x-auto min-h-[220px]" 
-                                         x-html="currentReadingChapter.content ? currentReadingChapter.content : '<div class=\'py-16 text-center text-slate-400 font-medium\'>Belum ada isi materi tertulis pada bab panduan ini.</div>'">
+                                         x-html="currentReadingChapter.content ? currentReadingChapter.content : '<div class=\'py-16 text-center text-slate-400 font-medium\'>Belum ada isi materi tertulis pada sub menu panduan ini.</div>'">
                                     </div>
                                 </div>
                             </template>
@@ -904,16 +904,16 @@
                                     <div class="w-12 h-12 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-3 text-slate-400">
                                         <i class="fa-solid fa-book text-lg"></i>
                                     </div>
-                                    <p>Pilih salah satu bab di sebelah kiri untuk mulai membaca.</p>
+                                    <p>Pilih salah satu sub menu di sebelah kiri untuk mulai membaca.</p>
                                 </div>
                             </template>
                         </div>
 
-                        {{-- 3. BOTTOM CHAPTER NAVIGATION (SEBELUMNYA & SELANJUTNYA) --}}
+                        {{-- 3. BOTTOM SUB MENU NAVIGATION (SEBELUMNYA & SELANJUTNYA) --}}
                         <div class="mt-12 pt-6 border-t border-slate-200 dark:border-slate-800 shrink-0">
                             <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
                                 
-                                {{-- Tombol Bab Sebelumnya --}}
+                                {{-- Tombol Sub Menu Sebelumnya --}}
                                 <template x-if="prevReadingChapter">
                                     <button type="button" 
                                             @click="goToPrevChapter()" 
@@ -923,7 +923,7 @@
                                         </div>
                                         <div class="truncate">
                                             <div class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 group-hover:text-blue-600 transition-colors">
-                                                ← Bab Sebelumnya
+                                                ← Sub Menu Sebelumnya
                                             </div>
                                             <div class="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-200 group-hover:text-blue-600 truncate mt-0.5" 
                                                  x-text="cleanChapterTitle(prevReadingChapter.title)"></div>
@@ -934,14 +934,14 @@
                                     <div class="flex-1 hidden sm:block"></div>
                                 </template>
 
-                                {{-- Tombol Bab Selanjutnya --}}
+                                {{-- Tombol Sub Menu Selanjutnya --}}
                                 <template x-if="nextReadingChapter">
                                     <button type="button" 
                                             @click="goToNextChapter()" 
                                             class="flex-1 group flex items-center justify-end gap-3 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-800 hover:border-blue-500/50 dark:hover:border-blue-500/50 bg-slate-50/60 dark:bg-slate-900/40 hover:bg-blue-50/40 dark:hover:bg-blue-950/20 text-right transition-all cursor-pointer">
                                         <div class="truncate">
                                             <div class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 group-hover:text-blue-600 transition-colors">
-                                                Bab Selanjutnya →
+                                                Sub Menu Selanjutnya →
                                             </div>
                                             <div class="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-200 group-hover:text-blue-600 truncate mt-0.5" 
                                                  x-text="cleanChapterTitle(nextReadingChapter.title)"></div>

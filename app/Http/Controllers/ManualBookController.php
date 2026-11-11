@@ -89,14 +89,14 @@ class ManualBookController extends Controller
                     return $c['status'] === 'published';
                 }));
 
-                $statusLabel = 'Belum Ada Bab';
+                $statusLabel = 'Belum Ada Sub Menu';
                 $statusClass = 'text-slate-400 dark:text-slate-500';
                 if ($totalChapters > 0) {
                     if ($publishedCount === $totalChapters) {
-                        $statusLabel = $totalChapters . ' Bab • Terisi Lengkap ✓';
+                        $statusLabel = $totalChapters . ' Sub Menu • Terisi Lengkap ✓';
                         $statusClass = 'text-emerald-600 dark:text-emerald-400';
                     } else {
-                        $statusLabel = $totalChapters . ' Bab (' . $publishedCount . ' Terbit)';
+                        $statusLabel = $totalChapters . ' Sub Menu (' . $publishedCount . ' Terbit)';
                         $statusClass = 'text-blue-600 dark:text-blue-400';
                     }
                 }
@@ -115,9 +115,11 @@ class ManualBookController extends Controller
                     'description' => $ms->description ?: '',
                     'statusLabel' => $statusLabel,
                     'statusClass' => $statusClass,
+                    'subMenuCount' => $totalChapters,
                     'chapterCount' => $totalChapters,
                     'publishedCount' => $publishedCount,
                     'breadcrumb' => strtoupper($cat->name) . ' • ' . strtoupper($cleanName) . ' • BUKU PANDUAN PENGGUNAAN',
+                    'sub_menus' => $chapters,
                     'chapters' => $chapters,
                 ];
             }
@@ -190,11 +192,12 @@ class ManualBookController extends Controller
         $menuSystem = MenuSystem::findOrFail($request->menu_system_id);
         $userId = Auth::id() ? Auth::id() : 1;
 
+        $targetChapterId = $request->sub_menu_id ?: $request->chapter_id;
         $manualBook = null;
-        if ($request->filled('chapter_id') && is_numeric($request->chapter_id)) {
+        if (!empty($targetChapterId) && is_numeric($targetChapterId)) {
             $manualBook = ManualBook::whereHas('menuSystems', function ($q) use ($menuSystem) {
                 $q->where('menu_systems.id', $menuSystem->id);
-            })->find($request->chapter_id);
+            })->find($targetChapterId);
         }
 
         $order = $request->order ? (int) $request->order : null;
@@ -240,12 +243,13 @@ class ManualBookController extends Controller
         ];
 
         $message = $request->status === 'published'
-            ? 'Bab panduan "' . $manualBook->title . '" berhasil disimpan dan dipublikasikan!'
-            : 'Draft bab panduan "' . $manualBook->title . '" berhasil disimpan!';
+            ? 'Sub Menu "' . $manualBook->title . '" berhasil disimpan dan dipublikasikan!'
+            : 'Draft Sub Menu "' . $manualBook->title . '" berhasil disimpan!';
 
         return response()->json([
             'success' => true,
             'message' => $message,
+            'sub_menu' => $chapterData,
             'chapter' => $chapterData,
             'menu_system_id' => (string) $menuSystem->id,
         ]);
@@ -265,7 +269,7 @@ class ManualBookController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Bab panduan "' . $title . '" berhasil dihapus!',
+            'message' => 'Sub Menu "' . $title . '" berhasil dihapus!',
             'deleted_id' => (string) $id,
         ]);
     }
@@ -435,12 +439,14 @@ class ManualBookController extends Controller
                 'title' => $fullTitle,
                 'raw_name' => $cleanName,
                 'order' => $order,
-                'statusLabel' => 'Belum Ada Bab',
+                'statusLabel' => 'Belum Ada Sub Menu',
                 'statusClass' => 'text-slate-400 dark:text-slate-500',
+                'subMenuCount' => 0,
                 'chapterCount' => 0,
                 'publishedCount' => 0,
                 'breadcrumb' => $breadcrumb,
                 'description' => 'Panduan langkah demi langkah untuk ' . $menuSystem->name,
+                'sub_menus' => [],
                 'chapters' => [],
             ],
         ]);
