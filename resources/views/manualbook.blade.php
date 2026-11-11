@@ -21,6 +21,7 @@
 
                 // State Sub Menu Panduan
                 activeSubMenuId: null, // ID dari manual_books, atau 'new'
+                previousSubMenuId: null,
                 isNewSubMenu: false,
                 subMenuOrder: 1,
                 subMenuTitle: '',
@@ -283,6 +284,10 @@
                 startNewSubMenu(moduleId) {
                     this.syncCurrentContentToMemory();
 
+                    if (!this.isNewSubMenu && this.activeSubMenuId && this.activeSubMenuId !== 'new') {
+                        this.previousSubMenuId = this.activeSubMenuId;
+                    }
+
                     if (moduleId) {
                         this.activeModuleId = String(moduleId);
                         this.expandedModules[String(moduleId)] = true;
@@ -304,6 +309,29 @@
                     this.subMenuDescription = '';
                     this.subMenuStatus = 'draft';
                     this.setCanvasContent('');
+
+                    // Auto-focus ke input Judul Sub Menu
+                    this.$nextTick(() => {
+                        const inputEl = document.getElementById('subMenuTitleInput');
+                        if (inputEl) {
+                            inputEl.focus();
+                        }
+                    });
+                },
+
+                // Batal tambah sub menu dan kembali ke sub menu sebelumnya
+                cancelNewSubMenu(moduleId) {
+                    const mod = this.currentModule;
+                    const subList = (mod && (mod.sub_menus || mod.chapters)) || [];
+                    if (subList.length === 0) return;
+
+                    const prevId = this.previousSubMenuId;
+                    const found = prevId && subList.some(s => String(s.id) === String(prevId));
+                    if (found) {
+                        this.selectSubMenu(moduleId || this.activeModuleId, prevId);
+                    } else {
+                        this.selectSubMenu(moduleId || this.activeModuleId, subList[0].id);
+                    }
                 },
 
                 // Alias untuk kompatibilitas
@@ -1277,16 +1305,39 @@
                                     </div>
                                 </template>
 
-                                {{-- Tombol Tambah Sub Menu di dalam modul ini --}}
-                                <button type="button"
-                                        @click="startNewSubMenu(mod.id)"
-                                        :class="String(activeModuleId) === String(mod.id) && isNewSubMenu
-                                            ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/30 text-blue-600 dark:text-blue-400 font-bold'
-                                            : 'border-dashed border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:text-blue-600 hover:border-blue-400 hover:bg-white dark:hover:bg-slate-800'"
-                                        class="w-full py-2 px-3 rounded-xl border text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer">
-                                    <i class="fa-solid fa-plus text-[10px]"></i>
-                                    <span>Tambah Sub Menu</span>
-                                </button>
+                                {{-- Placeholder Item Preview saat Sedang Menambah Sub Menu Baru --}}
+                                <template x-if="String(activeModuleId) === String(mod.id) && isNewSubMenu">
+                                    <div class="p-2.5 rounded-xl bg-blue-600 text-white font-semibold shadow-xs flex items-center justify-between gap-2 border border-blue-500 ring-2 ring-blue-400/40 select-none">
+                                        <div class="flex items-center gap-2 min-w-0">
+                                            <span class="w-5 h-5 rounded-md bg-white/20 text-white flex items-center justify-center text-[10px] font-black shrink-0"
+                                                  x-text="'#' + subMenuOrder"></span>
+                                            <span class="text-xs truncate italic"
+                                                  x-text="(subMenuTitle || '').trim() ? subMenuTitle : 'Sub Menu Baru (Sedang Dibuat...)'"></span>
+                                        </div>
+                                        <span class="text-[9.5px] font-extrabold px-1.5 py-0.5 rounded bg-white/20 text-white uppercase tracking-wider shrink-0 flex items-center gap-1">
+                                            <i class="fa-solid fa-pen text-[8px] animate-pulse"></i>
+                                            <span>Baru</span>
+                                        </span>
+                                    </div>
+                                </template>
+
+                                {{-- Tombol Tambah / Batal Tambah Sub Menu di dalam modul ini --}}
+                                <template x-if="String(activeModuleId) === String(mod.id) && isNewSubMenu">
+                                    <button type="button"
+                                            @click="cancelNewSubMenu(mod.id)"
+                                            class="w-full py-2 px-3 rounded-xl border border-rose-200 dark:border-rose-900/50 bg-rose-50/70 dark:bg-rose-950/30 text-rose-600 dark:text-rose-400 hover:bg-rose-100 text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer">
+                                        <i class="fa-solid fa-xmark text-xs"></i>
+                                        <span>Batal Tambah Sub Menu</span>
+                                    </button>
+                                </template>
+                                <template x-if="!(String(activeModuleId) === String(mod.id) && isNewSubMenu)">
+                                    <button type="button"
+                                            @click="startNewSubMenu(mod.id)"
+                                            class="w-full py-2 px-3 rounded-xl border border-dashed border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:text-blue-600 hover:border-blue-400 hover:bg-white dark:hover:bg-slate-800 text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer">
+                                        <i class="fa-solid fa-plus text-[10px]"></i>
+                                        <span>Tambah Sub Menu</span>
+                                    </button>
+                                </template>
                             </div>
                         </div>
                     </template>
@@ -1306,10 +1357,23 @@
                 
                 {{-- Header Top Bar Panel Sub Menu --}}
                 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-3 border-b border-slate-100 dark:border-slate-800/80">
-                    <div class="space-y-0.5">
-                        <div class="text-[11px] font-extrabold tracking-wider text-cyan-600 dark:text-cyan-400 uppercase font-mono flex items-center gap-1.5">
-                            <i class="fa-solid fa-code-commit text-xs"></i>
-                            <span x-text="currentModule.breadcrumb"></span>
+                    <div class="space-y-1">
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <span class="text-[11px] font-extrabold tracking-wider text-cyan-600 dark:text-cyan-400 uppercase font-mono flex items-center gap-1.5">
+                                <i class="fa-solid fa-code-commit text-xs"></i>
+                                <span x-text="currentModule.breadcrumb"></span>
+                            </span>
+                            {{-- Badge Indikator Mode Tambah vs Edit --}}
+                            <template x-if="isNewSubMenu">
+                                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-blue-100 dark:bg-blue-950/70 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 tracking-wide uppercase">
+                                    <i class="fa-solid fa-circle-plus text-[10px]"></i> Mode Tambah Sub Menu Baru
+                                </span>
+                            </template>
+                            <template x-if="!isNewSubMenu">
+                                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700 tracking-wide uppercase">
+                                    <i class="fa-solid fa-pen-to-square text-[10px]"></i> Mode Edit Sub Menu
+                                </span>
+                            </template>
                         </div>
                         <h2 class="text-base sm:text-lg font-black text-slate-800 dark:text-slate-100">
                             <span x-text="isNewSubMenu ? 'Tambah Sub Menu Baru' : 'Edit Sub Menu: ' + (subMenuTitle || 'Sub Menu Panduan')"></span>
@@ -1317,6 +1381,16 @@
                     </div>
 
                     <div class="flex items-center gap-2 shrink-0">
+                        {{-- Tombol Batal jika dalam mode tambah baru --}}
+                        <template x-if="isNewSubMenu && ((currentModule && currentModule.sub_menus ? currentModule.sub_menus.length : 0) > 0)">
+                            <button type="button" 
+                                    @click="cancelNewSubMenu(currentModule.id)"
+                                    class="px-3 py-1.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-750 text-xs font-semibold shadow-xs flex items-center gap-1.5 transition-all cursor-pointer">
+                                <i class="fa-solid fa-xmark text-xs text-slate-400"></i>
+                                <span>Batal</span>
+                            </button>
+                        </template>
+
                         {{-- Tombol Import Word (.docx) --}}
                         <button type="button" 
                                 @click="triggerWordImport()"
@@ -1377,6 +1451,7 @@
                             </span>
                         </div>
                         <input type="text" 
+                               id="subMenuTitleInput"
                                maxlength="100"
                                x-model="subMenuTitle"
                                placeholder="Contoh: Order Taker & Kasir, Transaksi Meja, Split Bill, dsb."
@@ -1435,7 +1510,7 @@
                                 :disabled="isSubmitting"
                                 class="px-4 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-750 text-xs font-semibold shadow-xs flex items-center gap-2 transition-all cursor-pointer disabled:opacity-50">
                             <i class="fa-regular fa-file-lines text-slate-400"></i>
-                            <span x-text="isSubmitting && submitTarget === 'draft' ? 'Menyimpan...' : 'Simpan Draft Sub Menu'"></span>
+                            <span x-text="isSubmitting && submitTarget === 'draft' ? 'Menyimpan...' : (isNewSubMenu ? 'Simpan Sebagai Draft Baru' : 'Simpan Draft Sub Menu')"></span>
                         </button>
 
                         {{-- Simpan & Publikasikan Sub Menu --}}
@@ -1444,7 +1519,7 @@
                                 :disabled="isSubmitting"
                                 class="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 active:scale-95 text-white text-xs font-semibold shadow-sm shadow-blue-500/20 flex items-center gap-2 transition-all cursor-pointer disabled:opacity-50">
                             <i class="fa-solid fa-cloud-arrow-up text-xs"></i>
-                            <span x-text="isSubmitting && submitTarget === 'published' ? 'Menyimpan...' : 'Simpan & Publikasikan Sub Menu'"></span>
+                            <span x-text="isSubmitting && submitTarget === 'published' ? 'Menyimpan...' : (isNewSubMenu ? 'Simpan & Terbitkan Sub Menu' : 'Simpan & Publikasikan Sub Menu')"></span>
                         </button>
                     </div>
                 </div>
