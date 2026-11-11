@@ -1386,24 +1386,13 @@
 
                 {{-- Deskripsi Pengantar Sub Menu (Opsional) --}}
                 <div class="space-y-1.5">
-                    <div class="flex items-center justify-between">
-                        <button type="button" 
-                                @click="showDescriptionField = !showDescriptionField" 
-                                class="text-[11px] font-extrabold tracking-wider text-slate-500 dark:text-slate-400 uppercase hover:text-blue-500 flex items-center gap-1.5 cursor-pointer">
-                            <i class="fa-solid fa-chevron-down text-[10px] transition-transform duration-200" 
-                               :class="showDescriptionField ? 'rotate-180' : ''"></i>
-                            <span>DESKRIPSI PENGANTAR SUB MENU (OPSIONAL)</span>
-                        </button>
-                        <span class="text-[10px] text-slate-400" 
-                              x-show="subMenuDescription && !showDescriptionField" 
-                              x-text="'Tersedia (' + subMenuDescription.length + ' karakter)'"></span>
-                    </div>
-                    <div x-show="showDescriptionField" x-cloak>
-                        <textarea x-model="subMenuDescription"
-                                  rows="2"
-                                  placeholder="Ringkasan penjelasan pengantar tujuan sub menu panduan ini..."
-                                  class="w-full px-4 py-2 text-xs bg-slate-50 dark:bg-[#090d16] border border-slate-200 dark:border-slate-700/80 rounded-xl text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all leading-relaxed"></textarea>
-                    </div>
+                    <label class="block text-[11px] font-extrabold tracking-wider text-slate-500 dark:text-slate-400 uppercase">
+                        DESKRIPSI PENGANTAR SUB MENU (OPSIONAL)
+                    </label>
+                    <textarea x-model="subMenuDescription"
+                              rows="2"
+                              placeholder="Ringkasan penjelasan pengantar tujuan sub menu panduan ini..."
+                              class="w-full px-4 py-2 text-xs bg-white dark:bg-[#090d16] border border-slate-200 dark:border-slate-700/80 rounded-xl text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all leading-relaxed"></textarea>
                 </div>
 
                 {{-- ======================================================== --}}
