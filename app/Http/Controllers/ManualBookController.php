@@ -8,7 +8,7 @@ use Illuminate\Support\Str;
 use App\Models\Kategori;
 use App\Models\MenuSystem;
 use App\Models\ManualBook;
-use App\Models\ManualBookLog;
+use App\Models\ActivityLog;
 use App\Helpers\DocxParser;
 
 class ManualBookController extends Controller
@@ -267,21 +267,21 @@ class ManualBookController extends Controller
             if ($oldStatus !== $request->status) {
                 $statusBefore = $oldStatus === 'published' ? 'Terbit' : 'Draft';
                 $statusAfter = $request->status === 'published' ? 'Terbit' : 'Draft';
-                ManualBookLog::create([
-                    'manual_book_id' => $manualBook->id,
-                    'user_id' => $userId,
-                    'action' => 'STATUS_CHANGED',
-                    'description' => "Status sub menu diubah dari {$statusBefore} menjadi {$statusAfter} oleh {$actorName}.",
-                ]);
+                ActivityLog::record(
+                    $manualBook,
+                    'STATUS_CHANGED',
+                    "Status sub menu diubah dari {$statusBefore} menjadi {$statusAfter} oleh {$actorName}.",
+                    $userId
+                );
             }
 
             // Catat log update perubahan materi
-            ManualBookLog::create([
-                'manual_book_id' => $manualBook->id,
-                'user_id' => $userId,
-                'action' => 'UPDATED',
-                'description' => "Perubahan isi materi panduan dan informasi sub menu disimpan oleh {$actorName}.",
-            ]);
+            ActivityLog::record(
+                $manualBook,
+                'UPDATED',
+                "Perubahan isi materi panduan dan informasi sub menu disimpan oleh {$actorName}.",
+                $userId
+            );
 
         } else {
             // Pembuatan sub menu baru
@@ -297,12 +297,12 @@ class ManualBookController extends Controller
             $menuSystem->manualBooks()->attach($manualBook->id);
 
             $statusText = $request->status === 'published' ? 'Terbit' : 'Draft';
-            ManualBookLog::create([
-                'manual_book_id' => $manualBook->id,
-                'user_id' => $userId,
-                'action' => 'CREATED',
-                'description' => "Sub menu panduan \"{$manualBook->title}\" berhasil dibuat ({$statusText}) oleh {$actorName}.",
-            ]);
+            ActivityLog::record(
+                $manualBook,
+                'CREATED',
+                "Sub menu panduan \"{$manualBook->title}\" berhasil dibuat ({$statusText}) oleh {$actorName}.",
+                $userId
+            );
         }
 
         // Muat ulang relasi user, editor, logs untuk respon JSON

@@ -42,7 +42,7 @@ class Article extends Model
      */
     public function logs()
     {
-        return $this->hasMany(ArticleLog::class, 'article_id')->orderBy('created_at', 'desc');
+        return $this->morphMany(ActivityLog::class, 'loggable')->orderBy('created_at', 'desc');
     }
 }
 

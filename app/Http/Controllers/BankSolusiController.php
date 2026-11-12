@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use App\Models\Article;
-use App\Models\ArticleLog;
+use App\Models\ActivityLog;
 use App\Models\Kategori;
 use App\Models\MenuSystem;
 use App\Models\MediaUpload;
@@ -256,12 +256,12 @@ class BankSolusiController extends Controller
         // Catat riwayat aktivitas awal (hanya terlihat di sistem implementator)
         $actorName = Auth::user()->name ?? 'Superadministrator';
         $visLabel = $article->visibility === 'publik' ? 'BLOG KLIEN' : 'INTERNAL';
-        ArticleLog::create([
-            'article_id' => $article->id,
-            'user_id' => $userId,
-            'action' => 'CREATED',
-            'description' => "Artikel #{$article->id} berhasil dibuat dengan visibilitas {$visLabel} (" . ucfirst($article->status) . ") oleh {$actorName}.",
-        ]);
+        ActivityLog::record(
+            $article,
+            'CREATED',
+            "Artikel #{$article->id} berhasil dibuat dengan visibilitas {$visLabel} (" . ucfirst($article->status) . ") oleh {$actorName}.",
+            $userId
+        );
 
         $message = $request->status === 'published'
             ? 'Artikel Solusi berhasil diterbitkan!'
@@ -312,8 +312,9 @@ class BankSolusiController extends Controller
         // Ambil riwayat & log aktivitas artikel (hanya tampil di sistem internal implementator ini)
         $articleLogs = $article->logs()->with('user')->get();
         if ($articleLogs->isEmpty()) {
-            $initialLog = ArticleLog::create([
-                'article_id' => $article->id,
+            $initialLog = ActivityLog::create([
+                'loggable_type' => Article::class,
+                'loggable_id' => $article->id,
                 'user_id' => $article->user_id,
                 'action' => 'CREATED',
                 'description' => "Artikel #{$article->id} berhasil dibuat dengan visibilitas " . ($article->visibility === 'publik' ? 'BLOG KLIEN' : 'INTERNAL') . " (" . ucfirst($article->status) . ") oleh " . ($article->user ? $article->user->name : 'Superadministrator') . ".",
@@ -391,29 +392,29 @@ class BankSolusiController extends Controller
         $userId = Auth::id() ?: 1;
 
         if ($oldVisibility !== $request->visibility) {
-            ArticleLog::create([
-                'article_id' => $article->id,
-                'user_id' => $userId,
-                'action' => 'VISIBILITY_CHANGED',
-                'description' => "Jangkauan visibilitas diubah dari " . ($oldVisibility === 'publik' ? 'BLOG KLIEN' : 'INTERNAL') . " menjadi " . ($request->visibility === 'publik' ? 'BLOG KLIEN' : 'INTERNAL') . " oleh {$actorName}.",
-            ]);
+            ActivityLog::record(
+                $article,
+                'VISIBILITY_CHANGED',
+                "Jangkauan visibilitas diubah dari " . ($oldVisibility === 'publik' ? 'BLOG KLIEN' : 'INTERNAL') . " menjadi " . ($request->visibility === 'publik' ? 'BLOG KLIEN' : 'INTERNAL') . " oleh {$actorName}.",
+                $userId
+            );
         }
 
         if ($oldStatus !== $request->status) {
-            ArticleLog::create([
-                'article_id' => $article->id,
-                'user_id' => $userId,
-                'action' => 'STATUS_CHANGED',
-                'description' => "Status artikel diubah dari " . ucfirst($oldStatus) . " menjadi " . ucfirst($request->status) . " oleh {$actorName}.",
-            ]);
+            ActivityLog::record(
+                $article,
+                'STATUS_CHANGED',
+                "Status artikel diubah dari " . ucfirst($oldStatus) . " menjadi " . ucfirst($request->status) . " oleh {$actorName}.",
+                $userId
+            );
         }
 
-        ArticleLog::create([
-            'article_id' => $article->id,
-            'user_id' => $userId,
-            'action' => 'UPDATED',
-            'description' => "Perubahan isi konten dan informasi artikel disimpan oleh {$actorName}.",
-        ]);
+        ActivityLog::record(
+            $article,
+            'UPDATED',
+            "Perubahan isi konten dan informasi artikel disimpan oleh {$actorName}.",
+            $userId
+        );
 
         $message = $request->status === 'published'
             ? 'Artikel Solusi berhasil diperbarui dan diterbitkan!'
@@ -443,13 +444,13 @@ class BankSolusiController extends Controller
         $label = $newVisibility === 'publik' ? 'BLOG KLIEN' : 'INTERNAL';
         $actorName = Auth::user()->name ?? 'Superadministrator';
 
-        // Catat ke article_logs (hanya terlihat di sistem implementator)
-        ArticleLog::create([
-            'article_id' => $article->id,
-            'user_id' => Auth::id() ?: 1,
-            'action' => 'VISIBILITY_CHANGED',
-            'description' => "Jangkauan visibilitas diubah menjadi {$label} oleh {$actorName}.",
-        ]);
+        // Catat ke activity_logs (hanya terlihat di sistem implementator)
+        ActivityLog::record(
+            $article,
+            'VISIBILITY_CHANGED',
+            "Jangkauan visibilitas diubah menjadi {$label} oleh {$actorName}.",
+            Auth::id() ?: 1
+        );
 
         $msg = $newVisibility === 'publik'
             ? 'Artikel sekarang berstatus Publik (Blog Solusi Klien & Internal).'
