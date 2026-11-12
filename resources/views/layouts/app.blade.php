@@ -144,10 +144,17 @@
                         'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
                         'insertdatetime', 'media', 'table', 'help', 'wordcount'
                     ],
-                    toolbar: 'undo redo | blocks fontsize | bold italic underline | ' +
-                             'alignleft aligncenter alignright | bullist numlist | ' +
-                             'probus_image table link | forecolor backcolor | code preview fullscreen',
-                    toolbar_mode: 'wrap',
+                    toolbar: 'undo redo | bold italic underline | blocks | probus_image link table | ' +
+                             'bullist numlist | alignleft aligncenter alignright | ' +
+                             'fontsize forecolor backcolor | code preview fullscreen',
+                    toolbar_mode: 'sliding',
+                    mobile: {
+                        menubar: true,
+                        toolbar_mode: 'sliding',
+                        toolbar: 'undo redo | bold italic underline | blocks | probus_image link table | ' +
+                                 'bullist numlist | alignleft aligncenter alignright | ' +
+                                 'fontsize forecolor backcolor | code preview fullscreen',
+                    },
                     image_advtab: true,
                     image_caption: true,
                     image_title: true,
@@ -431,6 +438,62 @@
             ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
             .custom-scrollbar { scrollbar-width: thin; scrollbar-color: #cbd5e1 transparent; }
             .custom-scrollbar::-webkit-scrollbar { width: 5px; height: 5px; }
+
+            /* ============================================================ */
+            /* TINYMCE RESPONSIVE & MOBILE ERGONOMIC STYLING                */
+            /* ============================================================ */
+            .tox-tinymce {
+                border-radius: 1rem !important;
+                border-color: #e2e8f0 !important;
+                overflow: hidden !important;
+            }
+            html.dark .tox-tinymce {
+                border-color: #334155 !important;
+            }
+            .tox .tox-toolbar-overlord {
+                background: inherit !important;
+            }
+            .tox .tox-toolbar, 
+            .tox .tox-toolbar__primary, 
+            .tox .tox-toolbar__overflow {
+                background: inherit !important;
+            }
+
+            /* Touch & Mobile Optimization for TinyMCE (< 640px) */
+            @media (max-width: 640px) {
+                .tox .tox-toolbar__group {
+                    padding: 0 1px !important;
+                }
+                .tox .tox-tbtn {
+                    min-width: 32px !important;
+                    height: 32px !important;
+                    margin: 1px !important;
+                }
+                .tox .tox-tbtn--select {
+                    max-width: 120px !important;
+                    height: 32px !important;
+                    padding: 0 4px !important;
+                }
+                .tox .tox-tbtn__select-label {
+                    font-size: 11px !important;
+                    max-width: 85px !important;
+                    overflow: hidden !important;
+                    text-overflow: ellipsis !important;
+                    white-space: nowrap !important;
+                }
+                /* Sembunyikan teks pendamping jika tombol sudah memiliki icon (misal tombol Gambar) */
+                .tox .tox-tbtn > .tox-icon + .tox-tbtn__text {
+                    display: none !important;
+                }
+                /* Pastikan tombol '...' (more drawer) menonjol dan mudah ditekan */
+                .tox .tox-tbtn[title*="More"],
+                .tox .tox-tbtn[title*="Tampilkan"],
+                .tox .tox-tbtn:has([data-key="more-drawer"]),
+                .tox .tox-tbtn.tox-tbtn--enabled {
+                    background-color: rgba(37, 99, 235, 0.1) !important;
+                    color: #2563eb !important;
+                }
+            }
 
             /* Smooth theme transition */
             html.theme-transitioning,
