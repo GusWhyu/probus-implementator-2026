@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use App\Models\Article;
-use App\Models\ActivityLog;
+use App\Models\ArticleAndManualBooksLog;
 use App\Models\Kategori;
 use App\Models\MenuSystem;
 use App\Models\MediaUpload;
@@ -256,7 +256,7 @@ class BankSolusiController extends Controller
         // Catat riwayat aktivitas awal (hanya terlihat di sistem implementator)
         $actorName = Auth::user()->name ?? 'Superadministrator';
         $visLabel = $article->visibility === 'publik' ? 'BLOG KLIEN' : 'INTERNAL';
-        ActivityLog::record(
+        ArticleAndManualBooksLog::record(
             $article,
             'CREATED',
             "Artikel #{$article->id} berhasil dibuat dengan visibilitas {$visLabel} (" . ucfirst($article->status) . ") oleh {$actorName}.",
@@ -312,7 +312,7 @@ class BankSolusiController extends Controller
         // Ambil riwayat & log aktivitas artikel (hanya tampil di sistem internal implementator ini)
         $articleLogs = $article->logs()->with('user')->get();
         if ($articleLogs->isEmpty()) {
-            $initialLog = ActivityLog::create([
+            $initialLog = ArticleAndManualBooksLog::create([
                 'loggable_type' => Article::class,
                 'loggable_id' => $article->id,
                 'user_id' => $article->user_id,
@@ -392,7 +392,7 @@ class BankSolusiController extends Controller
         $userId = Auth::id() ?: 1;
 
         if ($oldVisibility !== $request->visibility) {
-            ActivityLog::record(
+            ArticleAndManualBooksLog::record(
                 $article,
                 'VISIBILITY_CHANGED',
                 "Jangkauan visibilitas diubah dari " . ($oldVisibility === 'publik' ? 'BLOG KLIEN' : 'INTERNAL') . " menjadi " . ($request->visibility === 'publik' ? 'BLOG KLIEN' : 'INTERNAL') . " oleh {$actorName}.",
@@ -401,7 +401,7 @@ class BankSolusiController extends Controller
         }
 
         if ($oldStatus !== $request->status) {
-            ActivityLog::record(
+            ArticleAndManualBooksLog::record(
                 $article,
                 'STATUS_CHANGED',
                 "Status artikel diubah dari " . ucfirst($oldStatus) . " menjadi " . ucfirst($request->status) . " oleh {$actorName}.",
@@ -409,7 +409,7 @@ class BankSolusiController extends Controller
             );
         }
 
-        ActivityLog::record(
+        ArticleAndManualBooksLog::record(
             $article,
             'UPDATED',
             "Perubahan isi konten dan informasi artikel disimpan oleh {$actorName}.",
@@ -445,7 +445,7 @@ class BankSolusiController extends Controller
         $actorName = Auth::user()->name ?? 'Superadministrator';
 
         // Catat ke activity_logs (hanya terlihat di sistem implementator)
-        ActivityLog::record(
+        ArticleAndManualBooksLog::record(
             $article,
             'VISIBILITY_CHANGED',
             "Jangkauan visibilitas diubah menjadi {$label} oleh {$actorName}.",

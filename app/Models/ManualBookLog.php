@@ -3,10 +3,10 @@
 namespace App\Models;
 
 /**
- * @deprecated Tabel telah disatukan ke ActivityLog (tabel activity_logs).
+ * @deprecated Tabel telah disatukan ke ArticleAndManualBooksLog (tabel article_and_manual_books_logs).
  * Model ini dipertahankan untuk backward-compatibility.
  */
-class ManualBookLog extends ActivityLog
+class ManualBookLog extends ArticleAndManualBooksLog
 {
     //
 }

@@ -12,9 +12,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // 1. Buat tabel terpusat activity_logs dengan skema polimorfik
-        if (!Schema::hasTable('activity_logs')) {
-            Schema::create('activity_logs', function (Blueprint $table) {
+        // 1. Buat tabel terpusat article_and_manual_books_logs
+        if (!Schema::hasTable('article_and_manual_books_logs')) {
+            Schema::create('article_and_manual_books_logs', function (Blueprint $table) {
                 $table->id();
                 $table->string('loggable_type');
                 $table->unsignedBigInteger('loggable_id');
@@ -23,19 +23,19 @@ return new class extends Migration
                 $table->text('description')->nullable();
                 $table->timestamps();
 
-                $table->index(['loggable_type', 'loggable_id'], 'activity_logs_loggable_idx');
-                $table->index('user_id', 'activity_logs_user_id_idx');
-                $table->index('action', 'activity_logs_action_idx');
-                $table->index('created_at', 'activity_logs_created_at_idx');
+                $table->index(['loggable_type', 'loggable_id'], 'amb_logs_loggable_idx');
+                $table->index('user_id', 'amb_logs_user_id_idx');
+                $table->index('action', 'amb_logs_action_idx');
+                $table->index('created_at', 'amb_logs_created_at_idx');
             });
         }
 
-        // 2. Migrasikan seluruh data riwayat dari tabel article_logs ke activity_logs
+        // 2. Migrasikan seluruh data riwayat dari tabel article_logs
         if (Schema::hasTable('article_logs')) {
             $articleLogs = DB::table('article_logs')->get();
             $now = now();
             foreach ($articleLogs as $log) {
-                DB::table('activity_logs')->insert([
+                DB::table('article_and_manual_books_logs')->insert([
                     'loggable_type' => 'App\Models\Article',
                     'loggable_id' => $log->article_id,
                     'user_id' => $log->user_id,
@@ -47,12 +47,12 @@ return new class extends Migration
             }
         }
 
-        // 3. Migrasikan seluruh data riwayat dari tabel manual_book_logs ke activity_logs
+        // 3. Migrasikan seluruh data riwayat dari tabel manual_book_logs
         if (Schema::hasTable('manual_book_logs')) {
             $manualBookLogs = DB::table('manual_book_logs')->get();
             $now = now();
             foreach ($manualBookLogs as $log) {
-                DB::table('activity_logs')->insert([
+                DB::table('article_and_manual_books_logs')->insert([
                     'loggable_type' => 'App\Models\ManualBook',
                     'loggable_id' => $log->manual_book_id,
                     'user_id' => $log->user_id,
@@ -64,9 +64,10 @@ return new class extends Migration
             }
         }
 
-        // 4. Hapus tabel lama yang sudah disatukan ke activity_logs
+        // 4. Hapus tabel lama yang sudah digabung
         Schema::dropIfExists('article_logs');
         Schema::dropIfExists('manual_book_logs');
+        Schema::dropIfExists('activity_logs');
     }
 
     /**
@@ -87,8 +88,8 @@ return new class extends Migration
                 $table->index(['article_id', 'created_at']);
             });
 
-            if (Schema::hasTable('activity_logs')) {
-                $logs = DB::table('activity_logs')->where('loggable_type', 'App\Models\Article')->get();
+            if (Schema::hasTable('article_and_manual_books_logs')) {
+                $logs = DB::table('article_and_manual_books_logs')->where('loggable_type', 'App\Models\Article')->get();
                 foreach ($logs as $log) {
                     DB::table('article_logs')->insert([
                         'article_id' => $log->loggable_id,
@@ -115,8 +116,8 @@ return new class extends Migration
                 $table->index(['manual_book_id', 'created_at']);
             });
 
-            if (Schema::hasTable('activity_logs')) {
-                $logs = DB::table('activity_logs')->where('loggable_type', 'App\Models\ManualBook')->get();
+            if (Schema::hasTable('article_and_manual_books_logs')) {
+                $logs = DB::table('article_and_manual_books_logs')->where('loggable_type', 'App\Models\ManualBook')->get();
                 foreach ($logs as $log) {
                     DB::table('manual_book_logs')->insert([
                         'manual_book_id' => $log->loggable_id,
@@ -130,7 +131,7 @@ return new class extends Migration
             }
         }
 
-        // 3. Hapus tabel activity_logs
-        Schema::dropIfExists('activity_logs');
+        // 3. Hapus tabel article_and_manual_books_logs
+        Schema::dropIfExists('article_and_manual_books_logs');
     }
 };

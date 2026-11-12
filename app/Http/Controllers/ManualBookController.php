@@ -8,7 +8,7 @@ use Illuminate\Support\Str;
 use App\Models\Kategori;
 use App\Models\MenuSystem;
 use App\Models\ManualBook;
-use App\Models\ActivityLog;
+use App\Models\ArticleAndManualBooksLog;
 use App\Helpers\DocxParser;
 
 class ManualBookController extends Controller
@@ -267,7 +267,7 @@ class ManualBookController extends Controller
             if ($oldStatus !== $request->status) {
                 $statusBefore = $oldStatus === 'published' ? 'Terbit' : 'Draft';
                 $statusAfter = $request->status === 'published' ? 'Terbit' : 'Draft';
-                ActivityLog::record(
+                ArticleAndManualBooksLog::record(
                     $manualBook,
                     'STATUS_CHANGED',
                     "Status sub menu diubah dari {$statusBefore} menjadi {$statusAfter} oleh {$actorName}.",
@@ -276,7 +276,7 @@ class ManualBookController extends Controller
             }
 
             // Catat log update perubahan materi
-            ActivityLog::record(
+            ArticleAndManualBooksLog::record(
                 $manualBook,
                 'UPDATED',
                 "Perubahan isi materi panduan dan informasi sub menu disimpan oleh {$actorName}.",
@@ -297,7 +297,7 @@ class ManualBookController extends Controller
             $menuSystem->manualBooks()->attach($manualBook->id);
 
             $statusText = $request->status === 'published' ? 'Terbit' : 'Draft';
-            ActivityLog::record(
+            ArticleAndManualBooksLog::record(
                 $manualBook,
                 'CREATED',
                 "Sub menu panduan \"{$manualBook->title}\" berhasil dibuat ({$statusText}) oleh {$actorName}.",

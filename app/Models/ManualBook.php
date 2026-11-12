@@ -46,11 +46,11 @@ class ManualBook extends Model
     }
 
     /**
-     * Relasi ke Riwayat / Audit Log Panduan (ActivityLog)
+     * Relasi ke Riwayat / Audit Log Panduan (ArticleAndManualBooksLog)
      */
     public function logs()
     {
-        return $this->morphMany(ActivityLog::class, 'loggable')->orderBy('created_at', 'desc');
+        return $this->morphMany(ArticleAndManualBooksLog::class, 'loggable')->orderBy('created_at', 'desc');
     }
 
     /**
