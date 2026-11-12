@@ -72,16 +72,28 @@ class MenuSystemSeeder extends Seeder
 
         foreach ($allCategories as $kategori) {
             foreach ($targetModules as $mod) {
-                MenuSystem::firstOrCreate(
-                    [
-                        'kategori_id' => $kategori->id,
+                $existing = MenuSystem::where('kategori_id', $kategori->id)
+                    ->whereNull('parent_id')
+                    ->where(function ($q) use ($mod) {
+                        $q->where('name', $mod['name'])
+                          ->orWhere('order', $mod['order']);
+                    })->first();
+
+                if ($existing) {
+                    $existing->update([
                         'name' => $mod['name'],
-                    ],
-                    [
                         'description' => $mod['description'],
                         'order' => $mod['order'],
-                    ]
-                );
+                    ]);
+                } else {
+                    MenuSystem::create([
+                        'kategori_id' => $kategori->id,
+                        'parent_id' => null,
+                        'name' => $mod['name'],
+                        'description' => $mod['description'],
+                        'order' => $mod['order'],
+                    ]);
+                }
             }
         }
     }

@@ -212,16 +212,28 @@ class MenuSystemController extends Controller
         ];
 
         foreach ($standardModules as $m) {
-            MenuSystem::firstOrCreate(
-                [
-                    'kategori_id' => $kategori->id,
+            $existing = MenuSystem::where('kategori_id', $kategori->id)
+                ->whereNull('parent_id')
+                ->where(function ($q) use ($m) {
+                    $q->where('name', $m['name'])
+                      ->orWhere('order', $m['order']);
+                })->first();
+
+            if ($existing) {
+                $existing->update([
                     'name' => $m['name'],
-                ],
-                [
                     'description' => $m['desc'],
                     'order' => $m['order'],
-                ]
-            );
+                ]);
+            } else {
+                MenuSystem::create([
+                    'kategori_id' => $kategori->id,
+                    'parent_id' => null,
+                    'name' => $m['name'],
+                    'description' => $m['desc'],
+                    'order' => $m['order'],
+                ]);
+            }
         }
 
         Alert::success('Berhasil!', '10 Modul standar berhasil dibuat untuk sistem "' . $kategori->name . '".');
