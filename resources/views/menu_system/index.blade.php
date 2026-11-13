@@ -230,12 +230,8 @@
                                         <div class="font-extrabold text-slate-800 dark:text-slate-100 leading-snug">
                                             {{ $item->name }}
                                         </div>
-                                        <div class="text-[10px] text-slate-400 font-mono mt-0.5 flex items-center gap-2">
-                                            <span>ID: #{{ $item->id }}</span>
-                                            <span class="inline-flex items-center gap-1 text-[10px] text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/60 px-1.5 py-0.2 rounded border border-blue-200 dark:border-blue-900/40">
-                                                <i class="fa-solid fa-tag text-[8px]"></i>
-                                                {{ $item->icon ?: 'book-open' }}
-                                            </span>
+                                        <div class="text-[10px] text-slate-400 font-mono mt-0.5">
+                                            ID: #{{ $item->id }}
                                         </div>
                                     </div>
                                 </div>

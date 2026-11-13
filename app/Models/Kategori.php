@@ -13,7 +13,6 @@ class Kategori extends Model
 
     protected $fillable = [
         'name',
-        'icon',
     ];
 
     public function requests()
