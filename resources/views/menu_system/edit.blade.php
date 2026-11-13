@@ -65,8 +65,8 @@
                         <p class="text-slate-400 text-[11px] mt-1.5">Sistem tempat modul ini bernaung.</p>
                     </div>
 
-                    <!-- Grid: Nama Modul & Urutan -->
-                    <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-6">
+                    <!-- Grid: Nama Modul, Ikon & Urutan -->
+                    <div class="grid grid-cols-1 sm:grid-cols-6 gap-4 mb-6">
                         <!-- Nama Modul -->
                         <div class="sm:col-span-3">
                             <label for="name" class="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-2">
@@ -79,6 +79,45 @@
                             <p class="text-slate-400 text-[11px] mt-1.5">Nama modul yang akan tampil pada filter dan buku panduan.</p>
                         </div>
 
+                        <!-- Ikon Modul -->
+                        <div class="sm:col-span-2">
+                            <label for="icon" class="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-2">
+                                Ikon Modul <span class="text-slate-400 font-normal">(Lucide)</span>
+                            </label>
+                            <div class="relative">
+                                <i class="fa-solid fa-icons absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+                                <select id="icon" name="icon" class="block w-full rounded-xl border-slate-200 dark:border-slate-700 dark:bg-[#131e38] dark:text-slate-100 focus:border-blue-500 focus:ring focus:ring-blue-500/20 shadow-sm text-sm py-2.5 pl-11 pr-8 transition-colors">
+                                    @php
+                                        $currentModIcon = old('icon', $module->icon ?? 'book-open');
+                                        $modIcons = [
+                                            'settings'     => 'settings (Setup Master)',
+                                            'utensils'     => 'utensils (Transaksi/Sales)',
+                                            'store'        => 'store (Outlet Activity)',
+                                            'pie-chart'    => 'pie-chart (Cost Control)',
+                                            'shopping-bag' => 'shopping-bag (Purchasing AP)',
+                                            'receipt'      => 'receipt (AR/Invoice)',
+                                            'wallet'       => 'wallet (General Cashier)',
+                                            'bar-chart-3'  => 'bar-chart-3 (Accounting)',
+                                            'trending-up'  => 'trending-up (Report)',
+                                            'sliders'      => 'sliders (Tools)',
+                                            'monitor'      => 'monitor (KDS/Display)',
+                                            'file-text'    => 'file-text (Shift/Laporan)',
+                                            'calendar'     => 'calendar (Kalender)',
+                                            'calculator'   => 'calculator (Kalkulator)',
+                                            'network'      => 'network (Jaringan/Sync)',
+                                            'book-open'    => 'book-open (Panduan Umum)',
+                                        ];
+                                    @endphp
+                                    @foreach($modIcons as $iKey => $iLabel)
+                                        <option value="{{ $iKey }}" {{ $currentModIcon === $iKey ? 'selected' : '' }}>
+                                            {{ $iLabel }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <p class="text-slate-400 text-[11px] mt-1.5">Ikon visual pada card modul.</p>
+                        </div>
+
                         <!-- Urutan (Order) -->
                         <div class="sm:col-span-1">
                             <label for="order" class="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-2">
@@ -88,7 +127,7 @@
                                 <i class="fa-solid fa-arrow-down-1-9 absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
                                 <input id="order" class="block w-full rounded-xl border-slate-200 dark:border-slate-700 dark:bg-[#131e38] dark:text-slate-100 focus:border-blue-500 focus:ring focus:ring-blue-500/20 shadow-sm text-sm py-2.5 pl-11 pr-4 transition-colors font-mono font-bold" type="number" name="order" value="{{ old('order', $module->order) }}" min="1" required />
                             </div>
-                            <p class="text-slate-400 text-[11px] mt-1.5">Posisi urutan modul (1 s/d 10).</p>
+                            <p class="text-slate-400 text-[11px] mt-1.5">Urutan (1-10).</p>
                         </div>
                     </div>
 

@@ -82,16 +82,19 @@ class MenuSystemController extends Controller
         }
 
         $standardSuggestions = [
-            ['name' => 'Sales', 'desc' => 'Modul transaksi penjualan, kasir POS, reservasi meja, dan pendapatan.'],
-            ['name' => 'Production', 'desc' => 'Modul pengolahan dapur, resep, kitchen display system (KDS), dan produksi makanan/minuman.'],
-            ['name' => 'Cost Control', 'desc' => 'Modul pengendalian biaya, food & beverage cost, dan laporan analisa selisih.'],
-            ['name' => 'Purchasing / AP', 'desc' => 'Modul pengadaan barang, purchase request (PR), purchase order (PO), receiving, dan hutang usaha.'],
-            ['name' => 'Accounts Receivable / AR', 'desc' => 'Modul piutang usaha, city ledger, penagihan invoice klien, dan pelunasan.'],
-            ['name' => 'Accounting System', 'desc' => 'Modul sistem akuntansi, jurnal umum, buku besar (GL), neraca, dan laporan keuangan.'],
-            ['name' => 'Tools', 'desc' => 'Modul utilitas sistem, konfigurasi hardware & printer, cash drawer, dan diagnostik perangkat.'],
-            ['name' => 'Calendar', 'desc' => 'Modul kalender kerja, reservasi event, jadwal operasional, dan agenda sistem.'],
-            ['name' => 'Calculator', 'desc' => 'Modul kalkulator sistem, simulasi perhitungan harga, diskon, dan konversi kurs.'],
-            ['name' => 'Reconnecting', 'desc' => 'Modul pemulihan koneksi offline/online, sinkronisasi data cloud, dan pemulihan jaringan.'],
+            ['name' => 'Setup Master', 'icon' => 'settings', 'desc' => 'Modul setup master data, parameter sistem, denah meja, dan pengaturan menu.'],
+            ['name' => 'Sales', 'icon' => 'utensils', 'desc' => 'Modul transaksi penjualan, kasir POS, reservasi meja, dan pendapatan.'],
+            ['name' => 'Production', 'icon' => 'utensils', 'desc' => 'Modul pengolahan dapur, resep, kitchen display system (KDS), dan produksi makanan/minuman.'],
+            ['name' => 'Cost Control', 'icon' => 'pie-chart', 'desc' => 'Modul pengendalian biaya, food & beverage cost, dan laporan analisa selisih.'],
+            ['name' => 'Purchasing / AP', 'icon' => 'shopping-bag', 'desc' => 'Modul pengadaan barang, purchase request (PR), purchase order (PO), receiving, dan hutang usaha.'],
+            ['name' => 'Accounts Receivable / AR', 'icon' => 'receipt', 'desc' => 'Modul piutang usaha, city ledger, penagihan invoice klien, dan pelunasan.'],
+            ['name' => 'General Cashier', 'icon' => 'wallet', 'desc' => 'Modul pengelolaan kas kecil, setoran kasir harian, dan rekonsiliasi kas outlet.'],
+            ['name' => 'Accounting System', 'icon' => 'bar-chart-3', 'desc' => 'Modul sistem akuntansi, jurnal umum, buku besar (GL), neraca, dan laporan keuangan.'],
+            ['name' => 'Report', 'icon' => 'trending-up', 'desc' => 'Modul laporan statistik penjualan, grafik omset, analisa laba rugi, dan performa outlet.'],
+            ['name' => 'Tools', 'icon' => 'sliders', 'desc' => 'Modul utilitas sistem, konfigurasi hardware & printer, cash drawer, dan diagnostik perangkat.'],
+            ['name' => 'Calendar', 'icon' => 'calendar', 'desc' => 'Modul kalender kerja, reservasi event, jadwal operasional, dan agenda sistem.'],
+            ['name' => 'Calculator', 'icon' => 'calculator', 'desc' => 'Modul kalkulator sistem, simulasi perhitungan harga, diskon, dan konversi kurs.'],
+            ['name' => 'Reconnecting', 'icon' => 'network', 'desc' => 'Modul pemulihan koneksi offline/online, sinkronisasi data cloud, dan pemulihan jaringan.'],
         ];
 
         return view('menu_system.create', compact('categories', 'selectedKategoriId', 'nextOrder', 'standardSuggestions'));
@@ -105,6 +108,7 @@ class MenuSystemController extends Controller
         $validated = $request->validate([
             'kategori_id' => 'required|exists:kategori,id',
             'name' => 'required|string|max:100',
+            'icon' => 'nullable|string|max:50',
             'order' => 'required|integer|min:0',
             'description' => 'nullable|string',
         ], [
@@ -119,6 +123,7 @@ class MenuSystemController extends Controller
         MenuSystem::create([
             'kategori_id' => $validated['kategori_id'],
             'name' => trim($validated['name']),
+            'icon' => $request->input('icon') ?: 'book-open',
             'order' => (int) $validated['order'],
             'description' => $validated['description'] ? trim($validated['description']) : null,
         ]);
@@ -149,6 +154,7 @@ class MenuSystemController extends Controller
         $validated = $request->validate([
             'kategori_id' => 'required|exists:kategori,id',
             'name' => 'required|string|max:100',
+            'icon' => 'nullable|string|max:50',
             'order' => 'required|integer|min:0',
             'description' => 'nullable|string',
         ], [
@@ -163,6 +169,7 @@ class MenuSystemController extends Controller
         $module->update([
             'kategori_id' => $validated['kategori_id'],
             'name' => trim($validated['name']),
+            'icon' => $request->input('icon') ?: ($module->icon ?: 'book-open'),
             'order' => (int) $validated['order'],
             'description' => $validated['description'] ? trim($validated['description']) : null,
         ]);

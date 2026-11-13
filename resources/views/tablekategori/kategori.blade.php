@@ -37,6 +37,7 @@
                     <thead>
                         <tr class="bg-slate-50 rounded-lg">
                             <th class="py-3 px-4 text-[11px] font-bold text-slate-500 uppercase tracking-wider rounded-l-lg">Nama Kategori</th>
+                            <th class="py-3 px-4 text-[11px] font-bold text-slate-500 uppercase tracking-wider">Ikon Card Publik</th>
                             <th class="py-3 px-4 text-[11px] font-bold text-slate-500 uppercase tracking-wider text-right rounded-r-lg w-32">Aksi</th>
                         </tr>
                     </thead>
@@ -48,8 +49,14 @@
                                         <div class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center text-xs">
                                             <i class="fa-solid fa-layer-group"></i>
                                         </div>
-                                        {{ $item->name }}
+                                        <span class="font-bold text-slate-800">{{ $item->name }}</span>
                                     </div>
+                                </td>
+                                <td class="py-4 px-4 text-sm text-slate-600">
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-mono font-semibold bg-slate-100 text-slate-700 border border-slate-200">
+                                        <i class="fa-solid fa-tag text-[10px] text-blue-500"></i>
+                                        {{ $item->icon ?: 'monitor-check' }}
+                                    </span>
                                 </td>
                                 <td class="py-4 px-4 text-right">
                                     <div class="flex items-center justify-end gap-1.5">

@@ -15,6 +15,7 @@ class MenuSystem extends Model
         'kategori_id',
         'parent_id',
         'name',
+        'icon',
         'description',
         'order',
     ];

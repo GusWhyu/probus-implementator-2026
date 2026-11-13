@@ -29,12 +29,51 @@
                     <!-- Name -->
                     <div class="mb-6">
                         <label for="name" class="block text-sm font-semibold text-slate-700 mb-2">
-                            Nama Kategori <span class="text-red-500">*</span>
+                            Nama Kategori / Sistem <span class="text-red-500">*</span>
                         </label>
                         <div class="relative">
                             <i class="fa-solid fa-list absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
                             <input id="name" class="block w-full rounded-xl border-slate-200 focus:border-blue-500 focus:ring focus:ring-blue-500/20 shadow-sm text-sm py-2.5 pl-11 pr-4 transition-colors" type="text" name="name" value="{{ old('name', $data->name) }}" required autofocus placeholder="Contoh: Phis, Presto, Ppos" />
                         </div>
+                    </div>
+
+                    <!-- Icon (Lucide SVG Icon identifier) -->
+                    <div class="mb-6">
+                        <label for="icon" class="block text-sm font-semibold text-slate-700 mb-2">
+                            Ikon Card (Lucide Icon) <span class="text-slate-400 font-normal">(Opsional)</span>
+                        </label>
+                        <div class="relative">
+                            <i class="fa-solid fa-icons absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+                            <select id="icon" name="icon" class="block w-full rounded-xl border-slate-200 focus:border-blue-500 focus:ring focus:ring-blue-500/20 shadow-sm text-sm py-2.5 pl-11 pr-8 transition-colors">
+                                @php
+                                    $currentIcon = old('icon', $data->icon ?? 'monitor-check');
+                                    $icons = [
+                                        'monitor-check' => 'monitor-check (Restoran & POS / Monitor)',
+                                        'building-2'    => 'building-2 (Hotel & Resort / Gedung)',
+                                        'printer'       => 'printer (Retail & Kasir / Printer Thermal)',
+                                        'smartphone'    => 'smartphone (Self Service / Mobile Order QR)',
+                                        'package'       => 'package (Logistik & Gudang / Box)',
+                                        'utensils'      => 'utensils (Waiter / F&B / Sendok Garpu)',
+                                        'sparkles'      => 'sparkles (Club & Lounge / Hiburan)',
+                                        'zap'           => 'zap (Facility & Asset / Listrik)',
+                                        'laptop'        => 'laptop (Cloud POS / Komputer)',
+                                        'store'         => 'store (Outlet & Toko)',
+                                        'shopping-bag'  => 'shopping-bag (Purchasing / Belanja)',
+                                        'bar-chart-3'   => 'bar-chart-3 (Akuntansi & Keuangan)',
+                                        'trending-up'   => 'trending-up (Laporan & Grafik)',
+                                        'settings'      => 'settings (Master & Konfigurasi)',
+                                        'sliders'       => 'sliders (Tools & Hardware)',
+                                        'book-open'     => 'book-open (Buku Panduan Umum)',
+                                    ];
+                                @endphp
+                                @foreach($icons as $iconKey => $iconLabel)
+                                    <option value="{{ $iconKey }}" {{ $currentIcon === $iconKey ? 'selected' : '' }}>
+                                        {{ $iconLabel }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <p class="text-slate-400 text-[11px] mt-1.5">Ikon ini akan otomatis tampil pada card sistem di Pusat Bantuan & Manual Book publik.</p>
                     </div>
         
                     <div class="flex items-center justify-end mt-8 pt-6 border-t border-slate-100">

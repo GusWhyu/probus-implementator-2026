@@ -32,9 +32,11 @@ class KategoriController extends Controller
         $this->authorize('aspv');
         $kategori = new Kategori;
         $request->validate([
-            'name'=>'required|max:255|unique:kategori,name'
+            'name'=>'required|max:255|unique:kategori,name',
+            'icon'=>'nullable|string|max:50',
         ]);
         $kategori->name = $request->input('name');
+        $kategori->icon = $request->input('icon') ?: 'monitor-check';
         $kategori->save();
         Alert::success('Successfully Added Data!');
         return redirect('/kategori'); 
@@ -44,10 +46,12 @@ class KategoriController extends Controller
         $this->authorize('aspv');
         $data = Kategori::find($id);
         $request->validate([
-            'name'=>'required|max:255|unique:kategori,name'
+            'name'=>'required|max:255|unique:kategori,name,'.$id,
+            'icon'=>'nullable|string|max:50',
         ]);
         $data->update([
-            'name'=>$request->input('name')
+            'name'=>$request->input('name'),
+            'icon'=>$request->input('icon') ?: ($data->icon ?: 'monitor-check'),
         ]);
         Alert::success('Successfully Edit Data!');
         return redirect('/kategori');

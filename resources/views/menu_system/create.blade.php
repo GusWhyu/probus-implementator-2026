@@ -34,7 +34,7 @@
                 <div class="flex flex-wrap gap-1.5">
                     @foreach ($standardSuggestions as $sugg)
                         <button type="button" 
-                                onclick="fillSuggestion('{{ addslashes($sugg['name']) }}', '{{ addslashes($sugg['desc']) }}')"
+                                onclick="fillSuggestion('{{ addslashes($sugg['name']) }}', '{{ addslashes($sugg['icon'] ?? 'book-open') }}', '{{ addslashes($sugg['desc']) }}')"
                                 class="px-2.5 py-1 bg-white dark:bg-[#0f172a] hover:bg-blue-600 hover:text-white dark:hover:bg-blue-600 dark:hover:text-white text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700 rounded-lg text-xs font-semibold transition-all shadow-2xs cursor-pointer">
                             + {{ $sugg['name'] }}
                         </button>
@@ -67,8 +67,8 @@
                         <p class="text-slate-400 text-[11px] mt-1.5">Sistem tempat modul ini bernaung (misal: PRESTO, PHIS, PPOS).</p>
                     </div>
 
-                    <!-- Grid: Nama Modul & Urutan -->
-                    <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-6">
+                    <!-- Grid: Nama Modul, Ikon & Urutan -->
+                    <div class="grid grid-cols-1 sm:grid-cols-6 gap-4 mb-6">
                         <!-- Nama Modul -->
                         <div class="sm:col-span-3">
                             <label for="name" class="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-2">
@@ -78,7 +78,36 @@
                                 <i class="fa-solid fa-layer-group absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
                                 <input id="name" class="block w-full rounded-xl border-slate-200 dark:border-slate-700 dark:bg-[#131e38] dark:text-slate-100 focus:border-blue-500 focus:ring focus:ring-blue-500/20 shadow-sm text-sm py-2.5 pl-11 pr-4 transition-colors" type="text" name="name" value="{{ old('name') }}" required autofocus placeholder="Contoh: Sales, Tools, Production" />
                             </div>
-                            <p class="text-slate-400 text-[11px] mt-1.5">Nama modul yang akan tampil pada filter dan buku panduan.</p>
+                            <p class="text-slate-400 text-[11px] mt-1.5">Nama modul pada sistem.</p>
+                        </div>
+
+                        <!-- Ikon Modul -->
+                        <div class="sm:col-span-2">
+                            <label for="icon" class="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-2">
+                                Ikon Modul <span class="text-slate-400 font-normal">(Lucide)</span>
+                            </label>
+                            <div class="relative">
+                                <i class="fa-solid fa-icons absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+                                <select id="icon" name="icon" class="block w-full rounded-xl border-slate-200 dark:border-slate-700 dark:bg-[#131e38] dark:text-slate-100 focus:border-blue-500 focus:ring focus:ring-blue-500/20 shadow-sm text-sm py-2.5 pl-11 pr-8 transition-colors">
+                                    <option value="settings" {{ old('icon') == 'settings' ? 'selected' : '' }}>settings (Setup Master)</option>
+                                    <option value="utensils" {{ old('icon') == 'utensils' ? 'selected' : '' }}>utensils (Transaksi/Sales)</option>
+                                    <option value="store" {{ old('icon') == 'store' ? 'selected' : '' }}>store (Outlet Activity)</option>
+                                    <option value="pie-chart" {{ old('icon') == 'pie-chart' ? 'selected' : '' }}>pie-chart (Cost Control)</option>
+                                    <option value="shopping-bag" {{ old('icon') == 'shopping-bag' ? 'selected' : '' }}>shopping-bag (Purchasing AP)</option>
+                                    <option value="receipt" {{ old('icon') == 'receipt' ? 'selected' : '' }}>receipt (AR/Invoice)</option>
+                                    <option value="wallet" {{ old('icon') == 'wallet' ? 'selected' : '' }}>wallet (General Cashier)</option>
+                                    <option value="bar-chart-3" {{ old('icon') == 'bar-chart-3' ? 'selected' : '' }}>bar-chart-3 (Accounting)</option>
+                                    <option value="trending-up" {{ old('icon') == 'trending-up' ? 'selected' : '' }}>trending-up (Report)</option>
+                                    <option value="sliders" {{ old('icon') == 'sliders' ? 'selected' : '' }}>sliders (Tools)</option>
+                                    <option value="monitor" {{ old('icon') == 'monitor' ? 'selected' : '' }}>monitor (KDS/Display)</option>
+                                    <option value="file-text" {{ old('icon') == 'file-text' ? 'selected' : '' }}>file-text (Shift/Laporan)</option>
+                                    <option value="calendar" {{ old('icon') == 'calendar' ? 'selected' : '' }}>calendar (Kalender)</option>
+                                    <option value="calculator" {{ old('icon') == 'calculator' ? 'selected' : '' }}>calculator (Kalkulator)</option>
+                                    <option value="network" {{ old('icon') == 'network' ? 'selected' : '' }}>network (Jaringan/Sync)</option>
+                                    <option value="book-open" {{ old('icon') == 'book-open' ? 'selected' : '' }}>book-open (Panduan Umum)</option>
+                                </select>
+                            </div>
+                            <p class="text-slate-400 text-[11px] mt-1.5">Ikon visual pada card modul.</p>
                         </div>
 
                         <!-- Urutan (Order) -->
@@ -90,7 +119,7 @@
                                 <i class="fa-solid fa-arrow-down-1-9 absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
                                 <input id="order" class="block w-full rounded-xl border-slate-200 dark:border-slate-700 dark:bg-[#131e38] dark:text-slate-100 focus:border-blue-500 focus:ring focus:ring-blue-500/20 shadow-sm text-sm py-2.5 pl-11 pr-4 transition-colors font-mono font-bold" type="number" name="order" value="{{ old('order', $nextOrder) }}" min="1" required />
                             </div>
-                            <p class="text-slate-400 text-[11px] mt-1.5">Posisi urutan modul (1 s/d 10).</p>
+                            <p class="text-slate-400 text-[11px] mt-1.5">Urutan (1-10).</p>
                         </div>
                     </div>
 
@@ -117,8 +146,11 @@
     </div>
 
     <script>
-        function fillSuggestion(name, desc) {
+        function fillSuggestion(name, icon, desc) {
             document.getElementById('name').value = name;
+            if (icon && document.getElementById('icon')) {
+                document.getElementById('icon').value = icon;
+            }
             document.getElementById('description').value = desc;
             document.getElementById('name').focus();
         }

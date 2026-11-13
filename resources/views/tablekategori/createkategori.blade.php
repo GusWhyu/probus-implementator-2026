@@ -28,8 +28,34 @@
         
                     <!-- Name -->
                     <div class="mb-6">
-                        <label for="name" class="block text-sm font-semibold text-slate-700 mb-2">Nama Kategori <span class="text-red-500">*</span></label>
-                        <input id="name" class="block w-full rounded-xl border-slate-200 focus:border-blue-500 focus:ring focus:ring-blue-500/20 shadow-sm text-sm py-2.5 px-4 transition-colors" type="text" name="name" value="{{ old('name') }}" required autofocus placeholder="Contoh: Hardware, Software, Jaringan" />
+                        <label for="name" class="block text-sm font-semibold text-slate-700 mb-2">Nama Kategori / Sistem <span class="text-red-500">*</span></label>
+                        <input id="name" class="block w-full rounded-xl border-slate-200 focus:border-blue-500 focus:ring focus:ring-blue-500/20 shadow-sm text-sm py-2.5 px-4 transition-colors" type="text" name="name" value="{{ old('name') }}" required autofocus placeholder="Contoh: PHIS, PRESTO, PPOS" />
+                    </div>
+
+                    <!-- Icon (Lucide SVG Icon identifier) -->
+                    <div class="mb-6">
+                        <label for="icon" class="block text-sm font-semibold text-slate-700 mb-2">
+                            Ikon Card (Lucide Icon) <span class="text-slate-400 font-normal">(Opsional)</span>
+                        </label>
+                        <select id="icon" name="icon" class="block w-full rounded-xl border-slate-200 focus:border-blue-500 focus:ring focus:ring-blue-500/20 shadow-sm text-sm py-2.5 px-4 transition-colors">
+                            <option value="monitor-check" {{ old('icon') == 'monitor-check' ? 'selected' : '' }}>monitor-check (Restoran & POS / Monitor)</option>
+                            <option value="building-2" {{ old('icon') == 'building-2' ? 'selected' : '' }}>building-2 (Hotel & Resort / Gedung)</option>
+                            <option value="printer" {{ old('icon') == 'printer' ? 'selected' : '' }}>printer (Retail & Kasir / Printer Thermal)</option>
+                            <option value="smartphone" {{ old('icon') == 'smartphone' ? 'selected' : '' }}>smartphone (Self Service / Mobile Order QR)</option>
+                            <option value="package" {{ old('icon') == 'package' ? 'selected' : '' }}>package (Logistik & Gudang / Box)</option>
+                            <option value="utensils" {{ old('icon') == 'utensils' ? 'selected' : '' }}>utensils (Waiter / F&B / Sendok Garpu)</option>
+                            <option value="sparkles" {{ old('icon') == 'sparkles' ? 'selected' : '' }}>sparkles (Club & Lounge / Hiburan)</option>
+                            <option value="zap" {{ old('icon') == 'zap' ? 'selected' : '' }}>zap (Facility & Asset / Listrik)</option>
+                            <option value="laptop" {{ old('icon') == 'laptop' ? 'selected' : '' }}>laptop (Cloud POS / Komputer)</option>
+                            <option value="store" {{ old('icon') == 'store' ? 'selected' : '' }}>store (Outlet & Toko)</option>
+                            <option value="shopping-bag" {{ old('icon') == 'shopping-bag' ? 'selected' : '' }}>shopping-bag (Purchasing / Belanja)</option>
+                            <option value="bar-chart-3" {{ old('icon') == 'bar-chart-3' ? 'selected' : '' }}>bar-chart-3 (Akuntansi & Keuangan)</option>
+                            <option value="trending-up" {{ old('icon') == 'trending-up' ? 'selected' : '' }}>trending-up (Laporan & Grafik)</option>
+                            <option value="settings" {{ old('icon') == 'settings' ? 'selected' : '' }}>settings (Master & Konfigurasi)</option>
+                            <option value="sliders" {{ old('icon') == 'sliders' ? 'selected' : '' }}>sliders (Tools & Hardware)</option>
+                            <option value="book-open" {{ old('icon') == 'book-open' ? 'selected' : '' }}>book-open (Buku Panduan Umum)</option>
+                        </select>
+                        <p class="text-slate-400 text-[11px] mt-1.5">Ikon ini akan otomatis tampil pada card sistem di Pusat Bantuan & Manual Book publik.</p>
                     </div>
         
                     <div class="flex items-center justify-end mt-8 pt-6 border-t border-slate-100">
