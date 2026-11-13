@@ -383,7 +383,7 @@
                 <a href="{{ route('manualbook.manage') }}" 
                    class="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white rounded-xl text-xs sm:text-sm font-bold shadow-md shadow-blue-500/20 transition-all hover:scale-[1.02] cursor-pointer">
                     <i class="fa-solid fa-plus text-xs"></i>
-                    <span>+ Tulis Manual Book Baru</span>
+                    <span>Tulis Manual Book Baru</span>
                 </a>
             </div>
         </div>

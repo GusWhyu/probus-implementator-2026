@@ -223,12 +223,12 @@
                 <a href="{{ route('bank-solusi.create') }}" 
                    class="inline-flex items-center gap-2 px-3.5 py-2 bg-blue-500/10 hover:bg-blue-500/20 text-blue-600 dark:text-blue-400 border border-blue-500/20 rounded-xl text-xs sm:text-sm font-bold shadow-2xs transition-all cursor-pointer">
                     <i class="fa-solid fa-lightbulb text-xs"></i>
-                    <span>+ Buat Solusi Baru</span>
+                    <span>Buat Solusi Baru</span>
                 </a>
                 <a href="{{ route('manualbook.manage') }}" 
                    class="inline-flex items-center gap-2 px-3.5 py-2 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white rounded-xl text-xs sm:text-sm font-bold shadow-md shadow-blue-500/20 transition-all cursor-pointer">
                     <i class="fa-solid fa-plus text-xs"></i>
-                    <span>+ Tulis Manual Book</span>
+                    <span>Tulis Manual Book</span>
                 </a>
             </div>
         </div>
