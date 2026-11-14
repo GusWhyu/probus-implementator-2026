@@ -49,9 +49,26 @@
                 set chapterStatus(val) { this.subMenuStatus = val; },
                 get currentChapter() { return this.currentSubMenu; },
 
+                getNextModuleNumber() {
+                    const mods = this.modules || [];
+                    if (mods.length === 0) return 1;
+                    let max = 0;
+                    mods.forEach(m => {
+                        const o = parseInt(m.order, 10);
+                        if (o > max) max = o;
+                    });
+                    return max + 1;
+                },
+
+                isModuleNumberTaken(num) {
+                    if (!num || !this.modules) return null;
+                    const n = parseInt(num, 10);
+                    return this.modules.find(m => parseInt(m.order, 10) === n) || null;
+                },
+
                 openCreateMainModuleModal() {
                     this.newModuleName = '';
-                    this.newModuleNumber = (this.modules ? this.modules.length + 1 : 1);
+                    this.newModuleNumber = this.getNextModuleNumber();
                     this.openAddModuleModal = true;
                 },
 
@@ -876,6 +893,21 @@
                     const name = (this.newModuleName || '').trim();
                     if (!name) return;
 
+                    const conflict = this.isModuleNumberTaken(this.newModuleNumber);
+                    if (conflict) {
+                        const msg = `Nomor urut ${this.newModuleNumber} sudah digunakan oleh modul "${conflict.title}". Gunakan nomor urut yang masih tersedia.`;
+                        if (typeof Swal !== 'undefined') {
+                            Swal.fire({
+                                icon: 'warning',
+                                title: 'Nomor Urut Sudah Terpakai',
+                                text: msg
+                            });
+                        } else {
+                            alert(msg);
+                        }
+                        return;
+                    }
+
                     fetch('{{ route("manualbook.module.add") }}', {
                         method: 'POST',
                         headers: {
@@ -1586,7 +1618,20 @@
                     <div class="space-y-3.5">
                         <div>
                             <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">Nomor / Urutan</label>
-                            <input type="number" x-model="newModuleNumber" placeholder="Contoh: 1, 2, dst." class="w-full px-3.5 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
+                            <input type="number" min="1" x-model="newModuleNumber" placeholder="Contoh: 1, 2, dst." class="w-full px-3.5 py-2 text-xs bg-slate-50 dark:bg-slate-800 border rounded-xl text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2"
+                                   :class="isModuleNumberTaken(newModuleNumber) ? 'border-rose-500 focus:ring-rose-500/20 focus:border-rose-500' : 'border-slate-200 dark:border-slate-700 focus:ring-blue-500/20 focus:border-blue-500'">
+                            <template x-if="isModuleNumberTaken(newModuleNumber)">
+                                <p class="text-[11px] text-rose-500 font-semibold mt-1 flex items-center gap-1">
+                                    <i class="fa-solid fa-circle-xmark text-[10px]"></i>
+                                    <span>Nomor urut <strong x-text="newModuleNumber"></strong> sudah dipakai oleh modul "<strong x-text="isModuleNumberTaken(newModuleNumber)?.title || isModuleNumberTaken(newModuleNumber)?.raw_name"></strong>".</span>
+                                </p>
+                            </template>
+                            <template x-if="!isModuleNumberTaken(newModuleNumber) && newModuleNumber">
+                                <p class="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium mt-1 flex items-center gap-1">
+                                    <i class="fa-solid fa-circle-check text-[10px]"></i>
+                                    <span>Nomor urut <strong x-text="newModuleNumber"></strong> tersedia.</span>
+                                </p>
+                            </template>
                         </div>
 
                         <div>
@@ -1599,7 +1644,9 @@
                         <button type="button" @click="openAddModuleModal = false" class="px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer">
                             Batal
                         </button>
-                        <button type="submit" class="px-4 py-2 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white shadow-sm shadow-blue-500/20 cursor-pointer">
+                        <button type="submit" 
+                                :disabled="Boolean(isModuleNumberTaken(newModuleNumber)) || !Boolean((newModuleName || '').trim())"
+                                class="px-4 py-2 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white shadow-sm shadow-blue-500/20 cursor-pointer disabled:opacity-50 disabled:pointer-events-none">
                             Simpan Modul
                         </button>
                     </div>

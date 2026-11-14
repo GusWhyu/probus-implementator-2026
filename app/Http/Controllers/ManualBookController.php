@@ -476,13 +476,35 @@ class ManualBookController extends Controller
         $request->validate([
             'kategori_id' => 'required|exists:kategori,id',
             'name' => 'required|string|max:100',
-            'order' => 'nullable|integer',
+            'order' => 'nullable|integer|min:1',
         ]);
 
         $order = $request->order ? (int) $request->order : 0;
         if ($order === 0) {
             $maxOrder = MenuSystem::where('kategori_id', $request->kategori_id)->max('order');
             $order = $maxOrder ? $maxOrder + 1 : 1;
+        } else {
+            // Cek apakah nomor urut sudah terpakai di sistem ini
+            $existing = MenuSystem::where('kategori_id', $request->kategori_id)
+                ->where('order', $order)
+                ->first();
+            if ($existing) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "Nomor urut {$order} sudah digunakan oleh modul '{$existing->name}' pada sistem ini. Silakan gunakan nomor lain.",
+                ], 422);
+            }
+        }
+
+        // Cek apakah nama modul sudah ada di sistem ini
+        $existingName = MenuSystem::where('kategori_id', $request->kategori_id)
+            ->where('name', trim($request->name))
+            ->first();
+        if ($existingName) {
+            return response()->json([
+                'success' => false,
+                'message' => "Modul dengan nama '" . trim($request->name) . "' sudah ada pada sistem ini.",
+            ], 422);
         }
 
         $menuSystem = MenuSystem::create([

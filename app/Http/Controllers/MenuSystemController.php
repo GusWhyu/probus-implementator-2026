@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\MenuSystem;
 use App\Models\Kategori;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use RealRashid\SweetAlert\Facades\Alert;
 
 class MenuSystemController extends Controller
@@ -74,6 +75,12 @@ class MenuSystemController extends Controller
         $categories = Kategori::orderBy('name', 'asc')->get();
         $selectedKategoriId = $request->input('kategori_id', $categories->first() ? $categories->first()->id : null);
 
+        // Ambil semua modul per kategori untuk validasi dan auto next order di client-side
+        $modulesByCategory = MenuSystem::select('id', 'kategori_id', 'name', 'order')
+            ->orderBy('order')
+            ->get()
+            ->groupBy('kategori_id');
+
         // Hitung estimasi order berikutnya untuk kategori yang dipilih
         $nextOrder = 1;
         if ($selectedKategoriId) {
@@ -94,7 +101,7 @@ class MenuSystemController extends Controller
             ['name' => 'Reconnecting', 'desc' => 'Modul pemulihan koneksi offline/online, sinkronisasi data cloud, dan pemulihan jaringan.'],
         ];
 
-        return view('menu_system.create', compact('categories', 'selectedKategoriId', 'nextOrder', 'standardSuggestions'));
+        return view('menu_system.create', compact('categories', 'selectedKategoriId', 'nextOrder', 'standardSuggestions', 'modulesByCategory'));
     }
 
     /**
@@ -102,18 +109,44 @@ class MenuSystemController extends Controller
      */
     public function store(Request $request)
     {
+        $kategoriId = $request->kategori_id;
+        $order = (int) $request->order;
+
+        // Cek secara spesifik agar pesan error menyebutkan modul yang bentrok
+        if ($kategoriId && $order) {
+            $existing = MenuSystem::where('kategori_id', $kategoriId)->where('order', $order)->first();
+            if ($existing) {
+                return back()->withInput()->withErrors([
+                    'order' => "Nomor urut {$order} sudah digunakan oleh modul '{$existing->name}' pada sistem ini. Silakan gunakan nomor urut yang masih tersedia.",
+                ]);
+            }
+        }
+
         $validated = $request->validate([
             'kategori_id' => 'required|exists:kategori,id',
-            'name' => 'required|string|max:100',
-            'order' => 'required|integer|min:0',
+            'name' => [
+                'required',
+                'string',
+                'max:100',
+                Rule::unique('menu_systems', 'name')->where('kategori_id', $request->kategori_id),
+            ],
+            'order' => [
+                'required',
+                'integer',
+                'min:1',
+                Rule::unique('menu_systems', 'order')->where('kategori_id', $request->kategori_id),
+            ],
             'description' => 'nullable|string',
         ], [
             'kategori_id.required' => 'Sistem / Kategori wajib dipilih.',
             'kategori_id.exists' => 'Sistem / Kategori tidak valid.',
             'name.required' => 'Nama modul wajib diisi.',
+            'name.unique' => 'Nama modul sudah digunakan pada sistem ini. Gunakan nama lain.',
             'name.max' => 'Nama modul maksimal 100 karakter.',
             'order.required' => 'Urutan modul wajib diisi.',
             'order.integer' => 'Urutan modul harus berupa angka bulat.',
+            'order.min' => 'Urutan modul minimal bernilai 1.',
+            'order.unique' => 'Nomor urut ini sudah digunakan oleh modul lain pada sistem yang dipilih. Silakan gunakan nomor urut yang masih tersedia.',
         ]);
 
         MenuSystem::create([
@@ -136,7 +169,12 @@ class MenuSystemController extends Controller
         $module = MenuSystem::with('kategori')->findOrFail($id);
         $categories = Kategori::orderBy('name', 'asc')->get();
 
-        return view('menu_system.edit', compact('module', 'categories'));
+        $modulesByCategory = MenuSystem::select('id', 'kategori_id', 'name', 'order')
+            ->orderBy('order')
+            ->get()
+            ->groupBy('kategori_id');
+
+        return view('menu_system.edit', compact('module', 'categories', 'modulesByCategory'));
     }
 
     /**
@@ -145,19 +183,50 @@ class MenuSystemController extends Controller
     public function update(Request $request, $id)
     {
         $module = MenuSystem::findOrFail($id);
+        $kategoriId = $request->kategori_id;
+        $order = (int) $request->order;
+
+        if ($kategoriId && $order) {
+            $existing = MenuSystem::where('kategori_id', $kategoriId)
+                ->where('order', $order)
+                ->where('id', '!=', $id)
+                ->first();
+            if ($existing) {
+                return back()->withInput()->withErrors([
+                    'order' => "Nomor urut {$order} sudah digunakan oleh modul '{$existing->name}' pada sistem ini. Silakan gunakan nomor urut yang masih tersedia.",
+                ]);
+            }
+        }
 
         $validated = $request->validate([
             'kategori_id' => 'required|exists:kategori,id',
-            'name' => 'required|string|max:100',
-            'order' => 'required|integer|min:0',
+            'name' => [
+                'required',
+                'string',
+                'max:100',
+                Rule::unique('menu_systems', 'name')
+                    ->where('kategori_id', $request->kategori_id)
+                    ->ignore($id),
+            ],
+            'order' => [
+                'required',
+                'integer',
+                'min:1',
+                Rule::unique('menu_systems', 'order')
+                    ->where('kategori_id', $request->kategori_id)
+                    ->ignore($id),
+            ],
             'description' => 'nullable|string',
         ], [
             'kategori_id.required' => 'Sistem / Kategori wajib dipilih.',
             'kategori_id.exists' => 'Sistem / Kategori tidak valid.',
             'name.required' => 'Nama modul wajib diisi.',
+            'name.unique' => 'Nama modul sudah digunakan pada sistem ini. Gunakan nama lain.',
             'name.max' => 'Nama modul maksimal 100 karakter.',
             'order.required' => 'Urutan modul wajib diisi.',
             'order.integer' => 'Urutan modul harus berupa angka bulat.',
+            'order.min' => 'Urutan modul minimal bernilai 1.',
+            'order.unique' => 'Nomor urut ini sudah digunakan oleh modul lain pada sistem yang dipilih. Silakan gunakan nomor urut yang masih tersedia.',
         ]);
 
         $module->update([

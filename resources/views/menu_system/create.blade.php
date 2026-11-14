@@ -90,7 +90,9 @@
                                 <i class="fa-solid fa-arrow-down-1-9 absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
                                 <input id="order" class="block w-full rounded-xl border-slate-200 dark:border-slate-700 dark:bg-[#131e38] dark:text-slate-100 focus:border-blue-500 focus:ring focus:ring-blue-500/20 shadow-sm text-sm py-2.5 pl-11 pr-4 transition-colors font-mono font-bold" type="number" name="order" value="{{ old('order', $nextOrder) }}" min="1" required />
                             </div>
-                            <p class="text-slate-400 text-[11px] mt-1.5">Posisi urutan modul (1 s/d 10).</p>
+                            <div id="order-feedback" class="text-[11px] mt-1.5 font-medium transition-all">
+                                <span class="text-slate-400">Posisi urutan nomor modul.</span>
+                            </div>
                         </div>
                     </div>
 
@@ -107,7 +109,7 @@
                         <a href="{{ route('menu-system.index', ['kategori_id' => $selectedKategoriId]) }}" class="px-5 py-2.5 rounded-xl text-sm font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 border border-transparent hover:border-slate-200 transition-all mr-3">
                             Batal
                         </a>
-                        <button type="submit" class="bg-blue-600 hover:bg-blue-700 active:scale-95 text-white px-6 py-2.5 rounded-xl text-sm font-bold flex items-center justify-center gap-2 shadow-md shadow-blue-500/20 transition-all">
+                        <button type="submit" id="btn-submit" class="bg-blue-600 hover:bg-blue-700 active:scale-95 text-white px-6 py-2.5 rounded-xl text-sm font-bold flex items-center justify-center gap-2 shadow-md shadow-blue-500/20 transition-all disabled:opacity-50 disabled:pointer-events-none cursor-pointer">
                             <i class="fa-solid fa-save text-xs"></i> Simpan Modul
                         </button>
                     </div>
@@ -117,10 +119,64 @@
     </div>
 
     <script>
+        const modulesByCategory = @json($modulesByCategory ?? []);
+
         function fillSuggestion(name, desc) {
             document.getElementById('name').value = name;
             document.getElementById('description').value = desc;
             document.getElementById('name').focus();
+        }
+
+        const categorySelect = document.getElementById('kategori_id');
+        const orderInput = document.getElementById('order');
+        const orderFeedback = document.getElementById('order-feedback');
+        const submitBtn = document.getElementById('btn-submit');
+
+        function checkOrderAvailability() {
+            const catId = categorySelect.value;
+            const orderVal = parseInt(orderInput.value, 10);
+            const currentCatModules = modulesByCategory[catId] || [];
+
+            if (!orderVal || isNaN(orderVal) || orderVal < 1) {
+                orderFeedback.innerHTML = '<span class="text-rose-500 font-semibold"><i class="fa-solid fa-circle-exclamation mr-1"></i> Nomor urut minimal 1.</span>';
+                orderInput.classList.add('border-rose-500', 'focus:border-rose-500');
+                submitBtn.disabled = true;
+                return;
+            }
+
+            const conflict = currentCatModules.find(m => parseInt(m.order, 10) === orderVal);
+
+            if (conflict) {
+                orderFeedback.innerHTML = `<span class="text-rose-500 font-semibold"><i class="fa-solid fa-circle-xmark mr-1"></i> Nomor urut ${orderVal} sudah dipakai oleh modul "${conflict.name}".</span>`;
+                orderInput.classList.add('border-rose-500', 'focus:border-rose-500');
+                orderInput.classList.remove('border-slate-200', 'dark:border-slate-700');
+                submitBtn.disabled = true;
+            } else {
+                orderFeedback.innerHTML = `<span class="text-emerald-600 dark:text-emerald-400 font-medium"><i class="fa-solid fa-circle-check mr-1"></i> Nomor urut ${orderVal} tersedia.</span>`;
+                orderInput.classList.remove('border-rose-500', 'focus:border-rose-500');
+                orderInput.classList.add('border-slate-200', 'dark:border-slate-700');
+                submitBtn.disabled = false;
+            }
+        }
+
+        function updateNextOrderForCategory() {
+            const catId = categorySelect.value;
+            const currentCatModules = modulesByCategory[catId] || [];
+            let maxOrder = 0;
+            currentCatModules.forEach(m => {
+                const o = parseInt(m.order, 10);
+                if (o > maxOrder) maxOrder = o;
+            });
+            orderInput.value = maxOrder + 1;
+            checkOrderAvailability();
+        }
+
+        if (categorySelect) {
+            categorySelect.addEventListener('change', updateNextOrderForCategory);
+        }
+        if (orderInput) {
+            orderInput.addEventListener('input', checkOrderAvailability);
+            checkOrderAvailability();
         }
     </script>
 </x-app-layout>
