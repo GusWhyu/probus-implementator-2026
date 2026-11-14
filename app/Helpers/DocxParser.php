@@ -288,7 +288,7 @@ class DocxParser
             }
         }
 
-        $html = '<table style="width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 13.5px; border: 1px solid #cbd5e1;" border="1"><tbody>';
+        $html = '<table style="width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 13.5px; border: 1px solid #cbd5e1; border-radius: 8px; overflow: hidden;" border="1"><tbody>';
 
         $isFirstRow = true;
 
