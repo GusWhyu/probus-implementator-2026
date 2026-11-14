@@ -261,8 +261,6 @@
                             margin: 16px 0; 
                             font-size: 13.5px;
                             border: 1px solid ${isDark ? '#334155' : '#cbd5e1'}; 
-                            border-radius: 8px;
-                            overflow: hidden;
                         }
                         th { 
                             background-color: ${isDark ? '#1e293b' : '#f1f5f9'}; 
