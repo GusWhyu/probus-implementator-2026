@@ -1184,46 +1184,34 @@
                 </div>
 
                 {{-- List Modul Cards with Sub Menu Accordion --}}
-                <div class="space-y-2.5">
+                <div class="space-y-2">
                     <template x-for="mod in modules" :key="mod.id">
-                        <div class="rounded-2xl border transition-all duration-200 overflow-hidden"
-                             :class="String(activeModuleId) === String(mod.id)
-                                 ? 'border-blue-500 bg-white dark:bg-slate-900 shadow-sm ring-1 ring-blue-500/30'
-                                 : 'border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/60'">
+                        <div class="rounded-xl border transition-all duration-150 overflow-hidden"
+                             :class="expandedModules[mod.id] || String(activeModuleId) === String(mod.id)
+                                 ? 'border-blue-400/60 dark:border-blue-800 bg-white dark:bg-slate-900 shadow-xs'
+                                 : 'border-slate-200 dark:border-slate-800/80 bg-white dark:bg-slate-900/40 hover:border-slate-300 dark:hover:border-slate-700'">
                             
-                            {{-- Header Modul (Dapat diklik untuk expand / pilih modul) --}}
-                            <div class="p-3.5 flex items-center justify-between gap-2 cursor-pointer select-none group"
+                            {{-- Header Modul (Simple: Judul Modul + Dropdown Chevron) --}}
+                            <div class="px-3.5 py-2.5 flex items-center justify-between gap-2 cursor-pointer select-none group"
                                  @click="toggleModule(mod.id)">
-                                <div class="flex items-center gap-2.5 min-w-0">
-                                    <div :class="String(activeModuleId) === String(mod.id) ? 'bg-blue-600 text-white' : 'bg-white dark:bg-slate-800 text-slate-500 border border-slate-200 dark:border-slate-700'"
-                                         class="w-7 h-7 rounded-xl flex items-center justify-center shrink-0 transition-colors">
-                                        <i class="fa-solid fa-folder text-xs"></i>
-                                    </div>
-                                    <div class="min-w-0">
-                                        <h3 class="text-xs sm:text-[13px] font-bold text-slate-800 dark:text-slate-100 truncate group-hover:text-blue-600 transition-colors"
-                                            x-text="mod.title"></h3>
-                                        <span class="text-[10px] font-medium"
-                                              :class="mod.statusClass"
-                                              x-text="mod.statusLabel"></span>
-                                    </div>
+                                <div class="min-w-0 flex items-center gap-2">
+                                    <h3 class="text-xs sm:text-[13px] font-bold text-slate-800 dark:text-slate-100 truncate group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors"
+                                        x-text="mod.title"></h3>
                                 </div>
-                                <div class="flex items-center gap-1.5 shrink-0">
-                                    <span class="text-[10px] font-bold px-2 py-0.5 rounded-full"
-                                          :class="(mod.sub_menus ? mod.sub_menus.length : 0) > 0 ? 'bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400' : 'bg-slate-100 dark:bg-slate-800 text-slate-400'"
-                                          x-text="(mod.sub_menus ? mod.sub_menus.length : 0) + ' Sub Menu'"></span>
+                                <div class="flex items-center gap-1 shrink-0">
                                     <button type="button" 
                                             @click.stop="confirmDeleteModule(mod)"
                                             class="w-6 h-6 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all"
                                             title="Hapus Modul">
                                         <i class="fa-solid fa-trash-can text-[10px]"></i>
                                     </button>
-                                    <i class="fa-solid fa-chevron-down text-[10px] text-slate-400 transition-transform duration-200"
-                                       :class="expandedModules[mod.id] ? 'rotate-180 text-blue-500' : ''"></i>
+                                    <i class="fa-solid fa-chevron-down text-xs text-slate-400 transition-transform duration-200"
+                                       :class="expandedModules[mod.id] ? 'rotate-180 text-blue-600 dark:text-blue-400' : ''"></i>
                                 </div>
                             </div>
 
                             {{-- Daftar Sub Menu di bawah Modul --}}
-                            <div x-show="expandedModules[mod.id]" class="border-t border-slate-100 dark:border-slate-800/80 bg-slate-50/70 dark:bg-slate-950/40 p-2.5 space-y-1.5">
+                            <div x-show="expandedModules[mod.id]" class="border-t border-slate-100 dark:border-slate-800/80 bg-slate-50/60 dark:bg-slate-950/40 p-2 space-y-1">
                                 <template x-for="(sub, sIdx) in (mod.sub_menus || mod.chapters || [])" :key="sub.id">
                                     <div @click="selectSubMenu(mod.id, sub.id)"
                                          draggable="true"
@@ -1234,25 +1222,23 @@
                                          @dragend="onSubMenuDragEnd()"
                                          :class="[
                                              String(activeModuleId) === String(mod.id) && String(activeSubMenuId) === String(sub.id) && !isNewSubMenu
-                                                 ? 'bg-blue-600 text-white font-semibold shadow-xs'
-                                                 : 'bg-white dark:bg-slate-800/90 text-slate-700 dark:text-slate-300 hover:bg-blue-50/80 dark:hover:bg-slate-800 border border-slate-200/80 dark:border-slate-700/60',
+                                                 ? 'bg-blue-600 text-white font-medium shadow-xs'
+                                                 : 'bg-white dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 hover:bg-blue-50/80 dark:hover:bg-slate-800 border border-slate-200/70 dark:border-slate-700/60',
                                              dragOverIndex === sIdx && String(draggedModuleId) === String(mod.id)
-                                                 ? 'ring-2 ring-blue-500 scale-[1.02] shadow-md'
+                                                 ? 'ring-2 ring-blue-500 scale-[1.01] shadow-md'
                                                  : ''
                                          ]"
-                                         class="p-2.5 rounded-xl transition-all duration-150 cursor-pointer flex items-center justify-between gap-2 group/sub select-none">
+                                         class="p-2 rounded-lg transition-all duration-150 cursor-pointer flex items-center justify-between gap-2 group/sub select-none">
                                         <div class="flex items-center gap-2 min-w-0">
                                             {{-- Grip Handle Drag & Drop --}}
                                             <i class="fa-solid fa-grip-vertical text-slate-300 dark:text-slate-600 hover:text-slate-500 cursor-grab active:cursor-grabbing text-[10px] shrink-0"
                                                :class="String(activeModuleId) === String(mod.id) && String(activeSubMenuId) === String(sub.id) && !isNewSubMenu ? 'text-white/60' : ''"
                                                title="Geser posisi sub menu"></i>
 
-                                            <span class="w-5 h-5 rounded-md flex items-center justify-center text-[10px] font-black shrink-0"
-                                                  :class="String(activeModuleId) === String(mod.id) && String(activeSubMenuId) === String(sub.id) && !isNewSubMenu
-                                                      ? 'bg-white/20 text-white'
-                                                      : 'bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400'"
+                                            <span class="text-[11px] font-bold shrink-0"
+                                                  :class="String(activeModuleId) === String(mod.id) && String(activeSubMenuId) === String(sub.id) && !isNewSubMenu ? 'text-blue-100' : 'text-slate-400'"
                                                   x-text="'#' + sub.order"></span>
-                                            <span class="text-xs truncate" x-text="sub.title"></span>
+                                            <span class="text-xs truncate font-medium" x-text="sub.title"></span>
                                         </div>
 
                                         <div class="flex items-center gap-1 shrink-0">
@@ -1308,9 +1294,9 @@
 
                                 {{-- Placeholder Item Preview saat Sedang Menambah Sub Menu Baru --}}
                                 <template x-if="String(activeModuleId) === String(mod.id) && isNewSubMenu">
-                                    <div class="p-2.5 rounded-xl bg-blue-600 text-white font-semibold shadow-xs flex items-center justify-between gap-2 border border-blue-500 ring-2 ring-blue-400/40 select-none">
+                                    <div class="p-2 rounded-lg bg-blue-600 text-white font-medium shadow-xs flex items-center justify-between gap-2 border border-blue-500 ring-2 ring-blue-400/40 select-none">
                                         <div class="flex items-center gap-2 min-w-0">
-                                            <span class="w-5 h-5 rounded-md bg-white/20 text-white flex items-center justify-center text-[10px] font-black shrink-0"
+                                            <span class="text-[11px] font-bold text-blue-100 shrink-0"
                                                   x-text="'#' + subMenuOrder"></span>
                                             <span class="text-xs truncate italic"
                                                   x-text="(subMenuTitle || '').trim() ? subMenuTitle : 'Sub Menu Baru (Sedang Dibuat...)'"></span>
@@ -1326,7 +1312,7 @@
                                 <template x-if="String(activeModuleId) === String(mod.id) && isNewSubMenu">
                                     <button type="button"
                                             @click="cancelNewSubMenu(mod.id)"
-                                            class="w-full py-2 px-3 rounded-xl border border-rose-200 dark:border-rose-900/50 bg-rose-50/70 dark:bg-rose-950/30 text-rose-600 dark:text-rose-400 hover:bg-rose-100 text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer">
+                                            class="w-full py-1.5 px-3 rounded-lg border border-rose-200 dark:border-rose-900/50 bg-rose-50/70 dark:bg-rose-950/30 text-rose-600 dark:text-rose-400 hover:bg-rose-100 text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer">
                                         <i class="fa-solid fa-xmark text-xs"></i>
                                         <span>Batal Tambah Sub Menu</span>
                                     </button>
@@ -1334,7 +1320,7 @@
                                 <template x-if="!(String(activeModuleId) === String(mod.id) && isNewSubMenu)">
                                     <button type="button"
                                             @click="startNewSubMenu(mod.id)"
-                                            class="w-full py-2 px-3 rounded-xl border border-dashed border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:text-blue-600 hover:border-blue-400 hover:bg-white dark:hover:bg-slate-800 text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer">
+                                            class="w-full py-1.5 px-3 rounded-lg border border-dashed border-slate-300 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:text-blue-600 hover:border-blue-400 hover:bg-white dark:hover:bg-slate-800 text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer">
                                         <i class="fa-solid fa-plus text-[10px]"></i>
                                         <span>Tambah Sub Menu</span>
                                     </button>
