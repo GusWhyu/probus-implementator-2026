@@ -1183,35 +1183,35 @@
                     </button>
                 </div>
 
-                {{-- List Modul Cards with Sub Menu Accordion --}}
-                <div class="space-y-2">
+                {{-- List Modul & Sub Menu (Tree Indent Style, Tanpa Card) --}}
+                <div class="space-y-1">
                     <template x-for="mod in modules" :key="mod.id">
-                        <div class="rounded-xl border transition-all duration-150 overflow-hidden"
-                             :class="expandedModules[mod.id] || String(activeModuleId) === String(mod.id)
-                                 ? 'border-blue-400/60 dark:border-blue-800 bg-white dark:bg-slate-900 shadow-xs'
-                                 : 'border-slate-200 dark:border-slate-800/80 bg-white dark:bg-slate-900/40 hover:border-slate-300 dark:hover:border-slate-700'">
-                            
-                            {{-- Header Modul (Simple: Judul Modul + Dropdown Chevron) --}}
-                            <div class="px-3.5 py-2.5 flex items-center justify-between gap-2 cursor-pointer select-none group"
+                        <div class="select-none">
+                            {{-- Baris Judul Modul (Bukan Card, Bersih & Ramping) --}}
+                            <div class="px-2.5 py-2 rounded-lg flex items-center justify-between cursor-pointer group transition-colors"
+                                 :class="String(activeModuleId) === String(mod.id)
+                                     ? 'bg-slate-100 dark:bg-slate-800/80 text-blue-600 dark:text-blue-400 font-bold'
+                                     : 'text-slate-800 dark:text-slate-200 font-semibold hover:bg-slate-50 dark:hover:bg-slate-800/40'"
                                  @click="toggleModule(mod.id)">
                                 <div class="min-w-0 flex items-center gap-2">
-                                    <h3 class="text-xs sm:text-[13px] font-bold text-slate-800 dark:text-slate-100 truncate group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors"
+                                    <h3 class="text-xs sm:text-[13px] truncate"
                                         x-text="mod.title"></h3>
                                 </div>
                                 <div class="flex items-center gap-1 shrink-0">
                                     <button type="button" 
                                             @click.stop="confirmDeleteModule(mod)"
-                                            class="w-6 h-6 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all"
+                                            class="w-5 h-5 rounded text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all"
                                             title="Hapus Modul">
-                                        <i class="fa-solid fa-trash-can text-[10px]"></i>
+                                        <i class="fa-solid fa-trash-can text-[9px]"></i>
                                     </button>
-                                    <i class="fa-solid fa-chevron-down text-xs text-slate-400 transition-transform duration-200"
+                                    <i class="fa-solid fa-chevron-down text-[10px] text-slate-400 transition-transform duration-200"
                                        :class="expandedModules[mod.id] ? 'rotate-180 text-blue-600 dark:text-blue-400' : ''"></i>
                                 </div>
                             </div>
 
-                            {{-- Daftar Sub Menu di bawah Modul --}}
-                            <div x-show="expandedModules[mod.id]" class="border-t border-slate-100 dark:border-slate-800/80 bg-slate-50/60 dark:bg-slate-950/40 p-2 space-y-1">
+                            {{-- Sub Menu Menjorok ke Dalam (Tree Indent Style) --}}
+                            <div x-show="expandedModules[mod.id]"
+                                 class="ml-3.5 pl-3 border-l-2 border-slate-200 dark:border-slate-800 my-1 space-y-0.5">
                                 <template x-for="(sub, sIdx) in (mod.sub_menus || mod.chapters || [])" :key="sub.id">
                                     <div @click="selectSubMenu(mod.id, sub.id)"
                                          draggable="true"
@@ -1223,12 +1223,12 @@
                                          :class="[
                                              String(activeModuleId) === String(mod.id) && String(activeSubMenuId) === String(sub.id) && !isNewSubMenu
                                                  ? 'bg-blue-600 text-white font-medium shadow-xs'
-                                                 : 'bg-white dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 hover:bg-blue-50/80 dark:hover:bg-slate-800 border border-slate-200/70 dark:border-slate-700/60',
+                                                 : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100/80 dark:hover:bg-slate-800/60',
                                              dragOverIndex === sIdx && String(draggedModuleId) === String(mod.id)
-                                                 ? 'ring-2 ring-blue-500 scale-[1.01] shadow-md'
+                                                 ? 'ring-2 ring-blue-500 scale-[1.01]'
                                                  : ''
                                          ]"
-                                         class="p-2 rounded-lg transition-all duration-150 cursor-pointer flex items-center justify-between gap-2 group/sub select-none">
+                                         class="px-2.5 py-1.5 rounded-lg transition-all duration-150 cursor-pointer flex items-center justify-between gap-2 group/sub select-none">
                                         <div class="flex items-center gap-2 min-w-0">
                                             {{-- Grip Handle Drag & Drop --}}
                                             <i class="fa-solid fa-grip-vertical text-slate-300 dark:text-slate-600 hover:text-slate-500 cursor-grab active:cursor-grabbing text-[10px] shrink-0"
@@ -1250,9 +1250,9 @@
                                                         :class="String(activeModuleId) === String(mod.id) && String(activeSubMenuId) === String(sub.id) && !isNewSubMenu
                                                             ? 'text-white/80 hover:text-white hover:bg-white/10'
                                                             : 'text-slate-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-slate-700'"
-                                                        class="w-5 h-5 rounded flex items-center justify-center disabled:opacity-20 cursor-pointer transition-colors"
+                                                        class="w-4 h-4 rounded flex items-center justify-center disabled:opacity-20 cursor-pointer transition-colors"
                                                         title="Pindah ke Atas">
-                                                    <i class="fa-solid fa-chevron-up text-[9px]"></i>
+                                                    <i class="fa-solid fa-chevron-up text-[8px]"></i>
                                                 </button>
                                                 <button type="button"
                                                         @click.stop="moveSubMenu(mod, sIdx, 1)"
@@ -1260,9 +1260,9 @@
                                                         :class="String(activeModuleId) === String(mod.id) && String(activeSubMenuId) === String(sub.id) && !isNewSubMenu
                                                             ? 'text-white/80 hover:text-white hover:bg-white/10'
                                                             : 'text-slate-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-slate-700'"
-                                                        class="w-5 h-5 rounded flex items-center justify-center disabled:opacity-20 cursor-pointer transition-colors"
+                                                        class="w-4 h-4 rounded flex items-center justify-center disabled:opacity-20 cursor-pointer transition-colors"
                                                         title="Pindah ke Bawah">
-                                                    <i class="fa-solid fa-chevron-down text-[9px]"></i>
+                                                    <i class="fa-solid fa-chevron-down text-[8px]"></i>
                                                 </button>
                                             </div>
 
@@ -1277,9 +1277,9 @@
                                                     :class="String(activeModuleId) === String(mod.id) && String(activeSubMenuId) === String(sub.id) && !isNewSubMenu
                                                         ? 'text-white/80 hover:text-white hover:bg-white/10'
                                                         : 'text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30'"
-                                                    class="w-5 h-5 rounded flex items-center justify-center opacity-0 group-hover/sub:opacity-100 transition-opacity"
+                                                    class="w-4 h-4 rounded flex items-center justify-center opacity-0 group-hover/sub:opacity-100 transition-opacity"
                                                     title="Hapus Sub Menu">
-                                                <i class="fa-solid fa-xmark text-[10px]"></i>
+                                                <i class="fa-solid fa-xmark text-[9px]"></i>
                                             </button>
                                         </div>
                                     </div>
@@ -1287,14 +1287,14 @@
 
                                 {{-- Pesan kosong jika belum ada sub menu --}}
                                 <template x-if="(!mod.sub_menus || mod.sub_menus.length === 0)">
-                                    <div class="py-2 px-3 text-center text-[11px] text-slate-400 italic">
+                                    <div class="py-1.5 px-2 text-xs text-slate-400 italic">
                                         Belum ada sub menu panduan.
                                     </div>
                                 </template>
 
                                 {{-- Placeholder Item Preview saat Sedang Menambah Sub Menu Baru --}}
                                 <template x-if="String(activeModuleId) === String(mod.id) && isNewSubMenu">
-                                    <div class="p-2 rounded-lg bg-blue-600 text-white font-medium shadow-xs flex items-center justify-between gap-2 border border-blue-500 ring-2 ring-blue-400/40 select-none">
+                                    <div class="px-2.5 py-1.5 rounded-lg bg-blue-600 text-white font-medium shadow-xs flex items-center justify-between gap-2 border border-blue-500 ring-2 ring-blue-400/40 select-none">
                                         <div class="flex items-center gap-2 min-w-0">
                                             <span class="text-[11px] font-bold text-blue-100 shrink-0"
                                                   x-text="'#' + subMenuOrder"></span>
@@ -1312,15 +1312,15 @@
                                 <template x-if="String(activeModuleId) === String(mod.id) && isNewSubMenu">
                                     <button type="button"
                                             @click="cancelNewSubMenu(mod.id)"
-                                            class="w-full py-1.5 px-3 rounded-lg border border-rose-200 dark:border-rose-900/50 bg-rose-50/70 dark:bg-rose-950/30 text-rose-600 dark:text-rose-400 hover:bg-rose-100 text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer">
-                                        <i class="fa-solid fa-xmark text-xs"></i>
+                                            class="w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-semibold text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30 flex items-center gap-1.5 transition-colors cursor-pointer">
+                                        <i class="fa-solid fa-xmark text-[10px]"></i>
                                         <span>Batal Tambah Sub Menu</span>
                                     </button>
                                 </template>
                                 <template x-if="!(String(activeModuleId) === String(mod.id) && isNewSubMenu)">
                                     <button type="button"
                                             @click="startNewSubMenu(mod.id)"
-                                            class="w-full py-1.5 px-3 rounded-lg border border-dashed border-slate-300 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:text-blue-600 hover:border-blue-400 hover:bg-white dark:hover:bg-slate-800 text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer">
+                                            class="w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-semibold text-slate-400 dark:text-slate-500 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50/50 dark:hover:bg-blue-950/30 flex items-center gap-1.5 transition-colors cursor-pointer">
                                         <i class="fa-solid fa-plus text-[10px]"></i>
                                         <span>Tambah Sub Menu</span>
                                     </button>
