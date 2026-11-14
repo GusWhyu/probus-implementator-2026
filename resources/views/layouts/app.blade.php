@@ -259,42 +259,55 @@
                             border-collapse: collapse; 
                             width: 100%; 
                             margin: 16px 0; 
-                            border: 1px solid ${isDark ? '#475569' : '#cbd5e1'}; 
+                            font-size: 13.5px;
+                            border: 1px solid ${isDark ? '#334155' : '#cbd5e1'}; 
+                            border-radius: 8px;
+                            overflow: hidden;
                         }
                         th { 
-                            background-color: #0b1a36; 
-                            color: #ffffff; 
+                            background-color: ${isDark ? '#1e293b' : '#f1f5f9'}; 
+                            color: ${isDark ? '#f8fafc' : '#0f172a'}; 
                             font-weight: 700; 
-                            border: 1px solid ${isDark ? '#475569' : '#cbd5e1'}; 
+                            border: 1px solid ${isDark ? '#334155' : '#cbd5e1'}; 
                             padding: 10px 14px; 
                         }
                         td { 
-                            border: 1px solid ${isDark ? '#475569' : '#cbd5e1'}; 
+                            border: 1px solid ${isDark ? '#334155' : '#cbd5e1'}; 
                             padding: 10px 14px; 
                         }
                         table > tbody > tr:first-child > td,
                         table > tbody > tr:first-child > th,
                         table > thead > tr:first-child > td,
                         table > thead > tr:first-child > th {
-                            border-top: 1px solid ${isDark ? '#475569' : '#cbd5e1'};
+                            border-top: 1px solid ${isDark ? '#334155' : '#cbd5e1'};
                         }
                         table > tbody > tr:last-child > td,
                         table > tbody > tr:last-child > th {
-                            border-bottom: 1px solid ${isDark ? '#475569' : '#cbd5e1'};
+                            border-bottom: 1px solid ${isDark ? '#334155' : '#cbd5e1'};
                         }
                         table tr > td:first-child,
                         table tr > th:first-child {
-                            border-left: 1px solid ${isDark ? '#475569' : '#cbd5e1'};
+                            border-left: 1px solid ${isDark ? '#334155' : '#cbd5e1'};
                         }
                         table tr > td:last-child,
                         table tr > th:last-child {
-                            border-right: 1px solid ${isDark ? '#475569' : '#cbd5e1'};
+                            border-right: 1px solid ${isDark ? '#334155' : '#cbd5e1'};
                         }
                         img { 
                             max-width: 100%; 
                             height: auto; 
                             border-radius: 8px; 
                             margin: 12px 0;
+                        }
+                        td img, th img {
+                            max-height: 48px;
+                            width: auto;
+                            max-width: 100%;
+                            margin: 2px auto;
+                            display: inline-block;
+                            vertical-align: middle;
+                            border: none;
+                            box-shadow: none;
                         }
                         h1, h2, h3, h4 { color: ${isDark ? '#f8fafc' : '#0f172a'}; font-weight: 700; }
                     `,

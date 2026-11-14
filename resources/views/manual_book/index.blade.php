@@ -1045,9 +1045,8 @@
         }
         .article-content table th, 
         .article-content table td {
-            border: 1px solid #e2e8f0;
+            border: 1px solid #cbd5e1;
             padding: 0.625rem 0.75rem;
-            text-align: left;
         }
         .dark .article-content table th, 
         .dark .article-content table td {
@@ -1055,10 +1054,12 @@
         }
         .article-content table th {
             background-color: #f1f5f9;
+            color: #0f172a;
             font-weight: 700;
         }
         .dark .article-content table th {
             background-color: #1e293b;
+            color: #f8fafc;
         }
 
         .article-content img {
@@ -1071,6 +1072,19 @@
         }
         .dark .article-content img {
             border-color: #334155;
+        }
+
+        .article-content table td img, 
+        .article-content table th img {
+            max-height: 48px;
+            width: auto;
+            max-width: 100%;
+            margin: 2px auto;
+            display: inline-block;
+            vertical-align: middle;
+            border: none;
+            box-shadow: none;
+            border-radius: 4px;
         }
     </style>
 </x-app-layout>
