@@ -246,6 +246,10 @@
                         'width': '100%',
                         'border': '1px solid #cbd5e1'
                     },
+                    table_cell_default_styles: {
+                        'border': '1px solid #cbd5e1',
+                        'padding': '10px 14px'
+                    },
                     content_style: `
                         body { 
                             font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
@@ -256,42 +260,40 @@
                             line-height: 1.6; 
                         }
                         table { 
-                            border-collapse: collapse; 
-                            width: 100%; 
-                            margin: 16px 0; 
-                            font-size: 13.5px;
-                            border: 1px solid ${isDark ? '#334155' : '#cbd5e1'}; 
-                            border-radius: 8px;
-                            overflow: hidden;
+                            border-collapse: collapse !important; 
+                            width: 100% !important; 
+                            margin: 16px 0 !important; 
+                            font-size: 13.5px !important;
+                            border: 1px solid ${isDark ? '#334155' : '#cbd5e1'} !important; 
                         }
                         th { 
-                            background-color: ${isDark ? '#1e293b' : '#f1f5f9'}; 
-                            color: ${isDark ? '#f8fafc' : '#0f172a'}; 
-                            font-weight: 700; 
-                            border: 1px solid ${isDark ? '#334155' : '#cbd5e1'}; 
-                            padding: 10px 14px; 
+                            background-color: ${isDark ? '#1e293b' : '#f1f5f9'} !important; 
+                            color: ${isDark ? '#f8fafc' : '#0f172a'} !important; 
+                            font-weight: 700 !important; 
+                            border: 1px solid ${isDark ? '#334155' : '#cbd5e1'} !important; 
+                            padding: 10px 14px !important; 
                         }
                         td { 
-                            border: 1px solid ${isDark ? '#334155' : '#cbd5e1'}; 
-                            padding: 10px 14px; 
+                            border: 1px solid ${isDark ? '#334155' : '#cbd5e1'} !important; 
+                            padding: 10px 14px !important; 
                         }
                         table > tbody > tr:first-child > td,
                         table > tbody > tr:first-child > th,
                         table > thead > tr:first-child > td,
                         table > thead > tr:first-child > th {
-                            border-top: 1px solid ${isDark ? '#334155' : '#cbd5e1'};
+                            border-top: 1px solid ${isDark ? '#334155' : '#cbd5e1'} !important;
                         }
                         table > tbody > tr:last-child > td,
                         table > tbody > tr:last-child > th {
-                            border-bottom: 1px solid ${isDark ? '#334155' : '#cbd5e1'};
+                            border-bottom: 1px solid ${isDark ? '#334155' : '#cbd5e1'} !important;
                         }
                         table tr > td:first-child,
                         table tr > th:first-child {
-                            border-left: 1px solid ${isDark ? '#334155' : '#cbd5e1'};
+                            border-left: 1px solid ${isDark ? '#334155' : '#cbd5e1'} !important;
                         }
                         table tr > td:last-child,
                         table tr > th:last-child {
-                            border-right: 1px solid ${isDark ? '#334155' : '#cbd5e1'};
+                            border-right: 1px solid ${isDark ? '#334155' : '#cbd5e1'} !important;
                         }
                         img { 
                             max-width: 100%; 

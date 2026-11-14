@@ -1037,8 +1037,6 @@
             margin: 1.25rem 0;
             font-size: 0.825rem;
             border: 1px solid #cbd5e1;
-            border-radius: 0.5rem;
-            overflow: hidden;
         }
         .dark .article-content table {
             border-color: #334155;
