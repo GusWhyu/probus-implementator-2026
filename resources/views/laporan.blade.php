@@ -229,22 +229,22 @@
                         $isFemaleBp = in_array(strtolower(trim($bpUser->name)), ['dyah kusuma', 'dewi', 'siti rahma', 'dewi anggraini', 'rina wulandari', 'ayu lestari']);
                         $avatarBp = $bpUser->profile_image ? asset('storage/' . $bpUser->profile_image) : asset($isFemaleBp ? 'img/avatar-female.png' : 'img/avatar-default.png');
                     @endphp
-                    <div class="bg-white dark:bg-slate-800/95 rounded-2xl border border-amber-300/80 dark:border-amber-500/40 shadow-sm hover:shadow-md hover:border-amber-400 dark:hover:border-amber-500/70 transition-all flex flex-col overflow-hidden relative group">
+                    <div class="bg-white dark:bg-slate-800/95 rounded-3xl border border-amber-200/80 dark:border-amber-500/30 shadow-xs hover:shadow-xl hover:shadow-amber-500/5 hover:border-amber-400 dark:hover:border-amber-500/60 hover:-translate-y-1 transition-all duration-300 flex flex-col overflow-hidden relative group">
                         <div class="h-1.5 bg-gradient-to-r from-amber-400 via-amber-500 to-yellow-400"></div>
                         <div class="p-5 flex-1 flex flex-col justify-between">
                             <div>
                                 <!-- Category Badge -->
                                 <div class="flex items-center justify-between gap-2 mb-4">
-                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-extrabold uppercase tracking-wider bg-amber-50 dark:bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-500/30 shadow-2xs">
+                                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-50 dark:bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-200/80 dark:border-amber-500/30 shadow-2xs">
                                         <i class="fa-solid fa-crown text-amber-500 dark:text-amber-400 text-xs"></i> Best Performance
                                     </span>
-                                    <span class="text-[10px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-wider">Juara 1</span>
+                                    <span class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-700/50">Juara 1</span>
                                 </div>
 
                                 <!-- User Info Highlight Box -->
-                                <div class="flex items-center gap-4 mb-4 p-3 bg-amber-50/50 dark:bg-amber-950/20 border border-amber-200/60 dark:border-amber-500/30 rounded-2xl">
+                                <div class="flex items-center gap-3.5 mb-4 p-3.5 bg-gradient-to-br from-amber-50/60 to-transparent dark:from-amber-950/20 dark:to-transparent border border-amber-200/60 dark:border-amber-500/25 rounded-2xl">
                                     <div class="relative shrink-0">
-                                        <div class="w-20 h-20 rounded-2xl p-1 bg-white dark:bg-slate-800 border-2 border-amber-400 shadow-md ring-4 ring-amber-400/20 overflow-hidden">
+                                        <div class="w-16 h-16 sm:w-18 sm:h-18 rounded-2xl p-1 bg-white dark:bg-slate-800 border-2 border-amber-400 shadow-md ring-4 ring-amber-400/20 overflow-hidden">
                                             <img src="{{ $avatarBp }}" alt="{{ $bpUser->name }}" class="w-full h-full rounded-xl object-cover bg-amber-50/30 dark:bg-slate-800" style="{{ $isFemaleBp && !$bpUser->profile_image ? 'object-position: top;' : '' }}">
                                         </div>
                                         <div class="absolute -bottom-1 -right-1 w-6 h-6 rounded-lg bg-amber-500 text-white flex items-center justify-center text-[10px] shadow-sm border-2 border-white dark:border-slate-800">
@@ -264,7 +264,7 @@
                                 </div>
 
                                 <!-- Key Metric Highlight Box -->
-                                <div class="bg-amber-50/70 dark:bg-amber-950/30 border border-amber-200/60 dark:border-amber-500/30 rounded-xl p-3 text-center mb-3">
+                                <div class="bg-amber-50/70 dark:bg-amber-950/30 border border-amber-200/60 dark:border-amber-500/30 rounded-2xl p-3.5 text-center mb-4">
                                     <div class="text-2xl font-black text-amber-600 dark:text-amber-400 leading-none mb-1">
                                         {{ number_format($bp['total_score'], 1) }}
                                         <span class="text-xs font-bold text-amber-500 dark:text-amber-300">/ 100</span>
@@ -293,7 +293,7 @@
                                             { label: 'Tiket Selesai', value: '{{ $bp['closed_count'] }} Tiket' }
                                         ]
                                     })" 
-                                    class="w-full py-2 px-3 bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs rounded-xl shadow-xs transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-98">
+                                    class="w-full py-2.5 px-3 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-bold text-xs rounded-xl shadow-xs shadow-amber-500/20 transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-98">
                                     <i class="fa-solid fa-download"></i>
                                     <span>Download Kartu Achievement (HD)</span>
                                 </button>
@@ -310,22 +310,22 @@
                         $isFemaleCf = in_array(strtolower(trim($cfUser->name)), ['dyah kusuma', 'dewi', 'siti rahma', 'dewi anggraini', 'rina wulandari', 'ayu lestari']);
                         $avatarCf = $cfUser->profile_image ? asset('storage/' . $cfUser->profile_image) : asset($isFemaleCf ? 'img/avatar-female.png' : 'img/avatar-default.png');
                     @endphp
-                    <div class="bg-white dark:bg-slate-800/95 rounded-2xl border border-rose-300/80 dark:border-rose-500/40 shadow-sm hover:shadow-md hover:border-rose-400 dark:hover:border-rose-500/70 transition-all flex flex-col overflow-hidden relative group">
+                    <div class="bg-white dark:bg-slate-800/95 rounded-3xl border border-rose-200/80 dark:border-rose-500/30 shadow-xs hover:shadow-xl hover:shadow-rose-500/5 hover:border-rose-400 dark:hover:border-rose-500/60 hover:-translate-y-1 transition-all duration-300 flex flex-col overflow-hidden relative group">
                         <div class="h-1.5 bg-gradient-to-r from-rose-500 via-pink-500 to-rose-400"></div>
                         <div class="p-5 flex-1 flex flex-col justify-between">
                             <div>
                                 <!-- Category Badge -->
                                 <div class="flex items-center justify-between gap-2 mb-4">
-                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-extrabold uppercase tracking-wider bg-rose-50 dark:bg-rose-500/15 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-500/30 shadow-2xs">
+                                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-rose-50 dark:bg-rose-500/15 text-rose-700 dark:text-rose-300 border border-rose-200/80 dark:border-rose-500/30 shadow-2xs">
                                         <i class="fa-solid fa-heart text-rose-500 dark:text-rose-400 text-xs"></i> Client's Favorite
                                     </span>
-                                    <span class="text-[10px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-wider">Favorit</span>
+                                    <span class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-700/50">Favorit</span>
                                 </div>
 
                                 <!-- User Info Highlight Box -->
-                                <div class="flex items-center gap-4 mb-4 p-3 bg-rose-50/50 dark:bg-rose-950/20 border border-rose-200/60 dark:border-rose-500/30 rounded-2xl">
+                                <div class="flex items-center gap-3.5 mb-4 p-3.5 bg-gradient-to-br from-rose-50/60 to-transparent dark:from-rose-950/20 dark:to-transparent border border-rose-200/60 dark:border-rose-500/25 rounded-2xl">
                                     <div class="relative shrink-0">
-                                        <div class="w-20 h-20 rounded-2xl p-1 bg-white dark:bg-slate-800 border-2 border-rose-400 shadow-md ring-4 ring-rose-400/20 overflow-hidden">
+                                        <div class="w-16 h-16 sm:w-18 sm:h-18 rounded-2xl p-1 bg-white dark:bg-slate-800 border-2 border-rose-400 shadow-md ring-4 ring-rose-400/20 overflow-hidden">
                                             <img src="{{ $avatarCf }}" alt="{{ $cfUser->name }}" class="w-full h-full rounded-xl object-cover bg-rose-50/30 dark:bg-slate-800" style="{{ $isFemaleCf && !$cfUser->profile_image ? 'object-position: top;' : '' }}">
                                         </div>
                                         <div class="absolute -bottom-1 -right-1 w-6 h-6 rounded-lg bg-rose-500 text-white flex items-center justify-center text-[10px] shadow-sm border-2 border-white dark:border-slate-800">
@@ -345,7 +345,7 @@
                                 </div>
 
                                 <!-- Key Metric Highlight Box -->
-                                <div class="bg-rose-50/70 dark:bg-rose-950/30 border border-rose-200/60 dark:border-rose-500/30 rounded-xl p-3 text-center mb-3">
+                                <div class="bg-rose-50/70 dark:bg-rose-950/30 border border-rose-200/60 dark:border-rose-500/30 rounded-2xl p-3.5 text-center mb-4">
                                     <div class="text-2xl font-black text-rose-600 dark:text-rose-400 leading-none mb-1 flex items-center justify-center gap-1.5">
                                         <i class="fa-solid fa-star text-amber-400 text-lg"></i>
                                         <span>{{ number_format($cf['client_rating'], 1) }}</span>
@@ -375,7 +375,7 @@
                                             { label: 'Tiket Selesai', value: '{{ $cf['closed_count'] }} Tiket' }
                                         ]
                                     })" 
-                                    class="w-full py-2 px-3 bg-rose-500 hover:bg-rose-600 text-white font-bold text-xs rounded-xl shadow-xs transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-98">
+                                    class="w-full py-2.5 px-3 bg-gradient-to-r from-rose-500 to-rose-600 hover:from-rose-600 hover:to-rose-700 text-white font-bold text-xs rounded-xl shadow-xs shadow-rose-500/20 transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-98">
                                     <i class="fa-solid fa-download"></i>
                                     <span>Download Kartu Achievement (HD)</span>
                                 </button>
@@ -392,22 +392,22 @@
                         $isFemaleTp = in_array(strtolower(trim($tpUser->name)), ['dyah kusuma', 'dewi', 'siti rahma', 'dewi anggraini', 'rina wulandari', 'ayu lestari']);
                         $avatarTp = $tpUser->profile_image ? asset('storage/' . $tpUser->profile_image) : asset($isFemaleTp ? 'img/avatar-female.png' : 'img/avatar-default.png');
                     @endphp
-                    <div class="bg-white dark:bg-slate-800/95 rounded-2xl border border-indigo-300/80 dark:border-indigo-500/40 shadow-sm hover:shadow-md hover:border-indigo-400 dark:hover:border-indigo-500/70 transition-all flex flex-col overflow-hidden relative group">
+                    <div class="bg-white dark:bg-slate-800/95 rounded-3xl border border-indigo-200/80 dark:border-indigo-500/30 shadow-xs hover:shadow-xl hover:shadow-indigo-500/5 hover:border-indigo-400 dark:hover:border-indigo-500/60 hover:-translate-y-1 transition-all duration-300 flex flex-col overflow-hidden relative group">
                         <div class="h-1.5 bg-gradient-to-r from-blue-600 via-indigo-600 to-indigo-500"></div>
                         <div class="p-5 flex-1 flex flex-col justify-between">
                             <div>
                                 <!-- Category Badge -->
                                 <div class="flex items-center justify-between gap-2 mb-4">
-                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-extrabold uppercase tracking-wider bg-indigo-50 dark:bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-500/30 shadow-2xs">
+                                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-indigo-50 dark:bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 border border-indigo-200/80 dark:border-indigo-500/30 shadow-2xs">
                                         <i class="fa-solid fa-handshake-angle text-indigo-500 dark:text-indigo-400 text-xs"></i> Best Team Player
                                     </span>
-                                    <span class="text-[10px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-wider">Kolaboratif</span>
+                                    <span class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-700/50">Kolaboratif</span>
                                 </div>
 
                                 <!-- User Info Highlight Box -->
-                                <div class="flex items-center gap-4 mb-4 p-3 bg-indigo-50/50 dark:bg-indigo-950/20 border border-indigo-200/60 dark:border-indigo-500/30 rounded-2xl">
+                                <div class="flex items-center gap-3.5 mb-4 p-3.5 bg-gradient-to-br from-indigo-50/60 to-transparent dark:from-indigo-950/20 dark:to-transparent border border-indigo-200/60 dark:border-indigo-500/25 rounded-2xl">
                                     <div class="relative shrink-0">
-                                        <div class="w-20 h-20 rounded-2xl p-1 bg-white dark:bg-slate-800 border-2 border-indigo-500 shadow-md ring-4 ring-indigo-500/20 overflow-hidden">
+                                        <div class="w-16 h-16 sm:w-18 sm:h-18 rounded-2xl p-1 bg-white dark:bg-slate-800 border-2 border-indigo-500 shadow-md ring-4 ring-indigo-500/20 overflow-hidden">
                                             <img src="{{ $avatarTp }}" alt="{{ $tpUser->name }}" class="w-full h-full rounded-xl object-cover bg-indigo-50/30 dark:bg-slate-800" style="{{ $isFemaleTp && !$tpUser->profile_image ? 'object-position: top;' : '' }}">
                                         </div>
                                         <div class="absolute -bottom-1 -right-1 w-6 h-6 rounded-lg bg-indigo-600 text-white flex items-center justify-center text-[10px] shadow-sm border-2 border-white dark:border-slate-800">
@@ -427,7 +427,7 @@
                                 </div>
 
                                 <!-- Key Metric Highlight Box -->
-                                <div class="bg-indigo-50/70 dark:bg-indigo-950/30 border border-indigo-200/60 dark:border-indigo-500/30 rounded-xl p-3 text-center mb-3">
+                                <div class="bg-indigo-50/70 dark:bg-indigo-950/30 border border-indigo-200/60 dark:border-indigo-500/30 rounded-2xl p-3.5 text-center mb-4">
                                     <div class="text-2xl font-black text-indigo-600 dark:text-indigo-400 leading-none mb-1">
                                         {{ $tp['team_player_score'] }}
                                         <span class="text-xs font-bold text-indigo-500 dark:text-indigo-300">Poin</span>
@@ -456,7 +456,7 @@
                                             { label: 'Rating Klien', value: '{{ $tp['client_rating'] }} / 5.0' }
                                         ]
                                     })" 
-                                    class="w-full py-2 px-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow-xs transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-98">
+                                    class="w-full py-2.5 px-3 bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white font-bold text-xs rounded-xl shadow-xs shadow-indigo-500/20 transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-98">
                                     <i class="fa-solid fa-download"></i>
                                     <span>Download Kartu Achievement (HD)</span>
                                 </button>
@@ -888,104 +888,203 @@
         canvas.height = 800;
         const ctx = canvas.getContext('2d');
 
-        // 1. Background Gradient
-        const bgGrad = ctx.createLinearGradient(0, 0, 1200, 800);
-        if (data.theme === 'gold') {
-            bgGrad.addColorStop(0, '#0f172a');
-            bgGrad.addColorStop(0.5, '#1e293b');
-            bgGrad.addColorStop(1, '#0f172a');
-        } else if (data.theme === 'rose') {
-            bgGrad.addColorStop(0, '#1c1917');
-            bgGrad.addColorStop(0.5, '#292524');
-            bgGrad.addColorStop(1, '#0c0a09');
-        } else {
-            bgGrad.addColorStop(0, '#0f172a');
-            bgGrad.addColorStop(0.5, '#1e1b4b');
-            bgGrad.addColorStop(1, '#0f172a');
+        // Helper: Rounded Rectangle Polyfill
+        function roundRect(x, y, w, h, r) {
+            if (ctx.roundRect) {
+                ctx.roundRect(x, y, w, h, r);
+            } else {
+                if (w < 2 * r) r = w / 2;
+                if (h < 2 * r) r = h / 2;
+                ctx.beginPath();
+                ctx.moveTo(x + r, y);
+                ctx.arcTo(x + w, y, x + w, y + h, r);
+                ctx.arcTo(x + w, y + h, x, y + h, r);
+                ctx.arcTo(x, y + h, x, y, r);
+                ctx.arcTo(x, y, x + w, y, r);
+                ctx.closePath();
+            }
         }
-        ctx.fillStyle = bgGrad;
+
+        // Theme Configuration
+        const isGold = data.theme === 'gold';
+        const isRose = data.theme === 'rose';
+
+        const themeColors = {
+            primary: isGold ? '#f59e0b' : (isRose ? '#f43f5e' : '#6366f1'),
+            primaryLight: isGold ? '#fbbf24' : (isRose ? '#fb7185' : '#818cf8'),
+            primaryDark: isGold ? '#d97706' : (isRose ? '#e11d48' : '#4f46e5'),
+            glow: isGold ? 'rgba(245, 158, 11, 0.28)' : (isRose ? 'rgba(244, 63, 94, 0.28)' : 'rgba(99, 102, 241, 0.28)'),
+            softGlow: isGold ? 'rgba(245, 158, 11, 0.12)' : (isRose ? 'rgba(244, 63, 94, 0.12)' : 'rgba(99, 102, 241, 0.12)'),
+            pillBg: isGold ? 'rgba(245, 158, 11, 0.14)' : (isRose ? 'rgba(244, 63, 94, 0.14)' : 'rgba(99, 102, 241, 0.14)'),
+            pillBorder: isGold ? 'rgba(245, 158, 11, 0.45)' : (isRose ? 'rgba(244, 63, 94, 0.45)' : 'rgba(99, 102, 241, 0.45)'),
+            pillText: isGold ? '#fbbf24' : (isRose ? '#fda4af' : '#a5b4fc'),
+            badgeIcon: isGold ? '🏆' : (isRose ? '💖' : '🤝'),
+            badgePrefix: isGold ? 'JUARA 1' : (isRose ? 'FAVORIT' : 'KOLABORATIF')
+        };
+
+        // 1. Canvas Outer Background
+        ctx.fillStyle = '#060a12';
         ctx.fillRect(0, 0, 1200, 800);
 
-        // Decorative background circles
+        // 2. Main Rounded Card (35, 35, 1130, 730, r: 28)
+        const cardX = 35, cardY = 35, cardW = 1130, cardH = 730, cardR = 28;
+
+        const cardGrad = ctx.createLinearGradient(cardX, cardY, cardX + cardW, cardY + cardH);
+        cardGrad.addColorStop(0, '#0b1324');
+        cardGrad.addColorStop(0.4, '#0f172a');
+        cardGrad.addColorStop(1, '#111e38');
+
         ctx.save();
-        ctx.strokeStyle = data.theme === 'gold' ? 'rgba(245, 158, 11, 0.15)' : (data.theme === 'rose' ? 'rgba(244, 63, 94, 0.15)' : 'rgba(99, 102, 241, 0.15)');
+        roundRect(cardX, cardY, cardW, cardH, cardR);
+        ctx.fillStyle = cardGrad;
+        ctx.fill();
+        ctx.clip();
+
+        // 3. Ambient Glow Spotlights
+        const glow1 = ctx.createRadialGradient(240, 320, 0, 240, 320, 420);
+        glow1.addColorStop(0, themeColors.glow);
+        glow1.addColorStop(0.5, themeColors.softGlow);
+        glow1.addColorStop(1, 'transparent');
+        ctx.fillStyle = glow1;
+        ctx.fillRect(cardX, cardY, cardW, cardH);
+
+        const glow2 = ctx.createRadialGradient(1060, 640, 0, 1060, 640, 320);
+        glow2.addColorStop(0, themeColors.softGlow);
+        glow2.addColorStop(1, 'transparent');
+        ctx.fillStyle = glow2;
+        ctx.fillRect(cardX, cardY, cardW, cardH);
+
+        // Subtle geometric lines for high-tech SaaS feel
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.025)';
+        ctx.lineWidth = 1;
+        for (let gx = cardX; gx < cardX + cardW; gx += 80) {
+            ctx.beginPath();
+            ctx.moveTo(gx, cardY);
+            ctx.lineTo(gx, cardY + cardH);
+            ctx.stroke();
+        }
+        for (let gy = cardY; gy < cardY + cardH; gy += 80) {
+            ctx.beginPath();
+            ctx.moveTo(cardX, gy);
+            ctx.lineTo(cardX + cardW, gy);
+            ctx.stroke();
+        }
+        ctx.restore();
+
+        // 4. Card Border Gradient (Single sleek rounded border)
+        ctx.save();
+        const borderGrad = ctx.createLinearGradient(cardX, cardY, cardX + cardW, cardY + cardH);
+        borderGrad.addColorStop(0, themeColors.primary);
+        borderGrad.addColorStop(0.3, themeColors.pillBorder);
+        borderGrad.addColorStop(0.7, 'rgba(255, 255, 255, 0.12)');
+        borderGrad.addColorStop(1, 'rgba(255, 255, 255, 0.05)');
+
+        roundRect(cardX, cardY, cardW, cardH, cardR);
+        ctx.strokeStyle = borderGrad;
         ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.arc(1100, 100, 260, 0, Math.PI * 2);
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.arc(100, 700, 220, 0, Math.PI * 2);
         ctx.stroke();
         ctx.restore();
 
-        // Outer Card Border
-        ctx.strokeStyle = data.theme === 'gold' ? '#f59e0b' : (data.theme === 'rose' ? '#fb7185' : '#818cf8');
-        ctx.lineWidth = 4;
-        ctx.strokeRect(30, 30, 1140, 740);
+        // 5. Header: Branding & Period Pill
+        const brandX = 75, brandY = 70;
+        ctx.save();
+        roundRect(brandX, brandY, 40, 40, 12);
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.06)';
+        ctx.fill();
+        ctx.strokeStyle = themeColors.pillBorder;
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
 
-        // Inner subtle border
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
-        ctx.lineWidth = 1;
-        ctx.strokeRect(40, 40, 1120, 720);
+        ctx.fillStyle = themeColors.primaryLight;
+        ctx.font = 'bold 20px Inter, -apple-system, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('P', brandX + 20, brandY + 21);
+        ctx.restore();
 
-        // Header: PROBUS SYSTEM
-        ctx.fillStyle = '#94a3b8';
-        ctx.font = 'bold 15px sans-serif';
-        ctx.fillText('PROBUS SYSTEM  •  STAFF EXCELLENCE AWARD', 70, 85);
-
-        ctx.textAlign = 'right';
-        ctx.fillStyle = '#cbd5e1';
-        ctx.font = 'bold 15px sans-serif';
-        ctx.fillText('PERIODE: ' + data.period.toUpperCase(), 1130, 85);
         ctx.textAlign = 'left';
-
-        // Badge Category Title
-        const badgeGrad = ctx.createLinearGradient(70, 0, 500, 0);
-        if (data.theme === 'gold') {
-            badgeGrad.addColorStop(0, '#fbbf24');
-            badgeGrad.addColorStop(1, '#d97706');
-        } else if (data.theme === 'rose') {
-            badgeGrad.addColorStop(0, '#f43f5e');
-            badgeGrad.addColorStop(1, '#be123c');
-        } else {
-            badgeGrad.addColorStop(0, '#6366f1');
-            badgeGrad.addColorStop(1, '#4338ca');
-        }
-
-        ctx.fillStyle = badgeGrad;
-        ctx.font = '900 24px sans-serif';
-        ctx.fillText('★ ' + data.category + ' ★', 70, 140);
-
+        ctx.textBaseline = 'alphabetic';
         ctx.fillStyle = '#f8fafc';
-        ctx.font = '600 18px sans-serif';
-        ctx.fillText(data.title, 70, 175);
+        ctx.font = '800 15px Inter, -apple-system, sans-serif';
+        ctx.fillText('PROBUS IMPLEMENTATOR', brandX + 54, brandY + 18);
+        ctx.fillStyle = '#64748b';
+        ctx.font = '600 11px Inter, -apple-system, sans-serif';
+        ctx.fillText('STAFF EXCELLENCE RECOGNITION AWARD', brandX + 54, brandY + 34);
 
-        // Load Avatar
+        // Period Glass Pill
+        const periodStr = '🗓  ' + data.period.toUpperCase();
+        ctx.font = 'bold 12px Inter, -apple-system, sans-serif';
+        const periodWidth = Math.max(200, ctx.measureText(periodStr).width + 36);
+        const periodX = cardX + cardW - 40 - periodWidth;
+        const periodY = brandY + 2;
+
+        ctx.save();
+        roundRect(periodX, periodY, periodWidth, 36, 18);
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.05)';
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.12)';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+
+        ctx.textAlign = 'center';
+        ctx.fillStyle = '#cbd5e1';
+        ctx.fillText(periodStr, periodX + periodWidth / 2, periodY + 23);
+        ctx.restore();
+
+        // 6. Category Capsule Pill (Juara / Best Performance)
+        const badgeY = 145;
+        const badgeText = `${themeColors.badgeIcon}  ${themeColors.badgePrefix} • ${data.category}`;
+        ctx.font = '800 13px Inter, -apple-system, sans-serif';
+        const badgeW = ctx.measureText(badgeText).width + 32;
+
+        ctx.save();
+        roundRect(75, badgeY, badgeW, 36, 18);
+        ctx.fillStyle = themeColors.pillBg;
+        ctx.fill();
+        ctx.strokeStyle = themeColors.pillBorder;
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+
+        ctx.fillStyle = themeColors.pillText;
+        ctx.textAlign = 'left';
+        ctx.fillText(badgeText, 91, badgeY + 23);
+        ctx.restore();
+
+        // Subtitle Title
+        ctx.fillStyle = '#f8fafc';
+        ctx.font = '700 20px Inter, -apple-system, sans-serif';
+        ctx.fillText(data.title, 75, badgeY + 68);
+
+        // 7. Load & Render Avatar with Outer Glow Ring
         const avatarImg = new Image();
         avatarImg.crossOrigin = 'anonymous';
         avatarImg.onload = function() {
-            drawContent(avatarImg);
+            drawCardProfile(avatarImg);
         };
         avatarImg.onerror = function() {
-            drawContent(null);
+            drawCardProfile(null);
         };
         avatarImg.src = data.avatar;
 
-        function drawContent(img) {
-            // Draw Avatar Area
-            const avX = 180;
+        function drawCardProfile(img) {
+            const avX = 165;
             const avY = 350;
-            const avR = 90;
+            const avR = 72;
 
             ctx.save();
-            ctx.beginPath();
-            ctx.arc(avX, avY, avR + 8, 0, Math.PI * 2);
-            ctx.fillStyle = data.theme === 'gold' ? '#f59e0b' : (data.theme === 'rose' ? '#f43f5e' : '#6366f1');
-            ctx.fill();
+            const ringGrad = ctx.createLinearGradient(avX - avR, avY - avR, avX + avR, avY + avR);
+            ringGrad.addColorStop(0, themeColors.primaryLight);
+            ringGrad.addColorStop(1, themeColors.primaryDark);
 
             ctx.beginPath();
-            ctx.arc(avX, avY, avR + 4, 0, Math.PI * 2);
-            ctx.fillStyle = '#1e293b';
+            ctx.arc(avX, avY, avR + 6, 0, Math.PI * 2);
+            ctx.strokeStyle = ringGrad;
+            ctx.lineWidth = 3.5;
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.arc(avX, avY, avR + 2, 0, Math.PI * 2);
+            ctx.fillStyle = '#0f172a';
             ctx.fill();
 
             ctx.beginPath();
@@ -996,76 +1095,161 @@
                 try {
                     ctx.drawImage(img, avX - avR, avY - avR, avR * 2, avR * 2);
                 } catch(e) {
-                    drawFallbackAvatar();
+                    renderFallbackAvatar();
                 }
             } else {
-                drawFallbackAvatar();
+                renderFallbackAvatar();
             }
 
-            function drawFallbackAvatar() {
-                ctx.fillStyle = '#334155';
+            function renderFallbackAvatar() {
+                ctx.fillStyle = '#1e293b';
                 ctx.fillRect(avX - avR, avY - avR, avR * 2, avR * 2);
-                ctx.fillStyle = '#ffffff';
-                ctx.font = 'bold 64px sans-serif';
+                ctx.fillStyle = themeColors.primaryLight;
+                ctx.font = 'bold 56px Inter, sans-serif';
                 ctx.textAlign = 'center';
-                ctx.fillText(data.name.charAt(0).toUpperCase(), avX, avY + 22);
+                ctx.textBaseline = 'middle';
+                ctx.fillText(data.name.charAt(0).toUpperCase(), avX, avY);
             }
             ctx.restore();
 
-            // CS Name and Role
-            ctx.textAlign = 'left';
+            // Trophy icon badge on avatar corner
+            ctx.save();
+            const badgeAvX = avX + avR - 14;
+            const badgeAvY = avY + avR - 14;
+            ctx.beginPath();
+            ctx.arc(badgeAvX, badgeAvY, 16, 0, Math.PI * 2);
+            ctx.fillStyle = themeColors.primary;
+            ctx.fill();
+            ctx.strokeStyle = '#0f172a';
+            ctx.lineWidth = 3;
+            ctx.stroke();
             ctx.fillStyle = '#ffffff';
-            ctx.font = '900 42px sans-serif';
-            ctx.fillText(data.name, 310, 325);
+            ctx.font = '14px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('★', badgeAvX, badgeAvY + 1);
+            ctx.restore();
 
-            ctx.fillStyle = '#94a3b8';
-            ctx.font = '500 20px sans-serif';
-            ctx.fillText(data.role, 310, 362);
+            // Profile Details
+            const textStartX = 275;
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'alphabetic';
+            ctx.fillStyle = '#ffffff';
+            ctx.font = '900 36px Inter, -apple-system, sans-serif';
+            const displayName = data.name.length > 22 ? data.name.substring(0, 20) + '...' : data.name;
+            ctx.fillText(displayName, textStartX, 328);
 
-            // Verification Line
-            ctx.fillStyle = data.theme === 'gold' ? '#fbbf24' : (data.theme === 'rose' ? '#fb7185' : '#a5b4fc');
-            ctx.font = 'bold 15px sans-serif';
-            ctx.fillText('✓ VERIFIED TOP STAFF AWARDEE • PROBUS HELPDESK SYSTEM', 310, 396);
+            // Verified Badge
+            const nameWidth = ctx.measureText(displayName).width;
+            const checkX = textStartX + nameWidth + 18;
+            const checkY = 316;
 
-            // 3 Metrics Highlight Boxes
-            const startX = 70;
-            const startY = 485;
-            const boxW = 330;
-            const boxH = 135;
-            const gap = 35;
+            ctx.save();
+            ctx.beginPath();
+            ctx.arc(checkX, checkY, 11, 0, Math.PI * 2);
+            ctx.fillStyle = '#10b981';
+            ctx.fill();
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 12px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('✓', checkX, checkY);
+            ctx.restore();
+
+            // Role Pill
+            ctx.save();
+            const roleText = (data.role || 'Staff Implementator').toUpperCase();
+            ctx.font = '700 11px Inter, sans-serif';
+            const roleWidth = ctx.measureText(roleText).width + 24;
+            roundRect(textStartX, 345, roleWidth, 26, 6);
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.08)';
+            ctx.fill();
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+            ctx.lineWidth = 1;
+            ctx.stroke();
+
+            ctx.fillStyle = '#cbd5e1';
+            ctx.textAlign = 'left';
+            ctx.fillText(roleText, textStartX + 12, 362);
+            ctx.restore();
+
+            // Verification Description
+            ctx.fillStyle = themeColors.primaryLight;
+            ctx.font = '600 13px Inter, -apple-system, sans-serif';
+            ctx.fillText('✓ VERIFIED TOP PERFORMER • PROBUS SERVICE EXCELLENCE', textStartX, 395);
+
+            // 8. 3 Modern Frosted Glass Metric Cards
+            const startX = 75;
+            const startY = 465;
+            const boxW = 340;
+            const boxH = 140;
+            const gap = 20;
+
+            const subNotes = [
+                'Total Nilai Akumulasi Kinerja',
+                'Volume Tiket Ditangani',
+                'Tingkat Penyelesaian Sukses'
+            ];
 
             data.metrics.forEach((m, idx) => {
                 const bx = startX + idx * (boxW + gap);
-                
-                // Box background
-                ctx.fillStyle = 'rgba(255, 255, 255, 0.05)';
-                ctx.fillRect(bx, startY, boxW, boxH);
-                ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+
+                ctx.save();
+                roundRect(bx, startY, boxW, boxH, 18);
+                ctx.fillStyle = idx === 0 ? 'rgba(255, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.03)';
+                ctx.fill();
+
+                ctx.strokeStyle = idx === 0 ? themeColors.pillBorder : 'rgba(255, 255, 255, 0.09)';
                 ctx.lineWidth = 1.5;
-                ctx.strokeRect(bx, startY, boxW, boxH);
+                ctx.stroke();
 
-                // Metric Label
+                const indColor = idx === 0 ? themeColors.primaryLight : (idx === 1 ? '#38bdf8' : '#34d399');
+                ctx.beginPath();
+                ctx.arc(bx + 26, startY + 28, 4, 0, Math.PI * 2);
+                ctx.fillStyle = indColor;
+                ctx.fill();
+
                 ctx.fillStyle = '#94a3b8';
-                ctx.font = 'bold 13px sans-serif';
-                ctx.fillText(m.label.toUpperCase(), bx + 24, startY + 40);
+                ctx.font = '800 11px Inter, -apple-system, sans-serif';
+                ctx.textAlign = 'left';
+                ctx.fillText(m.label.toUpperCase(), bx + 38, startY + 32);
 
-                // Metric Value
                 ctx.fillStyle = '#ffffff';
-                ctx.font = '900 32px sans-serif';
-                ctx.fillText(m.value, bx + 24, startY + 92);
+                ctx.font = '900 28px Inter, -apple-system, sans-serif';
+                ctx.fillText(m.value, bx + 24, startY + 78);
+
+                ctx.fillStyle = '#64748b';
+                ctx.font = '500 11px Inter, -apple-system, sans-serif';
+                ctx.fillText(subNotes[idx] || 'Indikator Utama', bx + 24, startY + 112);
+                ctx.restore();
             });
 
-            // Footer
+            // 9. Modern Footer
+            const footY = 675;
+            ctx.save();
+            ctx.beginPath();
+            ctx.moveTo(75, footY);
+            ctx.lineTo(cardX + cardW - 40, footY);
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.07)';
+            ctx.lineWidth = 1;
+            ctx.stroke();
+
             ctx.fillStyle = '#64748b';
-            ctx.font = 'italic 14px sans-serif';
-            ctx.fillText('Diterbitkan secara resmi sebagai bentuk apresiasi dedikasi dan kinerja layanan pelanggan prima.', 70, 700);
+            ctx.font = '500 12px Inter, -apple-system, sans-serif';
+            ctx.textAlign = 'left';
+            ctx.fillText('Diterbitkan secara resmi sebagai bentuk apresiasi dedikasi & kinerja layanan pelanggan prima.', 75, footY + 35);
 
             ctx.textAlign = 'right';
-            ctx.font = 'bold 14px sans-serif';
+            ctx.font = 'bold 12px Inter, -apple-system, sans-serif';
             ctx.fillStyle = '#94a3b8';
-            ctx.fillText('Probus System Indonesia', 1130, 700);
+            ctx.fillText('Probus System Indonesia • Official Award', cardX + cardW - 40, footY + 35);
+            ctx.restore();
 
-            // Trigger instant download
+            // 10. Instant Download Trigger
             const link = document.createElement('a');
             link.download = 'Achievement_' + data.name.replace(/[^a-zA-Z0-9]/g, '_') + '_' + data.category.replace(/[^a-zA-Z0-9]/g, '_') + '.png';
             link.href = canvas.toDataURL('image/png');
