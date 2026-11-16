@@ -6,6 +6,14 @@
                 openAddSystemModal: false,
                 openAddModuleModal: false,
                 openHistoryModal: false,
+                openAttachModalState: false,
+                attachTargetModule: null,
+                availableTemplates: [],
+                isLoadingTemplates: false,
+                templateSearchQuery: '',
+                templateFilterSystem: 'all',
+                selectedTemplate: null,
+                isAttachingTemplate: false,
                 newSystemName: '',
                 newModuleNumber: '',
                 newModuleName: '',
@@ -75,7 +83,7 @@
                 initEditor() {
                     const self = this;
                     // Sinkronisasi dengan tombol 'Simpan Manual Modul' di header layout atas
-                    window.saveManualBookDraft = function(isPublish = true) {
+                    window.saveManualBookDraft = function (isPublish = true) {
                         self.submitSubMenu(isPublish ? 'published' : 'draft');
                     };
 
@@ -129,8 +137,8 @@
                                 let chosenSub = null;
                                 if (qSub) {
                                     const subTargetStr = String(qSub).trim().toLowerCase();
-                                    chosenSub = subList.find(s => 
-                                        String(s.id) === String(qSub) || 
+                                    chosenSub = subList.find(s =>
+                                        String(s.id) === String(qSub) ||
                                         (s.title && s.title.trim().toLowerCase() === subTargetStr)
                                     );
                                 }
@@ -161,15 +169,15 @@
                         window.initProbusTinyMCE('#manualBookCanvas', {
                             height: 520,
                             uploadUrl: '{{ route("bank-solusi.upload_image") }}',
-                            setup: function(editor) {
-                                editor.on('init', function() {
+                            setup: function (editor) {
+                                editor.on('init', function () {
                                     let content = '';
                                     if (self.currentSubMenu) {
                                         content = self.currentSubMenu.content || '';
                                     }
                                     editor.setContent(content);
                                 });
-                                editor.on('change keyup input', function() {
+                                editor.on('change keyup input', function () {
                                     if (self.currentSubMenu) {
                                         self.currentSubMenu.content = editor.getContent();
                                     }
@@ -412,51 +420,51 @@
                         },
                         body: formData
                     })
-                    .then(res => {
-                        if (!res.ok) return res.json().then(e => { throw e; });
-                        return res.json();
-                    })
-                    .then(data => {
-                        if (typeof Swal !== 'undefined') Swal.close();
+                        .then(res => {
+                            if (!res.ok) return res.json().then(e => { throw e; });
+                            return res.json();
+                        })
+                        .then(data => {
+                            if (typeof Swal !== 'undefined') Swal.close();
 
-                        // Masukkan sub menu baru hasil import Word
-                        this.activeSubMenuId = 'new';
-                        this.isNewSubMenu = true;
-                        this.subMenuOrder = data.order || 1;
-                        this.subMenuTitle = data.title || file.name.replace(/\.docx$/i, '');
-                        this.subMenuDescription = 'Dokumen panduan diimpor dari file Word: ' + file.name;
-                        this.subMenuStatus = 'draft';
+                            // Masukkan sub menu baru hasil import Word
+                            this.activeSubMenuId = 'new';
+                            this.isNewSubMenu = true;
+                            this.subMenuOrder = data.order || 1;
+                            this.subMenuTitle = data.title || file.name.replace(/\.docx$/i, '');
+                            this.subMenuDescription = 'Dokumen panduan diimpor dari file Word: ' + file.name;
+                            this.subMenuStatus = 'draft';
 
-                        // Masukkan HTML ke TinyMCE
-                        const htmlContent = data.content || data.html || '';
-                        this.setCanvasContent(htmlContent);
+                            // Masukkan HTML ke TinyMCE
+                            const htmlContent = data.content || data.html || '';
+                            this.setCanvasContent(htmlContent);
 
-                        if (typeof Swal !== 'undefined') {
-                            Swal.fire({
-                                icon: 'success',
-                                title: 'Word Berhasil Diimpor!',
-                                html: `Berhasil membaca <strong>${data.title}</strong>!<br>` +
-                                      `<span class="text-xs text-slate-500 dark:text-slate-400">Nomor Sub Menu: <strong>#${data.order}</strong> • Gambar diekstrak: <strong>${data.image_count || 0} berkas</strong>.</span><br><br>` +
-                                      `<span class="text-xs text-blue-600 dark:text-blue-400 font-semibold">Teks dan gambar telah otomatis dimasukkan ke editor. Silakan periksa isi dan klik tombol "Simpan Sub Menu" di bawah.</span>`,
-                                confirmButtonColor: '#2563eb',
-                                confirmButtonText: 'Periksa & Lanjutkan'
-                            });
-                        }
-                    })
-                    .catch(err => {
-                        console.error('Error import word:', err);
-                        const msg = (err && err.message) ? err.message : 'Terjadi kesalahan saat mengimpor file Word.';
-                        if (typeof Swal !== 'undefined') {
-                            Swal.fire({
-                                icon: 'error',
-                                title: 'Gagal Impor Word',
-                                text: msg,
-                                confirmButtonColor: '#2563eb'
-                            });
-                        } else {
-                            alert(msg);
-                        }
-                    });
+                            if (typeof Swal !== 'undefined') {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Word Berhasil Diimpor!',
+                                    html: `Berhasil membaca <strong>${data.title}</strong>!<br>` +
+                                        `<span class="text-xs text-slate-500 dark:text-slate-400">Nomor Sub Menu: <strong>#${data.order}</strong> • Gambar diekstrak: <strong>${data.image_count || 0} berkas</strong>.</span><br><br>` +
+                                        `<span class="text-xs text-blue-600 dark:text-blue-400 font-semibold">Teks dan gambar telah otomatis dimasukkan ke editor. Silakan periksa isi dan klik tombol "Simpan Sub Menu" di bawah.</span>`,
+                                    confirmButtonColor: '#2563eb',
+                                    confirmButtonText: 'Periksa & Lanjutkan'
+                                });
+                            }
+                        })
+                        .catch(err => {
+                            console.error('Error import word:', err);
+                            const msg = (err && err.message) ? err.message : 'Terjadi kesalahan saat mengimpor file Word.';
+                            if (typeof Swal !== 'undefined') {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Gagal Impor Word',
+                                    text: msg,
+                                    confirmButtonColor: '#2563eb'
+                                });
+                            } else {
+                                alert(msg);
+                            }
+                        });
                 },
 
                 // Simpan sub menu ke database (manual_books & menu_has_manual_books)
@@ -528,73 +536,73 @@
                         },
                         body: JSON.stringify(payload)
                     })
-                    .then(response => {
-                        if (!response.ok) {
-                            return response.json().then(err => { throw err; });
-                        }
-                        return response.json();
-                    })
-                    .then(data => {
-                        this.isSubmitting = false;
+                        .then(response => {
+                            if (!response.ok) {
+                                return response.json().then(err => { throw err; });
+                            }
+                            return response.json();
+                        })
+                        .then(data => {
+                            this.isSubmitting = false;
 
-                        const savedItem = data.sub_menu || data.chapter;
-                        if (!this.currentModule.sub_menus) {
-                            this.currentModule.sub_menus = [];
-                        }
-                        if (!this.currentModule.chapters) {
+                            const savedItem = data.sub_menu || data.chapter;
+                            if (!this.currentModule.sub_menus) {
+                                this.currentModule.sub_menus = [];
+                            }
+                            if (!this.currentModule.chapters) {
+                                this.currentModule.chapters = this.currentModule.sub_menus;
+                            }
+
+                            const existingIdx = this.currentModule.sub_menus.findIndex(s => String(s.id) === String(savedItem.id));
+                            if (existingIdx !== -1) {
+                                this.currentModule.sub_menus[existingIdx] = savedItem;
+                            } else {
+                                const insertIdx = Math.max(0, Math.min((parseInt(savedItem.order, 10) || 1) - 1, this.currentModule.sub_menus.length));
+                                this.currentModule.sub_menus.splice(insertIdx, 0, savedItem);
+                            }
+
+                            // Pastikan chapters tetap tersinkron
                             this.currentModule.chapters = this.currentModule.sub_menus;
-                        }
 
-                        const existingIdx = this.currentModule.sub_menus.findIndex(s => String(s.id) === String(savedItem.id));
-                        if (existingIdx !== -1) {
-                            this.currentModule.sub_menus[existingIdx] = savedItem;
-                        } else {
-                            const insertIdx = Math.max(0, Math.min((parseInt(savedItem.order, 10) || 1) - 1, this.currentModule.sub_menus.length));
-                            this.currentModule.sub_menus.splice(insertIdx, 0, savedItem);
-                        }
+                            // Set sub menu yang baru disimpan menjadi aktif
+                            this.activeSubMenuId = String(savedItem.id);
+                            this.isNewSubMenu = false;
+                            this.subMenuTitle = savedItem.title;
+                            this.subMenuDescription = savedItem.description;
+                            this.subMenuStatus = savedItem.status;
 
-                        // Pastikan chapters tetap tersinkron
-                        this.currentModule.chapters = this.currentModule.sub_menus;
+                            // Rekalkulasi urutan 1, 2, 3... dan sinkronkan ke database
+                            this.recalculateAndSyncOrders(this.currentModule);
 
-                        // Set sub menu yang baru disimpan menjadi aktif
-                        this.activeSubMenuId = String(savedItem.id);
-                        this.isNewSubMenu = false;
-                        this.subMenuTitle = savedItem.title;
-                        this.subMenuDescription = savedItem.description;
-                        this.subMenuStatus = savedItem.status;
+                            // Perbarui statistik jumlah sub menu pada modul
+                            this.updateModuleStats(this.currentModule);
 
-                        // Rekalkulasi urutan 1, 2, 3... dan sinkronkan ke database
-                        this.recalculateAndSyncOrders(this.currentModule);
-
-                        // Perbarui statistik jumlah sub menu pada modul
-                        this.updateModuleStats(this.currentModule);
-
-                        if (typeof Swal !== 'undefined') {
-                            Swal.fire({
-                                icon: 'success',
-                                title: targetStatus === 'published' ? 'Sub Menu Disimpan & Diterbitkan!' : 'Draft Sub Menu Tersimpan!',
-                                text: data.message || `Sub menu "${savedItem.title}" berhasil tersimpan ke database.`,
-                                confirmButtonColor: '#2563eb'
-                            });
-                        } else {
-                            alert(data.message);
-                        }
-                    })
-                    .catch(err => {
-                        this.isSubmitting = false;
-                        console.error('Error save sub menu:', err);
-                        const msg = (err && err.message) ? err.message : 'Terjadi kesalahan saat menyimpan sub menu.';
-                        if (typeof Swal !== 'undefined') {
-                            Swal.fire({
-                                icon: 'error',
-                                title: 'Gagal Menyimpan',
-                                text: msg,
-                                confirmButtonColor: '#2563eb'
-                            });
-                        } else {
-                            alert(msg);
-                        }
-                    });
+                            if (typeof Swal !== 'undefined') {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: targetStatus === 'published' ? 'Sub Menu Disimpan & Diterbitkan!' : 'Draft Sub Menu Tersimpan!',
+                                    text: data.message || `Sub menu "${savedItem.title}" berhasil tersimpan ke database.`,
+                                    confirmButtonColor: '#2563eb'
+                                });
+                            } else {
+                                alert(data.message);
+                            }
+                        })
+                        .catch(err => {
+                            this.isSubmitting = false;
+                            console.error('Error save sub menu:', err);
+                            const msg = (err && err.message) ? err.message : 'Terjadi kesalahan saat menyimpan sub menu.';
+                            if (typeof Swal !== 'undefined') {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Gagal Menyimpan',
+                                    text: msg,
+                                    confirmButtonColor: '#2563eb'
+                                });
+                            } else {
+                                alert(msg);
+                            }
+                        });
                 },
 
                 // Alias untuk submitManualBook
@@ -631,57 +639,58 @@
                 },
 
                 executeDeleteSubMenu(mod, sub) {
-                    fetch(`/manual-book/chapter/${sub.id}`, {
+                    fetch(`/manual-book/chapter/${sub.id}?menu_system_id=${mod.id}`, {
                         method: 'DELETE',
                         headers: {
                             'Content-Type': 'application/json',
                             'X-CSRF-TOKEN': '{{ csrf_token() }}',
                             'Accept': 'application/json',
                             'X-Requested-With': 'XMLHttpRequest'
-                        }
+                        },
+                        body: JSON.stringify({ menu_system_id: mod.id })
                     })
-                    .then(res => {
-                        if (!res.ok) return res.json().then(e => { throw e; });
-                        return res.json();
-                    })
-                    .then(data => {
-                        const subList = mod.sub_menus || mod.chapters || [];
-                        const idx = subList.findIndex(s => String(s.id) === String(sub.id));
-                        if (idx !== -1) {
-                            subList.splice(idx, 1);
-                        }
-                        mod.sub_menus = subList;
-                        mod.chapters = subList;
-
-                        this.updateModuleStats(mod);
-
-                        if (String(this.activeSubMenuId) === String(sub.id)) {
-                            if (subList.length > 0) {
-                                this.selectSubMenu(mod.id, subList[0].id);
-                            } else {
-                                this.startNewSubMenu(mod.id);
+                        .then(res => {
+                            if (!res.ok) return res.json().then(e => { throw e; });
+                            return res.json();
+                        })
+                        .then(data => {
+                            const subList = mod.sub_menus || mod.chapters || [];
+                            const idx = subList.findIndex(s => String(s.id) === String(sub.id));
+                            if (idx !== -1) {
+                                subList.splice(idx, 1);
                             }
-                        }
+                            mod.sub_menus = subList;
+                            mod.chapters = subList;
 
-                        if (typeof Swal !== 'undefined') {
-                            Swal.fire({
-                                icon: 'success',
-                                title: 'Sub Menu Dihapus',
-                                text: data.message || 'Sub menu panduan berhasil dihapus.',
-                                timer: 1800,
-                                showConfirmButton: false
-                            });
-                        }
-                    })
-                    .catch(err => {
-                        console.error('Error delete sub menu:', err);
-                        const msg = (err && err.message) ? err.message : 'Gagal menghapus sub menu.';
-                        if (typeof Swal !== 'undefined') {
-                            Swal.fire({ icon: 'error', title: 'Gagal', text: msg });
-                        } else {
-                            alert(msg);
-                        }
-                    });
+                            this.updateModuleStats(mod);
+
+                            if (String(this.activeSubMenuId) === String(sub.id)) {
+                                if (subList.length > 0) {
+                                    this.selectSubMenu(mod.id, subList[0].id);
+                                } else {
+                                    this.startNewSubMenu(mod.id);
+                                }
+                            }
+
+                            if (typeof Swal !== 'undefined') {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Sub Menu Dihapus',
+                                    text: data.message || 'Sub menu panduan berhasil dihapus.',
+                                    timer: 1800,
+                                    showConfirmButton: false
+                                });
+                            }
+                        })
+                        .catch(err => {
+                            console.error('Error delete sub menu:', err);
+                            const msg = (err && err.message) ? err.message : 'Gagal menghapus sub menu.';
+                            if (typeof Swal !== 'undefined') {
+                                Swal.fire({ icon: 'error', title: 'Gagal', text: msg });
+                            } else {
+                                alert(msg);
+                            }
+                        });
                 },
 
                 updateModuleStats(mod) {
@@ -799,10 +808,10 @@
                             orders: payloadOrders
                         })
                     })
-                    .then(res => res.json())
-                    .catch(err => {
-                        console.error('Error reorder sub menu:', err);
-                    });
+                        .then(res => res.json())
+                        .catch(err => {
+                            console.error('Error reorder sub menu:', err);
+                        });
                 },
 
                 // Dipanggil saat angka di kotak input "URUTAN SUB MENU" diubah
@@ -843,6 +852,154 @@
                     }
                 },
 
+                // ========================================================
+                // LOGIKA MODAL: TAUTKAN PANDUAN DARI SISTEM LAIN
+                // ========================================================
+                get uniqueTemplateSystems() {
+                    const set = new Set();
+                    (this.availableTemplates || []).forEach(t => {
+                        if (t.primary_system) set.add(t.primary_system);
+                        if (t.attached_systems) {
+                            t.attached_systems.forEach(s => {
+                                if (s.system_name) set.add(s.system_name);
+                            });
+                        }
+                    });
+                    return Array.from(set).sort();
+                },
+
+                get filteredTemplates() {
+                    let list = this.availableTemplates || [];
+                    if (this.templateFilterSystem && this.templateFilterSystem !== 'all') {
+                        const sysFilter = this.templateFilterSystem.toLowerCase();
+                        list = list.filter(t => {
+                            const prim = (t.primary_system || '').toLowerCase();
+                            const matchPrim = prim === sysFilter;
+                            const matchAttached = (t.attached_systems || []).some(s => (s.system_name || '').toLowerCase() === sysFilter);
+                            return matchPrim || matchAttached;
+                        });
+                    }
+                    if (this.templateSearchQuery && this.templateSearchQuery.trim()) {
+                        const q = this.templateSearchQuery.toLowerCase().trim();
+                        list = list.filter(t => {
+                            const titleMatch = (t.title || '').toLowerCase().includes(q);
+                            const descMatch = (t.description || '').toLowerCase().includes(q);
+                            const sysMatch = (t.primary_system || '').toLowerCase().includes(q);
+                            const modMatch = (t.primary_module || '').toLowerCase().includes(q);
+                            const attachedMatch = (t.attached_systems || []).some(s => 
+                                (s.system_name || '').toLowerCase().includes(q) || 
+                                (s.module_name || '').toLowerCase().includes(q)
+                            );
+                            return titleMatch || descMatch || sysMatch || modMatch || attachedMatch;
+                        });
+                    }
+                    return list;
+                },
+
+                openAttachModal(targetMod) {
+                    this.attachTargetModule = targetMod || this.currentModule;
+                    this.openAttachModalState = true;
+                    this.templateSearchQuery = '';
+                    this.templateFilterSystem = 'all';
+                    this.selectedTemplate = null;
+                    this.fetchAvailableTemplates();
+                },
+
+                closeAttachModal() {
+                    this.openAttachModalState = false;
+                    this.selectedTemplate = null;
+                },
+
+                fetchAvailableTemplates() {
+                    this.isLoadingTemplates = true;
+                    const modId = this.attachTargetModule ? this.attachTargetModule.id : '';
+                    fetch(`{{ route('manualbook.templates') }}?current_menu_system_id=${modId}`, {
+                        headers: {
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        this.isLoadingTemplates = false;
+                        this.availableTemplates = data.templates || [];
+                        if (this.availableTemplates.length > 0) {
+                            const firstUnattached = this.availableTemplates.find(t => !t.is_attached);
+                            this.selectedTemplate = firstUnattached || this.availableTemplates[0];
+                        }
+                    })
+                    .catch(err => {
+                        this.isLoadingTemplates = false;
+                        console.error('Error fetching templates:', err);
+                    });
+                },
+
+                submitAttachTemplate() {
+                    if (!this.selectedTemplate || this.selectedTemplate.is_attached || !this.attachTargetModule) return;
+
+                    this.isAttachingTemplate = true;
+                    const payload = {
+                        menu_system_id: this.attachTargetModule.id,
+                        manual_book_id: this.selectedTemplate.id,
+                        _token: '{{ csrf_token() }}'
+                    };
+
+                    fetch('{{ route("manualbook.attach_template") }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        body: JSON.stringify(payload)
+                    })
+                    .then(res => {
+                        if (!res.ok) return res.json().then(e => { throw e; });
+                        return res.json();
+                    })
+                    .then(data => {
+                        this.isAttachingTemplate = false;
+                        const targetMod = this.attachTargetModule;
+                        const savedSub = data.sub_menu;
+
+                        if (!targetMod.sub_menus) targetMod.sub_menus = [];
+                        if (!targetMod.chapters) targetMod.chapters = targetMod.sub_menus;
+
+                        targetMod.sub_menus.push(savedSub);
+                        targetMod.chapters = targetMod.sub_menus;
+
+                        this.recalculateAndSyncOrders(targetMod);
+                        this.updateModuleStats(targetMod);
+
+                        this.selectedTemplate.is_attached = true;
+                        this.closeAttachModal();
+
+                        this.activeModuleId = String(targetMod.id);
+                        this.expandedModules[String(targetMod.id)] = true;
+                        this.selectSubMenu(targetMod.id, savedSub.id);
+
+                        if (typeof Swal !== 'undefined') {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Panduan Berhasil Ditautkan!',
+                                html: `Panduan <strong>"${savedSub.title}"</strong> kini telah tertaut ke modul <strong>"${targetMod.title}"</strong>.<br><span class="text-xs text-slate-500">Materi panduan tersinkronisasi otomatis via relasi database.</span>`,
+                                confirmButtonColor: '#2563eb'
+                            });
+                        }
+                    })
+                    .catch(err => {
+                        this.isAttachingTemplate = false;
+                        console.error('Error attach template:', err);
+                        const msg = (err && err.message) ? err.message : 'Gagal menautkan panduan ke modul ini.';
+                        if (typeof Swal !== 'undefined') {
+                            Swal.fire({ icon: 'error', title: 'Gagal Menautkan', text: msg });
+                        } else {
+                            alert(msg);
+                        }
+                    });
+                },
+
                 // Tambah Sistem Baru
                 submitAddSystem() {
                     const name = (this.newSystemName || '').trim();
@@ -858,34 +1015,34 @@
                         },
                         body: JSON.stringify({ name: name, _token: '{{ csrf_token() }}' })
                     })
-                    .then(response => {
-                        if (!response.ok) return response.json().then(err => { throw err; });
-                        return response.json();
-                    })
-                    .then(data => {
-                        const newSys = data.system;
-                        this.systems.push(newSys);
-                        this.modulesBySystem[newSys.id] = [];
-                        this.activeSystem = newSys.id;
-                        this.newSystemName = '';
-                        this.openAddSystemModal = false;
-                        this.selectSystem(newSys.id);
+                        .then(response => {
+                            if (!response.ok) return response.json().then(err => { throw err; });
+                            return response.json();
+                        })
+                        .then(data => {
+                            const newSys = data.system;
+                            this.systems.push(newSys);
+                            this.modulesBySystem[newSys.id] = [];
+                            this.activeSystem = newSys.id;
+                            this.newSystemName = '';
+                            this.openAddSystemModal = false;
+                            this.selectSystem(newSys.id);
 
-                        if (typeof Swal !== 'undefined') {
-                            Swal.fire({
-                                toast: true,
-                                position: 'top-end',
-                                icon: 'success',
-                                title: data.message || 'Sistem baru berhasil ditambahkan!',
-                                showConfirmButton: false,
-                                timer: 2000
-                            });
-                        }
-                    })
-                    .catch(err => {
-                        console.error('Error add system:', err);
-                        alert(err.message || 'Gagal menambahkan sistem baru.');
-                    });
+                            if (typeof Swal !== 'undefined') {
+                                Swal.fire({
+                                    toast: true,
+                                    position: 'top-end',
+                                    icon: 'success',
+                                    title: data.message || 'Sistem baru berhasil ditambahkan!',
+                                    showConfirmButton: false,
+                                    timer: 2000
+                                });
+                            }
+                        })
+                        .catch(err => {
+                            console.error('Error add system:', err);
+                            alert(err.message || 'Gagal menambahkan sistem baru.');
+                        });
                 },
 
                 // Tambah Modul Baru ke Database menu_systems
@@ -923,51 +1080,51 @@
                             _token: '{{ csrf_token() }}'
                         })
                     })
-                    .then(response => {
-                        if (!response.ok) return response.json().then(err => { throw err; });
-                        return response.json();
-                    })
-                    .then(data => {
-                        const newMod = data.module;
-                        newMod.sub_menus = [];
-                        newMod.chapters = [];
-                        newMod.subMenuCount = 0;
-                        newMod.chapterCount = 0;
-                        newMod.publishedCount = 0;
-                        newMod.statusLabel = 'Belum Ada Sub Menu';
-                        newMod.statusClass = 'text-slate-400 dark:text-slate-500';
+                        .then(response => {
+                            if (!response.ok) return response.json().then(err => { throw err; });
+                            return response.json();
+                        })
+                        .then(data => {
+                            const newMod = data.module;
+                            newMod.sub_menus = [];
+                            newMod.chapters = [];
+                            newMod.subMenuCount = 0;
+                            newMod.chapterCount = 0;
+                            newMod.publishedCount = 0;
+                            newMod.statusLabel = 'Belum Ada Sub Menu';
+                            newMod.statusClass = 'text-slate-400 dark:text-slate-500';
 
-                        if (!this.modulesBySystem[this.activeSystem]) {
-                            this.modulesBySystem[this.activeSystem] = [];
-                        }
-                        this.modulesBySystem[this.activeSystem].push(newMod);
+                            if (!this.modulesBySystem[this.activeSystem]) {
+                                this.modulesBySystem[this.activeSystem] = [];
+                            }
+                            this.modulesBySystem[this.activeSystem].push(newMod);
 
-                        const sys = this.systems.find(s => String(s.id) === String(this.activeSystem));
-                        if (sys) sys.moduleCount = (sys.moduleCount || 0) + 1;
+                            const sys = this.systems.find(s => String(s.id) === String(this.activeSystem));
+                            if (sys) sys.moduleCount = (sys.moduleCount || 0) + 1;
 
-                        this.activeModuleId = String(newMod.id);
-                        this.expandedModules[String(newMod.id)] = true;
-                        this.newModuleName = '';
-                        this.newModuleNumber = '';
-                        this.openAddModuleModal = false;
+                            this.activeModuleId = String(newMod.id);
+                            this.expandedModules[String(newMod.id)] = true;
+                            this.newModuleName = '';
+                            this.newModuleNumber = '';
+                            this.openAddModuleModal = false;
 
-                        this.startNewSubMenu(newMod.id);
+                            this.startNewSubMenu(newMod.id);
 
-                        if (typeof Swal !== 'undefined') {
-                            Swal.fire({
-                                toast: true,
-                                position: 'top-end',
-                                icon: 'success',
-                                title: data.message || 'Modul berhasil ditambahkan!',
-                                showConfirmButton: false,
-                                timer: 2000
-                            });
-                        }
-                    })
-                    .catch(err => {
-                        console.error('Error add module:', err);
-                        alert(err.message || 'Gagal menambahkan modul.');
-                    });
+                            if (typeof Swal !== 'undefined') {
+                                Swal.fire({
+                                    toast: true,
+                                    position: 'top-end',
+                                    icon: 'success',
+                                    title: data.message || 'Modul berhasil ditambahkan!',
+                                    showConfirmButton: false,
+                                    timer: 2000
+                                });
+                            }
+                        })
+                        .catch(err => {
+                            console.error('Error add module:', err);
+                            alert(err.message || 'Gagal menambahkan modul.');
+                        });
                 },
 
                 // Konfirmasi & Hapus Modul dari Database
@@ -1004,46 +1161,46 @@
                             'X-Requested-With': 'XMLHttpRequest'
                         }
                     })
-                    .then(res => {
-                        if (!res.ok) return res.json().then(e => { throw e; });
-                        return res.json();
-                    })
-                    .then(data => {
-                        const list = this.modulesBySystem[this.activeSystem] || [];
-                        this.modulesBySystem[this.activeSystem] = list.filter(m => String(m.id) !== String(mod.id));
+                        .then(res => {
+                            if (!res.ok) return res.json().then(e => { throw e; });
+                            return res.json();
+                        })
+                        .then(data => {
+                            const list = this.modulesBySystem[this.activeSystem] || [];
+                            this.modulesBySystem[this.activeSystem] = list.filter(m => String(m.id) !== String(mod.id));
 
-                        const sys = this.systems.find(s => String(s.id) === String(this.activeSystem));
-                        if (sys && sys.moduleCount > 0) sys.moduleCount--;
+                            const sys = this.systems.find(s => String(s.id) === String(this.activeSystem));
+                            if (sys && sys.moduleCount > 0) sys.moduleCount--;
 
-                        if (String(this.activeModuleId) === String(mod.id)) {
-                            const remaining = this.modules;
-                            if (remaining.length > 0) {
-                                this.selectModule(remaining[0].id);
-                            } else {
-                                this.activeModuleId = null;
-                                this.startNewSubMenu(null);
+                            if (String(this.activeModuleId) === String(mod.id)) {
+                                const remaining = this.modules;
+                                if (remaining.length > 0) {
+                                    this.selectModule(remaining[0].id);
+                                } else {
+                                    this.activeModuleId = null;
+                                    this.startNewSubMenu(null);
+                                }
                             }
-                        }
 
-                        if (typeof Swal !== 'undefined') {
-                            Swal.fire({
-                                icon: 'success',
-                                title: 'Modul Dihapus',
-                                text: data.message,
-                                timer: 1800,
-                                showConfirmButton: false
-                            });
-                        }
-                    })
-                    .catch(err => {
-                        console.error('Error delete module:', err);
-                        const msg = (err && err.message) ? err.message : 'Gagal menghapus modul.';
-                        if (typeof Swal !== 'undefined') {
-                            Swal.fire({ icon: 'error', title: 'Gagal', text: msg });
-                        } else {
-                            alert(msg);
-                        }
-                    });
+                            if (typeof Swal !== 'undefined') {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Modul Dihapus',
+                                    text: data.message,
+                                    timer: 1800,
+                                    showConfirmButton: false
+                                });
+                            }
+                        })
+                        .catch(err => {
+                            console.error('Error delete module:', err);
+                            const msg = (err && err.message) ? err.message : 'Gagal menghapus modul.';
+                            if (typeof Swal !== 'undefined') {
+                                Swal.fire({ icon: 'error', title: 'Gagal', text: msg });
+                            } else {
+                                alert(msg);
+                            }
+                        });
                 },
 
                 // Konfirmasi & Hapus Sistem dari Database
@@ -1080,44 +1237,44 @@
                             'X-Requested-With': 'XMLHttpRequest'
                         }
                     })
-                    .then(res => {
-                        if (!res.ok) return res.json().then(e => { throw e; });
-                        return res.json();
-                    })
-                    .then(data => {
-                        this.systems = this.systems.filter(s => String(s.id) !== String(sys.id));
-                        delete this.modulesBySystem[sys.id];
+                        .then(res => {
+                            if (!res.ok) return res.json().then(e => { throw e; });
+                            return res.json();
+                        })
+                        .then(data => {
+                            this.systems = this.systems.filter(s => String(s.id) !== String(sys.id));
+                            delete this.modulesBySystem[sys.id];
 
-                        if (String(this.activeSystem) === String(sys.id)) {
-                            this.activeSystem = this.systems.length > 0 ? this.systems[0].id : null;
-                            const nextMods = this.modules;
-                            if (nextMods.length > 0) {
-                                this.selectModule(nextMods[0].id);
-                            } else {
-                                this.activeModuleId = null;
-                                this.startNewSubMenu(null);
+                            if (String(this.activeSystem) === String(sys.id)) {
+                                this.activeSystem = this.systems.length > 0 ? this.systems[0].id : null;
+                                const nextMods = this.modules;
+                                if (nextMods.length > 0) {
+                                    this.selectModule(nextMods[0].id);
+                                } else {
+                                    this.activeModuleId = null;
+                                    this.startNewSubMenu(null);
+                                }
                             }
-                        }
 
-                        if (typeof Swal !== 'undefined') {
-                            Swal.fire({
-                                icon: 'success',
-                                title: 'Sistem Dihapus',
-                                text: data.message,
-                                timer: 1800,
-                                showConfirmButton: false
-                            });
-                        }
-                    })
-                    .catch(err => {
-                        console.error('Error delete system:', err);
-                        const msg = (err && err.message) ? err.message : 'Gagal menghapus sistem.';
-                        if (typeof Swal !== 'undefined') {
-                            Swal.fire({ icon: 'error', title: 'Gagal', text: msg });
-                        } else {
-                            alert(msg);
-                        }
-                    });
+                            if (typeof Swal !== 'undefined') {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Sistem Dihapus',
+                                    text: data.message,
+                                    timer: 1800,
+                                    showConfirmButton: false
+                                });
+                            }
+                        })
+                        .catch(err => {
+                            console.error('Error delete system:', err);
+                            const msg = (err && err.message) ? err.message : 'Gagal menghapus sistem.';
+                            if (typeof Swal !== 'undefined') {
+                                Swal.fire({ icon: 'error', title: 'Gagal', text: msg });
+                            } else {
+                                alert(msg);
+                            }
+                        });
                 }
             };
         }
@@ -1131,14 +1288,16 @@
     </script>
 
     <div x-data="manualBookApp()" x-init="initEditor()" class="min-h-screen py-6 px-4 sm:px-6 lg:px-8 space-y-6">
-        
+
         {{-- ======================================================== --}}
-        {{-- SECTION 1: PAGE HEADER & SUBTITLE                        --}}
+        {{-- SECTION 1: PAGE HEADER & SUBTITLE --}}
         {{-- ======================================================== --}}
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2 border-b border-slate-200 dark:border-slate-800">
+        <div
+            class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2 border-b border-slate-200 dark:border-slate-800">
             <div class="space-y-1">
                 <div class="flex items-center gap-2 text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">
-                    <a href="{{ route('manualbook') }}" class="hover:text-blue-600 dark:hover:text-blue-400 transition-colors inline-flex items-center gap-1.5 font-bold">
+                    <a href="{{ route('manualbook') }}"
+                        class="hover:text-blue-600 dark:hover:text-blue-400 transition-colors inline-flex items-center gap-1.5 font-bold">
                         <i class="fa-solid fa-arrow-left text-xs"></i>
                         <span>Kembali ke Ringkasan Manual Book</span>
                     </a>
@@ -1147,12 +1306,13 @@
                     Editor &amp; Manajemen Panduan Modul &amp; Sub Menu
                 </h1>
                 <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
-                    Pilih sistem dan modul di bawah untuk mengelola tata cara penggunaan sub menu panduan, atau mengimpor file Microsoft Word (.docx).
+                    Pilih sistem dan modul di bawah untuk mengelola tata cara penggunaan sub menu panduan, atau
+                    mengimpor file Microsoft Word (.docx).
                 </p>
             </div>
             <div class="flex items-center gap-2 shrink-0">
-                <a href="{{ route('manualbook') }}" 
-                   class="inline-flex items-center gap-2 px-3.5 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-xl text-xs sm:text-sm font-semibold transition-all">
+                <a href="{{ route('manualbook') }}"
+                    class="inline-flex items-center gap-2 px-3.5 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-xl text-xs sm:text-sm font-semibold transition-all">
                     <i class="fa-solid fa-book-open text-xs text-blue-500"></i>
                     <span>Lihat Ringkasan Katalog</span>
                 </a>
@@ -1160,7 +1320,7 @@
         </div>
 
         {{-- ======================================================== --}}
-        {{-- SECTION 2: PILIH SISTEM (HORIZONTAL TABS)                --}}
+        {{-- SECTION 2: PILIH SISTEM (HORIZONTAL TABS) --}}
         {{-- ======================================================== --}}
         <div class="space-y-2">
             <div class="text-[11px] font-extrabold tracking-wider text-slate-400 dark:text-slate-400 uppercase">
@@ -1168,21 +1328,19 @@
             </div>
             <div class="flex items-center gap-2.5 overflow-x-auto pb-1 custom-scrollbar">
                 <template x-for="sys in systems" :key="sys.id">
-                    <button type="button"
-                            @click="selectSystem(sys.id)"
-                            :class="activeSystem === sys.id 
+                    <button type="button" @click="selectSystem(sys.id)"
+                        :class="activeSystem === sys.id 
                                 ? 'bg-blue-600 text-white font-bold shadow-md shadow-blue-500/20 border-blue-600' 
                                 : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/80 font-medium'"
-                            class="px-4 py-2.5 rounded-xl border text-xs sm:text-sm whitespace-nowrap transition-all duration-200 flex items-center gap-2 cursor-pointer">
+                        class="px-4 py-2.5 rounded-xl border text-xs sm:text-sm whitespace-nowrap transition-all duration-200 flex items-center gap-2 cursor-pointer">
                         <span x-text="sys.name"></span>
                         <span class="text-[11px] opacity-80" x-text="'(' + sys.moduleCount + ' Modul)'"></span>
                     </button>
                 </template>
 
                 {{-- Tombol Tambah Sistem --}}
-                <button type="button" 
-                        @click="openAddSystemModal = true"
-                        class="px-4 py-2.5 rounded-xl border border-dashed border-blue-400/60 dark:border-blue-500/40 text-blue-600 dark:text-blue-400 bg-blue-50/50 dark:bg-blue-500/10 hover:bg-blue-100/50 dark:hover:bg-blue-500/20 text-xs sm:text-sm font-semibold whitespace-nowrap transition-all duration-200 flex items-center gap-1.5 cursor-pointer">
+                <button type="button" @click="openAddSystemModal = true"
+                    class="px-4 py-2.5 rounded-xl border border-dashed border-blue-400/60 dark:border-blue-500/40 text-blue-600 dark:text-blue-400 bg-blue-50/50 dark:bg-blue-500/10 hover:bg-blue-100/50 dark:hover:bg-blue-500/20 text-xs sm:text-sm font-semibold whitespace-nowrap transition-all duration-200 flex items-center gap-1.5 cursor-pointer">
                     <i class="fa-solid fa-plus text-xs"></i>
                     <span>Tambah Sistem</span>
                 </button>
@@ -1190,14 +1348,15 @@
         </div>
 
         {{-- ======================================================== --}}
-        {{-- SECTION 3: 2-COLUMN WORKSPACE (MODUL & EDITOR SUB MENU)  --}}
+        {{-- SECTION 3: 2-COLUMN WORKSPACE (MODUL & EDITOR SUB MENU) --}}
         {{-- ======================================================== --}}
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
-            
+
             {{-- ---------------------------------------------------- --}}
-            {{-- LEFT COLUMN: DAFTAR MODUL & SUB MENU                 --}}
+            {{-- LEFT COLUMN: DAFTAR MODUL & SUB MENU --}}
             {{-- ---------------------------------------------------- --}}
-            <div class="lg:col-span-4 xl:col-span-4 bg-white dark:bg-[#0f172a] rounded-2xl border border-slate-200 dark:border-slate-800 p-4 shadow-sm space-y-3">
+            <div
+                class="lg:col-span-4 xl:col-span-4 bg-white dark:bg-[#0f172a] rounded-2xl border border-slate-200 dark:border-slate-800 p-4 shadow-sm space-y-3">
                 <div class="flex items-center justify-between pb-1">
                     <div>
                         <div class="text-xs font-black tracking-wider text-slate-800 dark:text-slate-100 uppercase">
@@ -1207,9 +1366,8 @@
                             Klik modul untuk melihat atau mengelola sub menu:
                         </p>
                     </div>
-                    <button type="button" 
-                            @click="openCreateMainModuleModal()"
-                            class="text-xs font-bold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 flex items-center gap-1 cursor-pointer">
+                    <button type="button" @click="openCreateMainModuleModal()"
+                        class="text-xs font-bold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 flex items-center gap-1 cursor-pointer">
                         <i class="fa-solid fa-plus text-[10px]"></i>
                         <span>Modul Baru</span>
                     </button>
@@ -1221,38 +1379,34 @@
                         <div class="select-none">
                             {{-- Baris Judul Modul (Bukan Card, Bersih & Ramping) --}}
                             <div class="px-2.5 py-2 rounded-lg flex items-center justify-between cursor-pointer group transition-colors"
-                                 :class="String(activeModuleId) === String(mod.id)
+                                :class="String(activeModuleId) === String(mod.id)
                                      ? 'bg-slate-100 dark:bg-slate-800/80 text-blue-600 dark:text-blue-400 font-bold'
                                      : 'text-slate-800 dark:text-slate-200 font-semibold hover:bg-slate-50 dark:hover:bg-slate-800/40'"
-                                 @click="toggleModule(mod.id)">
+                                @click="toggleModule(mod.id)">
                                 <div class="min-w-0 flex items-center gap-2">
-                                    <h3 class="text-xs sm:text-[13px] truncate"
-                                        x-text="mod.title"></h3>
+                                    <h3 class="text-xs sm:text-[13px] truncate" x-text="mod.title"></h3>
                                 </div>
                                 <div class="flex items-center gap-1 shrink-0">
-                                    <button type="button" 
-                                            @click.stop="confirmDeleteModule(mod)"
-                                            class="w-5 h-5 rounded text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all"
-                                            title="Hapus Modul">
+                                    <button type="button" @click.stop="confirmDeleteModule(mod)"
+                                        class="w-5 h-5 rounded text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all"
+                                        title="Hapus Modul">
                                         <i class="fa-solid fa-trash-can text-[9px]"></i>
                                     </button>
                                     <i class="fa-solid fa-chevron-down text-[10px] text-slate-400 transition-transform duration-200"
-                                       :class="expandedModules[mod.id] ? 'rotate-180 text-blue-600 dark:text-blue-400' : ''"></i>
+                                        :class="expandedModules[mod.id] ? 'rotate-180 text-blue-600 dark:text-blue-400' : ''"></i>
                                 </div>
                             </div>
 
                             {{-- Sub Menu Menjorok ke Dalam (Tree Indent Style) --}}
                             <div x-show="expandedModules[mod.id]"
-                                 class="ml-3.5 pl-3 border-l-2 border-slate-200 dark:border-slate-800 my-1 space-y-0.5">
+                                class="ml-3.5 pl-3 border-l-2 border-slate-200 dark:border-slate-800 my-1 space-y-0.5">
                                 <template x-for="(sub, sIdx) in (mod.sub_menus || mod.chapters || [])" :key="sub.id">
-                                    <div @click="selectSubMenu(mod.id, sub.id)"
-                                         draggable="true"
-                                         @dragstart="onSubMenuDragStart($event, mod, sIdx)"
-                                         @dragover.prevent="onSubMenuDragOver($event, mod, sIdx)"
-                                         @dragleave="onSubMenuDragLeave($event, sIdx)"
-                                         @drop.prevent="onSubMenuDrop($event, mod, sIdx)"
-                                         @dragend="onSubMenuDragEnd()"
-                                         :class="[
+                                    <div @click="selectSubMenu(mod.id, sub.id)" draggable="true"
+                                        @dragstart="onSubMenuDragStart($event, mod, sIdx)"
+                                        @dragover.prevent="onSubMenuDragOver($event, mod, sIdx)"
+                                        @dragleave="onSubMenuDragLeave($event, sIdx)"
+                                        @drop.prevent="onSubMenuDrop($event, mod, sIdx)" @dragend="onSubMenuDragEnd()"
+                                        :class="[
                                              String(activeModuleId) === String(mod.id) && String(activeSubMenuId) === String(sub.id) && !isNewSubMenu
                                                  ? 'bg-blue-600 text-white font-medium shadow-xs'
                                                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100/80 dark:hover:bg-slate-800/60',
@@ -1260,57 +1414,55 @@
                                                  ? 'ring-2 ring-blue-500 scale-[1.01]'
                                                  : ''
                                          ]"
-                                         class="px-2.5 py-1.5 rounded-lg transition-all duration-150 cursor-pointer flex items-center justify-between gap-2 group/sub select-none">
+                                        class="px-2.5 py-1.5 rounded-lg transition-all duration-150 cursor-pointer flex items-center justify-between gap-2 group/sub select-none">
                                         <div class="flex items-center gap-2 min-w-0">
                                             {{-- Grip Handle Drag & Drop --}}
                                             <i class="fa-solid fa-grip-vertical text-slate-300 dark:text-slate-600 hover:text-slate-500 cursor-grab active:cursor-grabbing text-[10px] shrink-0"
-                                               :class="String(activeModuleId) === String(mod.id) && String(activeSubMenuId) === String(sub.id) && !isNewSubMenu ? 'text-white/60' : ''"
-                                               title="Geser posisi sub menu"></i>
+                                                :class="String(activeModuleId) === String(mod.id) && String(activeSubMenuId) === String(sub.id) && !isNewSubMenu ? 'text-white/60' : ''"
+                                                title="Geser posisi sub menu"></i>
 
                                             <span class="text-[11px] font-bold shrink-0"
-                                                  :class="String(activeModuleId) === String(mod.id) && String(activeSubMenuId) === String(sub.id) && !isNewSubMenu ? 'text-blue-100' : 'text-slate-400'"
-                                                  x-text="'#' + sub.order"></span>
+                                                :class="String(activeModuleId) === String(mod.id) && String(activeSubMenuId) === String(sub.id) && !isNewSubMenu ? 'text-blue-100' : 'text-slate-400'"
+                                                x-text="'#' + sub.order"></span>
                                             <span class="text-xs truncate font-medium" x-text="sub.title"></span>
                                         </div>
 
                                         <div class="flex items-center gap-1 shrink-0">
                                             {{-- Tombol Naik / Turun Cepat (Move Up & Down) --}}
-                                            <div class="flex items-center gap-0.5 opacity-0 group-hover/sub:opacity-100 transition-opacity">
-                                                <button type="button"
-                                                        @click.stop="moveSubMenu(mod, sIdx, -1)"
-                                                        :disabled="sIdx === 0"
-                                                        :class="String(activeModuleId) === String(mod.id) && String(activeSubMenuId) === String(sub.id) && !isNewSubMenu
+                                            <div
+                                                class="flex items-center gap-0.5 opacity-0 group-hover/sub:opacity-100 transition-opacity">
+                                                <button type="button" @click.stop="moveSubMenu(mod, sIdx, -1)"
+                                                    :disabled="sIdx === 0"
+                                                    :class="String(activeModuleId) === String(mod.id) && String(activeSubMenuId) === String(sub.id) && !isNewSubMenu
                                                             ? 'text-white/80 hover:text-white hover:bg-white/10'
                                                             : 'text-slate-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-slate-700'"
-                                                        class="w-4 h-4 rounded flex items-center justify-center disabled:opacity-20 cursor-pointer transition-colors"
-                                                        title="Pindah ke Atas">
+                                                    class="w-4 h-4 rounded flex items-center justify-center disabled:opacity-20 cursor-pointer transition-colors"
+                                                    title="Pindah ke Atas">
                                                     <i class="fa-solid fa-chevron-up text-[8px]"></i>
                                                 </button>
-                                                <button type="button"
-                                                        @click.stop="moveSubMenu(mod, sIdx, 1)"
-                                                        :disabled="sIdx === ((mod.sub_menus || mod.chapters || []).length - 1)"
-                                                        :class="String(activeModuleId) === String(mod.id) && String(activeSubMenuId) === String(sub.id) && !isNewSubMenu
+                                                <button type="button" @click.stop="moveSubMenu(mod, sIdx, 1)"
+                                                    :disabled="sIdx === ((mod.sub_menus || mod.chapters || []).length - 1)"
+                                                    :class="String(activeModuleId) === String(mod.id) && String(activeSubMenuId) === String(sub.id) && !isNewSubMenu
                                                             ? 'text-white/80 hover:text-white hover:bg-white/10'
                                                             : 'text-slate-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-slate-700'"
-                                                        class="w-4 h-4 rounded flex items-center justify-center disabled:opacity-20 cursor-pointer transition-colors"
-                                                        title="Pindah ke Bawah">
+                                                    class="w-4 h-4 rounded flex items-center justify-center disabled:opacity-20 cursor-pointer transition-colors"
+                                                    title="Pindah ke Bawah">
                                                     <i class="fa-solid fa-chevron-down text-[8px]"></i>
                                                 </button>
                                             </div>
 
                                             {{-- Status Dot --}}
                                             <span class="w-2 h-2 rounded-full"
-                                                  :class="sub.status === 'published' ? 'bg-emerald-400' : 'bg-amber-400'"
-                                                  :title="sub.status === 'published' ? 'Terbit' : 'Draft'"></span>
+                                                :class="sub.status === 'published' ? 'bg-emerald-400' : 'bg-amber-400'"
+                                                :title="sub.status === 'published' ? 'Terbit' : 'Draft'"></span>
 
                                             {{-- Tombol Hapus --}}
-                                            <button type="button"
-                                                    @click.stop="confirmDeleteSubMenu(mod, sub)"
-                                                    :class="String(activeModuleId) === String(mod.id) && String(activeSubMenuId) === String(sub.id) && !isNewSubMenu
+                                            <button type="button" @click.stop="confirmDeleteSubMenu(mod, sub)"
+                                                :class="String(activeModuleId) === String(mod.id) && String(activeSubMenuId) === String(sub.id) && !isNewSubMenu
                                                         ? 'text-white/80 hover:text-white hover:bg-white/10'
                                                         : 'text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30'"
-                                                    class="w-4 h-4 rounded flex items-center justify-center opacity-0 group-hover/sub:opacity-100 transition-opacity"
-                                                    title="Hapus Sub Menu">
+                                                class="w-4 h-4 rounded flex items-center justify-center opacity-0 group-hover/sub:opacity-100 transition-opacity"
+                                                title="Hapus Sub Menu">
                                                 <i class="fa-solid fa-xmark text-[9px]"></i>
                                             </button>
                                         </div>
@@ -1326,14 +1478,16 @@
 
                                 {{-- Placeholder Item Preview saat Sedang Menambah Sub Menu Baru --}}
                                 <template x-if="String(activeModuleId) === String(mod.id) && isNewSubMenu">
-                                    <div class="px-2.5 py-1.5 rounded-lg bg-blue-600 text-white font-medium shadow-xs flex items-center justify-between gap-2 border border-blue-500 ring-2 ring-blue-400/40 select-none">
+                                    <div
+                                        class="px-2.5 py-1.5 rounded-lg bg-blue-600 text-white font-medium shadow-xs flex items-center justify-between gap-2 border border-blue-500 ring-2 ring-blue-400/40 select-none">
                                         <div class="flex items-center gap-2 min-w-0">
                                             <span class="text-[11px] font-bold text-blue-100 shrink-0"
-                                                  x-text="'#' + subMenuOrder"></span>
+                                                x-text="'#' + subMenuOrder"></span>
                                             <span class="text-xs truncate italic"
-                                                  x-text="(subMenuTitle || '').trim() ? subMenuTitle : 'Sub Menu Baru (Sedang Dibuat...)'"></span>
+                                                x-text="(subMenuTitle || '').trim() ? subMenuTitle : 'Sub Menu Baru (Sedang Dibuat...)'"></span>
                                         </div>
-                                        <span class="text-[9.5px] font-extrabold px-1.5 py-0.5 rounded bg-white/20 text-white uppercase tracking-wider shrink-0 flex items-center gap-1">
+                                        <span
+                                            class="text-[9.5px] font-extrabold px-1.5 py-0.5 rounded bg-white/20 text-white uppercase tracking-wider shrink-0 flex items-center gap-1">
                                             <i class="fa-solid fa-pen text-[8px] animate-pulse"></i>
                                             <span>Baru</span>
                                         </span>
@@ -1342,27 +1496,34 @@
 
                                 {{-- Tombol Tambah / Batal Tambah Sub Menu di dalam modul ini --}}
                                 <template x-if="String(activeModuleId) === String(mod.id) && isNewSubMenu">
-                                    <button type="button"
-                                            @click="cancelNewSubMenu(mod.id)"
-                                            class="w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-semibold text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30 flex items-center gap-1.5 transition-colors cursor-pointer">
+                                    <button type="button" @click="cancelNewSubMenu(mod.id)"
+                                        class="w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-semibold text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30 flex items-center gap-1.5 transition-colors cursor-pointer">
                                         <i class="fa-solid fa-xmark text-[10px]"></i>
                                         <span>Batal Tambah Sub Menu</span>
                                     </button>
                                 </template>
                                 <template x-if="!(String(activeModuleId) === String(mod.id) && isNewSubMenu)">
-                                    <button type="button"
-                                            @click="startNewSubMenu(mod.id)"
-                                            class="w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-semibold text-slate-400 dark:text-slate-500 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50/50 dark:hover:bg-blue-950/30 flex items-center gap-1.5 transition-colors cursor-pointer">
-                                        <i class="fa-solid fa-plus text-[10px]"></i>
-                                        <span>Tambah Sub Menu</span>
-                                    </button>
+                                    <div class="flex items-center gap-1 pt-0.5">
+                                        <button type="button" @click="startNewSubMenu(mod.id)"
+                                            class="flex-1 text-left px-2.5 py-1.5 rounded-lg text-xs font-semibold text-slate-400 dark:text-slate-500 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50/50 dark:hover:bg-blue-950/30 flex items-center gap-1.5 transition-colors cursor-pointer truncate">
+                                            <i class="fa-solid fa-plus text-[10px]"></i>
+                                            <span>Tambah Sub Menu</span>
+                                        </button>
+                                        <button type="button" @click="openAttachModal(mod)"
+                                            title="Tautkan bab panduan yang sudah ada dari sistem lain"
+                                            class="px-2.5 py-1.5 rounded-lg text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 border border-transparent hover:border-indigo-200 dark:hover:border-indigo-800 flex items-center gap-1 transition-colors cursor-pointer shrink-0">
+                                            <i class="fa-solid fa-link text-[10px]"></i>
+                                            <span>Tautkan</span>
+                                        </button>
+                                    </div>
                                 </template>
                             </div>
                         </div>
                     </template>
 
                     <template x-if="modules.length === 0">
-                        <div class="p-6 text-center text-xs text-slate-400 border border-dashed border-slate-200 dark:border-slate-800 rounded-xl">
+                        <div
+                            class="p-6 text-center text-xs text-slate-400 border border-dashed border-slate-200 dark:border-slate-800 rounded-xl">
                             Belum ada modul pada sistem ini.<br>Klik "Modul Baru" untuk menambahkan.
                         </div>
                     </template>
@@ -1370,188 +1531,205 @@
             </div>
 
             {{-- ---------------------------------------------------- --}}
-            {{-- RIGHT COLUMN: EDITOR PANDUAN SUB MENU                --}}
+            {{-- RIGHT COLUMN: EDITOR PANDUAN SUB MENU --}}
             {{-- ---------------------------------------------------- --}}
-            <div class="lg:col-span-8 xl:col-span-8 bg-white dark:bg-[#0f172a] rounded-2xl border border-slate-200 dark:border-slate-800 p-4 sm:p-6 shadow-sm space-y-5">
-                
+            <div
+                class="lg:col-span-8 xl:col-span-8 bg-white dark:bg-[#0f172a] rounded-2xl border border-slate-200 dark:border-slate-800 p-4 sm:p-6 shadow-sm space-y-5">
+
                 {{-- Header Top Bar Panel Sub Menu --}}
-                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-3 border-b border-slate-100 dark:border-slate-800/80">
-                    <div class="space-y-1">
-                        <div class="flex items-center gap-2 flex-wrap">
+                <div class="space-y-3 pb-3.5 border-b border-slate-100 dark:border-slate-800/80">
+                    {{-- Baris 1: Breadcrumb Navigasi & Mode Badge --}}
+                    <div class="flex items-center justify-between gap-3 flex-wrap">
+                        <div class="flex items-center gap-2 flex-wrap min-w-0">
                             <span class="text-[11px] font-extrabold tracking-wider text-cyan-600 dark:text-cyan-400 uppercase font-mono flex items-center gap-1.5">
-                                <i class="fa-solid fa-code-commit text-xs"></i>
+                                <i class="fa-solid fa-code-commit text-xs shrink-0"></i>
                                 <span x-text="currentModule.breadcrumb"></span>
                             </span>
                             {{-- Badge Indikator Mode Tambah vs Edit --}}
                             <template x-if="isNewSubMenu">
-                                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-blue-100 dark:bg-blue-950/70 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 tracking-wide uppercase">
+                                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-blue-100 dark:bg-blue-950/70 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 tracking-wide uppercase whitespace-nowrap">
                                     <i class="fa-solid fa-circle-plus text-[10px]"></i> Mode Tambah Sub Menu Baru
                                 </span>
                             </template>
                             <template x-if="!isNewSubMenu">
-                                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700 tracking-wide uppercase">
+                                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700 tracking-wide uppercase whitespace-nowrap">
                                     <i class="fa-solid fa-pen-to-square text-[10px]"></i> Mode Edit Sub Menu
                                 </span>
                             </template>
                         </div>
-                        <h2 class="text-base sm:text-lg font-black text-slate-800 dark:text-slate-100">
-                            <span x-text="isNewSubMenu ? 'Tambah Sub Menu Baru' : 'Edit Sub Menu: ' + (subMenuTitle || 'Sub Menu Panduan')"></span>
-                        </h2>
 
-                        {{-- Metadata Info: Dibuat Oleh & Terakhir Diedit Oleh --}}
-                        <template x-if="!isNewSubMenu && currentSubMenu">
-                            <div class="flex items-center gap-2 text-[11px] text-slate-500 dark:text-slate-400 flex-wrap pt-1">
-                                {{-- Pembuat Awal --}}
-                                <span class="inline-flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800/80 px-2.5 py-1 rounded-lg">
-                                    <i class="fa-regular fa-user text-blue-500 text-[10px]"></i>
-                                    <span>Dibuat: <strong class="text-slate-700 dark:text-slate-200" x-text="currentSubMenu.created_by_name || 'Admin'"></strong></span>
-                                    <span class="text-slate-400 text-[10px]">(<span x-text="currentSubMenu.created_at_formatted || '-'"></span>)</span>
-                                </span>
-
-                                {{-- Terakhir Diedit --}}
-                                <template x-if="currentSubMenu.updated_by_name">
-                                    <span class="inline-flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800/80 px-2.5 py-1 rounded-lg">
-                                        <i class="fa-solid fa-pen-nib text-amber-500 text-[10px]"></i>
-                                        <span>Diedit: <strong class="text-slate-700 dark:text-slate-200" x-text="currentSubMenu.updated_by_name || 'Admin'"></strong></span>
-                                        <span class="text-slate-400 text-[10px]">(<span x-text="currentSubMenu.updated_at_relative || '-'"></span>)</span>
-                                    </span>
-                                </template>
-
-                                {{-- Tombol Lihat Riwayat Histori --}}
-                                <button type="button" 
-                                        @click="openHistoryModal = true"
-                                        class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/40 font-bold transition-colors cursor-pointer shadow-2xs">
-                                    <i class="fa-solid fa-clock-rotate-left text-[10px]"></i>
-                                    <span>Riwayat Edit (<span x-text="(currentSubMenu.logs || []).length"></span>)</span>
-                                </button>
-                            </div>
-                        </template>
-                    </div>
-
-                    <div class="flex items-center gap-2 shrink-0">
                         {{-- Tombol Batal jika dalam mode tambah baru --}}
                         <template x-if="isNewSubMenu && ((currentModule && currentModule.sub_menus ? currentModule.sub_menus.length : 0) > 0)">
-                            <button type="button" 
-                                    @click="cancelNewSubMenu(currentModule.id)"
-                                    class="px-3 py-1.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-750 text-xs font-semibold shadow-xs flex items-center gap-1.5 transition-all cursor-pointer">
+                            <button type="button" @click="cancelNewSubMenu(currentModule.id)"
+                                class="px-3 py-1 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-750 text-xs font-semibold shadow-2xs flex items-center gap-1.5 transition-all cursor-pointer shrink-0">
                                 <i class="fa-solid fa-xmark text-xs text-slate-400"></i>
-                                <span>Batal</span>
-                            </button>
-                        </template>
-
-                        {{-- Tombol Import Word (.docx) --}}
-                        <button type="button" 
-                                @click="triggerWordImport()"
-                                class="px-3 py-1.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 active:scale-95 text-white text-xs font-bold shadow-sm shadow-blue-500/20 transition flex items-center gap-1.5 cursor-pointer">
-                            <i class="fa-regular fa-file-word text-xs"></i>
-                            <span>Import Word (.docx)</span>
-                        </button>
-
-                        {{-- Hidden File Input untuk Dokumen Word --}}
-                        <input type="file" 
-                               id="wordFileInput" 
-                               accept=".docx" 
-                               @change="handleWordFileChange($event)" 
-                               class="hidden">
-
-                        {{-- Tombol Hapus Sub Menu jika sedang mengedit --}}
-                        <template x-if="!isNewSubMenu && currentSubMenu">
-                            <button type="button" 
-                                    @click="confirmDeleteSubMenu(currentModule, currentSubMenu)"
-                                    class="px-3 py-1.5 rounded-xl border border-rose-200 dark:border-rose-900/50 bg-rose-50/60 dark:bg-rose-950/30 text-rose-600 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-900/50 text-xs font-semibold shadow-xs flex items-center gap-1.5 transition-all cursor-pointer">
-                                <i class="fa-regular fa-trash-can text-xs"></i>
-                                <span>Hapus Sub Menu</span>
+                                <span>Batal Tambah</span>
                             </button>
                         </template>
                     </div>
+
+                    {{-- Baris 2: Judul Sub Menu (Kiri) & Tombol Aksi Toolbar (Kanan) --}}
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-0.5">
+                        {{-- Judul Sub Menu --}}
+                        <div class="flex items-center gap-2 min-w-0">
+                            <template x-if="!isNewSubMenu">
+                                <span class="text-xs font-mono font-bold px-2 py-0.5 rounded-md bg-blue-100 dark:bg-blue-950/70 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800/60 shrink-0"
+                                    x-text="'#' + subMenuOrder"></span>
+                            </template>
+                            <h2 class="text-base sm:text-lg font-black text-slate-800 dark:text-slate-100 tracking-tight truncate"
+                                x-text="isNewSubMenu ? 'Tambah Sub Menu Baru' : (subMenuTitle || 'Sub Menu Panduan')">
+                            </h2>
+                        </div>
+
+                        {{-- Kelompok Tombol Aksi Toolbar --}}
+                        <div class="flex items-center gap-2 flex-wrap shrink-0">
+                            {{-- Tombol Tautkan dari Sistem Lain --}}
+                            <button type="button" @click="openAttachModal(currentModule)"
+                                class="px-3 py-1.5 rounded-xl border border-indigo-200 dark:border-indigo-800/80 bg-indigo-50/70 dark:bg-indigo-950/40 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 active:scale-95 text-indigo-600 dark:text-indigo-300 text-xs font-bold shadow-2xs transition-all flex items-center gap-1.5 cursor-pointer whitespace-nowrap">
+                                <i class="fa-solid fa-link text-xs"></i>
+                                <span>Tautkan dari Sistem Lain</span>
+                            </button>
+
+                            {{-- Tombol Import Word (.docx) --}}
+                            <button type="button" @click="triggerWordImport()"
+                                class="px-3 py-1.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 active:scale-95 text-white text-xs font-bold shadow-xs shadow-blue-500/20 transition-all flex items-center gap-1.5 cursor-pointer whitespace-nowrap">
+                                <i class="fa-regular fa-file-word text-xs"></i>
+                                <span>Import Word (.docx)</span>
+                            </button>
+                            <input type="file" id="wordFileInput" accept=".docx" @change="handleWordFileChange($event)"
+                                class="hidden">
+
+                            {{-- Tombol Hapus Sub Menu jika sedang mengedit --}}
+                            <template x-if="!isNewSubMenu && currentSubMenu">
+                                <button type="button" @click="confirmDeleteSubMenu(currentModule, currentSubMenu)"
+                                    class="px-3 py-1.5 rounded-xl border border-rose-200 dark:border-rose-900/50 bg-rose-50/60 dark:bg-rose-950/30 text-rose-600 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-900/50 text-xs font-semibold shadow-2xs flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap">
+                                    <i class="fa-regular fa-trash-can text-xs"></i>
+                                    <span>Hapus Sub Menu</span>
+                                </button>
+                            </template>
+                        </div>
+                    </div>
+
+                    {{-- Baris 3: Metadata Info Audit (Dibuat Oleh, Terakhir Diedit, Riwayat) --}}
+                    <template x-if="!isNewSubMenu && currentSubMenu">
+                        <div class="flex items-center gap-2 text-[11px] text-slate-500 dark:text-slate-400 flex-wrap pt-0.5">
+                            {{-- Pembuat Awal --}}
+                            <span class="inline-flex items-center gap-1.5 bg-slate-50 dark:bg-slate-800/80 px-2.5 py-1 rounded-lg whitespace-nowrap border border-slate-200/70 dark:border-slate-700/60">
+                                <i class="fa-regular fa-user text-blue-500 text-[10px]"></i>
+                                <span>Dibuat: <strong class="text-slate-700 dark:text-slate-200"
+                                        x-text="currentSubMenu.created_by_name || 'Admin'"></strong></span>
+                                <span class="text-slate-400 text-[10px]"
+                                    x-text="'(' + (currentSubMenu.created_at_formatted || '-') + ')'"></span>
+                            </span>
+
+                            {{-- Terakhir Diedit --}}
+                            <template x-if="currentSubMenu.updated_by_name">
+                                <span class="inline-flex items-center gap-1.5 bg-slate-50 dark:bg-slate-800/80 px-2.5 py-1 rounded-lg whitespace-nowrap border border-slate-200/70 dark:border-slate-700/60">
+                                    <i class="fa-solid fa-pen-nib text-amber-500 text-[10px]"></i>
+                                    <span>Diedit: <strong class="text-slate-700 dark:text-slate-200"
+                                            x-text="currentSubMenu.updated_by_name || 'Admin'"></strong></span>
+                                    <span class="text-slate-400 text-[10px]"
+                                        x-text="'(' + (currentSubMenu.updated_at_relative || '-') + ')'"></span>
+                                </span>
+                            </template>
+
+                            {{-- Tombol Lihat Riwayat Histori --}}
+                            <button type="button" @click="openHistoryModal = true"
+                                class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/40 font-bold transition-colors cursor-pointer border border-blue-200/60 dark:border-blue-900/50 shadow-2xs whitespace-nowrap">
+                                <i class="fa-solid fa-clock-rotate-left text-[10px]"></i>
+                                <span>Riwayat Edit (<span x-text="(currentSubMenu.logs || []).length"></span>)</span>
+                            </button>
+                        </div>
+                    </template>
                 </div>
 
                 {{-- ======================================================== --}}
-                {{-- FORM INPUT: JUDUL SUB MENU                               --}}
+                {{-- FORM INPUT: JUDUL SUB MENU --}}
                 {{-- ======================================================== --}}
                 <div class="space-y-1.5">
                     <div class="flex items-center justify-between">
-                        <label class="block text-[11px] font-extrabold tracking-wider text-slate-500 dark:text-slate-400 uppercase">
+                        <label
+                            class="block text-[11px] font-extrabold tracking-wider text-slate-500 dark:text-slate-400 uppercase">
                             JUDUL SUB MENU / FITUR PANDUAN
                         </label>
                         <span class="text-[10px] font-mono font-bold px-2 py-0.5 rounded-md transition-colors"
-                              :class="(subMenuTitle || '').length >= 100 
+                            :class="(subMenuTitle || '').length >= 100 
                                   ? 'bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 border border-rose-300 dark:border-rose-800' 
                                   : ((subMenuTitle || '').length >= 80 
                                       ? 'bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 border border-amber-300 dark:border-amber-800' 
                                       : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700/60')"
-                              x-text="((subMenuTitle || '').length) + '/100'">
+                            x-text="((subMenuTitle || '').length) + '/100'">
                         </span>
                     </div>
-                    <input type="text" 
-                           id="subMenuTitleInput"
-                           maxlength="100"
-                           x-model="subMenuTitle"
-                           placeholder="Contoh: Order Taker & Kasir, Transaksi Meja, Split Bill, dsb."
-                           class="w-full h-10 px-4 py-2 text-xs sm:text-sm font-bold bg-white dark:bg-[#090d16] border border-slate-200 dark:border-slate-700/80 rounded-xl text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all">
+                    <input type="text" id="subMenuTitleInput" maxlength="100" x-model="subMenuTitle"
+                        placeholder="Contoh: Order Taker & Kasir, Transaksi Meja, Split Bill, dsb."
+                        class="w-full h-10 px-4 py-2 text-xs sm:text-sm font-bold bg-white dark:bg-[#090d16] border border-slate-200 dark:border-slate-700/80 rounded-xl text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all">
                 </div>
 
                 {{-- Deskripsi Pengantar Sub Menu (Opsional) --}}
                 <div class="space-y-1.5">
-                    <label class="block text-[11px] font-extrabold tracking-wider text-slate-500 dark:text-slate-400 uppercase">
+                    <label
+                        class="block text-[11px] font-extrabold tracking-wider text-slate-500 dark:text-slate-400 uppercase">
                         DESKRIPSI PENGANTAR SUB MENU (OPSIONAL)
                     </label>
-                    <textarea x-model="subMenuDescription"
-                              rows="2"
-                              placeholder="Ringkasan penjelasan pengantar tujuan sub menu panduan ini..."
-                              class="w-full px-4 py-2 text-xs bg-white dark:bg-[#090d16] border border-slate-200 dark:border-slate-700/80 rounded-xl text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all leading-relaxed"></textarea>
+                    <textarea x-model="subMenuDescription" rows="2"
+                        placeholder="Ringkasan penjelasan pengantar tujuan sub menu panduan ini..."
+                        class="w-full px-4 py-2 text-xs bg-white dark:bg-[#090d16] border border-slate-200 dark:border-slate-700/80 rounded-xl text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all leading-relaxed"></textarea>
                 </div>
 
                 {{-- ======================================================== --}}
-                {{-- TINYMCE WYSIWYG RICH TEXT EDITOR                         --}}
+                {{-- TINYMCE WYSIWYG RICH TEXT EDITOR --}}
                 {{-- ======================================================== --}}
                 <div class="space-y-1.5">
                     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                        <label class="text-[11px] font-extrabold tracking-wider text-slate-500 dark:text-slate-400 uppercase flex items-center gap-1.5">
+                        <label
+                            class="text-[11px] font-extrabold tracking-wider text-slate-500 dark:text-slate-400 uppercase flex items-center gap-1.5">
                             <i class="fa-solid fa-pen-to-square text-blue-500 text-xs"></i>
                             <span>ISI KONTEN PANDUAN SUB MENU (TINYMCE RICH TEXT EDITOR)</span>
                         </label>
-                        <span class="text-[11px] text-amber-600 dark:text-amber-400 font-semibold italic flex items-center gap-1">
+                        <span
+                            class="text-[11px] text-amber-600 dark:text-amber-400 font-semibold italic flex items-center gap-1">
                             <i class="fa-regular fa-image text-xs"></i>
                             Drag &amp; Drop / Paste Gambar (Maks. 1 MB)
                         </span>
                     </div>
 
                     {{-- Editor Outer Container --}}
-                    <div id="manualBookContainer" class="border border-slate-200 dark:border-slate-700/80 rounded-2xl overflow-hidden shadow-sm bg-white text-slate-900">
+                    <div id="manualBookContainer"
+                        class="border border-slate-200 dark:border-slate-700/80 rounded-2xl overflow-hidden shadow-sm bg-white text-slate-900">
                         <textarea id="manualBookCanvas" name="content" class="w-full"></textarea>
                     </div>
                 </div>
 
                 {{-- ======================================================== --}}
-                {{-- BOTTOM ACTION BAR                                        --}}
+                {{-- BOTTOM ACTION BAR --}}
                 {{-- ======================================================== --}}
-                <div class="pt-3 border-t border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <div
+                    class="pt-3 border-t border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                     <div class="flex items-center gap-2.5 text-xs text-slate-500 dark:text-slate-400 font-medium">
                         <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold"
-                              :class="subMenuStatus === 'published' ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/80' : 'bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-800/80'">
-                            <span class="w-1.5 h-1.5 rounded-full" :class="subMenuStatus === 'published' ? 'bg-emerald-500' : 'bg-amber-500'"></span>
+                            :class="subMenuStatus === 'published' ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/80' : 'bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-800/80'">
+                            <span class="w-1.5 h-1.5 rounded-full"
+                                :class="subMenuStatus === 'published' ? 'bg-emerald-500' : 'bg-amber-500'"></span>
                             <span x-text="subMenuStatus === 'published' ? 'Status: Terbit ✓' : 'Status: Draft'"></span>
                         </span>
                     </div>
 
                     <div class="flex items-center gap-2.5 self-end sm:self-auto">
                         {{-- Simpan Draft Sub Menu --}}
-                        <button type="button" 
-                                @click="submitSubMenu('draft')"
-                                :disabled="isSubmitting"
-                                class="px-4 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-750 text-xs font-semibold shadow-xs flex items-center gap-2 transition-all cursor-pointer disabled:opacity-50">
+                        <button type="button" @click="submitSubMenu('draft')" :disabled="isSubmitting"
+                            class="px-4 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-750 text-xs font-semibold shadow-xs flex items-center gap-2 transition-all cursor-pointer disabled:opacity-50">
                             <i class="fa-regular fa-file-lines text-slate-400"></i>
-                            <span x-text="isSubmitting && submitTarget === 'draft' ? 'Menyimpan...' : (isNewSubMenu ? 'Simpan Sebagai Draft Baru' : 'Simpan Draft Sub Menu')"></span>
+                            <span
+                                x-text="isSubmitting && submitTarget === 'draft' ? 'Menyimpan...' : (isNewSubMenu ? 'Simpan Sebagai Draft Baru' : 'Simpan Draft Sub Menu')"></span>
                         </button>
 
                         {{-- Simpan & Publikasikan Sub Menu --}}
-                        <button type="button" 
-                                @click="submitSubMenu('published')"
-                                :disabled="isSubmitting"
-                                class="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 active:scale-95 text-white text-xs font-semibold shadow-sm shadow-blue-500/20 flex items-center gap-2 transition-all cursor-pointer disabled:opacity-50">
+                        <button type="button" @click="submitSubMenu('published')" :disabled="isSubmitting"
+                            class="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 active:scale-95 text-white text-xs font-semibold shadow-sm shadow-blue-500/20 flex items-center gap-2 transition-all cursor-pointer disabled:opacity-50">
                             <i class="fa-solid fa-cloud-arrow-up text-xs"></i>
-                            <span x-text="isSubmitting && submitTarget === 'published' ? 'Menyimpan...' : (isNewSubMenu ? 'Simpan & Terbitkan Sub Menu' : 'Simpan & Publikasikan Sub Menu')"></span>
+                            <span
+                                x-text="isSubmitting && submitTarget === 'published' ? 'Menyimpan...' : (isNewSubMenu ? 'Simpan & Terbitkan Sub Menu' : 'Simpan & Publikasikan Sub Menu')"></span>
                         </button>
                     </div>
                 </div>
@@ -1560,35 +1738,40 @@
         </div>
 
         {{-- ======================================================== --}}
-        {{-- MODAL: TAMBAH SISTEM BARU (TERHUBUNG KE DATABASE)         --}}
+        {{-- MODAL: TAMBAH SISTEM BARU (TERHUBUNG KE DATABASE) --}}
         {{-- ======================================================== --}}
-        <div x-show="openAddSystemModal" 
-             x-cloak
-             class="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs"
-             x-transition.opacity>
+        <div x-show="openAddSystemModal" x-cloak
+            class="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs"
+            x-transition.opacity>
             <div @click.outside="openAddSystemModal = false"
-                 class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-md p-6 shadow-xl space-y-4">
+                class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-md p-6 shadow-xl space-y-4">
                 <div class="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
                     <h3 class="text-sm font-black text-slate-800 dark:text-white uppercase tracking-wider">
                         Tambah Sistem Baru
                     </h3>
-                    <button type="button" @click="openAddSystemModal = false" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer">
+                    <button type="button" @click="openAddSystemModal = false"
+                        class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer">
                         <i class="fa-solid fa-xmark text-base"></i>
                     </button>
                 </div>
-                
+
                 <form @submit.prevent="submitAddSystem()">
                     <div class="space-y-3">
                         <div>
-                            <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">Nama Sistem / Kategori</label>
-                            <input type="text" x-model="newSystemName" required placeholder="Contoh: Probus Cloud Accounting" class="w-full px-3.5 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
+                            <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">Nama Sistem /
+                                Kategori</label>
+                            <input type="text" x-model="newSystemName" required
+                                placeholder="Contoh: Probus Cloud Accounting"
+                                class="w-full px-3.5 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
                         </div>
                     </div>
                     <div class="flex items-center justify-end gap-2 pt-4">
-                        <button type="button" @click="openAddSystemModal = false" class="px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer">
+                        <button type="button" @click="openAddSystemModal = false"
+                            class="px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer">
                             Batal
                         </button>
-                        <button type="submit" class="px-4 py-2 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white shadow-sm shadow-blue-500/20 cursor-pointer">
+                        <button type="submit"
+                            class="px-4 py-2 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white shadow-sm shadow-blue-500/20 cursor-pointer">
                             Simpan Sistem
                         </button>
                     </div>
@@ -1597,19 +1780,19 @@
         </div>
 
         {{-- ======================================================== --}}
-        {{-- MODAL: TAMBAH MODUL BARU (TERHUBUNG KE DATABASE)         --}}
+        {{-- MODAL: TAMBAH MODUL BARU (TERHUBUNG KE DATABASE) --}}
         {{-- ======================================================== --}}
-        <div x-show="openAddModuleModal" 
-             x-cloak
-             class="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs"
-             x-transition.opacity>
+        <div x-show="openAddModuleModal" x-cloak
+            class="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs"
+            x-transition.opacity>
             <div @click.outside="openAddModuleModal = false"
-                 class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-md p-6 shadow-xl space-y-4">
+                class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-md p-6 shadow-xl space-y-4">
                 <div class="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
                     <h3 class="text-sm font-black text-slate-800 dark:text-white uppercase tracking-wider">
                         Tambah Modul Baru
                     </h3>
-                    <button type="button" @click="openAddModuleModal = false" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer">
+                    <button type="button" @click="openAddModuleModal = false"
+                        class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer">
                         <i class="fa-solid fa-xmark text-base"></i>
                     </button>
                 </div>
@@ -1617,17 +1800,22 @@
                 <form @submit.prevent="submitAddModule()">
                     <div class="space-y-3.5">
                         <div>
-                            <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">Nomor / Urutan</label>
-                            <input type="number" min="1" x-model="newModuleNumber" placeholder="Contoh: 1, 2, dst." class="w-full px-3.5 py-2 text-xs bg-slate-50 dark:bg-slate-800 border rounded-xl text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2"
-                                   :class="isModuleNumberTaken(newModuleNumber) ? 'border-rose-500 focus:ring-rose-500/20 focus:border-rose-500' : 'border-slate-200 dark:border-slate-700 focus:ring-blue-500/20 focus:border-blue-500'">
+                            <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">Nomor /
+                                Urutan</label>
+                            <input type="number" min="1" x-model="newModuleNumber" placeholder="Contoh: 1, 2, dst."
+                                class="w-full px-3.5 py-2 text-xs bg-slate-50 dark:bg-slate-800 border rounded-xl text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2"
+                                :class="isModuleNumberTaken(newModuleNumber) ? 'border-rose-500 focus:ring-rose-500/20 focus:border-rose-500' : 'border-slate-200 dark:border-slate-700 focus:ring-blue-500/20 focus:border-blue-500'">
                             <template x-if="isModuleNumberTaken(newModuleNumber)">
                                 <p class="text-[11px] text-rose-500 font-semibold mt-1 flex items-center gap-1">
                                     <i class="fa-solid fa-circle-xmark text-[10px]"></i>
-                                    <span>Nomor urut <strong x-text="newModuleNumber"></strong> sudah dipakai oleh modul "<strong x-text="isModuleNumberTaken(newModuleNumber)?.title || isModuleNumberTaken(newModuleNumber)?.raw_name"></strong>".</span>
+                                    <span>Nomor urut <strong x-text="newModuleNumber"></strong> sudah dipakai oleh modul
+                                        "<strong
+                                            x-text="isModuleNumberTaken(newModuleNumber)?.title || isModuleNumberTaken(newModuleNumber)?.raw_name"></strong>".</span>
                                 </p>
                             </template>
                             <template x-if="!isModuleNumberTaken(newModuleNumber) && newModuleNumber">
-                                <p class="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium mt-1 flex items-center gap-1">
+                                <p
+                                    class="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium mt-1 flex items-center gap-1">
                                     <i class="fa-solid fa-circle-check text-[10px]"></i>
                                     <span>Nomor urut <strong x-text="newModuleNumber"></strong> tersedia.</span>
                                 </p>
@@ -1635,18 +1823,22 @@
                         </div>
 
                         <div>
-                            <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">Nama Modul</label>
-                            <input type="text" x-model="newModuleName" required placeholder="Contoh: Reservasi & Manajemen Event, Transaksi, Outlet Activity" class="w-full px-3.5 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
+                            <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">Nama
+                                Modul</label>
+                            <input type="text" x-model="newModuleName" required
+                                placeholder="Contoh: Reservasi & Manajemen Event, Transaksi, Outlet Activity"
+                                class="w-full px-3.5 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
                         </div>
                     </div>
 
                     <div class="flex items-center justify-end gap-2 pt-4">
-                        <button type="button" @click="openAddModuleModal = false" class="px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer">
+                        <button type="button" @click="openAddModuleModal = false"
+                            class="px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer">
                             Batal
                         </button>
-                        <button type="submit" 
-                                :disabled="Boolean(isModuleNumberTaken(newModuleNumber)) || !Boolean((newModuleName || '').trim())"
-                                class="px-4 py-2 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white shadow-sm shadow-blue-500/20 cursor-pointer disabled:opacity-50 disabled:pointer-events-none">
+                        <button type="submit"
+                            :disabled="Boolean(isModuleNumberTaken(newModuleNumber)) || !Boolean((newModuleName || '').trim())"
+                            class="px-4 py-2 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white shadow-sm shadow-blue-500/20 cursor-pointer disabled:opacity-50 disabled:pointer-events-none">
                             Simpan Modul
                         </button>
                     </div>
@@ -1655,67 +1847,76 @@
         </div>
 
         {{-- ======================================================== --}}
-        {{-- MODAL: RIWAYAT HISTORI EDIT & AKTIVITAS SUB MENU         --}}
+        {{-- MODAL: RIWAYAT HISTORI EDIT & AKTIVITAS SUB MENU --}}
         {{-- ======================================================== --}}
-        <div x-show="openHistoryModal" 
-             x-cloak
-             class="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs"
-             x-transition.opacity>
+        <div x-show="openHistoryModal" x-cloak
+            class="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs"
+            x-transition.opacity>
             <div @click.outside="openHistoryModal = false"
-                 class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-lg p-6 shadow-2xl space-y-4">
-                
+                class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-lg p-6 shadow-2xl space-y-4">
+
                 {{-- Header Modal --}}
                 <div class="flex items-start justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
                     <div>
                         <div class="flex items-center gap-2">
-                            <span class="w-7 h-7 rounded-lg bg-blue-100 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 flex items-center justify-center text-xs">
+                            <span
+                                class="w-7 h-7 rounded-lg bg-blue-100 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 flex items-center justify-center text-xs">
                                 <i class="fa-solid fa-clock-rotate-left"></i>
                             </span>
                             <h3 class="text-sm font-black text-slate-800 dark:text-white uppercase tracking-wider">
                                 Riwayat Aktivitas & Edit
                             </h3>
                         </div>
-                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 line-clamp-1" x-text="currentSubMenu ? currentSubMenu.title : 'Sub Menu Panduan'"></p>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 line-clamp-1"
+                            x-text="currentSubMenu ? currentSubMenu.title : 'Sub Menu Panduan'"></p>
                     </div>
-                    <button type="button" @click="openHistoryModal = false" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer p-1">
+                    <button type="button" @click="openHistoryModal = false"
+                        class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer p-1">
                         <i class="fa-solid fa-xmark text-base"></i>
                     </button>
                 </div>
 
                 {{-- Ringkasan Pembuat & Editor Terakhir --}}
                 <template x-if="currentSubMenu">
-                    <div class="grid grid-cols-2 gap-2.5 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60 text-xs">
+                    <div
+                        class="grid grid-cols-2 gap-2.5 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60 text-xs">
                         <div class="space-y-0.5">
-                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Pembuat Awal</span>
+                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Pembuat
+                                Awal</span>
                             <div class="flex items-center gap-1.5 font-bold text-slate-800 dark:text-slate-200">
                                 <i class="fa-regular fa-user text-blue-500 text-[11px]"></i>
                                 <span class="truncate" x-text="currentSubMenu.created_by_name || 'Admin'"></span>
                             </div>
-                            <span class="text-[10px] text-slate-500 dark:text-slate-400 block" x-text="currentSubMenu.created_at_formatted || '-'"></span>
+                            <span class="text-[10px] text-slate-500 dark:text-slate-400 block"
+                                x-text="currentSubMenu.created_at_formatted || '-'"></span>
                         </div>
                         <div class="space-y-0.5 border-l border-slate-200 dark:border-slate-700 pl-3">
-                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Terakhir Diedit</span>
+                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Terakhir
+                                Diedit</span>
                             <div class="flex items-center gap-1.5 font-bold text-slate-800 dark:text-slate-200">
                                 <i class="fa-solid fa-pen-nib text-amber-500 text-[11px]"></i>
                                 <span class="truncate" x-text="currentSubMenu.updated_by_name || 'Admin'"></span>
                             </div>
-                            <span class="text-[10px] text-slate-500 dark:text-slate-400 block" x-text="currentSubMenu.updated_at_relative || currentSubMenu.updated_at_formatted || '-'"></span>
+                            <span class="text-[10px] text-slate-500 dark:text-slate-400 block"
+                                x-text="currentSubMenu.updated_at_relative || currentSubMenu.updated_at_formatted || '-'"></span>
                         </div>
                     </div>
                 </template>
 
                 {{-- Timeline Histori Aktivitas --}}
                 <div class="space-y-2">
-                    <span class="text-[11px] font-extrabold uppercase tracking-wider text-slate-400 block">Linimasa Perubahan</span>
-                    
+                    <span class="text-[11px] font-extrabold uppercase tracking-wider text-slate-400 block">Linimasa
+                        Perubahan</span>
+
                     <div class="max-h-72 overflow-y-auto space-y-3 pr-1">
                         <template x-if="currentSubMenu && currentSubMenu.logs && currentSubMenu.logs.length > 0">
-                            <div class="relative pl-5 border-l-2 border-slate-200 dark:border-slate-800 space-y-4 py-1 ml-2">
+                            <div
+                                class="relative pl-5 border-l-2 border-slate-200 dark:border-slate-800 space-y-4 py-1 ml-2">
                                 <template x-for="(log, lIdx) in currentSubMenu.logs" :key="log.id || lIdx">
                                     <div class="relative group">
                                         {{-- Dot on line --}}
                                         <div class="absolute -left-[27px] top-1 w-3.5 h-3.5 rounded-full border-2 border-white dark:border-slate-900 flex items-center justify-center"
-                                             :class="{
+                                            :class="{
                                                  'bg-emerald-500 ring-2 ring-emerald-200 dark:ring-emerald-950': log.action === 'CREATED',
                                                  'bg-blue-500 ring-2 ring-blue-200 dark:ring-blue-950': log.action === 'UPDATED',
                                                  'bg-purple-500 ring-2 ring-purple-200 dark:ring-purple-950': log.action === 'STATUS_CHANGED',
@@ -1723,24 +1924,30 @@
                                              }">
                                         </div>
 
-                                        <div class="bg-white dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/60 rounded-xl p-3 shadow-2xs space-y-1">
+                                        <div
+                                            class="bg-white dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/60 rounded-xl p-3 shadow-2xs space-y-1">
                                             <div class="flex items-center justify-between gap-2 flex-wrap">
                                                 <div class="flex items-center gap-1.5">
-                                                    <span class="text-[10px] font-bold px-2 py-0.5 rounded-md uppercase tracking-wide"
-                                                          :class="{
+                                                    <span
+                                                        class="text-[10px] font-bold px-2 py-0.5 rounded-md uppercase tracking-wide"
+                                                        :class="{
                                                               'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300': log.action === 'CREATED',
                                                               'bg-blue-100 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300': log.action === 'UPDATED',
                                                               'bg-purple-100 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300': log.action === 'STATUS_CHANGED',
                                                               'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300': !['CREATED', 'UPDATED', 'STATUS_CHANGED'].includes(log.action)
                                                           }"
-                                                          x-text="log.action === 'CREATED' ? 'Dibuat' : (log.action === 'UPDATED' ? 'Diedit' : (log.action === 'STATUS_CHANGED' ? 'Status Diubah' : log.action))">
+                                                        x-text="log.action === 'CREATED' ? 'Dibuat' : (log.action === 'UPDATED' ? 'Diedit' : (log.action === 'STATUS_CHANGED' ? 'Status Diubah' : log.action))">
                                                     </span>
-                                                    <span class="text-xs font-bold text-slate-700 dark:text-slate-200" x-text="log.user_name"></span>
+                                                    <span class="text-xs font-bold text-slate-700 dark:text-slate-200"
+                                                        x-text="log.user_name"></span>
                                                 </div>
-                                                <span class="text-[10px] text-slate-400" x-text="log.created_at_relative || log.created_at"></span>
+                                                <span class="text-[10px] text-slate-400"
+                                                    x-text="log.created_at_relative || log.created_at"></span>
                                             </div>
-                                            <p class="text-xs text-slate-600 dark:text-slate-300" x-text="log.description"></p>
-                                            <span class="text-[10px] text-slate-400 font-mono block pt-0.5" x-text="log.created_at"></span>
+                                            <p class="text-xs text-slate-600 dark:text-slate-300"
+                                                x-text="log.description"></p>
+                                            <span class="text-[10px] text-slate-400 font-mono block pt-0.5"
+                                                x-text="log.created_at"></span>
                                         </div>
                                     </div>
                                 </template>
@@ -1748,7 +1955,8 @@
                         </template>
 
                         <template x-if="!currentSubMenu || !currentSubMenu.logs || currentSubMenu.logs.length === 0">
-                            <div class="p-6 text-center text-xs text-slate-400 border border-dashed border-slate-200 dark:border-slate-800 rounded-xl">
+                            <div
+                                class="p-6 text-center text-xs text-slate-400 border border-dashed border-slate-200 dark:border-slate-800 rounded-xl">
                                 Belum ada riwayat aktivitas tercatat untuk sub menu ini.
                             </div>
                         </template>
@@ -1757,10 +1965,289 @@
 
                 {{-- Footer Modal --}}
                 <div class="flex items-center justify-end pt-3 border-t border-slate-100 dark:border-slate-800">
-                    <button type="button" @click="openHistoryModal = false" class="px-4 py-2 rounded-xl text-xs font-bold bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition-colors cursor-pointer">
+                    <button type="button" @click="openHistoryModal = false"
+                        class="px-4 py-2 rounded-xl text-xs font-bold bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition-colors cursor-pointer">
                         Tutup
                     </button>
                 </div>
+            </div>
+        </div>
+
+        {{-- ======================================================== --}}
+        {{-- MODAL: TAUTKAN PANDUAN YANG SUDAH ADA (LINTAS SISTEM) --}}
+        {{-- ======================================================== --}}
+        <div x-show="openAttachModalState" x-cloak
+            class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-slate-900/75 backdrop-blur-xs"
+            x-transition.opacity>
+            <div @click.outside="closeAttachModal()"
+                class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-6xl h-[90vh] shadow-2xl flex flex-col overflow-hidden animate-fade-in">
+
+                {{-- Header Modal --}}
+                <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-900/60 shrink-0">
+                    <div class="flex items-center gap-3">
+                        <span class="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-500 to-blue-600 text-white flex items-center justify-center text-sm shadow-sm shadow-indigo-500/20">
+                            <i class="fa-solid fa-link"></i>
+                        </span>
+                        <div>
+                            <h3 class="text-base font-black text-slate-800 dark:text-white flex items-center gap-2">
+                                <span>Tautkan Panduan yang Sudah Ada</span>
+                                <span class="text-[11px] font-bold px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 dark:bg-indigo-950/70 dark:text-indigo-300">
+                                    Lintas Sistem
+                                </span>
+                            </h3>
+                            <p class="text-xs text-slate-500 dark:text-slate-400">
+                                Pilih bab panduan dari sistem lain untuk ditautkan ke modul 
+                                <strong class="text-indigo-600 dark:text-indigo-400" x-text="attachTargetModule ? attachTargetModule.title : 'Modul Terpilih'"></strong>
+                            </p>
+                        </div>
+                    </div>
+                    <button type="button" @click="closeAttachModal()"
+                        class="w-8 h-8 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center transition cursor-pointer">
+                        <i class="fa-solid fa-xmark text-lg"></i>
+                    </button>
+                </div>
+
+                {{-- Body Modal: 2 Kolom --}}
+                <div class="grid grid-cols-1 md:grid-cols-12 flex-1 min-h-0 overflow-hidden divide-y md:divide-y-0 md:divide-x divide-slate-200 dark:divide-slate-800">
+                    
+                    {{-- =============================================== --}}
+                    {{-- KOLOM KIRI (5/12): DAFTAR PANDUAN DARI SISTEM LAIN --}}
+                    {{-- =============================================== --}}
+                    <div class="md:col-span-5 flex flex-col min-h-0 h-full bg-slate-50/40 dark:bg-slate-900/40">
+                        {{-- Search & Filter Bar --}}
+                        <div class="p-3.5 border-b border-slate-200 dark:border-slate-800 space-y-2.5 shrink-0 bg-white dark:bg-slate-900">
+                            {{-- Input Search --}}
+                            <div class="relative">
+                                <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                                <input type="text"
+                                    x-model="templateSearchQuery"
+                                    placeholder="Cari judul panduan, sistem, atau modul..."
+                                    class="w-full pl-8 pr-8 py-2 rounded-xl text-xs bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 transition">
+                                <button type="button"
+                                    x-show="templateSearchQuery"
+                                    @click="templateSearchQuery = ''"
+                                    class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer">
+                                    <i class="fa-solid fa-circle-xmark text-xs"></i>
+                                </button>
+                            </div>
+
+                            {{-- Filter Pills Sistem --}}
+                            <div class="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-thin text-xs">
+                                <button type="button"
+                                    @click="templateFilterSystem = 'all'"
+                                    class="px-2.5 py-1 rounded-lg text-[11px] font-bold whitespace-nowrap transition cursor-pointer"
+                                    :class="templateFilterSystem === 'all' 
+                                        ? 'bg-indigo-600 text-white shadow-xs' 
+                                        : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'">
+                                    Semua Sistem
+                                </button>
+                                <template x-for="sys in uniqueTemplateSystems" :key="sys">
+                                    <button type="button"
+                                        @click="templateFilterSystem = sys"
+                                        class="px-2.5 py-1 rounded-lg text-[11px] font-bold whitespace-nowrap transition cursor-pointer"
+                                        :class="templateFilterSystem === sys 
+                                            ? 'bg-indigo-600 text-white shadow-xs' 
+                                            : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'"
+                                        x-text="sys">
+                                    </button>
+                                </template>
+                            </div>
+                        </div>
+
+                        {{-- List of Panduan --}}
+                        <div class="flex-1 overflow-y-auto p-3 space-y-2 min-h-0">
+                            {{-- Loading State --}}
+                            <template x-if="isLoadingTemplates">
+                                <div class="py-12 flex flex-col items-center justify-center text-slate-400 space-y-2">
+                                    <i class="fa-solid fa-circle-notch fa-spin text-2xl text-indigo-500"></i>
+                                    <span class="text-xs font-medium">Memuat daftar panduan...</span>
+                                </div>
+                            </template>
+
+                            {{-- Item Cards --}}
+                            <template x-if="!isLoadingTemplates && filteredTemplates.length > 0">
+                                <div>
+                                    <template x-for="tpl in filteredTemplates" :key="tpl.id">
+                                        <div @click="selectedTemplate = tpl"
+                                            class="p-3 mb-2 rounded-xl border transition-all cursor-pointer relative group"
+                                            :class="{
+                                                'bg-indigo-50/70 dark:bg-indigo-950/40 border-indigo-400 dark:border-indigo-600 ring-2 ring-indigo-500/30 shadow-xs': selectedTemplate && String(selectedTemplate.id) === String(tpl.id),
+                                                'bg-white dark:bg-slate-800/80 border-slate-200 dark:border-slate-750 hover:border-slate-300 dark:hover:border-slate-600 hover:shadow-xs': !(selectedTemplate && String(selectedTemplate.id) === String(tpl.id))
+                                            }">
+                                            
+                                            <div class="flex items-start justify-between gap-2">
+                                                <div class="min-w-0 flex-1">
+                                                    {{-- Badge Sistem & Modul Asal --}}
+                                                    <div class="flex items-center gap-1.5 flex-wrap mb-1">
+                                                        <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-700/80 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-650"
+                                                            x-text="tpl.primary_system">
+                                                        </span>
+                                                        <span class="text-[10px] text-slate-400">/</span>
+                                                        <span class="text-[10px] font-semibold text-slate-500 dark:text-slate-400 truncate max-w-[140px]"
+                                                            x-text="tpl.primary_module">
+                                                        </span>
+                                                    </div>
+
+                                                    {{-- Judul Panduan --}}
+                                                    <h4 class="text-xs font-bold text-slate-800 dark:text-slate-100 group-hover:text-indigo-600 dark:group-hover:text-indigo-300 transition-colors line-clamp-1"
+                                                        x-text="tpl.title">
+                                                    </h4>
+
+                                                    {{-- Deskripsi Singkat jika ada --}}
+                                                    <p class="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-1 mt-0.5"
+                                                        x-text="tpl.description || 'Tidak ada deskripsi pengantar'"></p>
+                                                </div>
+
+                                                {{-- Status Badge --}}
+                                                <div class="shrink-0 flex flex-col items-end gap-1">
+                                                    <template x-if="tpl.is_attached">
+                                                        <span class="px-2 py-0.5 rounded-md text-[9.5px] font-extrabold bg-emerald-100 text-emerald-700 dark:bg-emerald-950/70 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60 flex items-center gap-1">
+                                                            <i class="fa-solid fa-check text-[9px]"></i>
+                                                            <span>Sudah Tertaut</span>
+                                                        </span>
+                                                    </template>
+                                                    <template x-if="!tpl.is_attached">
+                                                        <span class="px-2 py-0.5 rounded-md text-[9.5px] font-bold bg-indigo-50 text-indigo-700 dark:bg-indigo-950/50 dark:text-indigo-300 border border-indigo-200/80 dark:border-indigo-800/50">
+                                                            Tersedia
+                                                        </span>
+                                                    </template>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </template>
+                                </div>
+                            </template>
+
+                            {{-- Empty State --}}
+                            <template x-if="!isLoadingTemplates && filteredTemplates.length === 0">
+                                <div class="py-12 px-4 text-center text-xs text-slate-400 dark:text-slate-500 border border-dashed border-slate-200 dark:border-slate-800 rounded-xl">
+                                    <i class="fa-regular fa-folder-open text-2xl mb-2 text-slate-300 dark:text-slate-600 block"></i>
+                                    Tidak ada panduan yang cocok dengan pencarian.
+                                </div>
+                            </template>
+                        </div>
+
+                        {{-- Footer Info Kolom Kiri --}}
+                        <div class="p-2.5 px-4 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-[11px] text-slate-400 dark:text-slate-500 flex items-center justify-between shrink-0">
+                            <span x-text="filteredTemplates.length + ' panduan ditemukan'"></span>
+                            <span class="text-[10px] italic">Klik untuk pratinjau</span>
+                        </div>
+                    </div>
+
+                    {{-- =============================================== --}}
+                    {{-- KOLOM KANAN (7/12): PRATINJAU KONTEN (READ-ONLY) --}}
+                    {{-- =============================================== --}}
+                    <div class="md:col-span-7 flex flex-col min-h-0 h-full bg-white dark:bg-[#0f172a]">
+                        
+                        {{-- State Saat Memilih Template --}}
+                        <template x-if="selectedTemplate">
+                            <div class="flex flex-col h-full min-h-0">
+                                {{-- Header Pratinjau --}}
+                                <div class="p-4 sm:p-5 border-b border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/40 shrink-0 space-y-2">
+                                    <div class="flex items-center justify-between gap-3">
+                                        {{-- Badge Asal & Read Only --}}
+                                        <div class="flex items-center gap-2 flex-wrap">
+                                            <span class="text-xs font-bold px-2 py-0.5 rounded-md bg-blue-100 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300"
+                                                x-text="selectedTemplate.primary_system + ' • ' + selectedTemplate.primary_module">
+                                            </span>
+                                            <span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800 flex items-center gap-1">
+                                                <i class="fa-solid fa-lock text-[9px]"></i>
+                                                <span>Pratinjau (Hanya Baca)</span>
+                                            </span>
+                                        </div>
+
+                                        {{-- Tag Status Terbit / Draft --}}
+                                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-md uppercase tracking-wider"
+                                            :class="selectedTemplate.status === 'published' 
+                                                ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300' 
+                                                : 'bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300'"
+                                            x-text="selectedTemplate.status === 'published' ? 'Terbit' : 'Draft'">
+                                        </span>
+                                    </div>
+
+                                    {{-- Judul Panduan Lengkap --}}
+                                    <h3 class="text-base sm:text-lg font-black text-slate-800 dark:text-white"
+                                        x-text="selectedTemplate.title">
+                                    </h3>
+
+                                    {{-- Deskripsi Panduan --}}
+                                    <template x-if="selectedTemplate.description">
+                                        <p class="text-xs text-slate-600 dark:text-slate-300 italic bg-white dark:bg-slate-800/60 p-2.5 rounded-lg border border-slate-200 dark:border-slate-700/60"
+                                            x-text="selectedTemplate.description"></p>
+                                    </template>
+
+                                    {{-- Info Metadata & Daftar Penggunaan --}}
+                                    <div class="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400 pt-1">
+                                        <span>Dibuat oleh: <strong class="text-slate-700 dark:text-slate-200" x-text="selectedTemplate.created_by_name"></strong></span>
+                                        <span>Diperbarui: <strong class="text-slate-700 dark:text-slate-200" x-text="selectedTemplate.updated_at_formatted"></strong></span>
+                                    </div>
+                                </div>
+
+                                {{-- Isi Konten HTML (Read-Only) --}}
+                                <div class="flex-1 overflow-y-auto p-5 sm:p-6 min-h-0 bg-slate-50/30 dark:bg-[#0b1120]">
+                                    <div class="bg-white dark:bg-slate-900 rounded-xl p-5 sm:p-6 border border-slate-200 dark:border-slate-800 shadow-xs prose prose-slate dark:prose-invert max-w-none text-xs sm:text-sm leading-relaxed"
+                                        x-html="selectedTemplate.content || '<em class=\'text-slate-400\'>Konten panduan kosong.</em>'">
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
+
+                        {{-- Placeholder Kosong jika Belum Memilih --}}
+                        <template x-if="!selectedTemplate">
+                            <div class="h-full flex flex-col items-center justify-center p-8 text-center text-slate-400 dark:text-slate-500 space-y-3">
+                                <span class="w-14 h-14 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 text-2xl">
+                                    <i class="fa-regular fa-file-lines"></i>
+                                </span>
+                                <div>
+                                    <h4 class="text-sm font-bold text-slate-700 dark:text-slate-300">Pilih Panduan untuk Melihat Pratinjau</h4>
+                                    <p class="text-xs text-slate-500 dark:text-slate-400 max-w-sm mt-1">
+                                        Silakan klik salah satu bab panduan di daftar sebelah kiri untuk meninjau materi isi sebelum menautkannya.
+                                    </p>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+
+                </div>
+
+                {{-- Footer Modal --}}
+                <div class="px-6 py-3.5 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 flex items-center justify-between shrink-0">
+                    <div class="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+                        <i class="fa-solid fa-circle-nodes text-indigo-500 text-sm"></i>
+                        <span class="hidden sm:inline">Panduan ditautkan melalui relasi pivot <strong>menu_has_manual_books</strong> tanpa menduplikasi data master.</span>
+                    </div>
+
+                    <div class="flex items-center gap-2">
+                        <button type="button" @click="closeAttachModal()"
+                            class="px-4 py-2 rounded-xl text-xs font-bold bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-750 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 transition cursor-pointer">
+                            Tutup
+                        </button>
+
+                        <button type="button"
+                            @click="submitAttachTemplate()"
+                            :disabled="!selectedTemplate || selectedTemplate.is_attached || isAttachingTemplate"
+                            class="px-4 py-2 rounded-xl text-xs font-bold text-white transition flex items-center gap-2 shadow-sm cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+                            :class="(selectedTemplate && !selectedTemplate.is_attached && !isAttachingTemplate) 
+                                ? 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-blue-500/25 active:scale-95' 
+                                : 'bg-slate-400 dark:bg-slate-700'">
+                            
+                            <template x-if="isAttachingTemplate">
+                                <span class="flex items-center gap-1.5">
+                                    <i class="fa-solid fa-circle-notch fa-spin text-xs"></i>
+                                    <span>Menautkan...</span>
+                                </span>
+                            </template>
+                            
+                            <template x-if="!isAttachingTemplate">
+                                <span class="flex items-center gap-1.5">
+                                    <i class="fa-solid fa-link text-xs"></i>
+                                    <span x-text="selectedTemplate ? (selectedTemplate.is_attached ? 'Sudah Ditautkan' : 'Tautkan ke Modul Ini') : 'Pilih Panduan'"></span>
+                                </span>
+                            </template>
+                        </button>
+                    </div>
+                </div>
+
             </div>
         </div>
 

@@ -61,15 +61,19 @@ class ManualBookController extends Controller
     private function getManualBookData(): array
     {
         // Ambil kategori beserta modul-modulnya dan bab panduannya
-        $categories = Kategori::with(['menuSystems' => function ($q) {
-            $q->orderBy('order')
-              ->orderBy('id')
-              ->with(['manualBooks' => function ($mb) {
-                  $mb->orderBy('order')
-                     ->orderBy('id')
-                     ->with(['user', 'editor', 'logs.user']);
-              }]);
-        }])->get();
+        $categories = Kategori::with([
+            'menuSystems' => function ($q) {
+                $q->orderBy('order')
+                    ->orderBy('id')
+                    ->with([
+                        'manualBooks' => function ($mb) {
+                            $mb->orderBy('order')
+                                ->orderBy('id')
+                                ->with(['user', 'editor', 'logs.user']);
+                        }
+                    ]);
+            }
+        ])->get();
 
         $systems = [];
         $modulesBySystem = [];
@@ -325,14 +329,25 @@ class ManualBookController extends Controller
     /**
      * Menghapus bab / dokumen panduan spesifik
      */
-    public function deleteChapter($id)
+    public function deleteChapter(Request $request, $id)
     {
         $manualBook = ManualBook::findOrFail($id);
         $title = $manualBook->title;
 
-        // Lepas relasi pivot
-        $manualBook->menuSystems()->detach();
-        $manualBook->delete();
+        $menuSystemId = $request->input('menu_system_id');
+        if ($menuSystemId) {
+            // Lepas hanya dari modul menu_system spesifik ini
+            $manualBook->menuSystems()->detach($menuSystemId);
+
+            // Jika panduan ini sudah tidak tertaut di modul manapun, baru hapus permanen
+            if ($manualBook->menuSystems()->count() === 0) {
+                $manualBook->delete();
+            }
+        } else {
+            // Lepas relasi pivot dan hapus
+            $manualBook->menuSystems()->detach();
+            $manualBook->delete();
+        }
 
         return response()->json([
             'success' => true,
@@ -381,7 +396,7 @@ class ManualBookController extends Controller
             if ($html) {
                 $html = preg_replace('/src=(["\'])uploads\/editor\//i', 'src=$1/uploads/editor/', $html);
             }
-            
+
             return response()->json([
                 'success' => true,
                 'message' => 'File Word "' . $rawName . '" berhasil dibaca!',
@@ -550,9 +565,12 @@ class ManualBookController extends Controller
      */
     public function getModuleData($id)
     {
-        $menuSystem = MenuSystem::with(['kategori', 'manualBooks' => function ($q) {
-            $q->latest();
-        }])->findOrFail($id);
+        $menuSystem = MenuSystem::with([
+            'kategori',
+            'manualBooks' => function ($q) {
+                $q->latest();
+            }
+        ])->findOrFail($id);
 
         $book = $menuSystem->manualBooks->first();
 
@@ -596,6 +614,108 @@ class ManualBookController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Urutan sub menu panduan berhasil diperbarui!',
+        ]);
+    }
+
+    /**
+     * Mengambil daftar sub menu / bab panduan yang sudah ada di sistem lain (sebagai template panduan)
+     */
+    public function getAvailableTemplates(Request $request)
+    {
+        $currentMenuSystemId = $request->input('current_menu_system_id');
+
+        $manualBooks = ManualBook::with(['menuSystems.kategori', 'user', 'editor'])
+            ->orderBy('title', 'asc')
+            ->get();
+
+        $templates = $manualBooks->map(function ($book) use ($currentMenuSystemId) {
+            $isAttached = false;
+            $attachedSystems = [];
+
+            foreach ($book->menuSystems as $menu) {
+                $systemName = $menu->kategori ? $menu->kategori->name : 'Sistem Lain';
+                $attachedSystems[] = [
+                    'menu_system_id' => (string) $menu->id,
+                    'module_name' => $menu->name,
+                    'system_name' => $systemName,
+                ];
+                if ($currentMenuSystemId && (string) $menu->id === (string) $currentMenuSystemId) {
+                    $isAttached = true;
+                }
+            }
+
+            $normalizedContent = $book->content ?: '';
+            if ($normalizedContent) {
+                $normalizedContent = preg_replace('/src=(["\'])uploads\/editor\//i', 'src=$1/uploads/editor/', $normalizedContent);
+            }
+
+            return [
+                'id' => (string) $book->id,
+                'title' => $book->title,
+                'description' => $book->description ?: '',
+                'content' => $normalizedContent,
+                'status' => $book->status ?: 'draft',
+                'is_attached' => $isAttached,
+                'attached_systems' => $attachedSystems,
+                'primary_system' => !empty($attachedSystems) ? $attachedSystems[0]['system_name'] : 'Umum',
+                'primary_module' => !empty($attachedSystems) ? $attachedSystems[0]['module_name'] : '-',
+                'created_by_name' => $book->user ? $book->user->name : 'Superadministrator',
+                'created_at_formatted' => $book->created_at ? $book->created_at->format('d M Y, H:i') : '-',
+                'updated_by_name' => $book->editor ? $book->editor->name : ($book->user ? $book->user->name : 'Superadministrator'),
+                'updated_at_formatted' => $book->updated_at ? $book->updated_at->format('d M Y, H:i') : '-',
+            ];
+        });
+
+        return response()->json([
+            'success' => true,
+            'templates' => $templates,
+        ]);
+    }
+
+    /**
+     * Menautkan sub menu / panduan yang sudah ada ke modul sistem saat ini via relasi pivot
+     */
+    public function attachTemplate(Request $request)
+    {
+        $request->validate([
+            'menu_system_id' => 'required|exists:menu_systems,id',
+            'manual_book_id' => 'required|exists:manual_books,id',
+        ]);
+
+        $menuSystem = MenuSystem::with('kategori')->findOrFail($request->menu_system_id);
+        $manualBook = ManualBook::with(['user', 'editor', 'logs.user'])->findOrFail($request->manual_book_id);
+
+        $alreadyAttached = $menuSystem->manualBooks()->where('manual_books.id', $manualBook->id)->exists();
+        if ($alreadyAttached) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Panduan "' . $manualBook->title . '" sudah ditautkan ke modul ' . $menuSystem->name . ' sebelumnya.',
+            ], 422);
+        }
+
+        // Tautkan ke tabel relasi pivot menu_has_manual_books
+        $menuSystem->manualBooks()->attach($manualBook->id);
+
+        $userId = Auth::id() ? Auth::id() : 1;
+        $actorName = Auth::user()->name ?? 'Superadministrator';
+        $systemName = $menuSystem->kategori ? $menuSystem->kategori->name : 'Sistem';
+
+        // Catat riwayat log aktivitas
+        ArticleAndManualBooksLog::record(
+            $manualBook,
+            'ATTACHED',
+            "Panduan \"{$manualBook->title}\" berhasil ditautkan ke modul \"{$menuSystem->name}\" ({$systemName}) oleh {$actorName}.",
+            $userId
+        );
+
+        $totalInModule = $menuSystem->manualBooks()->count();
+        $chapterData = $this->formatChapterItem($manualBook, $totalInModule - 1);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Panduan "' . $manualBook->title . '" berhasil ditautkan ke modul ' . $menuSystem->name . '!',
+            'sub_menu' => $chapterData,
+            'menu_system_id' => (string) $menuSystem->id,
         ]);
     }
 }

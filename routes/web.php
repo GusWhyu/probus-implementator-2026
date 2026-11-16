@@ -36,7 +36,7 @@ use App\Http\Controllers\KontenSayaController;
 // Route::get('/',[HomeController::class,'index'])->middleware(['auth'])->name('home');
 
 //Route Dashboard
-Route::get('/dashboard',[HomeController::class, 'index'])->middleware(['auth'])->name('dashboard');
+Route::get('/dashboard', [HomeController::class, 'index'])->middleware(['auth'])->name('dashboard');
 Route::get('/', [HomeController::class, 'index'])->middleware(['auth'])->name('dashboard');
 Route::get('/activitylog', [HomeController::class, 'activitylog'])->middleware(['auth'])->name('activitylog');
 Route::get('/mrq/{id}', [HomeController::class, 'morerq'])->middleware(['auth'])->name('morerequest');
@@ -57,6 +57,8 @@ Route::post('/manual-book/module', [ManualBookController::class, 'addModule'])->
 Route::delete('/manual-book/module/{id}', [ManualBookController::class, 'deleteModule'])->middleware(['auth'])->name('manualbook.module.delete');
 Route::get('/manual-book/module/{id}', [ManualBookController::class, 'getModuleData'])->middleware(['auth'])->name('manualbook.module.data');
 Route::post('/manual-book/reorder-sub-menu', [ManualBookController::class, 'reorderSubMenus'])->middleware(['auth'])->name('manualbook.reorder_sub_menu');
+Route::get('/manual-book/templates', [ManualBookController::class, 'getAvailableTemplates'])->middleware(['auth'])->name('manualbook.templates');
+Route::post('/manual-book/attach-template', [ManualBookController::class, 'attachTemplate'])->middleware(['auth'])->name('manualbook.attach_template');
 Route::get('/laporan', [HomeController::class, 'laporan'])->middleware(['auth'])->name('laporan');
 Route::get('/bank-solusi', [BankSolusiController::class, 'index'])->middleware(['auth'])->name('bank-solusi.index');
 Route::get('/bank-solusi/create', [BankSolusiController::class, 'create'])->middleware(['auth'])->name('bank-solusi.create');
@@ -93,41 +95,43 @@ Route::get('/rapor/{id}/module-tickets/{module_id}/pdf', [HomeController::class,
 Route::get('/riwayat/{id}', [HomeController::class, 'riwayat'])->middleware(['auth'])->name('riwayat');
 // Request System Routes
 Route::get('/request-dashboard', [RequestController::class, 'dashboard'])->middleware(['auth'])->name('request.dashboard');
-Route::get('/request/dashboard', function() { return redirect()->route('request.dashboard'); });
+Route::get('/request/dashboard', function () {
+    return redirect()->route('request.dashboard');
+});
 Route::get('/request', [RequestController::class, 'index'])->middleware(['auth'])->name('request.board');
 Route::get('/getOutlet/{search?}', [RequestController::class, 'getOutlet'])->name('getOutlet');
 Route::get('/detailrequest/{id}', [RequestController::class, 'detailrequest'])->middleware(['auth'])->name('detailrequest');
-Route::get('/detailtiket/{id}', function($id) {
+Route::get('/detailtiket/{id}', function ($id) {
     return redirect()->route('detailrequest', ['id' => $id]);
 })->middleware(['auth'])->name('detailtiket');
 Route::get('/mrq', [RequestController::class, 'mrq'])->middleware(['auth'])->name('mrq');
 Route::get('/createrq', [RequestController::class, 'createrq'])->middleware(['auth'])->name('createrq');
 Route::get('/editrq/{id}', [RequestController::class, 'editrq'])->middleware(['auth'])->name('editrq');
-Route::post('/createrq',[RequestController::class, 'store'])->middleware(['auth'])->name('storerq');
+Route::post('/createrq', [RequestController::class, 'store'])->middleware(['auth'])->name('storerq');
 Route::post('/editrq/{id}', [RequestController::class, 'updaterq'])->middleware(['auth'])->name('updaterq');
 Route::get('/deleteimg/{img}', [RequestController::class, 'deleteimg'])->middleware(['auth'])->name('deleteimg');
-Route::get('/updatestatus/{id}/{stid}',[RequestController::class, 'updatestatus'])->middleware(['auth'])->name('updatestatus');
+Route::get('/updatestatus/{id}/{stid}', [RequestController::class, 'updatestatus'])->middleware(['auth'])->name('updatestatus');
 Route::post('/komentar/{id}', [RequestController::class, 'komentar'])->middleware(['auth'])->name('komentar');
-Route::delete('/deletekomen/{id}',[RequestController::class, 'deletekomen'])->middleware(['auth'])->name('deletekomen');
-Route::delete('/deletereq/{id}',[RequestController::class, 'delete'])->middleware(['auth'])->name('deletereq');
+Route::delete('/deletekomen/{id}', [RequestController::class, 'deletekomen'])->middleware(['auth'])->name('deletekomen');
+Route::delete('/deletereq/{id}', [RequestController::class, 'delete'])->middleware(['auth'])->name('deletereq');
 Route::post('/request/{id}/approve', [RequestController::class, 'approveRequest'])->middleware(['auth'])->name('request.approve');
 Route::post('/request/{id}/reject', [RequestController::class, 'rejectRequest'])->middleware(['auth'])->name('request.reject');
 Route::post('/request/{id}/convert-to-ticket', [RequestController::class, 'convertToTicket'])->middleware(['auth'])->name('request.convert_to_ticket');
 Route::post('/request/{id}/testing-status', [RequestController::class, 'updateTestingStatus'])->middleware(['auth'])->name('request.testing_status');
 
 // New Ticketing System Routes
-Route::get('/detailticket/{id}',[TicketController::class, 'detailticket'])->middleware(['auth'])->name('detailticket');
+Route::get('/detailticket/{id}', [TicketController::class, 'detailticket'])->middleware(['auth'])->name('detailticket');
 Route::get('/createticket', [TicketController::class, 'createticket'])->middleware(['auth'])->name('createticket');
 Route::get('/editticket/{id}', [TicketController::class, 'editticket'])->middleware(['auth'])->name('editticket');
-Route::post('/createticket',[TicketController::class, 'storeticket'])->middleware(['auth'])->name('storeticket');
+Route::post('/createticket', [TicketController::class, 'storeticket'])->middleware(['auth'])->name('storeticket');
 Route::post('/editticket/{id}', [TicketController::class, 'updateticket'])->middleware(['auth'])->name('updateticket');
 Route::get('/ticket-deleteimg/{img}', [TicketController::class, 'deleteimg'])->middleware(['auth'])->name('ticket.deleteimg');
-Route::match(['get', 'post'], '/ticket-updatestatus/{id}/{stid}',[TicketController::class, 'updatestatus'])->middleware(['auth'])->name('ticket.updatestatus');
-Route::post('/ticket-updatestatus-with-advisor/{id}/{stid}',[TicketController::class, 'updatestatusWithAdvisor'])->middleware(['auth'])->name('ticket.updatestatus.advisor');
+Route::match(['get', 'post'], '/ticket-updatestatus/{id}/{stid}', [TicketController::class, 'updatestatus'])->middleware(['auth'])->name('ticket.updatestatus');
+Route::post('/ticket-updatestatus-with-advisor/{id}/{stid}', [TicketController::class, 'updatestatusWithAdvisor'])->middleware(['auth'])->name('ticket.updatestatus.advisor');
 Route::post('/ticket/{id}/diskusi', [TicketController::class, 'storeDiskusi'])->middleware(['auth'])->name('ticket.diskusi.store');
 Route::post('/ticket-komentar/{id}', [TicketController::class, 'komentar'])->middleware(['auth'])->name('ticket.komentar');
-Route::delete('/ticket-deletekomen/{id}',[TicketController::class, 'deletekomen'])->middleware(['auth'])->name('ticket.deletekomen');
-Route::delete('/deleteticket/{id}',[TicketController::class, 'delete'])->middleware(['auth'])->name('deleteticket');
+Route::delete('/ticket-deletekomen/{id}', [TicketController::class, 'deletekomen'])->middleware(['auth'])->name('ticket.deletekomen');
+Route::delete('/deleteticket/{id}', [TicketController::class, 'delete'])->middleware(['auth'])->name('deleteticket');
 Route::post('/ticket/{id}/takeover', [TicketController::class, 'takeover'])->middleware(['auth'])->name('ticket.takeover');
 Route::post('/ticket/{id}/takeover/accept', [TicketController::class, 'takeoverAccept'])->middleware(['auth'])->name('ticket.takeover.accept');
 Route::post('/ticket/{id}/takeover/reject', [TicketController::class, 'takeoverReject'])->middleware(['auth'])->name('ticket.takeover.reject');
@@ -141,7 +145,7 @@ Route::post('/upload-editor-image', [TicketController::class, 'uploadEditorImage
 Route::get('/detailus/{id}', [UpdateSystemController::class, 'detailus'])->middleware(['auth'])->name('detailus');
 Route::get('/mus', [UpdateSystemController::class, 'mus'])->middleware(['auth'])->name('mus');
 Route::get('/createus/{id}', [UpdateSystemController::class, 'createus'])->middleware(['auth'])->name('createus');
-Route::get('/editus/{id}',[UpdateSystemController::class, 'editus'])->middleware(['auth'])->name('editus');
+Route::get('/editus/{id}', [UpdateSystemController::class, 'editus'])->middleware(['auth'])->name('editus');
 Route::post('/createus', [UpdateSystemController::class, 'store'])->middleware(['auth'])->name('storeus');
 Route::post('/editus/{id}', [UpdateSystemController::class, 'update'])->middleware(['auth'])->name('updateus');
 Route::delete('/deleteus/{id}', [UpdateSystemController::class, 'delete'])->middleware(['auth'])->name('deleteus');
@@ -149,16 +153,16 @@ Route::delete('/deleteus/{id}', [UpdateSystemController::class, 'delete'])->midd
 //Route My Request
 Route::get('/myreq', [MyController::class, 'index'])->middleware(['auth'])->name('myreq');
 Route::get('/myproc/{id}', [MyController::class, 'myproc'])->middleware(['auth'])->name('myproc');
-Route::get('/myus',[MyController::class, 'myus'])->middleware(['auth'])->name('myus');
+Route::get('/myus', [MyController::class, 'myus'])->middleware(['auth'])->name('myus');
 
 //Route User
 Route::get('/user', [UserController::class, 'index'])->middleware(['auth'])->name('user');
-Route::get('/registeracc',[UserController::class, 'registeracc'])->middleware(['auth'])->name('registeracc');
-Route::post('/registeracc',[UserController::class, 'store'])->middleware(['auth'])->name('storeacc');
-Route::get('/editacc/{id}',[UserController::class, 'editacc'])->middleware(['auth'])->name('editacc');
-Route::post('/editacc/{id}',[UserController::class, 'edit'])->middleware(['auth'])->name('updateacc');
+Route::get('/registeracc', [UserController::class, 'registeracc'])->middleware(['auth'])->name('registeracc');
+Route::post('/registeracc', [UserController::class, 'store'])->middleware(['auth'])->name('storeacc');
+Route::get('/editacc/{id}', [UserController::class, 'editacc'])->middleware(['auth'])->name('editacc');
+Route::post('/editacc/{id}', [UserController::class, 'edit'])->middleware(['auth'])->name('updateacc');
 Route::get('/editpass/{id}', [UserController::class, 'editpass'])->middleware(['auth'])->name('editpass');
-Route::delete('/deleteacc/{id}',[UserController::class, 'delete'])->middleware(['auth'])->name('deleteacc');
+Route::delete('/deleteacc/{id}', [UserController::class, 'delete'])->middleware(['auth'])->name('deleteacc');
 Route::post('/editpass/{id}', [UserController::class, 'updatepass'])->middleware(['auth'])->name('updatepass');
 Route::post('/user/{id}/toggle-status', [UserController::class, 'toggleStatus'])->middleware(['auth'])->name('user.toggle-status');
 
@@ -176,7 +180,7 @@ Route::get('/createkategori', [KategoriController::class, 'createkategori'])->mi
 Route::get('/editkategori/{id}', [KategoriController::class, 'editkategori'])->middleware(['auth'])->name('editkategori');
 Route::post('/createkategori', [KategoriController::class, 'store'])->middleware(['auth'])->name('storekategori');
 Route::post('/editkategori/{id}', [KategoriController::class, 'updatekategori'])->middleware(['auth'])->name('updatekategori');
-Route::delete('/deletekategori/{id}',[KategoriController::class, 'delete'])->middleware(['auth'])->name('deletekategori');
+Route::delete('/deletekategori/{id}', [KategoriController::class, 'delete'])->middleware(['auth'])->name('deletekategori');
 
 //Route Modul
 Route::get('/modul', [ModulController::class, 'index'])->middleware(['auth'])->name('modul');
@@ -200,7 +204,7 @@ Route::get('/createstatus', [StatusController::class, 'createstatus'])->middlewa
 Route::get('/editstatus/{id}', [StatusController::class, 'editstatus'])->middleware(['auth'])->name('editstatus');
 Route::post('/createstatus', [StatusController::class, 'store'])->middleware(['auth'])->name('storestatus');
 Route::post('/editstatus/{id}', [StatusController::class, 'updatestatus'])->middleware(['auth'])->name('updatestatus');
-Route::get('/deletestatus/{id}',[StatusController::class, 'delete'])->middleware(['auth'])->name('deletestatus');
+Route::get('/deletestatus/{id}', [StatusController::class, 'delete'])->middleware(['auth'])->name('deletestatus');
 
 //Route Client
 Route::get('/client', [ClientController::class, 'index'])->middleware(['auth'])->name('client');
@@ -208,7 +212,7 @@ Route::get('/createclient', [ClientController::class, 'createclient'])->middlewa
 Route::get('/editclient/{id}', [ClientController::class, 'editclient'])->middleware(['auth'])->name('editclient');
 Route::post('/createclient', [ClientController::class, 'store'])->middleware(['auth'])->name('storeclient');
 Route::post('/editclient/{id}', [ClientController::class, 'update'])->middleware(['auth'])->name('updateclient');
-Route::delete('/deleteclient/{id}',[ClientController::class, 'delete'])->middleware(['auth'])->name('deleteclient');
+Route::delete('/deleteclient/{id}', [ClientController::class, 'delete'])->middleware(['auth'])->name('deleteclient');
 
 //Route Account Profile
 Route::get('/profile', [ProfileController::class, 'index'])->middleware(['auth'])->name('profile');
@@ -221,7 +225,9 @@ Route::post('/profile/update-theme', [ProfileController::class, 'updateTheme'])-
 
 //Route History, My Request & Update System
 Route::get('/history', [MyrequsController::class, 'history'])->middleware(['auth'])->name('history');
-Route::get('/request/history', function() { return redirect()->route('history'); })->name('request.history');
+Route::get('/request/history', function () {
+    return redirect()->route('history');
+})->name('request.history');
 Route::get('/myrequs', [MyrequsController::class, 'history'])->middleware(['auth'])->name('myrequs');
 Route::get('/myrequest', [MyrequsController::class, 'myrequest'])->middleware(['auth'])->name('myrequest');
 Route::get('/myupdatesystem', [MyrequsController::class, 'myupdatesystem'])->middleware(['auth'])->name('myupdatesystem');
@@ -307,5 +313,5 @@ Route::get('/uploads/{path}', function ($path) {
     return response()->file($filePath);
 })->where('path', '.*');
 
-require __DIR__.'/auth.php';
+require __DIR__ . '/auth.php';
 
