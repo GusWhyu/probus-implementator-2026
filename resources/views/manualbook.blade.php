@@ -1751,7 +1751,7 @@
         {{-- MODAL: TAMBAH SISTEM BARU (TERHUBUNG KE DATABASE) --}}
         {{-- ======================================================== --}}
         <div x-show="openAddSystemModal" x-cloak
-            class="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs"
+            class="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4 bg-slate-900/35 dark:bg-slate-950/80 backdrop-blur-sm"
             x-transition.opacity>
             <div @click.outside="openAddSystemModal = false"
                 class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-md p-6 shadow-xl space-y-4">
@@ -1793,7 +1793,7 @@
         {{-- MODAL: TAMBAH MODUL BARU (TERHUBUNG KE DATABASE) --}}
         {{-- ======================================================== --}}
         <div x-show="openAddModuleModal" x-cloak
-            class="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs"
+            class="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4 bg-slate-900/35 dark:bg-slate-950/80 backdrop-blur-sm"
             x-transition.opacity>
             <div @click.outside="openAddModuleModal = false"
                 class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-md p-6 shadow-xl space-y-4">
@@ -1860,7 +1860,7 @@
         {{-- MODAL: RIWAYAT HISTORI EDIT & AKTIVITAS SUB MENU --}}
         {{-- ======================================================== --}}
         <div x-show="openHistoryModal" x-cloak
-            class="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs"
+            class="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4 bg-slate-900/35 dark:bg-slate-950/80 backdrop-blur-sm"
             x-transition.opacity>
             <div @click.outside="openHistoryModal = false"
                 class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-lg p-6 shadow-2xl space-y-4">
@@ -1987,13 +1987,13 @@
         {{-- MODAL: TAUTKAN PANDUAN YANG SUDAH ADA (LINTAS SISTEM) --}}
         {{-- ======================================================== --}}
         <div x-show="openAttachModalState" x-cloak
-            class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-slate-900/75 backdrop-blur-xs"
+            class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-slate-900/35 dark:bg-slate-950/80 backdrop-blur-sm"
             x-transition.opacity>
             <div @click.outside="closeAttachModal()"
                 class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-6xl h-[90vh] shadow-2xl flex flex-col overflow-hidden animate-fade-in">
 
                 {{-- Header Modal --}}
-                <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-900/60 shrink-0">
+                <div class="flex items-center justify-between px-6 py-4 border-b border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 shrink-0">
                     <div class="flex items-center gap-3">
                         <span class="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-500 to-blue-600 text-white flex items-center justify-center text-sm shadow-sm shadow-indigo-500/20">
                             <i class="fa-solid fa-link"></i>
@@ -2221,7 +2221,7 @@
                 </div>
 
                 {{-- Footer Modal --}}
-                <div class="px-6 py-3.5 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 flex items-center justify-between shrink-0">
+                <div class="px-6 py-3.5 border-t border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 flex items-center justify-between shrink-0">
                     <div class="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
                         <i class="fa-solid fa-circle-nodes text-indigo-500 text-sm"></i>
                         <span class="hidden sm:inline">Panduan ditautkan melalui relasi pivot <strong>menu_has_manual_books</strong> tanpa menduplikasi data master.</span>
