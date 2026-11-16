@@ -59,6 +59,7 @@ class ManualBook extends Model
     public function menuSystems()
     {
         return $this->belongsToMany(MenuSystem::class, 'menu_has_manual_books', 'manual_book_id', 'menu_system_id')
+            ->withPivot('order')
             ->withTimestamps();
     }
 }

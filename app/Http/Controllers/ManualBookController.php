@@ -67,8 +67,9 @@ class ManualBookController extends Controller
                     ->orderBy('id')
                     ->with([
                         'manualBooks' => function ($mb) {
-                            $mb->orderBy('order')
-                                ->orderBy('id')
+                            $mb->withPivot('order')
+                                ->orderBy('menu_has_manual_books.order', 'asc')
+                                ->orderBy('manual_books.id', 'asc')
                                 ->with(['user', 'editor', 'logs.user']);
                         }
                     ]);
@@ -152,7 +153,10 @@ class ManualBookController extends Controller
      */
     private function formatChapterItem($book, $idx): array
     {
-        $orderNum = $book->order ? (int) $book->order : ($idx + 1);
+        $pivotOrder = (isset($book->pivot) && isset($book->pivot->order) && $book->pivot->order)
+            ? (int) $book->pivot->order
+            : null;
+        $orderNum = $pivotOrder ?: ($book->order ? (int) $book->order : ($idx + 1));
         $hasContent = !empty(trim(strip_tags($book->content, '<img>')));
         $isPublished = $book->status === 'published';
 
@@ -241,10 +245,16 @@ class ManualBookController extends Controller
 
         $order = $request->order ? (int) $request->order : null;
         if (!$order) {
-            if ($manualBook && $manualBook->order) {
-                $order = (int) $manualBook->order;
+            if ($manualBook) {
+                $existingPivot = \DB::table('menu_has_manual_books')
+                    ->where('menu_system_id', $menuSystem->id)
+                    ->where('manual_book_id', $manualBook->id)
+                    ->first();
+                $order = ($existingPivot && $existingPivot->order) ? (int) $existingPivot->order : ($manualBook->order ?: 1);
             } else {
-                $maxOrder = $menuSystem->manualBooks()->max('order');
+                $maxOrder = \DB::table('menu_has_manual_books')
+                    ->where('menu_system_id', $menuSystem->id)
+                    ->max('order');
                 $order = $maxOrder ? $maxOrder + 1 : 1;
             }
         }
@@ -266,6 +276,12 @@ class ManualBookController extends Controller
                 'content' => $content,
                 'status' => $request->status,
             ]);
+
+            // Sinkronkan juga nomor urutan khusus di modul ini pada tabel pivot
+            \DB::table('menu_has_manual_books')
+                ->where('menu_system_id', $menuSystem->id)
+                ->where('manual_book_id', $manualBook->id)
+                ->update(['order' => $order]);
 
             // Catat log jika status berubah
             if ($oldStatus !== $request->status) {
@@ -298,7 +314,7 @@ class ManualBookController extends Controller
                 'content' => $content,
                 'status' => $request->status,
             ]);
-            $menuSystem->manualBooks()->attach($manualBook->id);
+            $menuSystem->manualBooks()->attach($manualBook->id, ['order' => $order]);
 
             $statusText = $request->status === 'published' ? 'Terbit' : 'Draft';
             ArticleAndManualBooksLog::record(
@@ -311,6 +327,7 @@ class ManualBookController extends Controller
 
         // Muat ulang relasi user, editor, logs untuk respon JSON
         $manualBook->load(['user', 'editor', 'logs.user']);
+        $manualBook->setRelation('pivot', (object) ['order' => $order]);
         $chapterData = $this->formatChapterItem($manualBook, $order - 1);
 
         $message = $request->status === 'published'
@@ -606,7 +623,10 @@ class ManualBookController extends Controller
                 }
 
                 if ($id) {
-                    ManualBook::where('id', $id)->update(['order' => $order]);
+                    \DB::table('menu_has_manual_books')
+                        ->where('menu_system_id', $request->menu_system_id)
+                        ->where('manual_book_id', $id)
+                        ->update(['order' => $order]);
                 }
             }
         });
@@ -693,8 +713,14 @@ class ManualBookController extends Controller
             ], 422);
         }
 
-        // Tautkan ke tabel relasi pivot menu_has_manual_books
-        $menuSystem->manualBooks()->attach($manualBook->id);
+        // Hitung nomor urutan berikutnya khusus pada modul tujuan ini
+        $maxOrder = \DB::table('menu_has_manual_books')
+            ->where('menu_system_id', $menuSystem->id)
+            ->max('order');
+        $newOrder = $maxOrder ? ((int) $maxOrder + 1) : 1;
+
+        // Tautkan ke tabel relasi pivot menu_has_manual_books dengan order baru
+        $menuSystem->manualBooks()->attach($manualBook->id, ['order' => $newOrder]);
 
         $userId = Auth::id() ? Auth::id() : 1;
         $actorName = Auth::user()->name ?? 'Superadministrator';
@@ -708,8 +734,8 @@ class ManualBookController extends Controller
             $userId
         );
 
-        $totalInModule = $menuSystem->manualBooks()->count();
-        $chapterData = $this->formatChapterItem($manualBook, $totalInModule - 1);
+        $manualBook->setRelation('pivot', (object) ['order' => $newOrder]);
+        $chapterData = $this->formatChapterItem($manualBook, $newOrder - 1);
 
         return response()->json([
             'success' => true,
