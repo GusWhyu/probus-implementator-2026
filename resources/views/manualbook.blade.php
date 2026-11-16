@@ -1536,65 +1536,55 @@
             <div
                 class="lg:col-span-8 xl:col-span-8 bg-white dark:bg-[#0f172a] rounded-2xl border border-slate-200 dark:border-slate-800 p-4 sm:p-6 shadow-sm space-y-5">
 
-                {{-- Header Top Bar Panel Sub Menu --}}
-                <div class="space-y-3 pb-3.5 border-b border-slate-100 dark:border-slate-800/80">
-                    {{-- Baris 1: Breadcrumb Navigasi & Mode Badge --}}
-                    <div class="flex items-center justify-between gap-3 flex-wrap">
+                {{-- Header Top Bar Panel Sub Menu (Clean 2-Tier Layout) --}}
+                <div class="space-y-2.5 pb-3.5 border-b border-slate-100 dark:border-slate-800/80">
+                    {{-- Tier 1: Breadcrumb Navigasi & Action Toolbar --}}
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5">
+                        {{-- Kiri: Breadcrumb & Status/Mode Badge --}}
                         <div class="flex items-center gap-2 flex-wrap min-w-0">
                             <span class="text-[11px] font-extrabold tracking-wider text-cyan-600 dark:text-cyan-400 uppercase font-mono flex items-center gap-1.5">
                                 <i class="fa-solid fa-code-commit text-xs shrink-0"></i>
                                 <span x-text="currentModule.breadcrumb"></span>
                             </span>
-                            {{-- Badge Indikator Mode Tambah vs Edit --}}
+
+                            {{-- Badge Indikator Status / Mode --}}
                             <template x-if="isNewSubMenu">
                                 <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-blue-100 dark:bg-blue-950/70 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 tracking-wide uppercase whitespace-nowrap">
                                     <i class="fa-solid fa-circle-plus text-[10px]"></i> Mode Tambah Sub Menu Baru
                                 </span>
                             </template>
-                            <template x-if="!isNewSubMenu">
-                                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700 tracking-wide uppercase whitespace-nowrap">
-                                    <i class="fa-solid fa-pen-to-square text-[10px]"></i> Mode Edit Sub Menu
+                            <template x-if="!isNewSubMenu && currentSubMenu">
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wide uppercase whitespace-nowrap"
+                                      :class="currentSubMenu.status === 'published' ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/60' : 'bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-800/60'">
+                                    <span class="w-1.5 h-1.5 rounded-full" :class="currentSubMenu.status === 'published' ? 'bg-emerald-500' : 'bg-amber-500'"></span>
+                                    <span x-text="currentSubMenu.status === 'published' ? 'Terbit' : 'Draft'"></span>
                                 </span>
                             </template>
                         </div>
 
-                        {{-- Tombol Batal jika dalam mode tambah baru --}}
-                        <template x-if="isNewSubMenu && ((currentModule && currentModule.sub_menus ? currentModule.sub_menus.length : 0) > 0)">
-                            <button type="button" @click="cancelNewSubMenu(currentModule.id)"
-                                class="px-3 py-1 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-750 text-xs font-semibold shadow-2xs flex items-center gap-1.5 transition-all cursor-pointer shrink-0">
-                                <i class="fa-solid fa-xmark text-xs text-slate-400"></i>
-                                <span>Batal Tambah</span>
-                            </button>
-                        </template>
-                    </div>
-
-                    {{-- Baris 2: Judul Sub Menu (Kiri) & Tombol Aksi Toolbar (Kanan) --}}
-                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-0.5">
-                        {{-- Judul Sub Menu --}}
-                        <div class="flex items-center gap-2 min-w-0">
-                            <template x-if="!isNewSubMenu">
-                                <span class="text-xs font-mono font-bold px-2 py-0.5 rounded-md bg-blue-100 dark:bg-blue-950/70 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800/60 shrink-0"
-                                    x-text="'#' + subMenuOrder"></span>
-                            </template>
-                            <h2 class="text-base sm:text-lg font-black text-slate-800 dark:text-slate-100 tracking-tight truncate"
-                                x-text="isNewSubMenu ? 'Tambah Sub Menu Baru' : (subMenuTitle || 'Sub Menu Panduan')">
-                            </h2>
-                        </div>
-
-                        {{-- Kelompok Tombol Aksi Toolbar --}}
+                        {{-- Kanan: Action Toolbar --}}
                         <div class="flex items-center gap-2 flex-wrap shrink-0">
+                            {{-- Tombol Batal jika dalam mode tambah baru --}}
+                            <template x-if="isNewSubMenu && ((currentModule && currentModule.sub_menus ? currentModule.sub_menus.length : 0) > 0)">
+                                <button type="button" @click="cancelNewSubMenu(currentModule.id)"
+                                    class="px-2.5 py-1.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-750 text-xs font-semibold shadow-2xs flex items-center gap-1.5 transition-all cursor-pointer shrink-0">
+                                    <i class="fa-solid fa-xmark text-xs text-slate-400"></i>
+                                    <span>Batal</span>
+                                </button>
+                            </template>
+
                             {{-- Tombol Tautkan dari Sistem Lain --}}
                             <button type="button" @click="openAttachModal(currentModule)"
-                                class="px-3 py-1.5 rounded-xl border border-indigo-200 dark:border-indigo-800/80 bg-indigo-50/70 dark:bg-indigo-950/40 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 active:scale-95 text-indigo-600 dark:text-indigo-300 text-xs font-bold shadow-2xs transition-all flex items-center gap-1.5 cursor-pointer whitespace-nowrap">
+                                class="px-2.5 py-1.5 rounded-xl border border-indigo-200 dark:border-indigo-800/80 bg-indigo-50/70 dark:bg-indigo-950/40 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 active:scale-95 text-indigo-600 dark:text-indigo-300 text-xs font-bold shadow-2xs transition-all flex items-center gap-1.5 cursor-pointer whitespace-nowrap">
                                 <i class="fa-solid fa-link text-xs"></i>
                                 <span>Tautkan dari Sistem Lain</span>
                             </button>
 
                             {{-- Tombol Import Word (.docx) --}}
                             <button type="button" @click="triggerWordImport()"
-                                class="px-3 py-1.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 active:scale-95 text-white text-xs font-bold shadow-xs shadow-blue-500/20 transition-all flex items-center gap-1.5 cursor-pointer whitespace-nowrap">
+                                class="px-2.5 py-1.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 active:scale-95 text-white text-xs font-bold shadow-xs shadow-blue-500/20 transition-all flex items-center gap-1.5 cursor-pointer whitespace-nowrap">
                                 <i class="fa-regular fa-file-word text-xs"></i>
-                                <span>Import Word (.docx)</span>
+                                <span>Import Word</span>
                             </button>
                             <input type="file" id="wordFileInput" accept=".docx" @change="handleWordFileChange($event)"
                                 class="hidden">
@@ -1602,45 +1592,65 @@
                             {{-- Tombol Hapus Sub Menu jika sedang mengedit --}}
                             <template x-if="!isNewSubMenu && currentSubMenu">
                                 <button type="button" @click="confirmDeleteSubMenu(currentModule, currentSubMenu)"
-                                    class="px-3 py-1.5 rounded-xl border border-rose-200 dark:border-rose-900/50 bg-rose-50/60 dark:bg-rose-950/30 text-rose-600 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-900/50 text-xs font-semibold shadow-2xs flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap">
+                                    class="px-2.5 py-1.5 rounded-xl border border-rose-200 dark:border-rose-900/50 bg-rose-50/60 dark:bg-rose-950/30 text-rose-600 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-900/50 text-xs font-semibold shadow-2xs flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap"
+                                    title="Hapus Sub Menu">
                                     <i class="fa-regular fa-trash-can text-xs"></i>
-                                    <span>Hapus Sub Menu</span>
+                                    <span class="hidden sm:inline">Hapus</span>
                                 </button>
                             </template>
                         </div>
                     </div>
 
-                    {{-- Baris 3: Metadata Info Audit (Dibuat Oleh, Terakhir Diedit, Riwayat) --}}
-                    <template x-if="!isNewSubMenu && currentSubMenu">
-                        <div class="flex items-center gap-2 text-[11px] text-slate-500 dark:text-slate-400 flex-wrap pt-0.5">
-                            {{-- Pembuat Awal --}}
-                            <span class="inline-flex items-center gap-1.5 bg-slate-50 dark:bg-slate-800/80 px-2.5 py-1 rounded-lg whitespace-nowrap border border-slate-200/70 dark:border-slate-700/60">
-                                <i class="fa-regular fa-user text-blue-500 text-[10px]"></i>
-                                <span>Dibuat: <strong class="text-slate-700 dark:text-slate-200"
-                                        x-text="currentSubMenu.created_by_name || 'Admin'"></strong></span>
-                                <span class="text-slate-400 text-[10px]"
-                                    x-text="'(' + (currentSubMenu.created_at_formatted || '-') + ')'"></span>
-                            </span>
-
-                            {{-- Terakhir Diedit --}}
-                            <template x-if="currentSubMenu.updated_by_name">
-                                <span class="inline-flex items-center gap-1.5 bg-slate-50 dark:bg-slate-800/80 px-2.5 py-1 rounded-lg whitespace-nowrap border border-slate-200/70 dark:border-slate-700/60">
-                                    <i class="fa-solid fa-pen-nib text-amber-500 text-[10px]"></i>
-                                    <span>Diedit: <strong class="text-slate-700 dark:text-slate-200"
-                                            x-text="currentSubMenu.updated_by_name || 'Admin'"></strong></span>
-                                    <span class="text-slate-400 text-[10px]"
-                                        x-text="'(' + (currentSubMenu.updated_at_relative || '-') + ')'"></span>
-                                </span>
+                    {{-- Tier 2: Judul Sub Menu Penuh & Metadata Info Audit --}}
+                    <div class="space-y-1.5 pt-0.5">
+                        <div class="flex items-start gap-2.5">
+                            <template x-if="!isNewSubMenu">
+                                <span class="text-xs font-mono font-bold px-2 py-0.5 rounded-md bg-blue-100 dark:bg-blue-950/70 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800/60 shrink-0 mt-0.5"
+                                    x-text="'#' + subMenuOrder"></span>
                             </template>
-
-                            {{-- Tombol Lihat Riwayat Histori --}}
-                            <button type="button" @click="openHistoryModal = true"
-                                class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/40 font-bold transition-colors cursor-pointer border border-blue-200/60 dark:border-blue-900/50 shadow-2xs whitespace-nowrap">
-                                <i class="fa-solid fa-clock-rotate-left text-[10px]"></i>
-                                <span>Riwayat Edit (<span x-text="(currentSubMenu.logs || []).length"></span>)</span>
-                            </button>
+                            <h2 class="text-lg sm:text-xl font-black text-slate-800 dark:text-slate-100 tracking-tight leading-snug break-words flex-1"
+                                x-text="isNewSubMenu ? 'Tambah Sub Menu Baru' : (subMenuTitle || 'Sub Menu Panduan')">
+                            </h2>
                         </div>
-                    </template>
+
+                        {{-- Metadata Clean Inline List (Dibuat Oleh, Terakhir Diedit, Riwayat) --}}
+                        <template x-if="!isNewSubMenu && currentSubMenu">
+                            <div class="flex items-center gap-2 sm:gap-3 text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 flex-wrap pt-0.5">
+                                {{-- Pembuat Awal --}}
+                                <span class="inline-flex items-center gap-1">
+                                    <i class="fa-regular fa-user text-blue-500 text-[11px]"></i>
+                                    <span>Dibuat: <strong class="text-slate-700 dark:text-slate-200 font-semibold"
+                                            x-text="currentSubMenu.created_by_name || 'Admin'"></strong></span>
+                                    <span class="text-slate-400 text-[10px] sm:text-[11px]"
+                                        x-text="'(' + (currentSubMenu.created_at_formatted || '-') + ')'"></span>
+                                </span>
+
+                                <span class="text-slate-300 dark:text-slate-700 select-none">•</span>
+
+                                {{-- Terakhir Diedit --}}
+                                <template x-if="currentSubMenu.updated_by_name">
+                                    <span class="inline-flex items-center gap-1">
+                                        <i class="fa-solid fa-pen-nib text-amber-500 text-[10px]"></i>
+                                        <span>Diedit: <strong class="text-slate-700 dark:text-slate-200 font-semibold"
+                                                x-text="currentSubMenu.updated_by_name || 'Admin'"></strong></span>
+                                        <span class="text-slate-400 text-[10px] sm:text-[11px]"
+                                            x-text="'(' + (currentSubMenu.updated_at_relative || '-') + ')'"></span>
+                                    </span>
+                                </template>
+
+                                <template x-if="currentSubMenu.updated_by_name">
+                                    <span class="text-slate-300 dark:text-slate-700 select-none">•</span>
+                                </template>
+
+                                {{-- Tombol Lihat Riwayat Histori --}}
+                                <button type="button" @click="openHistoryModal = true"
+                                    class="inline-flex items-center gap-1 font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 hover:underline transition-colors cursor-pointer">
+                                    <i class="fa-solid fa-clock-rotate-left text-[11px]"></i>
+                                    <span>Riwayat Edit (<span x-text="(currentSubMenu.logs || []).length"></span>)</span>
+                                </button>
+                            </div>
+                        </template>
+                    </div>
                 </div>
 
                 {{-- ======================================================== --}}
