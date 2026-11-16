@@ -853,7 +853,7 @@
                 },
 
                 // ========================================================
-                // LOGIKA MODAL: TAUTKAN PANDUAN DARI SISTEM LAIN
+                // LOGIKA MODAL: TAUTKAN DARI MANUAL BOOK
                 // ========================================================
                 get uniqueTemplateSystems() {
                     const set = new Set();
@@ -1510,7 +1510,7 @@
                                             <span>Tambah Sub Menu</span>
                                         </button>
                                         <button type="button" @click="openAttachModal(mod)"
-                                            title="Tautkan bab panduan yang sudah ada dari sistem lain"
+                                            title="Tautkan bab panduan dari manual book yang sudah ada"
                                             class="px-2.5 py-1.5 rounded-lg text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 border border-transparent hover:border-indigo-200 dark:hover:border-indigo-800 flex items-center gap-1 transition-colors cursor-pointer shrink-0">
                                             <i class="fa-solid fa-link text-[10px]"></i>
                                             <span>Tautkan</span>
@@ -1573,11 +1573,11 @@
                                 </button>
                             </template>
 
-                            {{-- Tombol Tautkan dari Sistem Lain --}}
+                            {{-- Tombol Tautkan dari Manual Book --}}
                             <button type="button" @click="openAttachModal(currentModule)"
                                 class="px-2.5 py-1.5 rounded-xl border border-indigo-200 dark:border-indigo-800/80 bg-indigo-50/70 dark:bg-indigo-950/40 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 active:scale-95 text-indigo-600 dark:text-indigo-300 text-xs font-bold shadow-2xs transition-all flex items-center gap-1.5 cursor-pointer whitespace-nowrap">
                                 <i class="fa-solid fa-link text-xs"></i>
-                                <span>Tautkan dari Sistem Lain</span>
+                                <span>Tautkan dari Manual Book</span>
                             </button>
 
                             {{-- Tombol Import Word (.docx) --}}
@@ -1996,7 +1996,7 @@
         </template>
 
         {{-- ======================================================== --}}
-        {{-- MODAL: TAUTKAN PANDUAN YANG SUDAH ADA (LINTAS SISTEM) --}}
+        {{-- MODAL: TAUTKAN DARI MANUAL BOOK --}}
         {{-- ======================================================== --}}
         <template x-teleport="body">
             <div x-show="openAttachModalState" x-cloak
@@ -2015,13 +2015,13 @@
                         </span>
                         <div>
                             <h3 class="text-base font-black text-slate-800 dark:text-white flex items-center gap-2">
-                                <span>Tautkan Panduan yang Sudah Ada</span>
+                                <span>Tautkan dari Manual Book</span>
                                 <span class="text-[11px] font-bold px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 dark:bg-indigo-950/70 dark:text-indigo-300">
-                                    Lintas Sistem
+                                    Manual Book
                                 </span>
                             </h3>
                             <p class="text-xs text-slate-500 dark:text-slate-400">
-                                Pilih bab panduan dari sistem lain untuk ditautkan ke modul 
+                                Pilih bab panduan dari manual book yang sudah ada untuk ditautkan ke modul 
                                 <strong class="text-indigo-600 dark:text-indigo-400" x-text="attachTargetModule ? attachTargetModule.title : 'Modul Terpilih'"></strong>
                             </p>
                         </div>
@@ -2036,7 +2036,7 @@
                 <div class="grid grid-cols-1 md:grid-cols-12 flex-1 min-h-0 overflow-hidden divide-y md:divide-y-0 md:divide-x divide-slate-200 dark:divide-slate-800">
                     
                     {{-- =============================================== --}}
-                    {{-- KOLOM KIRI (5/12): DAFTAR PANDUAN DARI SISTEM LAIN --}}
+                    {{-- KOLOM KIRI (5/12): DAFTAR MANUAL BOOK TERSEDIA --}}
                     {{-- =============================================== --}}
                     <div class="md:col-span-5 flex flex-col min-h-0 h-full bg-slate-50/40 dark:bg-slate-900/40">
                         {{-- Search & Filter Bar --}}
@@ -2046,7 +2046,7 @@
                                 <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
                                 <input type="text"
                                     x-model="templateSearchQuery"
-                                    placeholder="Cari judul panduan, sistem, atau modul..."
+                                    placeholder="Cari judul manual book, sistem, atau modul..."
                                     class="w-full pl-8 pr-8 py-2 rounded-xl text-xs bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 transition">
                                 <button type="button"
                                     x-show="templateSearchQuery"
