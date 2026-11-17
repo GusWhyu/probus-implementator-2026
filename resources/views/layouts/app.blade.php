@@ -233,13 +233,13 @@
                     },
                     media_live_embeds: true,
                     media_filter_html: false,
-                    extended_valid_elements: 'iframe[src|title|width|height|allowfullscreen|frameborder|allow|class|style],video[src|controls|width|height|class|style],source[src|type]',
+                    extended_valid_elements: 'iframe[src|title|width|height|allowfullscreen|frameborder|allow|referrerpolicy|class|style],video[src|controls|width|height|class|style],source[src|type]',
                     media_url_resolver: function (data, resolve) {
                         const url = (data.url || '').trim();
                         const ytMatch = url.match(/(?:youtube\.com\/(?:watch\?.*v=|embed\/|shorts\/|live\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/i);
                         if (ytMatch && ytMatch[1]) {
                             const videoId = ytMatch[1];
-                            const embedHtml = '<iframe src="https://www.youtube.com/embed/' + videoId + '" width="560" height="315" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen="allowfullscreen"></iframe>';
+                            const embedHtml = '<iframe src="https://www.youtube.com/embed/' + videoId + '" title="YouTube video player" width="560" height="315" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen="allowfullscreen"></iframe>';
                             resolve({ html: embedHtml });
                             return;
                         }
@@ -476,7 +476,7 @@
                                 if (ytMatch && ytMatch[1]) {
                                     e.preventDefault();
                                     const videoId = ytMatch[1];
-                                    const embedHtml = '<p><iframe src="https://www.youtube.com/embed/' + videoId + '" width="560" height="315" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen="allowfullscreen"></iframe></p><p></p>';
+                                    const embedHtml = '<p><iframe src="https://www.youtube.com/embed/' + videoId + '" title="YouTube video player" width="560" height="315" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen="allowfullscreen"></iframe></p><p></p>';
                                     editor.insertContent(embedHtml);
                                     return;
                                 }
