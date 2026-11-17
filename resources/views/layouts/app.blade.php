@@ -47,6 +47,60 @@
                 border: none !important;
                 display: block !important;
             }
+
+            /* TinyMCE Modern Aesthetic Polish */
+            .tox.tox-tinymce {
+                border: none !important;
+                border-radius: inherit !important;
+                background-color: transparent !important;
+            }
+            .tox .tox-toolbar-overlord {
+                background-color: #f8fafc !important;
+                border-bottom: 1px solid #e2e8f0 !important;
+            }
+            .dark .tox .tox-toolbar-overlord {
+                background-color: #0c1324 !important;
+                border-bottom: 1px solid #1e293b !important;
+            }
+            .tox .tox-toolbar__primary {
+                background-color: transparent !important;
+                padding: 4px 8px !important;
+            }
+            .tox .tox-toolbar__group {
+                padding: 0 4px !important;
+                border-color: #e2e8f0 !important;
+            }
+            .dark .tox .tox-toolbar__group {
+                border-color: #1e293b !important;
+            }
+            .tox .tox-tbtn {
+                border-radius: 6px !important;
+                margin: 1px 1px !important;
+            }
+            .tox .tox-tbtn:hover {
+                background-color: #e2e8f0 !important;
+            }
+            .dark .tox .tox-tbtn:hover {
+                background-color: #1e293b !important;
+            }
+            .tox .tox-tbtn[title*="Gambar"],
+            .tox .tox-tbtn[aria-label*="Gambar"] {
+                color: #2563eb !important;
+                font-weight: 600 !important;
+            }
+            .tox .tox-tbtn[title*="YouTube"],
+            .tox .tox-tbtn[aria-label*="YouTube"] {
+                color: #e11d48 !important;
+                font-weight: 600 !important;
+            }
+            .tox .tox-statusbar {
+                border-top: 1px solid #e2e8f0 !important;
+                background-color: #f8fafc !important;
+            }
+            .dark .tox .tox-statusbar {
+                border-top: 1px solid #1e293b !important;
+                background-color: #0c1324 !important;
+            }
         </style>
         <link rel="stylesheet" type="text/css" href="https://unpkg.com/trix@2.0.8/dist/trix.css">
         <script type="text/javascript" src="https://unpkg.com/trix@2.0.8/dist/trix.umd.min.js"></script>
@@ -165,8 +219,8 @@
                         'insertdatetime', 'media', 'table', 'help', 'wordcount'
                     ],
                     toolbar: [
-                        'undo redo | blocks | bold italic underline strikethrough | forecolor backcolor | alignleft aligncenter alignright alignjustify | removeformat',
-                        'probus_image probus_video | link table | bullist numlist | blockquote hr code | preview fullscreen'
+                        'undo redo | blocks | bold italic underline strikethrough | forecolor backcolor | alignleft aligncenter alignright',
+                        'probus_image probus_video | link table | bullist numlist | blockquote hr | code removeformat | preview fullscreen'
                     ],
                     toolbar_mode: 'wrap',
                     mobile: {
