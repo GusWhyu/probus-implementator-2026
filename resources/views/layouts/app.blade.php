@@ -158,22 +158,24 @@
                     document_base_url: '{{ url('/') }}/',
                     skin: isDark ? 'oxide-dark' : 'oxide',
                     content_css: isDark ? 'dark' : 'default',
-                    menubar: 'file edit view insert format tools table help',
+                    menubar: customOptions.menubar !== undefined ? customOptions.menubar : false,
                     plugins: [
                         'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
                         'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
                         'insertdatetime', 'media', 'table', 'help', 'wordcount'
                     ],
-                    toolbar: 'undo redo | bold italic underline | blocks | probus_image probus_video link table | ' +
-                             'bullist numlist | alignleft aligncenter alignright | ' +
-                             'fontsize forecolor backcolor | code preview fullscreen',
-                    toolbar_mode: 'sliding',
+                    toolbar: [
+                        'undo redo | blocks | bold italic underline strikethrough | forecolor backcolor | alignleft aligncenter alignright alignjustify | removeformat',
+                        'probus_image probus_video | link table | bullist numlist | blockquote hr code | preview fullscreen'
+                    ],
+                    toolbar_mode: 'wrap',
                     mobile: {
-                        menubar: true,
-                        toolbar_mode: 'sliding',
-                        toolbar: 'undo redo | bold italic underline | blocks | probus_image probus_video link table | ' +
-                                 'bullist numlist | alignleft aligncenter alignright | ' +
-                                 'fontsize forecolor backcolor | code preview fullscreen',
+                        menubar: false,
+                        toolbar_mode: 'wrap',
+                        toolbar: [
+                            'undo redo | bold italic underline | blocks | probus_image probus_video link',
+                            'bullist numlist | alignleft aligncenter | table fullscreen'
+                        ],
                     },
                     media_live_embeds: true,
                     media_filter_html: false,
@@ -377,7 +379,7 @@
                         });
 
                         editor.ui.registry.addButton('probus_video', {
-                            text: 'Video / YouTube',
+                            text: 'YouTube',
                             icon: 'embed',
                             tooltip: 'Sisipkan Video YouTube atau Media (URL / Kode Embed)',
                             onAction: function () {
