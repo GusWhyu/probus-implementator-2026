@@ -93,6 +93,32 @@
                 color: #e11d48 !important;
                 font-weight: 600 !important;
             }
+            /* Context Toolbar - Tombol Hapus Video */
+            .tox .tox-tbtn[title*="Hapus Video"],
+            .tox .tox-tbtn[aria-label*="Hapus Video"] {
+                background-color: #fee2e2 !important;
+                color: #dc2626 !important;
+                font-weight: 600 !important;
+                border: 1px solid #fecaca !important;
+                border-radius: 6px !important;
+                padding: 0 8px !important;
+            }
+            .tox .tox-tbtn[title*="Hapus Video"]:hover,
+            .tox .tox-tbtn[aria-label*="Hapus Video"]:hover {
+                background-color: #fca5a5 !important;
+                color: #991b1b !important;
+            }
+            .dark .tox .tox-tbtn[title*="Hapus Video"],
+            .dark .tox .tox-tbtn[aria-label*="Hapus Video"] {
+                background-color: #450a0a !important;
+                color: #f87171 !important;
+                border-color: #7f1d1d !important;
+            }
+            .dark .tox .tox-tbtn[title*="Hapus Video"]:hover,
+            .dark .tox .tox-tbtn[aria-label*="Hapus Video"]:hover {
+                background-color: #7f1d1d !important;
+                color: #fca5a5 !important;
+            }
             .tox .tox-statusbar {
                 border-top: 1px solid #e2e8f0 !important;
                 background-color: #f8fafc !important;
@@ -438,6 +464,107 @@
                             tooltip: 'Sisipkan Video YouTube atau Media (URL / Kode Embed)',
                             onAction: function () {
                                 editor.execCommand('mceMedia');
+                            }
+                        });
+
+                        // Tombol Context Toolbar: Hapus Video
+                        editor.ui.registry.addButton('probus_delete_video', {
+                            icon: 'remove',
+                            text: 'Hapus Video',
+                            tooltip: 'Hapus video ini dari editor',
+                            onAction: function () {
+                                const selectedNode = editor.selection.getNode();
+                                const selectedObj = editor.dom.select('[data-mce-selected]')[0];
+                                const target = selectedObj ||
+                                               (selectedNode && selectedNode.closest('.mce-preview-object')) ||
+                                               (selectedNode && selectedNode.closest('iframe')) ||
+                                               selectedNode;
+                                if (target) {
+                                    editor.undoManager.transact(function () {
+                                        editor.dom.remove(target);
+                                    });
+                                }
+                            }
+                        });
+
+                        // Floating Context Toolbar saat video diklik / diseleksi
+                        editor.ui.registry.addContextToolbar('probus_video_context', {
+                            predicate: function (node) {
+                                if (!node) return false;
+                                return node.nodeName === 'IFRAME' ||
+                                       node.classList?.contains('mce-preview-object') ||
+                                       Boolean(node.closest && node.closest('.mce-preview-object')) ||
+                                       Boolean(editor.dom.select('[data-mce-selected]').length > 0);
+                            },
+                            items: 'probus_delete_video | alignleft aligncenter alignright',
+                            position: 'node',
+                            scope: 'node'
+                        });
+
+                        // Handler Keyboard Backspace & Delete untuk Menghapus Objek Video
+                        editor.on('keydown', function (e) {
+                            if (e.key === 'Backspace' || e.key === 'Delete') {
+                                // 1. Cek jika ada objek terseleksi (bounding box aktif)
+                                const selected = editor.dom.select('[data-mce-selected]');
+                                if (selected && selected.length > 0) {
+                                    for (let i = 0; i < selected.length; i++) {
+                                        const el = selected[i];
+                                        if (el.classList?.contains('mce-preview-object') || el.nodeName === 'IFRAME' || (el.querySelector && el.querySelector('iframe'))) {
+                                            e.preventDefault();
+                                            editor.undoManager.transact(function () {
+                                                editor.dom.remove(el);
+                                            });
+                                            return;
+                                        }
+                                    }
+                                }
+
+                                // 2. Cek jika node aktif adalah video wrapper
+                                const node = editor.selection.getNode();
+                                if (node) {
+                                    const videoWrapper = node.closest('.mce-preview-object') || (node.nodeName === 'IFRAME' ? node : null);
+                                    if (videoWrapper) {
+                                        e.preventDefault();
+                                        editor.undoManager.transact(function () {
+                                            editor.dom.remove(videoWrapper);
+                                        });
+                                        return;
+                                    }
+                                }
+
+                                // 3. Cek jika kursor berada tepat di samping video (contenteditable=false boundary bug)
+                                const rng = editor.selection.getRng();
+                                if (rng && rng.collapsed) {
+                                    if (e.key === 'Backspace') {
+                                        let prev = null;
+                                        if (rng.startContainer.nodeType === Node.TEXT_NODE && rng.startOffset === 0) {
+                                            prev = rng.startContainer.previousSibling;
+                                        } else if (rng.startContainer.nodeType === Node.ELEMENT_NODE) {
+                                            prev = rng.startContainer.childNodes[rng.startOffset - 1];
+                                        }
+                                        if (prev && (prev.classList?.contains('mce-preview-object') || prev.nodeName === 'IFRAME' || (prev.querySelector && prev.querySelector('iframe, .mce-preview-object')))) {
+                                            e.preventDefault();
+                                            editor.undoManager.transact(function () {
+                                                editor.dom.remove(prev);
+                                            });
+                                            return;
+                                        }
+                                    } else if (e.key === 'Delete') {
+                                        let next = null;
+                                        if (rng.startContainer.nodeType === Node.TEXT_NODE && rng.startOffset === rng.startContainer.length) {
+                                            next = rng.startContainer.nextSibling;
+                                        } else if (rng.startContainer.nodeType === Node.ELEMENT_NODE) {
+                                            next = rng.startContainer.childNodes[rng.startOffset];
+                                        }
+                                        if (next && (next.classList?.contains('mce-preview-object') || next.nodeName === 'IFRAME' || (next.querySelector && next.querySelector('iframe, .mce-preview-object')))) {
+                                            e.preventDefault();
+                                            editor.undoManager.transact(function () {
+                                                editor.dom.remove(next);
+                                            });
+                                            return;
+                                        }
+                                    }
+                                }
                             }
                         });
 
