@@ -375,7 +375,7 @@
 
             {{-- Tombol Tambah / Action di Pojok Kanan Atas --}}
             <div class="flex items-center gap-2.5 w-full sm:w-auto justify-end">
-                <a href="{{ url('/portal-panduan') }}" target="_blank"
+                <a href="https://help-center.probussystem.com/" target="_blank" rel="noopener noreferrer"
                    class="inline-flex items-center gap-2 px-3.5 py-2.5 border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#0c1324] hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 rounded-xl text-xs sm:text-sm font-semibold transition-all shadow-2xs">
                     <i class="fa-solid fa-globe text-xs text-slate-400"></i>
                     <span>Lihat Portal Publik</span>
