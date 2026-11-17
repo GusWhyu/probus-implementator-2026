@@ -5,6 +5,7 @@
             return {
                 openAddSystemModal: false,
                 openAddModuleModal: false,
+                openEditModuleModalState: false,
                 openHistoryModal: false,
                 openAttachModalState: false,
                 attachTargetModule: null,
@@ -17,6 +18,11 @@
                 newSystemName: '',
                 newModuleNumber: '',
                 newModuleName: '',
+                editModuleId: null,
+                editModuleName: '',
+                editModuleNumber: '',
+                editModuleDescription: '',
+                isEditingModule: false,
                 isSubmitting: false,
                 submitTarget: null,
                 showDescriptionField: false,
@@ -1127,6 +1133,105 @@
                         });
                 },
 
+                // Membuka Modal Edit Modul
+                openEditModuleModal(mod) {
+                    this.editModuleId = mod.id;
+                    this.editModuleName = mod.raw_name || (mod.title || '').replace(/^\d+[\.\s\-]+/, '');
+                    this.editModuleNumber = mod.order || 1;
+                    this.editModuleDescription = mod.description || '';
+                    this.openEditModuleModalState = true;
+                },
+
+                isEditModuleNumberTaken(num) {
+                    if (!num || !this.modules) return null;
+                    const n = parseInt(num, 10);
+                    return this.modules.find(m => String(m.id) !== String(this.editModuleId) && parseInt(m.order, 10) === n) || null;
+                },
+
+                submitEditModule() {
+                    const name = (this.editModuleName || '').trim();
+                    if (!name || !this.editModuleId) return;
+
+                    const conflict = this.isEditModuleNumberTaken(this.editModuleNumber);
+                    if (conflict) {
+                        const msg = `Nomor urut ${this.editModuleNumber} sudah digunakan oleh modul "${conflict.title}". Gunakan nomor urut lain yang masih tersedia.`;
+                        if (typeof Swal !== 'undefined') {
+                            Swal.fire({
+                                icon: 'warning',
+                                title: 'Nomor Urut Sudah Terpakai',
+                                text: msg
+                            });
+                        } else {
+                            alert(msg);
+                        }
+                        return;
+                    }
+
+                    this.isEditingModule = true;
+
+                    fetch(`/manual-book/module/${this.editModuleId}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        body: JSON.stringify({
+                            _method: 'PUT',
+                            name: name,
+                            order: this.editModuleNumber || null,
+                            description: this.editModuleDescription || '',
+                            _token: '{{ csrf_token() }}'
+                        })
+                    })
+                    .then(res => {
+                        if (!res.ok) return res.json().then(e => { throw e; });
+                        return res.json();
+                    })
+                    .then(data => {
+                        this.isEditingModule = false;
+                        const updated = data.module;
+
+                        // Perbarui data modul pada list lokal
+                        const list = this.modulesBySystem[this.activeSystem] || [];
+                        const target = list.find(m => String(m.id) === String(this.editModuleId));
+                        if (target) {
+                            target.title = updated.title;
+                            target.raw_name = updated.raw_name;
+                            target.order = updated.order;
+                            target.breadcrumb = updated.breadcrumb;
+                            target.description = updated.description;
+                        }
+
+                        // Urutkan kembali daftar modul berdasarkan order
+                        list.sort((a, b) => (parseInt(a.order, 10) || 0) - (parseInt(b.order, 10) || 0));
+
+                        this.openEditModuleModalState = false;
+
+                        if (typeof Swal !== 'undefined') {
+                            Swal.fire({
+                                toast: true,
+                                position: 'top-end',
+                                icon: 'success',
+                                title: data.message || 'Nama modul berhasil diperbarui!',
+                                showConfirmButton: false,
+                                timer: 2000
+                            });
+                        }
+                    })
+                    .catch(err => {
+                        this.isEditingModule = false;
+                        console.error('Error update module:', err);
+                        const msg = (err && err.message) ? err.message : 'Gagal memperbarui modul.';
+                        if (typeof Swal !== 'undefined') {
+                            Swal.fire({ icon: 'error', title: 'Gagal Memperbarui', text: msg });
+                        } else {
+                            alert(msg);
+                        }
+                    });
+                },
+
                 // Konfirmasi & Hapus Modul dari Database
                 confirmDeleteModule(mod) {
                     if (typeof Swal !== 'undefined') {
@@ -1387,8 +1492,13 @@
                                     <h3 class="text-xs sm:text-[13px] truncate" x-text="mod.title"></h3>
                                 </div>
                                 <div class="flex items-center gap-1 shrink-0">
+                                    <button type="button" @click.stop="openEditModuleModal(mod)"
+                                        class="w-5 h-5 rounded text-slate-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all cursor-pointer"
+                                        title="Edit Nama Modul">
+                                        <i class="fa-solid fa-pen-to-square text-[9px]"></i>
+                                    </button>
                                     <button type="button" @click.stop="confirmDeleteModule(mod)"
-                                        class="w-5 h-5 rounded text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all"
+                                        class="w-5 h-5 rounded text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all cursor-pointer"
                                         title="Hapus Modul">
                                         <i class="fa-solid fa-trash-can text-[9px]"></i>
                                     </button>
@@ -1698,9 +1808,10 @@
                             <span>ISI KONTEN PANDUAN SUB MENU (TINYMCE RICH TEXT EDITOR)</span>
                         </label>
                         <span
-                            class="text-[11px] text-amber-600 dark:text-amber-400 font-semibold italic flex items-center gap-1">
-                            <i class="fa-regular fa-image text-xs"></i>
-                            Drag &amp; Drop / Paste Gambar (Maks. 1 MB)
+                            class="text-[11px] text-amber-600 dark:text-amber-400 font-semibold italic flex items-center gap-2">
+                            <span><i class="fa-regular fa-image text-xs"></i> Gambar (Maks. 1 MB)</span>
+                            <span>•</span>
+                            <span class="text-rose-600 dark:text-rose-400"><i class="fa-brands fa-youtube text-xs text-red-500"></i> Video / YouTube</span>
                         </span>
                     </div>
 
@@ -1857,6 +1968,84 @@
                                 :disabled="Boolean(isModuleNumberTaken(newModuleNumber)) || !Boolean((newModuleName || '').trim())"
                                 class="px-4 py-2 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white shadow-sm shadow-blue-500/20 cursor-pointer disabled:opacity-50 disabled:pointer-events-none">
                                 Simpan Modul
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </template>
+
+        {{-- ======================================================== --}}
+        {{-- MODAL: EDIT NAMA & URUTAN MODUL                          --}}
+        {{-- ======================================================== --}}
+        <template x-teleport="body">
+            <div x-show="openEditModuleModalState" x-cloak
+                @keydown.escape.window="openEditModuleModalState = false"
+                class="fixed inset-0 z-[9999] overflow-y-auto flex items-center justify-center p-4 bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-sm"
+                style="z-index: 9999;"
+                x-transition.opacity>
+                <div @click.outside="openEditModuleModalState = false"
+                    class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-md p-6 shadow-xl space-y-4">
+                    <div class="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-8 h-8 rounded-xl bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 flex items-center justify-center text-sm">
+                                <i class="fa-solid fa-pen-to-square"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-sm font-black text-slate-800 dark:text-white uppercase tracking-wider">
+                                    Edit Modul
+                                </h3>
+                                <p class="text-[11px] text-slate-400 dark:text-slate-500 font-medium">Ubah nama atau urutan modul ini</p>
+                            </div>
+                        </div>
+                        <button type="button" @click="openEditModuleModalState = false"
+                            class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer">
+                            <i class="fa-solid fa-xmark text-base"></i>
+                        </button>
+                    </div>
+
+                    <form @submit.prevent="submitEditModule()">
+                        <div class="space-y-3.5">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">Nomor / Urutan</label>
+                                <input type="number" min="1" x-model="editModuleNumber" placeholder="Contoh: 1, 2, dst."
+                                    class="w-full px-3.5 py-2 text-xs bg-slate-50 dark:bg-slate-800 border rounded-xl text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2"
+                                    :class="isEditModuleNumberTaken(editModuleNumber) ? 'border-rose-500 focus:ring-rose-500/20 focus:border-rose-500' : 'border-slate-200 dark:border-slate-700 focus:ring-blue-500/20 focus:border-blue-500'">
+                                <template x-if="isEditModuleNumberTaken(editModuleNumber)">
+                                    <p class="text-[11px] text-rose-500 font-semibold mt-1 flex items-center gap-1">
+                                        <i class="fa-solid fa-circle-xmark text-[10px]"></i>
+                                        <span>Nomor urut <strong x-text="editModuleNumber"></strong> sudah dipakai oleh modul "<strong x-text="isEditModuleNumberTaken(editModuleNumber)?.title || isEditModuleNumberTaken(editModuleNumber)?.raw_name"></strong>".</span>
+                                    </p>
+                                </template>
+                                <template x-if="!isEditModuleNumberTaken(editModuleNumber) && editModuleNumber">
+                                    <p class="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium mt-1 flex items-center gap-1">
+                                        <i class="fa-solid fa-circle-check text-[10px]"></i>
+                                        <span>Nomor urut <strong x-text="editModuleNumber"></strong> tersedia.</span>
+                                    </p>
+                                </template>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">Nama Modul</label>
+                                <input type="text" x-model="editModuleName" required
+                                    placeholder="Contoh: Setup Master, Transaksi, Outlet Activity"
+                                    class="w-full px-3.5 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
+                            </div>
+                        </div>
+
+                        <div class="flex items-center justify-end gap-2 pt-4 border-t border-slate-100 dark:border-slate-800">
+                            <button type="button" @click="openEditModuleModalState = false"
+                                class="px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer">
+                                Batal
+                            </button>
+                            <button type="submit"
+                                :disabled="Boolean(isEditModuleNumberTaken(editModuleNumber)) || !Boolean((editModuleName || '').trim()) || isEditingModule"
+                                class="px-4 py-2 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white shadow-sm shadow-blue-500/20 cursor-pointer disabled:opacity-50 disabled:pointer-events-none flex items-center gap-1.5">
+                                <span x-show="!isEditingModule">Simpan Perubahan</span>
+                                <span x-show="isEditingModule" class="flex items-center gap-1.5">
+                                    <i class="fa-solid fa-spinner fa-spin text-xs"></i>
+                                    <span>Menyimpan...</span>
+                                </span>
                             </button>
                         </div>
                     </form>

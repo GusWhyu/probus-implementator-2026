@@ -54,6 +54,7 @@ Route::post('/manual-book/import-word', [ManualBookController::class, 'importWor
 Route::post('/manual-book/system', [ManualBookController::class, 'addSystem'])->middleware(['auth'])->name('manualbook.system.add');
 Route::delete('/manual-book/system/{id}', [ManualBookController::class, 'deleteSystem'])->middleware(['auth'])->name('manualbook.system.delete');
 Route::post('/manual-book/module', [ManualBookController::class, 'addModule'])->middleware(['auth'])->name('manualbook.module.add');
+Route::match(['put', 'post'], '/manual-book/module/{id}', [ManualBookController::class, 'updateModule'])->middleware(['auth'])->name('manualbook.module.update');
 Route::delete('/manual-book/module/{id}', [ManualBookController::class, 'deleteModule'])->middleware(['auth'])->name('manualbook.module.delete');
 Route::get('/manual-book/module/{id}', [ManualBookController::class, 'getModuleData'])->middleware(['auth'])->name('manualbook.module.data');
 Route::post('/manual-book/reorder-sub-menu', [ManualBookController::class, 'reorderSubMenus'])->middleware(['auth'])->name('manualbook.reorder_sub_menu');

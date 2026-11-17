@@ -125,6 +125,20 @@
                     this.isReaderModalOpen = true;
                 },
 
+                formatContent(content) {
+                    if (!content) return '';
+                    let formatted = content;
+                    formatted = formatted.replace(
+                        /<p>\s*<a\s+[^>]*href=["'](?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:watch\?.*v=|embed\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})[^"']*["'][^>]*>.*?<\/a>\s*<\/p>/gi,
+                        '<div class="video-container my-4"><iframe src="https://www.youtube.com/embed/$1" width="100%" height="320" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen="allowfullscreen"></iframe></div>'
+                    );
+                    formatted = formatted.replace(
+                        /<p>\s*(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:watch\?.*v=|embed\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})(?:\S*)?\s*<\/p>/gi,
+                        '<div class="video-container my-4"><iframe src="https://www.youtube.com/embed/$1" width="100%" height="320" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen="allowfullscreen"></iframe></div>'
+                    );
+                    return formatted;
+                },
+
                 closeReaderModal() {
                     this.isReaderModalOpen = false;
                     this.selectedSolution = null;
@@ -479,7 +493,7 @@
                             <div class="mb-6">
                                 <template x-if="selectedSolution.content">
                                     <div class="prose prose-sm dark:prose-invert max-w-none text-slate-800 dark:text-slate-100 leading-relaxed overflow-x-auto text-sm" 
-                                         x-html="selectedSolution.content"></div>
+                                         x-html="formatContent(selectedSolution.content)"></div>
                                 </template>
                                 
                                 <template x-if="!selectedSolution.content && selectedSolution.steps">

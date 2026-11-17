@@ -28,6 +28,26 @@
         <link href="{{ asset('fontawesome/css/solid.css') }}" rel="stylesheet" />
         <link rel="stylesheet" href="{{ asset('css/app.css') }}">
         <link rel="stylesheet" href="{{ asset('css/style.css') }}">
+        <style>
+            /* Responsive YouTube Video & Media Embeds */
+            .article-content iframe,
+            .article-content video,
+            .prose iframe,
+            .prose video,
+            .manual-content iframe,
+            .manual-content video,
+            .video-container iframe {
+                width: 100% !important;
+                max-width: 100% !important;
+                aspect-ratio: 16 / 9 !important;
+                height: auto !important;
+                border-radius: 0.75rem !important;
+                margin: 1.25rem 0 !important;
+                box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1) !important;
+                border: none !important;
+                display: block !important;
+            }
+        </style>
         <link rel="stylesheet" type="text/css" href="https://unpkg.com/trix@2.0.8/dist/trix.css">
         <script type="text/javascript" src="https://unpkg.com/trix@2.0.8/dist/trix.umd.min.js"></script>
         <!-- Quill 2.0 Modern Rich Text Editor -->
@@ -144,16 +164,30 @@
                         'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
                         'insertdatetime', 'media', 'table', 'help', 'wordcount'
                     ],
-                    toolbar: 'undo redo | bold italic underline | blocks | probus_image link table | ' +
+                    toolbar: 'undo redo | bold italic underline | blocks | probus_image probus_video link table | ' +
                              'bullist numlist | alignleft aligncenter alignright | ' +
                              'fontsize forecolor backcolor | code preview fullscreen',
                     toolbar_mode: 'sliding',
                     mobile: {
                         menubar: true,
                         toolbar_mode: 'sliding',
-                        toolbar: 'undo redo | bold italic underline | blocks | probus_image link table | ' +
+                        toolbar: 'undo redo | bold italic underline | blocks | probus_image probus_video link table | ' +
                                  'bullist numlist | alignleft aligncenter alignright | ' +
                                  'fontsize forecolor backcolor | code preview fullscreen',
+                    },
+                    media_live_embeds: true,
+                    media_filter_html: false,
+                    extended_valid_elements: 'iframe[src|title|width|height|allowfullscreen|frameborder|allow|class|style],video[src|controls|width|height|class|style],source[src|type]',
+                    media_url_resolver: function (data, resolve) {
+                        const url = (data.url || '').trim();
+                        const ytMatch = url.match(/(?:youtube\.com\/(?:watch\?.*v=|embed\/|shorts\/|live\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/i);
+                        if (ytMatch && ytMatch[1]) {
+                            const videoId = ytMatch[1];
+                            const embedHtml = '<iframe src="https://www.youtube.com/embed/' + videoId + '" width="560" height="315" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen="allowfullscreen"></iframe>';
+                            resolve({ html: embedHtml });
+                            return;
+                        }
+                        resolve({ html: '' });
                     },
                     image_advtab: true,
                     image_caption: true,
@@ -301,6 +335,16 @@
                             border-radius: 8px; 
                             margin: 12px 0;
                         }
+                        iframe, video { 
+                            width: 100% !important; 
+                            max-width: 100% !important; 
+                            aspect-ratio: 16 / 9 !important; 
+                            height: auto !important; 
+                            border-radius: 8px !important; 
+                            margin: 14px 0 !important; 
+                            border: none !important; 
+                            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
+                        }
                         td img, th img {
                             max-height: 48px;
                             width: auto;
@@ -332,6 +376,15 @@
                             }
                         });
 
+                        editor.ui.registry.addButton('probus_video', {
+                            text: 'Video / YouTube',
+                            icon: 'embed',
+                            tooltip: 'Sisipkan Video YouTube atau Media (URL / Kode Embed)',
+                            onAction: function () {
+                                editor.execCommand('mceMedia');
+                            }
+                        });
+
                         editor.on('dragover', function (e) {
                             e.preventDefault();
                         });
@@ -349,11 +402,27 @@
 
                         editor.on('paste', function (e) {
                             const clipboard = e.clipboardData;
-                            if (clipboard && clipboard.files && clipboard.files.length > 0) {
+                            if (!clipboard) return;
+
+                            if (clipboard.files && clipboard.files.length > 0) {
                                 const file = clipboard.files[0];
                                 if (file.type && file.type.startsWith('image/')) {
                                     e.preventDefault();
                                     uploadAndInsertFile(editor, file);
+                                    return;
+                                }
+                            }
+
+                            // Auto-embed link YouTube saat URL YouTube disalin & ditempel langsung ke teks
+                            const text = (clipboard.getData('text/plain') || '').trim();
+                            if (text) {
+                                const ytMatch = text.match(/^(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:watch\?.*v=|embed\/|shorts\/|live\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})(?:\S*)?$/i);
+                                if (ytMatch && ytMatch[1]) {
+                                    e.preventDefault();
+                                    const videoId = ytMatch[1];
+                                    const embedHtml = '<p><iframe src="https://www.youtube.com/embed/' + videoId + '" width="560" height="315" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen="allowfullscreen"></iframe></p><p></p>';
+                                    editor.insertContent(embedHtml);
+                                    return;
                                 }
                             }
                         });

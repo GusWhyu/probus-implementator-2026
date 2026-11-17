@@ -264,7 +264,20 @@ function showArtikelSolusi() {
             {{-- ISI DOKUMEN / KONTEN ARTIKEL (TINYMCE RENDER)           --}}
             {{-- ======================================================== --}}
             <div class="article-content prose prose-slate dark:prose-invert max-w-none text-slate-800 dark:text-slate-200 text-sm sm:text-base leading-relaxed">
-                {!! $article->content !!}
+                @php
+                    $renderedArticleContent = $article->content;
+                    $renderedArticleContent = preg_replace(
+                        '/<p>\s*<a\s+[^>]*href=["\'](?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:watch\?.*v=|embed\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})[^"\']*["\'][^>]*>.*?<\/a>\s*<\/p>/i',
+                        '<div class="video-container my-4"><iframe src="https://www.youtube.com/embed/$1" width="100%" height="380" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen="allowfullscreen"></iframe></div>',
+                        $renderedArticleContent
+                    );
+                    $renderedArticleContent = preg_replace(
+                        '/<p>\s*(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:watch\?.*v=|embed\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})(?:\S*)?\s*<\/p>/i',
+                        '<div class="video-container my-4"><iframe src="https://www.youtube.com/embed/$1" width="100%" height="380" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen="allowfullscreen"></iframe></div>',
+                        $renderedArticleContent
+                    );
+                @endphp
+                {!! $renderedArticleContent !!}
             </div>
 
             {{-- ======================================================== --}}
@@ -529,6 +542,26 @@ function showArtikelSolusi() {
         }
         .dark .article-content img {
             border-color: rgba(51, 65, 85, 0.8);
+        }
+
+        /* Video / YouTube Embed Responsive */
+        .article-content iframe,
+        .article-content video,
+        .video-container iframe {
+            width: 100% !important;
+            max-width: 100% !important;
+            aspect-ratio: 16 / 9 !important;
+            height: auto !important;
+            border-radius: 0.75rem !important;
+            margin: 1.5em auto !important;
+            border: 1px solid rgba(148, 163, 184, 0.3) !important;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
+            display: block !important;
+        }
+        .dark .article-content iframe,
+        .dark .article-content video,
+        .dark .video-container iframe {
+            border-color: rgba(51, 65, 85, 0.8) !important;
         }
 
         /* Callout Box Wireframe / Screenshot (Identik Gambar 2 Figma) */

@@ -578,6 +578,78 @@ class ManualBookController extends Controller
     }
 
     /**
+     * Memperbarui nama dan informasi modul (MenuSystem Level 2)
+     */
+    public function updateModule(Request $request, $id)
+    {
+        $request->validate([
+            'name' => 'required|string|max:100',
+            'order' => 'nullable|integer|min:1',
+            'description' => 'nullable|string',
+        ]);
+
+        $menuSystem = MenuSystem::with('kategori')->findOrFail($id);
+
+        $order = $request->order ? (int) $request->order : (int) ($menuSystem->order ?: 1);
+
+        // Cek apakah nomor urut sudah terpakai oleh modul lain pada sistem ini
+        if ($order !== (int) $menuSystem->order) {
+            $existingOrder = MenuSystem::where('kategori_id', $menuSystem->kategori_id)
+                ->where('order', $order)
+                ->where('id', '!=', $id)
+                ->first();
+            if ($existingOrder) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "Nomor urut {$order} sudah digunakan oleh modul '{$existingOrder->name}' pada sistem ini. Silakan gunakan nomor lain.",
+                ], 422);
+            }
+        }
+
+        // Cek apakah nama modul kembar dengan modul lain pada sistem ini
+        $cleanInputName = trim(preg_replace('/^\d+[\.\s\-]+/', '', $request->name));
+        $cleanInputName = $cleanInputName ?: trim($request->name);
+
+        $existingName = MenuSystem::where('kategori_id', $menuSystem->kategori_id)
+            ->where('name', $cleanInputName)
+            ->where('id', '!=', $id)
+            ->first();
+        if ($existingName) {
+            return response()->json([
+                'success' => false,
+                'message' => "Modul dengan nama '{$cleanInputName}' sudah ada pada sistem ini.",
+            ], 422);
+        }
+
+        $menuSystem->update([
+            'name' => $cleanInputName,
+            'order' => $order,
+            'description' => $request->description !== null ? trim($request->description) : $menuSystem->description,
+        ]);
+
+        $kategori = $menuSystem->kategori;
+        $orderPrefix = str_pad($order, 2, '0', STR_PAD_LEFT) . '. ';
+        $fullTitle = $orderPrefix . $cleanInputName;
+        $breadcrumb = strtoupper($kategori ? $kategori->name : 'SISTEM') . ' • ' . strtoupper($cleanInputName) . ' • BUKU PANDUAN PENGGUNAAN';
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Nama modul berhasil diperbarui menjadi "' . $cleanInputName . '"!',
+            'module' => [
+                'id' => (string) $menuSystem->id,
+                'menu_system_id' => $menuSystem->id,
+                'system_id' => (string) $menuSystem->kategori_id,
+                'system_name' => $kategori ? $kategori->name : '',
+                'title' => $fullTitle,
+                'raw_name' => $cleanInputName,
+                'order' => $order,
+                'breadcrumb' => $breadcrumb,
+                'description' => $menuSystem->description ?: '',
+            ],
+        ]);
+    }
+
+    /**
      * Mengambil data spesifik modul beserta isi manual book
      */
     public function getModuleData($id)
