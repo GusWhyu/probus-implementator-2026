@@ -108,6 +108,9 @@ class BankSolusiApiController extends Controller
 
         $ms = $art->menuSystems->first();
 
+        $latestLog = $art->logs()->with('user')->whereIn('action', ['UPDATED', 'STATUS_CHANGED', 'VISIBILITY_CHANGED'])->first();
+        $editorName = ($latestLog && $latestLog->user) ? $latestLog->user->name : ($art->user ? $art->user->name : 'Superadministrator');
+
         return response()->json([
             'success' => true,
             'data' => [
@@ -125,8 +128,12 @@ class BankSolusiApiController extends Controller
                     'name' => $ms->name,
                 ] : null,
                 'author' => $art->user ? $art->user->name : 'Probus Implementator',
+                'created_by' => $art->user ? $art->user->name : 'Superadministrator',
                 'created_at' => $art->created_at ? $art->created_at->toIso8601String() : null,
+                'created_at_formatted' => $art->created_at ? $art->created_at->format('d M Y, H:i') : '-',
+                'updated_by' => $editorName,
                 'updated_at' => $art->updated_at ? $art->updated_at->toIso8601String() : null,
+                'updated_at_formatted' => $art->updated_at ? $art->updated_at->format('d M Y, H:i') : '-',
             ],
         ]);
     }

@@ -235,21 +235,23 @@ function showArtikelSolusi() {
                     {{ $article->title }}
                 </h1>
 
-                {{-- Metadata: Penulis & Tanggal --}}
-                <div class="flex flex-wrap items-center gap-4 text-xs font-semibold text-slate-500 dark:text-slate-400 pt-1">
-                    <div class="flex items-center gap-2">
-                        <div class="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-[10px] font-bold">
-                            {{ strtoupper(substr($article->user ? $article->user->name : 'Implementator', 0, 1)) }}
+                {{-- Metadata: Pembuat & Pengedit Artikel (Tanggal & Jam Pasti) --}}
+                <div class="flex flex-wrap items-center gap-2 sm:gap-3 text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 pt-1">
+                    {{-- Pembuat Awal --}}
+                    <div class="inline-flex items-center gap-1.5 bg-slate-50 dark:bg-slate-900/80 border border-slate-200/80 dark:border-slate-800 px-2.5 py-1 rounded-lg font-medium shadow-2xs">
+                        <i class="fa-regular fa-user text-blue-500 text-[10px]"></i>
+                        <span>Dibuat: <strong class="text-slate-700 dark:text-slate-200 font-bold">{{ $creatorName }}</strong></span>
+                        <span class="text-slate-400 text-[10px]">({{ $createdTimeFormatted }})</span>
+                    </div>
+
+                    {{-- Pengedit Terakhir --}}
+                    @if($isEdited)
+                        <div class="inline-flex items-center gap-1.5 bg-slate-50 dark:bg-slate-900/80 border border-slate-200/80 dark:border-slate-800 px-2.5 py-1 rounded-lg font-medium shadow-2xs">
+                            <i class="fa-solid fa-pen-nib text-amber-500 text-[10px]"></i>
+                            <span>Diedit: <strong class="text-slate-700 dark:text-slate-200 font-bold">{{ $editorName }}</strong></span>
+                            <span class="text-slate-400 text-[10px]">({{ $updatedTimeFormatted }})</span>
                         </div>
-                        <span class="text-slate-700 dark:text-slate-300">{{ $article->user ? $article->user->name : 'Implementator Probus' }}</span>
-                    </div>
-
-                    <span class="text-slate-300 dark:text-slate-700">•</span>
-
-                    <div class="flex items-center gap-1.5">
-                        <i class="fa-regular fa-calendar text-[11px]"></i>
-                        <span>{{ $article->created_at ? $article->created_at->format('d M Y') : date('d M Y') }}</span>
-                    </div>
+                    @endif
                 </div>
 
                 {{-- Ringkasan Pengantar (Jika Ada) --}}
@@ -285,7 +287,7 @@ function showArtikelSolusi() {
             {{-- ======================================================== --}}
             <div class="pt-8 border-t border-slate-100 dark:border-slate-800/80 flex flex-col sm:flex-row items-center justify-between gap-4">
                 <div class="text-xs text-slate-500 dark:text-slate-400">
-                    Terakhir diperbarui: <span class="font-bold text-slate-700 dark:text-slate-300">{{ $article->updated_at ? $article->updated_at->format('d M Y, H:i') : '-' }}</span>
+                    Terakhir diperbarui: <span class="font-bold text-slate-700 dark:text-slate-300">{{ $updatedTimeFormatted }}</span>@if(!empty($editorName)) oleh <span class="font-bold text-slate-700 dark:text-slate-300">{{ $editorName }}</span>@endif
                 </div>
 
                 <div class="flex items-center gap-2">
@@ -374,7 +376,7 @@ function showArtikelSolusi() {
                                     @endif
                                     <span class="inline-flex items-center gap-1">
                                         <i class="fa-regular fa-clock text-[9px]"></i>
-                                        <span>{{ $log->created_at ? $log->created_at->diffForHumans() : '-' }}</span>
+                                        <span>{{ $log->created_at ? $log->created_at->format('d M Y, H:i') : '-' }}</span>
                                     </span>
                                 </div>
                             </div>

@@ -305,7 +305,32 @@ class BankSolusiController extends Controller
             $articleLogs = collect([$initialLog]);
         }
 
-        return view('bank_solusi.show', compact('article', 'system', 'module', 'relatedArticles', 'articleLogs'));
+        // Cari informasi pembuat dan pengedit terakhir
+        $creatorName = $article->user ? $article->user->name : 'Superadministrator';
+        $createdTimeFormatted = $article->created_at ? $article->created_at->format('d M Y, H:i') : '-';
+
+        $latestUpdateLog = $articleLogs->filter(function ($log) {
+            return in_array($log->action, ['UPDATED', 'STATUS_CHANGED', 'VISIBILITY_CHANGED']);
+        })->first();
+
+        $isEdited = $latestUpdateLog !== null || ($article->updated_at && $article->created_at && $article->updated_at->ne($article->created_at));
+        $editorName = ($latestUpdateLog && $latestUpdateLog->user) 
+            ? $latestUpdateLog->user->name 
+            : ($article->user ? $article->user->name : 'Superadministrator');
+        $updatedTimeFormatted = $article->updated_at ? $article->updated_at->format('d M Y, H:i') : '-';
+
+        return view('bank_solusi.show', compact(
+            'article', 
+            'system', 
+            'module', 
+            'relatedArticles', 
+            'articleLogs', 
+            'creatorName', 
+            'createdTimeFormatted', 
+            'editorName', 
+            'updatedTimeFormatted', 
+            'isEdited'
+        ));
     }
 
     /**
