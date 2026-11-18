@@ -85,27 +85,23 @@
                             Kustomisasi Ikon / Logo Modul
                         </label>
                         <p class="text-xs text-slate-400 mb-4">
-                            Tentukan logo atau ikon untuk kartu modul ini di Help Center publik. Bisa otomatis, pilih preset, ketik nama ikon, atau upload file gambar sendiri.
+                            Tentukan logo atau ikon untuk kartu modul ini di Help Center publik. Bisa otomatis, pilih preset, atau upload file gambar sendiri.
                         </p>
 
                         <!-- Segmented Mode Selector -->
-                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 p-1.5 bg-white dark:bg-[#0f172a] rounded-xl border border-slate-200 dark:border-slate-800 mb-4">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 p-1.5 bg-white dark:bg-[#0f172a] rounded-xl border border-slate-200 dark:border-slate-800 mb-4">
                             <label class="flex items-center gap-2 p-2 rounded-lg cursor-pointer text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors">
-                                <input type="radio" name="icon_mode" value="preset" class="text-blue-600 focus:ring-blue-500" {{ old('icon_mode', $iconMode ?? 'preset') === 'preset' ? 'checked' : '' }} onchange="toggleIconMode('preset')">
+                                <input type="radio" name="icon_mode" value="preset" class="text-blue-600 focus:ring-blue-500" {{ old('icon_mode', ($iconMode ?? 'preset') === 'upload' ? 'upload' : 'preset') === 'preset' ? 'checked' : '' }} onchange="toggleIconMode('preset')">
                                 <span>✨ Preset / Otomatis</span>
                             </label>
                             <label class="flex items-center gap-2 p-2 rounded-lg cursor-pointer text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors">
-                                <input type="radio" name="icon_mode" value="custom" class="text-blue-600 focus:ring-blue-500" {{ old('icon_mode', $iconMode ?? 'preset') === 'custom' ? 'checked' : '' }} onchange="toggleIconMode('custom')">
-                                <span>✏️ Ketik Nama Ikon</span>
-                            </label>
-                            <label class="flex items-center gap-2 p-2 rounded-lg cursor-pointer text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors">
-                                <input type="radio" name="icon_mode" value="upload" class="text-blue-600 focus:ring-blue-500" {{ old('icon_mode', $iconMode ?? 'preset') === 'upload' ? 'checked' : '' }} onchange="toggleIconMode('upload')">
+                                <input type="radio" name="icon_mode" value="upload" class="text-blue-600 focus:ring-blue-500" {{ old('icon_mode', ($iconMode ?? 'preset') === 'upload' ? 'upload' : 'preset') === 'upload' ? 'checked' : '' }} onchange="toggleIconMode('upload')">
                                 <span>🖼️ Upload File Logo</span>
                             </label>
                         </div>
 
                         <!-- 1. Mode Preset Dropdown -->
-                        <div id="mode-preset-container" class="{{ old('icon_mode', $iconMode ?? 'preset') === 'preset' ? '' : 'hidden' }}">
+                        <div id="mode-preset-container" class="{{ old('icon_mode', ($iconMode ?? 'preset') === 'upload' ? 'upload' : 'preset') === 'preset' ? '' : 'hidden' }}">
                             <div class="relative">
                                 <i class="fa-solid fa-icons absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
                                 <select id="icon" name="icon" class="block w-full rounded-xl border-slate-200 dark:border-slate-700 dark:bg-[#131e38] dark:text-slate-100 focus:border-blue-500 focus:ring focus:ring-blue-500/20 shadow-sm text-sm py-2.5 pl-11 pr-8 transition-colors">
@@ -135,19 +131,8 @@
                             <p class="text-slate-400 text-[11px] mt-1.5">Pilih salah satu ikon populer di atas, atau biarkan "Otomatis" agar sistem mendeteksi dari nama modul.</p>
                         </div>
 
-                        <!-- 2. Mode Custom Text Input -->
-                        <div id="mode-custom-container" class="{{ old('icon_mode', $iconMode ?? 'preset') === 'custom' ? '' : 'hidden' }}">
-                            <div class="relative">
-                                <i class="fa-solid fa-font absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
-                                <input type="text" id="icon_custom" name="icon_custom" value="{{ old('icon_custom', $iconCustom ?? '') }}" placeholder="Contoh: bed, wifi, car, shield, tv, key, bell" class="block w-full rounded-xl border-slate-200 dark:border-slate-700 dark:bg-[#131e38] dark:text-slate-100 focus:border-blue-500 focus:ring focus:ring-blue-500/20 shadow-sm text-sm py-2.5 pl-11 pr-4 transition-colors font-mono">
-                            </div>
-                            <p class="text-slate-400 text-[11px] mt-1.5">
-                                Ketik nama ikon Lucide apa saja (huruf kecil tanpa spasi, contoh: <code>bed</code>, <code>car</code>, <code>shield</code>, <code>key</code>, <code>bell</code>, <code>tv</code>).
-                            </p>
-                        </div>
-
-                        <!-- 3. Mode Upload File Image -->
-                        <div id="mode-upload-container" class="{{ old('icon_mode', $iconMode ?? 'preset') === 'upload' ? '' : 'hidden' }}">
+                        <!-- 2. Mode Upload File Image -->
+                        <div id="mode-upload-container" class="{{ old('icon_mode', ($iconMode ?? 'preset') === 'upload' ? 'upload' : 'preset') === 'upload' ? '' : 'hidden' }}">
                             <div class="relative">
                                 <input type="file" id="icon_file" name="icon_file" accept=".png,.svg,.jpg,.jpeg,.webp" class="block w-full text-xs text-slate-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer border border-dashed border-slate-300 dark:border-slate-700 rounded-xl p-2 bg-white dark:bg-[#0f172a]">
                             </div>
@@ -242,11 +227,9 @@
 
         function toggleIconMode(mode) {
             const presetBox = document.getElementById('mode-preset-container');
-            const customBox = document.getElementById('mode-custom-container');
             const uploadBox = document.getElementById('mode-upload-container');
 
             if (presetBox) presetBox.classList.toggle('hidden', mode !== 'preset');
-            if (customBox) customBox.classList.toggle('hidden', mode !== 'custom');
             if (uploadBox) uploadBox.classList.toggle('hidden', mode !== 'upload');
         }
 

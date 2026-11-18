@@ -56,27 +56,23 @@
                             Kustomisasi Ikon / Logo Sistem
                         </label>
                         <p class="text-xs text-slate-500 mb-4">
-                            Tentukan logo atau ikon untuk kartu sistem ini di halaman utama Help Center publik. Bisa otomatis, pilih preset, ketik nama ikon, atau upload file logo mandiri.
+                            Tentukan logo atau ikon untuk kartu sistem ini di halaman utama Help Center publik. Bisa otomatis, pilih preset, atau upload file logo mandiri.
                         </p>
 
                         <!-- Segmented Mode Selector -->
-                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 p-1.5 bg-white rounded-xl border border-slate-200 mb-4">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 p-1.5 bg-white rounded-xl border border-slate-200 mb-4">
                             <label class="flex items-center gap-2 p-2 rounded-lg cursor-pointer text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors">
-                                <input type="radio" name="icon_mode" value="preset" class="text-blue-600 focus:ring-blue-500" {{ old('icon_mode', $iconMode ?? 'preset') === 'preset' ? 'checked' : '' }} onchange="toggleIconMode('preset')">
+                                <input type="radio" name="icon_mode" value="preset" class="text-blue-600 focus:ring-blue-500" {{ old('icon_mode', ($iconMode ?? 'preset') === 'upload' ? 'upload' : 'preset') === 'preset' ? 'checked' : '' }} onchange="toggleIconMode('preset')">
                                 <span>✨ Preset / Otomatis</span>
                             </label>
                             <label class="flex items-center gap-2 p-2 rounded-lg cursor-pointer text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors">
-                                <input type="radio" name="icon_mode" value="custom" class="text-blue-600 focus:ring-blue-500" {{ old('icon_mode', $iconMode ?? 'preset') === 'custom' ? 'checked' : '' }} onchange="toggleIconMode('custom')">
-                                <span>✏️ Ketik Nama Ikon</span>
-                            </label>
-                            <label class="flex items-center gap-2 p-2 rounded-lg cursor-pointer text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors">
-                                <input type="radio" name="icon_mode" value="upload" class="text-blue-600 focus:ring-blue-500" {{ old('icon_mode', $iconMode ?? 'preset') === 'upload' ? 'checked' : '' }} onchange="toggleIconMode('upload')">
+                                <input type="radio" name="icon_mode" value="upload" class="text-blue-600 focus:ring-blue-500" {{ old('icon_mode', ($iconMode ?? 'preset') === 'upload' ? 'upload' : 'preset') === 'upload' ? 'checked' : '' }} onchange="toggleIconMode('upload')">
                                 <span>🖼️ Upload File Logo</span>
                             </label>
                         </div>
 
                         <!-- 3a. Mode Preset Dropdown -->
-                        <div id="mode-preset-container" class="{{ old('icon_mode', $iconMode ?? 'preset') === 'preset' ? '' : 'hidden' }}">
+                        <div id="mode-preset-container" class="{{ old('icon_mode', ($iconMode ?? 'preset') === 'upload' ? 'upload' : 'preset') === 'preset' ? '' : 'hidden' }}">
                             <div class="relative">
                                 <i class="fa-solid fa-icons absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
                                 <select id="icon" name="icon" class="block w-full rounded-xl border-slate-200 focus:border-blue-500 focus:ring focus:ring-blue-500/20 shadow-sm text-sm py-2.5 pl-11 pr-8 transition-colors">
@@ -93,19 +89,8 @@
                             <p class="text-slate-400 text-[11px] mt-1.5">Pilih salah satu ikon populer di atas, atau biarkan "Otomatis" agar sistem mendeteksi dari nama kategori.</p>
                         </div>
 
-                        <!-- 3b. Mode Custom Text Input -->
-                        <div id="mode-custom-container" class="{{ old('icon_mode', $iconMode ?? 'preset') === 'custom' ? '' : 'hidden' }}">
-                            <div class="relative">
-                                <i class="fa-solid fa-font absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
-                                <input type="text" id="icon_custom" name="icon_custom" value="{{ old('icon_custom', $iconCustom ?? '') }}" placeholder="Contoh: globe, hotel, wifi, shield, key, bell" class="block w-full rounded-xl border-slate-200 focus:border-blue-500 focus:ring focus:ring-blue-500/20 shadow-sm text-sm py-2.5 pl-11 pr-4 transition-colors font-mono">
-                            </div>
-                            <p class="text-slate-400 text-[11px] mt-1.5">
-                                Ketik nama ikon Lucide apa saja (huruf kecil tanpa spasi, contoh: <code>globe</code>, <code>hotel</code>, <code>shield</code>, <code>wifi</code>, <code>bed</code>).
-                            </p>
-                        </div>
-
-                        <!-- 3c. Mode Upload File Image -->
-                        <div id="mode-upload-container" class="{{ old('icon_mode', $iconMode ?? 'preset') === 'upload' ? '' : 'hidden' }}">
+                        <!-- 3b. Mode Upload File Image -->
+                        <div id="mode-upload-container" class="{{ old('icon_mode', ($iconMode ?? 'preset') === 'upload' ? 'upload' : 'preset') === 'upload' ? '' : 'hidden' }}">
                             @if (!empty($iconFile))
                                 <input type="hidden" name="existing_icon_file" value="{{ $iconFile }}" id="existing-icon-file-input">
                                 <div id="current-logo-preview" class="flex items-center gap-4 mb-3 p-3 bg-white rounded-xl border border-slate-200">
@@ -163,11 +148,9 @@
     <script>
         function toggleIconMode(mode) {
             const presetBox = document.getElementById('mode-preset-container');
-            const customBox = document.getElementById('mode-custom-container');
             const uploadBox = document.getElementById('mode-upload-container');
 
             if (presetBox) presetBox.classList.toggle('hidden', mode !== 'preset');
-            if (customBox) customBox.classList.toggle('hidden', mode !== 'custom');
             if (uploadBox) uploadBox.classList.toggle('hidden', mode !== 'upload');
         }
 
