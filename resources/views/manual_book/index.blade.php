@@ -918,7 +918,7 @@
                                                 <div class="inline-flex items-center gap-1.5 bg-slate-50 dark:bg-slate-900/80 border border-slate-200/60 dark:border-slate-800 px-2.5 py-1 rounded-lg">
                                                     <i class="fa-solid fa-pen-nib text-amber-500 text-[10px]"></i>
                                                     <span>Diedit: <strong class="text-slate-700 dark:text-slate-200" x-text="currentReadingChapter.updated_by_name || 'Admin'"></strong></span>
-                                                    <span class="text-slate-400 text-[10px]" x-show="currentReadingChapter.updated_at_relative">(<span x-text="currentReadingChapter.updated_at_relative"></span>)</span>
+                                                    <span class="text-slate-400 text-[10px]" x-show="currentReadingChapter.updated_at_formatted || currentReadingChapter.updated_at">(<span x-text="currentReadingChapter.updated_at_formatted || currentReadingChapter.updated_at"></span>)</span>
                                                 </div>
                                             </template>
                                         </div>

@@ -211,7 +211,7 @@ class ManualBookController extends Controller
             'updated_by_name' => $editorName,
             'updated_at' => $book->updated_at ? $book->updated_at->format('d M Y H:i') : '-',
             'updated_at_formatted' => $book->updated_at ? $book->updated_at->format('d M Y, H:i') : '-',
-            'updated_at_relative' => $book->updated_at ? $book->updated_at->diffForHumans() : '-',
+            'updated_at_relative' => $book->updated_at ? $book->updated_at->format('d M Y, H:i') : '-',
             'logs' => $logs,
         ];
     }

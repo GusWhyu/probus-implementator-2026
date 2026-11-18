@@ -1744,7 +1744,7 @@
                                         <span>Diedit: <strong class="text-slate-700 dark:text-slate-200 font-semibold"
                                                 x-text="currentSubMenu.updated_by_name || 'Admin'"></strong></span>
                                         <span class="text-slate-400 text-[10px] sm:text-[11px]"
-                                            x-text="'(' + (currentSubMenu.updated_at_relative || '-') + ')'"></span>
+                                            x-text="'(' + (currentSubMenu.updated_at_formatted || currentSubMenu.updated_at || '-') + ')'"></span>
                                     </span>
                                 </template>
 
@@ -2108,7 +2108,7 @@
                                 <span class="truncate" x-text="currentSubMenu.updated_by_name || 'Admin'"></span>
                             </div>
                             <span class="text-[10px] text-slate-500 dark:text-slate-400 block"
-                                x-text="currentSubMenu.updated_at_relative || currentSubMenu.updated_at_formatted || '-'"></span>
+                                x-text="currentSubMenu.updated_at_formatted || currentSubMenu.updated_at || '-'"></span>
                         </div>
                     </div>
                 </template>
