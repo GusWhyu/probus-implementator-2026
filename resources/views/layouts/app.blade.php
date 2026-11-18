@@ -37,15 +37,13 @@
             .manual-content iframe,
             .manual-content video,
             .video-container iframe {
-                width: 100% !important;
                 max-width: 100% !important;
-                aspect-ratio: 16 / 9 !important;
-                height: auto !important;
+                aspect-ratio: 16 / 9;
                 border-radius: 0.75rem !important;
                 margin: 1.25rem 0 !important;
                 box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1) !important;
                 border: none !important;
-                display: block !important;
+                display: block;
             }
 
             /* TinyMCE Modern Aesthetic Polish */
@@ -259,6 +257,7 @@
                     },
                     media_live_embeds: true,
                     media_filter_html: false,
+                    object_resizing: true,
                     extended_valid_elements: 'iframe[src|title|width|height|allowfullscreen|frameborder|allow|referrerpolicy|class|style],video[src|controls|width|height|class|style],source[src|type]',
                     media_url_resolver: function (data, resolve) {
                         const url = (data.url || '').trim();
@@ -417,12 +416,39 @@
                             border-radius: 8px; 
                             margin: 12px 0;
                         }
-                        iframe, video { 
+                        .mce-preview-object,
+                        .mce-preview-object.mce-object-iframe,
+                        span[data-mce-object="iframe"],
+                        span[data-mce-object="video"] {
+                            display: inline-block;
+                            max-width: 100% !important;
+                            border: none !important;
+                            border-radius: 0.75rem !important;
+                            margin: 1.25rem 0 !important;
+                            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1) !important;
+                            overflow: hidden !important;
+                            position: relative !important;
+                        }
+                        .mce-preview-object[data-mce-selected="1"],
+                        .mce-preview-object[data-mce-selected="2"] {
+                            outline: 2px solid #2563eb !important;
+                            outline-offset: 2px !important;
+                        }
+                        .mce-preview-object iframe,
+                        span[data-mce-object="iframe"] iframe { 
                             width: 100% !important; 
+                            height: 100% !important; 
+                            border-radius: 0.75rem !important; 
+                            margin: 0 !important; 
+                            border: none !important; 
+                            display: block !important;
+                        }
+                        .mce-preview-object .mce-shim {
+                            border-radius: 0.75rem !important;
+                        }
+                        iframe, video { 
                             max-width: 100% !important; 
-                            aspect-ratio: 16 / 9 !important; 
-                            height: auto !important; 
-                            border-radius: 8px !important; 
+                            border-radius: 0.75rem !important; 
                             margin: 14px 0 !important; 
                             border: none !important; 
                             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
