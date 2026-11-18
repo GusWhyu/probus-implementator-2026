@@ -240,8 +240,19 @@
                             <!-- Deskripsi Modul -->
                             <td class="px-5 py-4">
                                 <p class="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 max-w-md">
-                                    {{ $item->description ? $item->description : 'Belum ada deskripsi singkat untuk modul ini.' }}
+                                    {{ $item->clean_description ? $item->clean_description : 'Belum ada deskripsi singkat untuk modul ini.' }}
                                 </p>
+                                @if ($item->is_image_icon)
+                                    <span class="inline-flex items-center gap-1.5 mt-1 text-[10px] font-semibold px-2 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
+                                        <img src="{{ asset($item->custom_icon) }}" class="w-3.5 h-3.5 object-contain rounded" alt="Logo" />
+                                        <span>Logo Gambar</span>
+                                    </span>
+                                @elseif ($item->custom_icon)
+                                    <span class="inline-flex items-center gap-1 mt-1 text-[10px] font-mono font-semibold px-2 py-0.5 rounded bg-sky-50 dark:bg-sky-950/60 text-sky-600 dark:text-sky-400 border border-sky-200 dark:border-sky-800">
+                                        <i class="fa-solid fa-icons text-[8px]"></i>
+                                        <span>Ikon: {{ $item->custom_icon }}</span>
+                                    </span>
+                                @endif
                             </td>
 
                             <!-- Konten Terkait -->
@@ -340,10 +351,21 @@
                         </div>
                     </div>
 
-                    @if ($item->description)
+                    @if ($item->clean_description)
                         <p class="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 mb-2">
-                            {{ $item->description }}
+                            {{ $item->clean_description }}
                         </p>
+                    @endif
+                    @if ($item->is_image_icon)
+                        <span class="inline-flex items-center gap-1.5 mb-2 text-[10px] font-semibold px-2 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
+                            <img src="{{ asset($item->custom_icon) }}" class="w-3.5 h-3.5 object-contain rounded" alt="Logo" />
+                            <span>Logo Gambar</span>
+                        </span>
+                    @elseif ($item->custom_icon)
+                        <span class="inline-flex items-center gap-1 mb-2 text-[10px] font-mono font-semibold px-2 py-0.5 rounded bg-sky-50 dark:bg-sky-950/60 text-sky-600 dark:text-sky-400 border border-sky-200 dark:border-sky-800">
+                            <i class="fa-solid fa-icons text-[8px]"></i>
+                            <span>Ikon: {{ $item->custom_icon }}</span>
+                        </span>
                     @endif
 
                     <div class="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-slate-800 text-[11px]">

@@ -6,6 +6,7 @@ use App\Models\MenuSystem;
 use App\Models\Kategori;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Str;
 use RealRashid\SweetAlert\Facades\Alert;
 
 class MenuSystemController extends Controller
@@ -88,20 +89,25 @@ class MenuSystemController extends Controller
             $nextOrder = $maxOrder ? $maxOrder + 1 : 1;
         }
 
-        $standardSuggestions = [
-            ['name' => 'Sales', 'desc' => 'Modul transaksi penjualan, kasir POS, reservasi meja, dan pendapatan.'],
-            ['name' => 'Production', 'desc' => 'Modul pengolahan dapur, resep, kitchen display system (KDS), dan produksi makanan/minuman.'],
-            ['name' => 'Cost Control', 'desc' => 'Modul pengendalian biaya, food & beverage cost, dan laporan analisa selisih.'],
-            ['name' => 'Purchasing / AP', 'desc' => 'Modul pengadaan barang, purchase request (PR), purchase order (PO), receiving, dan hutang usaha.'],
-            ['name' => 'Accounts Receivable / AR', 'desc' => 'Modul piutang usaha, city ledger, penagihan invoice klien, dan pelunasan.'],
-            ['name' => 'Accounting System', 'desc' => 'Modul sistem akuntansi, jurnal umum, buku besar (GL), neraca, dan laporan keuangan.'],
-            ['name' => 'Tools', 'desc' => 'Modul utilitas sistem, konfigurasi hardware & printer, cash drawer, dan diagnostik perangkat.'],
-            ['name' => 'Calendar', 'desc' => 'Modul kalender kerja, reservasi event, jadwal operasional, dan agenda sistem.'],
-            ['name' => 'Calculator', 'desc' => 'Modul kalkulator sistem, simulasi perhitungan harga, diskon, dan konversi kurs.'],
-            ['name' => 'Reconnecting', 'desc' => 'Modul pemulihan koneksi offline/online, sinkronisasi data cloud, dan pemulihan jaringan.'],
-        ];
+        $selectedIcon = '';
+        $cleanDescription = '';
+        $iconMode = 'preset';
+        $iconCustom = '';
+        $iconFile = '';
+        $isImageIcon = false;
 
-        return view('menu_system.create', compact('categories', 'selectedKategoriId', 'nextOrder', 'standardSuggestions', 'modulesByCategory'));
+        return view('menu_system.create', compact(
+            'categories',
+            'selectedKategoriId',
+            'nextOrder',
+            'modulesByCategory',
+            'selectedIcon',
+            'cleanDescription',
+            'iconMode',
+            'iconCustom',
+            'iconFile',
+            'isImageIcon'
+        ));
     }
 
     /**
@@ -137,6 +143,10 @@ class MenuSystemController extends Controller
                 Rule::unique('menu_systems', 'order')->where('kategori_id', $request->kategori_id),
             ],
             'description' => 'nullable|string',
+            'icon_mode' => 'nullable|string|in:preset,custom,upload',
+            'icon' => 'nullable|string|max:50',
+            'icon_custom' => 'nullable|string|max:50',
+            'icon_file' => 'nullable|file|mimes:png,jpg,jpeg,svg,webp|max:1024',
         ], [
             'kategori_id.required' => 'Sistem / Kategori wajib dipilih.',
             'kategori_id.exists' => 'Sistem / Kategori tidak valid.',
@@ -147,13 +157,18 @@ class MenuSystemController extends Controller
             'order.integer' => 'Urutan modul harus berupa angka bulat.',
             'order.min' => 'Urutan modul minimal bernilai 1.',
             'order.unique' => 'Nomor urut ini sudah digunakan oleh modul lain pada sistem yang dipilih. Silakan gunakan nomor urut yang masih tersedia.',
+            'icon_file.mimes' => 'File logo harus berekstensi PNG, JPG, JPEG, SVG, atau WebP.',
+            'icon_file.max' => 'Ukuran file logo maksimal 1 MB.',
         ]);
+
+        $icon = $this->resolveIconFromRequest($request);
+        $finalDesc = $this->formatDescriptionWithIcon($validated['description'] ?? '', $icon);
 
         MenuSystem::create([
             'kategori_id' => $validated['kategori_id'],
             'name' => trim($validated['name']),
             'order' => (int) $validated['order'],
-            'description' => $validated['description'] ? trim($validated['description']) : null,
+            'description' => $finalDesc,
         ]);
 
         Alert::success('Berhasil!', 'Modul sistem "' . $validated['name'] . '" berhasil ditambahkan.');
@@ -174,7 +189,42 @@ class MenuSystemController extends Controller
             ->get()
             ->groupBy('kategori_id');
 
-        return view('menu_system.edit', compact('module', 'categories', 'modulesByCategory'));
+        $selectedIcon = $module->custom_icon ?? '';
+        $cleanDescription = $module->clean_description ?? '';
+        $isImageIcon = $module->is_image_icon;
+
+        $iconMode = 'preset';
+        $iconCustom = '';
+        $iconFile = '';
+
+        if ($isImageIcon) {
+            $iconMode = 'upload';
+            $iconFile = $selectedIcon;
+        } elseif (!empty($selectedIcon)) {
+            $popularPresets = [
+                'settings', 'utensils', 'store', 'pie-chart', 'shopping-bag', 'receipt',
+                'wallet', 'bar-chart', 'trending-up', 'printer', 'smartphone', 'package',
+                'users', 'zap', 'laptop', 'building', 'credit-card', 'coffee'
+            ];
+            if (in_array(strtolower($selectedIcon), $popularPresets)) {
+                $iconMode = 'preset';
+            } else {
+                $iconMode = 'custom';
+                $iconCustom = $selectedIcon;
+            }
+        }
+
+        return view('menu_system.edit', compact(
+            'module',
+            'categories',
+            'modulesByCategory',
+            'selectedIcon',
+            'cleanDescription',
+            'iconMode',
+            'iconCustom',
+            'iconFile',
+            'isImageIcon'
+        ));
     }
 
     /**
@@ -217,6 +267,10 @@ class MenuSystemController extends Controller
                     ->ignore($id),
             ],
             'description' => 'nullable|string',
+            'icon_mode' => 'nullable|string|in:preset,custom,upload',
+            'icon' => 'nullable|string|max:50',
+            'icon_custom' => 'nullable|string|max:50',
+            'icon_file' => 'nullable|file|mimes:png,jpg,jpeg,svg,webp|max:1024',
         ], [
             'kategori_id.required' => 'Sistem / Kategori wajib dipilih.',
             'kategori_id.exists' => 'Sistem / Kategori tidak valid.',
@@ -227,18 +281,84 @@ class MenuSystemController extends Controller
             'order.integer' => 'Urutan modul harus berupa angka bulat.',
             'order.min' => 'Urutan modul minimal bernilai 1.',
             'order.unique' => 'Nomor urut ini sudah digunakan oleh modul lain pada sistem yang dipilih. Silakan gunakan nomor urut yang masih tersedia.',
+            'icon_file.mimes' => 'File logo harus berekstensi PNG, JPG, JPEG, SVG, atau WebP.',
+            'icon_file.max' => 'Ukuran file logo maksimal 1 MB.',
         ]);
+
+        $icon = $this->resolveIconFromRequest($request, $module->custom_icon);
+        $finalDesc = $this->formatDescriptionWithIcon($validated['description'] ?? '', $icon);
 
         $module->update([
             'kategori_id' => $validated['kategori_id'],
             'name' => trim($validated['name']),
             'order' => (int) $validated['order'],
-            'description' => $validated['description'] ? trim($validated['description']) : null,
+            'description' => $finalDesc,
         ]);
 
         Alert::success('Berhasil!', 'Data modul sistem berhasil diperbarui.');
 
         return redirect()->route('menu-system.index', ['kategori_id' => $validated['kategori_id']]);
+    }
+
+    /**
+     * Memproses icon dari request (bisa preset, custom text, atau upload file gambar)
+     */
+    private function resolveIconFromRequest(Request $request, $existingIcon = null)
+    {
+        $iconMode = $request->input('icon_mode', 'preset');
+
+        // 1. Ada file logo baru yang di-upload
+        if ($request->hasFile('icon_file')) {
+            $file = $request->file('icon_file');
+            $ext = strtolower($file->getClientOriginalExtension());
+            $fileName = 'mod_icon_' . time() . '_' . Str::random(8) . '.' . $ext;
+            $destination = public_path('uploads/icons');
+            if (!file_exists($destination)) {
+                mkdir($destination, 0777, true);
+            }
+            $file->move($destination, $fileName);
+
+            return '/uploads/icons/' . $fileName;
+        }
+
+        // 2. Mode Upload: Pertahankan file sebelumnya atau user meminta hapus
+        if ($iconMode === 'upload') {
+            if ($request->boolean('remove_icon_file')) {
+                return null;
+            }
+            if ($request->filled('existing_icon_file')) {
+                return trim($request->input('existing_icon_file'));
+            }
+            return !empty($existingIcon) && (str_starts_with($existingIcon, '/uploads/') || preg_match('/\.(png|svg|jpg|jpeg|webp)$/i', $existingIcon))
+                ? $existingIcon
+                : null;
+        }
+
+        // 3. Mode Custom: User mengetik sendiri nama icon Lucide
+        if ($iconMode === 'custom') {
+            $custom = trim($request->input('icon_custom', ''));
+            return !empty($custom) ? strtolower(preg_replace('/[^a-zA-Z0-9_\-]/', '', $custom)) : null;
+        }
+
+        // 4. Mode Preset: User memilih dari dropdown yang tersedia
+        if ($iconMode === 'preset') {
+            $preset = trim($request->input('icon', ''));
+            return !empty($preset) ? $preset : null;
+        }
+
+        return null;
+    }
+
+    /**
+     * Menggabungkan tag icon ke dalam deskripsi tanpa merusak teks asli
+     */
+    private function formatDescriptionWithIcon($rawDescription, $icon)
+    {
+        $cleanDesc = trim(preg_replace('/<!--icon:[^>]+-->/', '', $rawDescription ?? ''));
+        if (!empty($icon)) {
+            return '<!--icon:' . $icon . '-->' . $cleanDesc;
+        }
+        return !empty($cleanDesc) ? $cleanDesc : null;
     }
 
     /**

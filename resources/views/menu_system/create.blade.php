@@ -25,27 +25,10 @@
 
         {{-- Content Section --}}
         <div class="max-w-3xl">
-            {{-- Quick Suggestion Pills --}}
-            <div class="bg-gradient-to-r from-blue-50/70 to-indigo-50/70 dark:from-blue-950/30 dark:to-indigo-950/30 border border-blue-100 dark:border-blue-900/50 rounded-2xl p-5 mb-6">
-                <div class="flex items-center gap-2 mb-2 text-blue-800 dark:text-blue-300 text-xs font-bold uppercase tracking-wider">
-                    <i class="fa-solid fa-wand-magic-sparkles text-xs"></i>
-                    <span>Template 10 Modul Standar Probus ERP (Klik untuk Isi Cepat)</span>
-                </div>
-                <div class="flex flex-wrap gap-1.5">
-                    @foreach ($standardSuggestions as $sugg)
-                        <button type="button" 
-                                onclick="fillSuggestion('{{ addslashes($sugg['name']) }}', '{{ addslashes($sugg['desc']) }}')"
-                                class="px-2.5 py-1 bg-white dark:bg-[#0f172a] hover:bg-blue-600 hover:text-white dark:hover:bg-blue-600 dark:hover:text-white text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700 rounded-lg text-xs font-semibold transition-all shadow-2xs cursor-pointer">
-                            + {{ $sugg['name'] }}
-                        </button>
-                    @endforeach
-                </div>
-            </div>
-
             <div class="bg-white dark:bg-[#0f172a] rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm p-6 sm:p-8">
                 <x-auth-validation-errors class="mb-6" :errors="$errors" />
                 
-                <form method="POST" action="{{ route('menu-system.store') }}">
+                <form method="POST" action="{{ route('menu-system.store') }}" enctype="multipart/form-data">
                     @csrf
         
                     <!-- Sistem / Kategori -->
@@ -96,6 +79,90 @@
                         </div>
                     </div>
 
+                    <!-- Pilihan Ikon Modul (Preset, Custom Teks, atau Upload Gambar) -->
+                    <div class="mb-6 bg-slate-50 dark:bg-[#131e38]/50 border border-slate-200 dark:border-slate-800 rounded-2xl p-5">
+                        <label class="block text-sm font-semibold text-slate-800 dark:text-slate-200 mb-1">
+                            Kustomisasi Ikon / Logo Modul
+                        </label>
+                        <p class="text-xs text-slate-400 mb-4">
+                            Tentukan logo atau ikon untuk kartu modul ini di Help Center publik. Bisa otomatis, pilih preset, ketik nama ikon, atau upload file gambar sendiri.
+                        </p>
+
+                        <!-- Segmented Mode Selector -->
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 p-1.5 bg-white dark:bg-[#0f172a] rounded-xl border border-slate-200 dark:border-slate-800 mb-4">
+                            <label class="flex items-center gap-2 p-2 rounded-lg cursor-pointer text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors">
+                                <input type="radio" name="icon_mode" value="preset" class="text-blue-600 focus:ring-blue-500" {{ old('icon_mode', $iconMode ?? 'preset') === 'preset' ? 'checked' : '' }} onchange="toggleIconMode('preset')">
+                                <span>✨ Preset / Otomatis</span>
+                            </label>
+                            <label class="flex items-center gap-2 p-2 rounded-lg cursor-pointer text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors">
+                                <input type="radio" name="icon_mode" value="custom" class="text-blue-600 focus:ring-blue-500" {{ old('icon_mode', $iconMode ?? 'preset') === 'custom' ? 'checked' : '' }} onchange="toggleIconMode('custom')">
+                                <span>✏️ Ketik Nama Ikon</span>
+                            </label>
+                            <label class="flex items-center gap-2 p-2 rounded-lg cursor-pointer text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors">
+                                <input type="radio" name="icon_mode" value="upload" class="text-blue-600 focus:ring-blue-500" {{ old('icon_mode', $iconMode ?? 'preset') === 'upload' ? 'checked' : '' }} onchange="toggleIconMode('upload')">
+                                <span>🖼️ Upload File Logo</span>
+                            </label>
+                        </div>
+
+                        <!-- 1. Mode Preset Dropdown -->
+                        <div id="mode-preset-container" class="{{ old('icon_mode', $iconMode ?? 'preset') === 'preset' ? '' : 'hidden' }}">
+                            <div class="relative">
+                                <i class="fa-solid fa-icons absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+                                <select id="icon" name="icon" class="block w-full rounded-xl border-slate-200 dark:border-slate-700 dark:bg-[#131e38] dark:text-slate-100 focus:border-blue-500 focus:ring focus:ring-blue-500/20 shadow-sm text-sm py-2.5 pl-11 pr-8 transition-colors">
+                                    <option value="" {{ old('icon', $selectedIcon ?? '') === '' ? 'selected' : '' }}>
+                                        ✨ Otomatis (Rekomendasi sistem berdasarkan nama modul)
+                                    </option>
+                                    <option value="settings" {{ old('icon', $selectedIcon ?? '') === 'settings' ? 'selected' : '' }}>⚙️ settings — Setup Master & Konfigurasi Sistem</option>
+                                    <option value="utensils" {{ old('icon', $selectedIcon ?? '') === 'utensils' ? 'selected' : '' }}>🍽️ utensils — Transaksi Penjualan, POS & Resto</option>
+                                    <option value="store" {{ old('icon', $selectedIcon ?? '') === 'store' ? 'selected' : '' }}>🏬 store — Outlet Activity, Kasir & Toko</option>
+                                    <option value="pie-chart" {{ old('icon', $selectedIcon ?? '') === 'pie-chart' ? 'selected' : '' }}>📊 pie-chart — Cost Control & Pengendalian Biaya</option>
+                                    <option value="shopping-bag" {{ old('icon', $selectedIcon ?? '') === 'shopping-bag' ? 'selected' : '' }}>🛍️ shopping-bag — Purchasing & Hutang Usaha (AP)</option>
+                                    <option value="receipt" {{ old('icon', $selectedIcon ?? '') === 'receipt' ? 'selected' : '' }}>🧾 receipt — Piutang Usaha (AR) & Tagihan Invoice</option>
+                                    <option value="wallet" {{ old('icon', $selectedIcon ?? '') === 'wallet' ? 'selected' : '' }}>👛 wallet — General Cashier & Kas Operasional</option>
+                                    <option value="bar-chart" {{ old('icon', $selectedIcon ?? '') === 'bar-chart' ? 'selected' : '' }}>💹 bar-chart — Accounting System & Buku Besar (GL)</option>
+                                    <option value="trending-up" {{ old('icon', $selectedIcon ?? '') === 'trending-up' ? 'selected' : '' }}>📈 trending-up — Laporan, Report & Analitik Omzet</option>
+                                    <option value="printer" {{ old('icon', $selectedIcon ?? '') === 'printer' ? 'selected' : '' }}>🖨️ printer — Tools, Hardware Printer & Kasir</option>
+                                    <option value="smartphone" {{ old('icon', $selectedIcon ?? '') === 'smartphone' ? 'selected' : '' }}>📱 smartphone — Mobile Waiter & Self Order</option>
+                                    <option value="package" {{ old('icon', $selectedIcon ?? '') === 'package' ? 'selected' : '' }}>📦 package — Gudang, Logistik & Kartu Stok</option>
+                                    <option value="users" {{ old('icon', $selectedIcon ?? '') === 'users' ? 'selected' : '' }}>👥 users — Tamu, Member & Master Customer</option>
+                                    <option value="zap" {{ old('icon', $selectedIcon ?? '') === 'zap' ? 'selected' : '' }}>⚡ zap — Maintenance, Aset & Fasilitas (PPE)</option>
+                                    <option value="laptop" {{ old('icon', $selectedIcon ?? '') === 'laptop' ? 'selected' : '' }}>💻 laptop — Cloud POS, Web Portal & Integrasi</option>
+                                    <option value="building" {{ old('icon', $selectedIcon ?? '') === 'building' ? 'selected' : '' }}>🏨 building — Hotel, Kamar & Front Desk</option>
+                                    <option value="credit-card" {{ old('icon', $selectedIcon ?? '') === 'credit-card' ? 'selected' : '' }}>💳 credit-card — Pembayaran EDC, QRIS & Transfer</option>
+                                    <option value="coffee" {{ old('icon', $selectedIcon ?? '') === 'coffee' ? 'selected' : '' }}>☕ coffee — Bar, Lounge & Cafe</option>
+                                </select>
+                            </div>
+                            <p class="text-slate-400 text-[11px] mt-1.5">Pilih salah satu ikon populer di atas, atau biarkan "Otomatis" agar sistem mendeteksi dari nama modul.</p>
+                        </div>
+
+                        <!-- 2. Mode Custom Text Input -->
+                        <div id="mode-custom-container" class="{{ old('icon_mode', $iconMode ?? 'preset') === 'custom' ? '' : 'hidden' }}">
+                            <div class="relative">
+                                <i class="fa-solid fa-font absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+                                <input type="text" id="icon_custom" name="icon_custom" value="{{ old('icon_custom', $iconCustom ?? '') }}" placeholder="Contoh: bed, wifi, car, shield, tv, key, bell" class="block w-full rounded-xl border-slate-200 dark:border-slate-700 dark:bg-[#131e38] dark:text-slate-100 focus:border-blue-500 focus:ring focus:ring-blue-500/20 shadow-sm text-sm py-2.5 pl-11 pr-4 transition-colors font-mono">
+                            </div>
+                            <p class="text-slate-400 text-[11px] mt-1.5">
+                                Ketik nama ikon Lucide apa saja (huruf kecil tanpa spasi, contoh: <code>bed</code>, <code>car</code>, <code>shield</code>, <code>key</code>, <code>bell</code>, <code>tv</code>).
+                            </p>
+                        </div>
+
+                        <!-- 3. Mode Upload File Image -->
+                        <div id="mode-upload-container" class="{{ old('icon_mode', $iconMode ?? 'preset') === 'upload' ? '' : 'hidden' }}">
+                            <div class="relative">
+                                <input type="file" id="icon_file" name="icon_file" accept=".png,.svg,.jpg,.jpeg,.webp" class="block w-full text-xs text-slate-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer border border-dashed border-slate-300 dark:border-slate-700 rounded-xl p-2 bg-white dark:bg-[#0f172a]">
+                            </div>
+
+                            <!-- Notifikasi Batas Ukuran File Modul -->
+                            <div class="mt-2.5 flex items-start gap-2.5 p-3 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-300 text-xs">
+                                <i class="fa-solid fa-circle-exclamation text-amber-500 mt-0.5 shrink-0 text-sm"></i>
+                                <div>
+                                    <p class="font-bold">Ketentuan Ukuran & Format File:</p>
+                                    <p class="mt-0.5">Batas maksimal ukuran file logo modul adalah <strong>1 MB (1024 KB)</strong>. Format yang didukung: <strong>PNG (disarankan transparan), SVG, WebP, atau JPG</strong>. Gambar akan otomatis disesuaikan secara proporsional penuh pada kartu modul Help Center.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Deskripsi Modul -->
                     <div class="mb-6">
                         <label for="description" class="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-2">
@@ -120,12 +187,6 @@
 
     <script>
         const modulesByCategory = @json($modulesByCategory ?? []);
-
-        function fillSuggestion(name, desc) {
-            document.getElementById('name').value = name;
-            document.getElementById('description').value = desc;
-            document.getElementById('name').focus();
-        }
 
         const categorySelect = document.getElementById('kategori_id');
         const orderInput = document.getElementById('order');
@@ -177,6 +238,41 @@
         if (orderInput) {
             orderInput.addEventListener('input', checkOrderAvailability);
             checkOrderAvailability();
+        }
+
+        function toggleIconMode(mode) {
+            const presetBox = document.getElementById('mode-preset-container');
+            const customBox = document.getElementById('mode-custom-container');
+            const uploadBox = document.getElementById('mode-upload-container');
+
+            if (presetBox) presetBox.classList.toggle('hidden', mode !== 'preset');
+            if (customBox) customBox.classList.toggle('hidden', mode !== 'custom');
+            if (uploadBox) uploadBox.classList.toggle('hidden', mode !== 'upload');
+        }
+
+        // Validasi ukuran file logo modul maksimal 1 MB dengan notifikasi Swal
+        const iconFileInput = document.getElementById('icon_file');
+        if (iconFileInput) {
+            iconFileInput.addEventListener('change', function() {
+                if (this.files && this.files[0]) {
+                    const file = this.files[0];
+                    const maxBytes = 1024 * 1024; // 1 MB = 1024 KB
+                    if (file.size > maxBytes) {
+                        const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
+                        if (typeof Swal !== 'undefined') {
+                            Swal.fire({
+                                icon: 'warning',
+                                title: 'Ukuran File Terlalu Besar!',
+                                html: `File <strong>${file.name}</strong> berukuran <strong>${sizeMB} MB</strong>.<br>Batas maksimal ukuran file logo modul adalah <strong>1 MB (1024 KB)</strong>.<br>Silakan pilih file yang lebih kecil atau kompres terlebih dahulu.`,
+                                confirmButtonColor: '#2563eb'
+                            });
+                        } else {
+                            alert(`Peringatan: Ukuran file "${file.name}" (${sizeMB} MB) melebihi batas maksimal 1 MB (1024 KB).`);
+                        }
+                        this.value = ''; // Batalkan pilihan file
+                    }
+                }
+            });
         }
     </script>
 </x-app-layout>

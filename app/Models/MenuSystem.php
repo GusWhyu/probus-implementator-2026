@@ -61,5 +61,34 @@ class MenuSystem extends Model
             ->withPivot('order')
             ->withTimestamps();
     }
+
+    /**
+     * Dapatkan nama icon atau path gambar manual (jika ada tag <!--icon:xyz-->)
+     */
+    public function getCustomIconAttribute()
+    {
+        if (preg_match('/<!--icon:([^>]+)-->/', $this->description ?? '', $m)) {
+            return trim($m[1]);
+        }
+        return null;
+    }
+
+    /**
+     * Cek apakah custom icon adalah file gambar upload (/uploads/... atau berekstensi gambar)
+     */
+    public function getIsImageIconAttribute()
+    {
+        $icon = $this->custom_icon;
+        if (!$icon) return false;
+        return str_starts_with($icon, '/uploads/') || (bool) preg_match('/\.(png|svg|jpg|jpeg|webp)$/i', $icon);
+    }
+
+    /**
+     * Dapatkan teks deskripsi bersih tanpa tag icon
+     */
+    public function getCleanDescriptionAttribute()
+    {
+        return trim(preg_replace('/<!--icon:[^>]+-->/', '', $this->description ?? ''));
+    }
 }
 
