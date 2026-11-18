@@ -52,9 +52,9 @@
                         @forelse ($kategori as $item)
                             @php
                                 $card = $systemCards[(string) $item->id] ?? $systemCards[$item->name] ?? [];
-                                $badge = $card['badge'] ?? 'Sistem Probus';
-                                $desc = $card['desc'] ?? null;
-                                $icon = $card['icon'] ?? null;
+                                $badge = $item->badge ?? ($card['badge'] ?? 'Sistem Probus');
+                                $desc = $item->description ?? ($card['desc'] ?? null);
+                                $icon = $item->icon ?? ($card['icon'] ?? null);
                                 $isImage = !empty($icon) && (str_starts_with($icon, '/uploads/') || preg_match('/\.(png|svg|jpg|jpeg|webp)$/i', $icon));
                             @endphp
                             <tr class="hover:bg-slate-50/50 transition-colors group">

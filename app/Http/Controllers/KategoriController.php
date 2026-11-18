@@ -175,10 +175,10 @@ class KategoriController extends Controller
 
         $popularPresets = $this->getPopularPresets();
 
-        $selectedBadge = $card['badge'] ?? '';
-        $selectedDesc = $card['desc'] ?? '';
-        $selectedIcon = $card['icon'] ?? '';
-        $iconMode = $card['icon_mode'] ?? 'preset';
+        $selectedBadge = $data->badge ?? ($card['badge'] ?? '');
+        $selectedDesc = $data->description ?? ($card['desc'] ?? '');
+        $selectedIcon = $data->icon ?? ($card['icon'] ?? '');
+        $iconMode = $data->icon_mode ?? ($card['icon_mode'] ?? 'preset');
         $iconCustom = '';
         $iconFile = '';
         $isImageIcon = false;
@@ -228,19 +228,27 @@ class KategoriController extends Controller
             'icon_file.max' => 'Ukuran file icon maksimal 1 MB (1024 KB).',
         ]);
 
-        // 1. Simpan kategori murni ke database (Ticketing & Request aman 100%)
+        // 1. Simpan kategori langsung dengan badge, deskripsi, dan ikon ke database
+        $icon = $this->resolveIconFromRequest($request);
+        $badge = trim($request->input('badge', 'Sistem Probus'));
+        $desc = trim($request->input('description', ''));
+        $iconMode = $request->input('icon_mode', 'preset');
+
         $kategori = new Kategori;
         $kategori->name = trim($request->input('name'));
+        $kategori->badge = $badge;
+        $kategori->description = $desc;
+        $kategori->icon_mode = $iconMode;
+        $kategori->icon = $icon;
         $kategori->save();
 
-        // 2. Simpan konfigurasi tampilan kartu sistem ke system_cards.json
-        $icon = $this->resolveIconFromRequest($request);
+        // 2. Sinkronkan juga ke system_cards.json sebagai mirror/fallback
         $cards = $this->getSystemCards();
         $cards[(string) $kategori->id] = [
             'name' => $kategori->name,
-            'badge' => trim($request->input('badge', 'Sistem Probus')),
-            'desc' => trim($request->input('description', '')),
-            'icon_mode' => $request->input('icon_mode', 'preset'),
+            'badge' => $badge,
+            'desc' => $desc,
+            'icon_mode' => $iconMode,
             'icon' => $icon,
         ];
         $this->saveSystemCards($cards);
@@ -271,20 +279,28 @@ class KategoriController extends Controller
 
         $cards = $this->getSystemCards();
         $existingCard = $cards[(string) $id] ?? $cards[$data->name] ?? [];
-        $existingIcon = $existingCard['icon'] ?? null;
+        $existingIcon = $data->icon ?? ($existingCard['icon'] ?? null);
 
-        // 1. Perbarui nama kategori murni ke database
+        $icon = $this->resolveIconFromRequest($request, $existingIcon);
+        $badge = trim($request->input('badge', 'Sistem Probus'));
+        $desc = trim($request->input('description', ''));
+        $iconMode = $request->input('icon_mode', 'preset');
+
+        // 1. Perbarui kategori langsung di database MySQL
         $data->update([
-            'name' => trim($request->input('name'))
+            'name' => trim($request->input('name')),
+            'badge' => $badge,
+            'description' => $desc,
+            'icon_mode' => $iconMode,
+            'icon' => $icon,
         ]);
 
-        // 2. Perbarui konfigurasi kartu sistem
-        $icon = $this->resolveIconFromRequest($request, $existingIcon);
+        // 2. Sinkronkan juga ke system_cards.json sebagai mirror/fallback
         $cards[(string) $id] = [
             'name' => $data->name,
-            'badge' => trim($request->input('badge', 'Sistem Probus')),
-            'desc' => trim($request->input('description', '')),
-            'icon_mode' => $request->input('icon_mode', 'preset'),
+            'badge' => $badge,
+            'desc' => $desc,
+            'icon_mode' => $iconMode,
             'icon' => $icon,
         ];
         $this->saveSystemCards($cards);
