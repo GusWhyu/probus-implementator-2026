@@ -162,13 +162,16 @@ class MenuSystemController extends Controller
         ]);
 
         $icon = $this->resolveIconFromRequest($request);
-        $finalDesc = $this->formatDescriptionWithIcon($validated['description'] ?? '', $icon);
+        $iconMode = $request->input('icon_mode', 'preset');
+        $cleanDesc = trim($validated['description'] ?? '');
 
         MenuSystem::create([
             'kategori_id' => $validated['kategori_id'],
             'name' => trim($validated['name']),
             'order' => (int) $validated['order'],
-            'description' => $finalDesc,
+            'description' => !empty($cleanDesc) ? $cleanDesc : null,
+            'icon_mode' => $iconMode,
+            'icon' => $icon,
         ]);
 
         Alert::success('Berhasil!', 'Modul sistem "' . $validated['name'] . '" berhasil ditambahkan.');
@@ -189,11 +192,11 @@ class MenuSystemController extends Controller
             ->get()
             ->groupBy('kategori_id');
 
-        $selectedIcon = $module->custom_icon ?? '';
-        $cleanDescription = $module->clean_description ?? '';
-        $isImageIcon = $module->is_image_icon;
+        $selectedIcon = $module->icon ?? $module->custom_icon ?? '';
+        $cleanDescription = $module->description ?? $module->clean_description ?? '';
+        $isImageIcon = !empty($selectedIcon) && (str_starts_with($selectedIcon, '/uploads/') || preg_match('/\.(png|svg|jpg|jpeg|webp)$/i', $selectedIcon));
 
-        $iconMode = 'preset';
+        $iconMode = $module->icon_mode ?? ($isImageIcon ? 'upload' : 'preset');
         $iconCustom = '';
         $iconFile = '';
 
@@ -285,14 +288,18 @@ class MenuSystemController extends Controller
             'icon_file.max' => 'Ukuran file logo maksimal 1 MB.',
         ]);
 
-        $icon = $this->resolveIconFromRequest($request, $module->custom_icon);
-        $finalDesc = $this->formatDescriptionWithIcon($validated['description'] ?? '', $icon);
+        $existingIcon = $module->icon ?? $module->custom_icon;
+        $icon = $this->resolveIconFromRequest($request, $existingIcon);
+        $iconMode = $request->input('icon_mode', 'preset');
+        $cleanDesc = trim($validated['description'] ?? '');
 
         $module->update([
             'kategori_id' => $validated['kategori_id'],
             'name' => trim($validated['name']),
             'order' => (int) $validated['order'],
-            'description' => $finalDesc,
+            'description' => !empty($cleanDesc) ? $cleanDesc : null,
+            'icon_mode' => $iconMode,
+            'icon' => $icon,
         ]);
 
         Alert::success('Berhasil!', 'Data modul sistem berhasil diperbarui.');

@@ -16,6 +16,8 @@ class MenuSystem extends Model
         'parent_id',
         'name',
         'description',
+        'icon_mode',
+        'icon',
         'order',
     ];
 
@@ -63,10 +65,13 @@ class MenuSystem extends Model
     }
 
     /**
-     * Dapatkan nama icon atau path gambar manual (jika ada tag <!--icon:xyz-->)
+     * Dapatkan nama icon atau path gambar manual (prioritas kolom 'icon', fallback ke tag <!--icon:xyz-->)
      */
     public function getCustomIconAttribute()
     {
+        if (!empty($this->attributes['icon'] ?? null)) {
+            return $this->attributes['icon'];
+        }
         if (preg_match('/<!--icon:([^>]+)-->/', $this->description ?? '', $m)) {
             return trim($m[1]);
         }
