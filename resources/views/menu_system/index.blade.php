@@ -17,7 +17,7 @@
                         Master Data: Menu Modul Sistem
                     </h2>
                     <p class="text-slate-500 dark:text-slate-400 text-sm mt-1">
-                        Kelola 10 modul standar (Sales, Production, Cost Control, Tools, dll.) untuk setiap kategori sistem Probus ERP.
+                        Kelola modul operasional untuk setiap kategori sistem Probus ERP.
                     </p>
                 </div>
             </div>

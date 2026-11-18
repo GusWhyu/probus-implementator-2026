@@ -587,10 +587,9 @@
                                 <div>
                                     <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Target Sistem</label>
                                     <select x-model="newForm.system" class="w-full px-3 py-2 bg-slate-50 dark:bg-[#0f172a] border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-blue-500/40">
-                                        <option value="PRESTO Resto POS">PRESTO Resto POS</option>
-                                        <option value="Probus Hotel PMS">Probus Hotel PMS</option>
-                                        <option value="PPE 2.0 Management">PPE 2.0 Management</option>
-                                        <option value="Back Office & Akuntansi">Back Office & Akuntansi</option>
+                                        @foreach($categories as $cat)
+                                            <option value="{{ $cat->name }}">{{ $cat->name }}</option>
+                                        @endforeach
                                     </select>
                                 </div>
                                 <div>

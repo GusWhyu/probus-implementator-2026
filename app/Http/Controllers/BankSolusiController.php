@@ -76,47 +76,28 @@ class BankSolusiController extends Controller
             'count' => $totalAllArticles,
         ]);
 
-        // Daftar modul untuk "all"
-        $targetStandardModules = [
-            'Sales',
-            'Production',
-            'Cost Control',
-            'Purchasing / AP',
-            'Accounts Receivable / AR',
-            'Accounting System',
-            'Tools',
-            'Calendar',
-            'Calculator',
-            'Reconnecting',
-        ];
-
+        // Daftar modul untuk "all" (Agregasi seluruh modul unik dari database)
         $allModulesFlat = [];
-        foreach ($targetStandardModules as $modName) {
-            $totalCountForMod = 0;
-            $modDesc = '';
-            $firstModId = null;
-            foreach ($modulesBySystem as $catId => $mList) {
-                if ($catId === 'all')
+        $seenModNames = [];
+        foreach ($modulesBySystem as $catId => $mList) {
+            if ($catId === 'all')
+                continue;
+            foreach ($mList as $m) {
+                if ($m['id'] === 'all-modules')
                     continue;
-                foreach ($mList as $m) {
-                    if ($m['name'] === $modName) {
-                        $totalCountForMod += (int) $m['count'];
-                        if (!$modDesc && !empty($m['description'])) {
-                            $modDesc = $m['description'];
-                        }
-                        if (!$firstModId) {
-                            $firstModId = $m['id'];
-                        }
-                    }
+                $modName = $m['name'];
+                if (!isset($seenModNames[$modName])) {
+                    $seenModNames[$modName] = [
+                        'id' => (string) $m['id'],
+                        'name' => $modName,
+                        'count' => 0,
+                        'description' => $m['description'] ?? '',
+                    ];
                 }
+                $seenModNames[$modName]['count'] += (int) $m['count'];
             }
-            $allModulesFlat[] = [
-                'id' => $firstModId ? (string) $firstModId : Str::slug($modName),
-                'name' => $modName,
-                'count' => $totalCountForMod,
-                'description' => $modDesc,
-            ];
         }
+        $allModulesFlat = array_values($seenModNames);
 
         array_unshift($allModulesFlat, [
             'id' => 'all-modules',
