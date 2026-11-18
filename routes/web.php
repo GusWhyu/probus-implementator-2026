@@ -21,6 +21,7 @@ use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\BankSolusiController;
 use App\Http\Controllers\MenuSystemController;
 use App\Http\Controllers\KontenSayaController;
+use App\Http\Controllers\WhatsAppSupportController;
 
 /*
 |--------------------------------------------------------------------------
@@ -82,6 +83,13 @@ Route::get('/menu-system/{id}/edit', [MenuSystemController::class, 'edit'])->mid
 Route::match(['put', 'post'], '/menu-system/{id}', [MenuSystemController::class, 'update'])->middleware(['auth'])->name('menu-system.update');
 Route::match(['delete', 'get'], '/menu-system/{id}/delete', [MenuSystemController::class, 'destroy'])->middleware(['auth'])->name('menu-system.destroy');
 Route::post('/menu-system/auto-seed/{kategori_id}', [MenuSystemController::class, 'autoSeedCategory'])->middleware(['auth'])->name('menu-system.auto-seed');
+
+// Master WhatsApp Support Routes
+Route::get('/whatsapp-support', [WhatsAppSupportController::class, 'index'])->middleware(['auth'])->name('whatsapp-support.index');
+Route::post('/whatsapp-support', [WhatsAppSupportController::class, 'store'])->middleware(['auth'])->name('whatsapp-support.store');
+Route::match(['put', 'post'], '/whatsapp-support/{id}', [WhatsAppSupportController::class, 'update'])->middleware(['auth'])->name('whatsapp-support.update');
+Route::match(['delete', 'get'], '/whatsapp-support/{id}/delete', [WhatsAppSupportController::class, 'destroy'])->middleware(['auth'])->name('whatsapp-support.destroy');
+Route::post('/whatsapp-support/{id}/toggle-status', [WhatsAppSupportController::class, 'toggleStatus'])->middleware(['auth'])->name('whatsapp-support.toggle-status');
 Route::get('/laporan/export-excel', [HomeController::class, 'exportExcel'])->middleware(['auth'])->name('laporan.export_excel');
 Route::post('/laporan/{id}/proses-nilai', [HomeController::class, 'prosesNilai'])->middleware(['auth'])->name('laporan.proses_nilai');
 Route::post('/laporan/proses-semua-nilai', [HomeController::class, 'prosesSemuaNilai'])->middleware(['auth'])->name('laporan.proses_semua');

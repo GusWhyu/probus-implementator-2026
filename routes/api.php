@@ -31,3 +31,4 @@ Route::prefix('bank-solusi')->group(function () {
 });
 
 Route::get('/manual-books', [\App\Http\Controllers\Api\BankSolusiApiController::class, 'manualBooks']);
+Route::get('/whatsapp-supports', [\App\Http\Controllers\Api\BankSolusiApiController::class, 'whatsappSupports']);

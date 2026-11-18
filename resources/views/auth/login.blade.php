@@ -62,7 +62,7 @@
                 </p>
 
                 <div class="mt-8">
-                    <a href="https://probussystem.com" target="_blank" class="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-white text-blue-900 text-xs sm:text-sm font-bold shadow-lg shadow-blue-950/20 hover:bg-sky-50 hover:shadow-xl hover:-translate-y-0.5 transition-all duration-200 group">
+                    <a href="https://help-center.probussystem.com/" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-white text-blue-900 text-xs sm:text-sm font-bold shadow-lg shadow-blue-950/20 hover:bg-sky-50 hover:shadow-xl hover:-translate-y-0.5 transition-all duration-200 group">
                         <span>View more</span>
                         <i class="fa-solid fa-arrow-right text-xs transform group-hover:translate-x-1 transition-transform"></i>
                     </a>

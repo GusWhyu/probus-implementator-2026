@@ -9,6 +9,7 @@ use App\Models\Article;
 use App\Models\ManualBook;
 use App\Models\Kategori;
 use App\Models\MenuSystem;
+use App\Models\WhatsAppSupport;
 
 class BankSolusiApiController extends Controller
 {
@@ -188,6 +189,39 @@ class BankSolusiApiController extends Controller
         return response()->json([
             'success' => true,
             'data' => $manuals,
+        ]);
+    }
+
+    /**
+     * Endpoint Publik: Daftar Kontak WhatsApp Support Aktif
+     * GET /api/whatsapp-supports
+     */
+    public function whatsappSupports()
+    {
+        $contacts = WhatsAppSupport::where('is_active', true)
+            ->orderBy('order', 'asc')
+            ->orderBy('id', 'asc')
+            ->get()
+            ->map(function ($c) {
+                return [
+                    'id' => $c->id,
+                    'name' => $c->name,
+                    'badge' => $c->badge,
+                    'description' => $c->description,
+                    'phone_number' => $c->phone_number,
+                    'clean_phone_number' => $c->clean_phone_number,
+                    'wa_url' => $c->wa_url,
+                    'icon' => $c->icon,
+                    'badge_color' => $c->badge_color,
+                    'order' => $c->order,
+                ];
+            });
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Daftar kontak WhatsApp support berhasil diambil.',
+            'total' => $contacts->count(),
+            'data' => $contacts,
         ]);
     }
 }

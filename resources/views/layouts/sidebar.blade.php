@@ -143,6 +143,15 @@
                         <span class="text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded tracking-wider bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20">MASTER</span>
                     </a>
                 </li>
+                <li>
+                    <a href="{{ route('whatsapp-support.index') }}" class="flex items-center justify-between px-3 py-2 text-sm {{ request()->routeIs('whatsapp-support.*') ? 'text-blue-600 bg-blue-50 dark:bg-blue-900/30 font-medium' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800' }} rounded-lg transition-colors group">
+                        <div class="flex items-center">
+                            <i class="fa-brands fa-whatsapp w-5 text-center mr-2 {{ request()->routeIs('whatsapp-support.*') ? 'text-emerald-500' : 'text-slate-400 group-hover:text-emerald-500' }} transition-colors text-base"></i>
+                            <span>WhatsApp Support</span>
+                        </div>
+                        <span class="text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded tracking-wider bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">MASTER</span>
+                    </a>
+                </li>
             </ul>
         </div>
 
