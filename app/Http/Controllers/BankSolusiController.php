@@ -159,6 +159,11 @@ class BankSolusiController extends Controller
             $moduleName = $firstMs ? $firstMs->name : 'Umum';
             $moduleId = $firstMs ? (string) $firstMs->id : 'all-modules';
 
+            $rawExcerpt = $art->summary ?: $art->content;
+            $decoded = html_entity_decode(strip_tags($rawExcerpt), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+            $cleanExcerpt = trim(preg_replace('/[\s\x{00A0}\x{200B}]+/u', ' ', $decoded));
+            $excerpt = Str::limit($cleanExcerpt, 140);
+
             $solutions[] = [
                 'id' => $art->id,
                 'system_id' => $systemId,
@@ -168,7 +173,7 @@ class BankSolusiController extends Controller
                 'audience' => $art->visibility === 'publik' ? 'klien' : 'internal',
                 'audience_label' => $art->visibility === 'publik' ? 'BLOG KLIEN' : 'INTERNAL',
                 'title' => $art->title,
-                'excerpt' => $art->summary ? $art->summary : Str::limit(strip_tags($art->content), 120),
+                'excerpt' => $excerpt,
                 'content' => $art->content,
                 'author' => $art->user ? $art->user->name : 'Implementator',
                 'date' => $art->created_at ? $art->created_at->format('d M Y') : date('d M Y'),
@@ -214,9 +219,10 @@ class BankSolusiController extends Controller
             'summary' => 'nullable|string',
         ]);
 
-        $summary = $request->summary;
+        $summary = $request->filled('summary') ? trim($request->summary) : null;
         if (empty($summary)) {
-            $cleanText = trim(preg_replace('/\s+/', ' ', strip_tags($request->content)));
+            $rawText = html_entity_decode(strip_tags($request->content), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+            $cleanText = trim(preg_replace('/[\s\x{00A0}\x{200B}]+/u', ' ', $rawText));
             $summary = Str::limit($cleanText, 140);
         }
 
@@ -376,9 +382,10 @@ class BankSolusiController extends Controller
             'summary' => 'nullable|string',
         ]);
 
-        $summary = $request->summary;
+        $summary = $request->filled('summary') ? trim($request->summary) : null;
         if (empty($summary)) {
-            $cleanText = trim(preg_replace('/\s+/', ' ', strip_tags($request->content)));
+            $rawText = html_entity_decode(strip_tags($request->content), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+            $cleanText = trim(preg_replace('/[\s\x{00A0}\x{200B}]+/u', ' ', $rawText));
             $summary = Str::limit($cleanText, 140);
         }
 

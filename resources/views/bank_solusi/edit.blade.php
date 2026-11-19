@@ -8,6 +8,7 @@ function editArtikelSolusi() {
                 selectedCategoryId: '{{ $currentCategoryId }}',
                 selectedModuleId: '{{ $currentModuleId }}',
                 articleTitle: @json($article->title),
+                articleSummary: @json($article->summary ?? ''),
                 isSubmitting: false,
                 submitTarget: null,
                 wordCount: 0,
@@ -256,6 +257,7 @@ function editArtikelSolusi() {
 
                     const payload = {
                         title: title,
+                        summary: (this.articleSummary || '').trim(),
                         visibility: this.visibility,
                         status: targetStatus,
                         menu_system_id: this.selectedModuleId,
@@ -496,12 +498,29 @@ function editArtikelSolusi() {
             {{-- JUDUL ARTIKEL SOLUSI --}}
             <div class="mt-5">
                 <label class="block text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-400 mb-1.5">
-                    JUDUL ARTIKEL SOLUSI
+                    JUDUL ARTIKEL SOLUSI <span class="text-rose-500">*</span>
                 </label>
                 <input type="text" 
                        x-model="articleTitle" 
                        placeholder="Masukkan judul artikel solusi panduan..." 
                        class="w-full px-4 py-3.5 bg-white dark:bg-[#0e172a] border border-slate-200 dark:border-slate-700/80 rounded-xl text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 shadow-xs transition-all">
+            </div>
+
+            {{-- DESKRIPSI / RINGKASAN SINGKAT (SUMMARY) --}}
+            <div class="mt-5">
+                <div class="flex items-center justify-between mb-1.5">
+                    <label class="block text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-400">
+                        DESKRIPSI / RINGKASAN SINGKAT (SUMMARY)
+                    </label>
+                    <span class="text-[10px] font-semibold text-slate-400" x-text="`${(articleSummary || '').length} karakter`"></span>
+                </div>
+                <textarea x-model="articleSummary" 
+                          rows="3" 
+                          placeholder="Tuliskan ringkasan / deskripsi singkat artikel di sini (akan tampil di kartu Bank Solusi & Portal Publik). Jika dikosongkan, ringkasan akan dibuat otomatis dari isi artikel." 
+                          class="w-full px-4 py-3 bg-white dark:bg-[#0e172a] border border-slate-200 dark:border-slate-700/80 rounded-xl text-xs sm:text-sm font-medium text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 shadow-xs transition-all placeholder:text-slate-400 resize-y"></textarea>
+                <p class="text-[11px] text-slate-400 mt-1">
+                    Deskripsi ini akan muncul di kartu ringkasan artikel agar isi kartu rapi dan tidak mengambil kalimat pembuka editor secara acak.
+                </p>
             </div>
         </div>
 
