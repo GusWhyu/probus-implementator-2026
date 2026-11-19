@@ -162,9 +162,9 @@ class BankSolusiApiController extends Controller
      */
     public function manualBooks(Request $request)
     {
-        $query = ManualBook::where('visibility', 'publik')
-            ->where('status', 'published')
+        $query = ManualBook::where('status', 'published')
             ->with(['user', 'menuSystems.kategori'])
+            ->orderBy('order', 'asc')
             ->orderBy('created_at', 'desc');
 
         if ($request->filled('module_id')) {
@@ -176,10 +176,15 @@ class BankSolusiApiController extends Controller
 
         $manuals = $query->get()->map(function ($mb) {
             $ms = $mb->menuSystems->first();
+            $rawSummary = $mb->description ?: $mb->content;
+            $decoded = html_entity_decode(strip_tags($rawSummary), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+            $cleanSummary = trim(preg_replace('/[\s\x{00A0}\x{200B}]+/u', ' ', $decoded));
+
             return [
                 'id' => $mb->id,
+                'parent_id' => $mb->parent_id,
                 'title' => $mb->title,
-                'summary' => $mb->summary,
+                'summary' => Str::limit($cleanSummary, 140),
                 'content' => $mb->content,
                 'system' => ($ms && $ms->kategori) ? [
                     'id' => $ms->kategori->id,
