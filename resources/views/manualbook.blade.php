@@ -1756,10 +1756,10 @@
                             <div class="px-2.5 py-2 rounded-lg flex items-center justify-between cursor-pointer group transition-colors"
                                 :class="String(activeModuleId) === String(mod.id)
                                      ? 'bg-slate-100 dark:bg-slate-800/80 text-blue-600 dark:text-blue-400 font-bold'
-                                     : 'text-slate-800 dark:text-slate-200 font-semibold hover:bg-slate-50 dark:hover:bg-slate-800/40'"
+                                     : 'text-slate-800 dark:text-slate-200 font-bold hover:bg-slate-50 dark:hover:bg-slate-800/40'"
                                 @click="toggleModule(mod.id)">
                                 <div class="min-w-0 flex items-center gap-2">
-                                    <h3 class="text-xs sm:text-[13px] truncate" x-text="mod.title"></h3>
+                                    <h3 class="text-[13px] sm:text-[13.5px] font-bold truncate tracking-tight" x-text="mod.title"></h3>
                                 </div>
                                 <div class="flex items-center gap-1 shrink-0">
                                     <button type="button" @click.stop="openEditModuleModal(mod)"
@@ -1779,7 +1779,7 @@
 
                             {{-- Sub Menu Menjorok ke Dalam (Tree Indent Style) --}}
                             <div x-show="expandedModules[mod.id]"
-                                class="ml-3.5 pl-3 border-l-2 border-slate-200 dark:border-slate-800 my-1 space-y-0.5">
+                                class="ml-2 pl-2 border-l-2 border-slate-200 dark:border-slate-800 my-1 space-y-0.5">
                                 <template x-for="(sub, sIdx) in (mod.sub_menus || mod.chapters || [])" :key="sub.id">
                                     <div class="space-y-0.5">
                                         {{-- Sub Menu Induk (Level 1) --}}
@@ -1818,9 +1818,9 @@
                                                     title="Geser posisi sub menu"></i>
 
                                                 <span class="text-[11px] font-bold shrink-0 font-mono"
-                                                    :class="String(activeModuleId) === String(mod.id) && String(activeSubMenuId) === String(sub.id) && !isNewSubMenu ? 'text-blue-100' : 'text-slate-400'"
+                                                    :class="String(activeModuleId) === String(mod.id) && String(activeSubMenuId) === String(sub.id) && !isNewSubMenu ? 'text-blue-100' : 'text-slate-400 dark:text-slate-500'"
                                                     x-text="'#' + sub.order"></span>
-                                                <span class="text-xs truncate font-medium" x-text="sub.title"></span>
+                                                <span class="text-xs sm:text-[12.5px] truncate font-semibold" x-text="sub.title"></span>
 
                                                 {{-- Badge Jumlah Sub-Sub Menu --}}
                                                 <template x-if="sub.children && sub.children.length > 0">
@@ -1885,7 +1885,7 @@
 
                                         {{-- Sub-Sub Menu Bertingkat (Anak / Level 2) --}}
                                         <div x-show="expandedSubMenus[sub.id]"
-                                            class="ml-5 pl-2.5 border-l-2 border-indigo-200/70 dark:border-indigo-900/40 my-1 space-y-0.5">
+                                            class="ml-3.5 pl-2.5 border-l-2 border-indigo-200/70 dark:border-indigo-900/40 my-1 space-y-0.5">
                                             <template x-for="(child, cIdx) in (sub.children || [])" :key="child.id">
                                                 <div @click="selectSubMenu(mod.id, child.id, sub.id)"
                                                     :class="[
@@ -1901,7 +1901,7 @@
                                                                 ? 'text-indigo-100'
                                                                 : 'text-indigo-600 dark:text-indigo-400'"
                                                             x-text="'#' + sub.order + '.' + child.order"></span>
-                                                        <span class="text-xs truncate font-medium" x-text="cleanChildTitle(child.title)"></span>
+                                                        <span class="text-[11.5px] truncate font-medium" x-text="cleanChildTitle(child.title)"></span>
                                                     </div>
 
                                                     <div class="flex items-center gap-1 shrink-0">
@@ -1952,7 +1952,7 @@
                                                         <i class="fa-solid fa-turn-up rotate-90 text-[8px] opacity-60 shrink-0"></i>
                                                         <span class="text-[10px] font-bold font-mono text-indigo-100 shrink-0"
                                                             x-text="'#' + sub.order + '.' + subMenuOrder"></span>
-                                                        <span class="text-xs truncate italic"
+                                                        <span class="text-[11.5px] truncate italic"
                                                             x-text="(subMenuTitle || '').trim() ? subMenuTitle : 'Sub-Sub Menu Baru (Sedang Dibuat...)'"></span>
                                                     </div>
                                                     <span class="text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-white/20 text-white uppercase tracking-wider shrink-0">
@@ -1963,7 +1963,7 @@
 
                                             {{-- Tombol Cepat Tambah Sub-Sub Menu di bawah list anak --}}
                                             <button type="button" @click="startNewChildSubMenu(mod.id, sub.id)"
-                                                class="w-full text-left px-2 py-1 rounded-md text-[10.5px] font-semibold text-slate-400 dark:text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50/50 dark:hover:bg-indigo-950/20 flex items-center gap-1.5 transition-colors cursor-pointer">
+                                                class="w-full text-left px-2 py-1 rounded-md text-[11px] font-medium text-slate-400 dark:text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50/50 dark:hover:bg-indigo-950/20 flex items-center gap-1.5 transition-colors cursor-pointer">
                                                 <i class="fa-solid fa-plus text-[8px]"></i>
                                                 <span>Tambah Sub-Sub Menu</span>
                                             </button>
@@ -1985,7 +1985,7 @@
                                         <div class="flex items-center gap-2 min-w-0">
                                             <span class="text-[11px] font-bold text-blue-100 shrink-0"
                                                 x-text="'#' + subMenuOrder"></span>
-                                            <span class="text-xs truncate italic"
+                                            <span class="text-xs sm:text-[12.5px] truncate italic font-semibold"
                                                 x-text="(subMenuTitle || '').trim() ? subMenuTitle : 'Sub Menu Baru (Sedang Dibuat...)'"></span>
                                         </div>
                                         <span
