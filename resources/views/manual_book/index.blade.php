@@ -234,13 +234,28 @@
                     return title.replace(/^\d+[\.\s\-_]+/, '').trim() || title;
                 },
 
-                // Seluruh bab dari modul yang sedang dibaca (urut membaca)
+                // Seluruh bab dari modul yang sedang dibaca (urut membaca sekuensial termasuk sub-sub menu)
                 get allReadingChapters() {
                     if (!this.readingModule || !this.readingModule.chapters) return [];
-                    return this.readingModule.chapters.map((c, idx) => ({
-                        ...c,
-                        menuSystemId: this.readingModule.id
-                    }));
+                    const list = [];
+                    this.readingModule.chapters.forEach((c, idx) => {
+                        list.push({
+                            ...c,
+                            displayBadge: '#' + (c.order || (idx + 1)),
+                            menuSystemId: this.readingModule.id
+                        });
+                        if (c.children && c.children.length > 0) {
+                            c.children.forEach((child, cIdx) => {
+                                list.push({
+                                    ...child,
+                                    parentTitle: c.title,
+                                    displayBadge: '#' + (c.order || (idx + 1)) + '.' + (child.order || (cIdx + 1)),
+                                    menuSystemId: this.readingModule.id
+                                });
+                            });
+                        }
+                    });
+                    return list;
                 },
 
                 // Bab yang sedang aktif dibaca
@@ -838,14 +853,14 @@
                             <template x-if="readingModule">
                                 <div class="space-y-1">
                                     <template x-for="(chap, cIdx) in (readingModule.chapters || [])" :key="'toc-chap-' + chap.id">
-                                        <div x-show="!tocSearchQuery || cleanChapterTitle(chap.title).toLowerCase().includes(tocSearchQuery.toLowerCase())">
+                                        <div class="space-y-1" x-show="!tocSearchQuery || cleanChapterTitle(chap.title).toLowerCase().includes(tocSearchQuery.toLowerCase()) || (chap.children && chap.children.some(ch => cleanChapterTitle(ch.title).toLowerCase().includes(tocSearchQuery.toLowerCase())))">
                                             <button type="button" 
                                                     @click="selectReadingChapter(chap.id)" 
                                                     :class="currentReadingChapter && String(currentReadingChapter.id) === String(chap.id)
                                                         ? 'bg-blue-600 text-white font-bold shadow-xs'
                                                         : 'text-slate-700 dark:text-slate-300 hover:bg-slate-200/60 dark:hover:bg-slate-800/80 font-medium'"
-                                                    class="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-left transition-colors cursor-pointer group">
-                                                <div class="flex items-center gap-2.5 truncate">
+                                                    class="w-full flex items-center justify-between px-3 py-2 rounded-xl text-left transition-colors cursor-pointer group">
+                                                <div class="flex items-center gap-2 truncate">
                                                     <span :class="currentReadingChapter && String(currentReadingChapter.id) === String(chap.id)
                                                             ? 'bg-white/20 text-white'
                                                             : 'bg-slate-200/80 dark:bg-slate-800 text-slate-600 dark:text-slate-400'"
@@ -856,6 +871,34 @@
                                                 <i x-show="currentReadingChapter && String(currentReadingChapter.id) === String(chap.id)" 
                                                    class="fa-solid fa-chevron-right text-[10px] shrink-0 ml-1"></i>
                                             </button>
+
+                                            {{-- Sub-sub menu di dalam modal TOC --}}
+                                            <template x-if="chap.children && chap.children.length > 0">
+                                                <div class="ml-4 pl-2 border-l border-slate-200 dark:border-slate-800 space-y-0.5">
+                                                    <template x-for="(ch, chIdx) in chap.children" :key="'toc-child-' + ch.id">
+                                                        <div x-show="!tocSearchQuery || cleanChapterTitle(ch.title).toLowerCase().includes(tocSearchQuery.toLowerCase())">
+                                                            <button type="button" 
+                                                                    @click="selectReadingChapter(ch.id)" 
+                                                                    :class="currentReadingChapter && String(currentReadingChapter.id) === String(ch.id)
+                                                                        ? 'bg-indigo-600 text-white font-bold shadow-xs'
+                                                                        : 'text-slate-600 dark:text-slate-400 hover:bg-slate-200/60 dark:hover:bg-slate-800/60 font-medium'"
+                                                                    class="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-left transition-colors cursor-pointer group text-[11.5px]">
+                                                                <div class="flex items-center gap-1.5 truncate">
+                                                                    <i class="fa-solid fa-turn-up rotate-90 text-[8px] opacity-40 shrink-0"></i>
+                                                                    <span :class="currentReadingChapter && String(currentReadingChapter.id) === String(ch.id)
+                                                                            ? 'text-indigo-100'
+                                                                            : 'text-indigo-600 dark:text-indigo-400 font-mono'"
+                                                                          class="text-[10px] font-bold shrink-0"
+                                                                          x-text="'#' + (chap.order || (cIdx + 1)) + '.' + (ch.order || (chIdx + 1))"></span>
+                                                                    <span class="truncate" x-text="cleanChapterTitle(ch.title)"></span>
+                                                                </div>
+                                                                <i x-show="currentReadingChapter && String(currentReadingChapter.id) === String(ch.id)" 
+                                                                   class="fa-solid fa-chevron-right text-[9px] shrink-0 ml-1"></i>
+                                                            </button>
+                                                        </div>
+                                                    </template>
+                                                </div>
+                                            </template>
                                         </div>
                                     </template>
 
@@ -895,8 +938,14 @@
                                         <i class="fa-solid fa-chevron-right text-[9px] text-slate-300 dark:text-slate-600"></i>
                                         <span x-text="readingModule ? readingModule.raw_name || readingModule.title : ''"></span>
                                         <i class="fa-solid fa-chevron-right text-[9px] text-slate-300 dark:text-slate-600"></i>
+                                        <template x-if="currentReadingChapter.parentTitle">
+                                            <span class="inline-flex items-center gap-1.5">
+                                                <span class="text-slate-500 font-medium" x-text="currentReadingChapter.parentTitle"></span>
+                                                <i class="fa-solid fa-chevron-right text-[9px] text-slate-300 dark:text-slate-600"></i>
+                                            </span>
+                                        </template>
                                         <span class="text-blue-600 dark:text-blue-400 font-bold" 
-                                              x-text="'Sub Menu #' + (currentReadingChapter.order || (currentReadingIndex + 1))"></span>
+                                              x-text="currentReadingChapter.displayBadge ? ('Sub Menu ' + currentReadingChapter.displayBadge) : ('Sub Menu #' + (currentReadingChapter.order || (currentReadingIndex + 1)))"></span>
                                     </div>
 
                                     {{-- Judul Sub Menu Besar --}}

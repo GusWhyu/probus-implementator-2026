@@ -59,7 +59,7 @@ class BankSolusiApiController extends Controller
                 'id' => $art->id,
                 'title' => $art->title,
                 'slug' => Str::slug($art->title),
-                'summary' => $art->summary,
+                'summary' => $art->summary ? trim(preg_replace('/[\s\x{00A0}\x{200B}]+/u', ' ', html_entity_decode($art->summary, ENT_QUOTES | ENT_HTML5, 'UTF-8'))) : Str::limit(trim(preg_replace('/[\s\x{00A0}\x{200B}]+/u', ' ', html_entity_decode(strip_tags($art->content), ENT_QUOTES | ENT_HTML5, 'UTF-8'))), 140),
                 'content' => $art->content,
                 'system' => ($ms && $ms->kategori) ? [
                     'id' => $ms->kategori->id,
@@ -114,7 +114,7 @@ class BankSolusiApiController extends Controller
                 'id' => $art->id,
                 'title' => $art->title,
                 'slug' => Str::slug($art->title),
-                'summary' => $art->summary,
+                'summary' => $art->summary ? trim(preg_replace('/[\s\x{00A0}\x{200B}]+/u', ' ', html_entity_decode($art->summary, ENT_QUOTES | ENT_HTML5, 'UTF-8'))) : Str::limit(trim(preg_replace('/[\s\x{00A0}\x{200B}]+/u', ' ', html_entity_decode(strip_tags($art->content), ENT_QUOTES | ENT_HTML5, 'UTF-8'))), 140),
                 'content' => $art->content,
                 'system' => ($ms && $ms->kategori) ? [
                     'id' => $ms->kategori->id,

@@ -84,16 +84,53 @@ class ManualBookController extends Controller
 
             foreach ($cat->menuSystems as $ms) {
                 // Bab / Sub Menu langsung di bawah modul
-                $chapters = [];
+                $allChapters = [];
+                $allChaptersById = [];
+                $rootChapters = [];
+                $childChapters = [];
+
                 foreach ($ms->manualBooks as $idx => $book) {
-                    $chapters[] = $this->formatChapterItem($book, $idx);
+                    $item = $this->formatChapterItem($book, $idx);
+                    $allChapters[] = $item;
+                    $allChaptersById[$item['id']] = $item;
+                    if ($item['parent_id']) {
+                        $childChapters[] = $item;
+                    } else {
+                        $rootChapters[] = $item;
+                    }
+                }
+
+                // Susun hierarki child ke dalam parent
+                foreach ($childChapters as $child) {
+                    $parentId = $child['parent_id'];
+                    if (isset($allChaptersById[$parentId])) {
+                        $allChaptersById[$parentId]['children'][] = $child;
+                    } else {
+                        // Jika parent tidak ditemukan pada modul ini, jadikan sebagai root
+                        $rootChapters[] = $child;
+                    }
+                }
+
+                // Urutkan children berdasarkan order
+                foreach ($allChaptersById as $idKey => $itemVal) {
+                    if (!empty($allChaptersById[$idKey]['children'])) {
+                        usort($allChaptersById[$idKey]['children'], function ($a, $b) {
+                            return ($a['order'] ?? 0) <=> ($b['order'] ?? 0);
+                        });
+                    }
+                }
+
+                // Re-sync array rootChapters dengan referensi dari allChaptersById (yang sudah memiliki children)
+                $treeChapters = [];
+                foreach ($rootChapters as $root) {
+                    $treeChapters[] = $allChaptersById[$root['id']];
                 }
 
                 $cleanName = trim(preg_replace('/^\d+[\.\s\-]+/', '', $ms->name));
                 $cleanName = $cleanName ?: $ms->name;
 
-                $totalChapters = count($chapters);
-                $publishedCount = count(array_filter($chapters, function ($c) {
+                $totalChapters = count($allChapters);
+                $publishedCount = count(array_filter($allChapters, function ($c) {
                     return $c['status'] === 'published';
                 }));
 
@@ -127,8 +164,8 @@ class ManualBookController extends Controller
                     'chapterCount' => $totalChapters,
                     'publishedCount' => $publishedCount,
                     'breadcrumb' => strtoupper($cat->name) . ' • ' . strtoupper($cleanName) . ' • BUKU PANDUAN PENGGUNAAN',
-                    'sub_menus' => $chapters,
-                    'chapters' => $chapters,
+                    'sub_menus' => $treeChapters,
+                    'chapters' => $treeChapters,
                 ];
             }
 
@@ -197,6 +234,7 @@ class ManualBookController extends Controller
 
         return [
             'id' => (string) $book->id,
+            'parent_id' => $book->parent_id ? (string) $book->parent_id : null,
             'order' => $orderNum,
             'title' => $book->title,
             'description' => $book->description ?: '',
@@ -213,6 +251,7 @@ class ManualBookController extends Controller
             'updated_at_formatted' => $book->updated_at ? $book->updated_at->format('d M Y, H:i') : '-',
             'updated_at_relative' => $book->updated_at ? $book->updated_at->format('d M Y, H:i') : '-',
             'logs' => $logs,
+            'children' => [],
         ];
     }
 
@@ -224,6 +263,8 @@ class ManualBookController extends Controller
         $request->validate([
             'menu_system_id' => 'required|exists:menu_systems,id',
             'chapter_id' => 'nullable',
+            'sub_menu_id' => 'nullable',
+            'parent_id' => 'nullable',
             'order' => 'nullable|integer',
             'title' => 'required|string|max:100',
             'description' => 'nullable|string',
@@ -234,6 +275,7 @@ class ManualBookController extends Controller
         $menuSystem = MenuSystem::findOrFail($request->menu_system_id);
         $userId = Auth::id() ? Auth::id() : 1;
         $actorName = Auth::user()->name ?? 'Superadministrator';
+        $parentId = ($request->filled('parent_id') && is_numeric($request->parent_id)) ? (int) $request->parent_id : null;
 
         $targetChapterId = $request->sub_menu_id ?: $request->chapter_id;
         $manualBook = null;
@@ -252,10 +294,18 @@ class ManualBookController extends Controller
                     ->first();
                 $order = ($existingPivot && $existingPivot->order) ? (int) $existingPivot->order : ($manualBook->order ?: 1);
             } else {
-                $maxOrder = \DB::table('menu_has_manual_books')
-                    ->where('menu_system_id', $menuSystem->id)
-                    ->max('order');
-                $order = $maxOrder ? $maxOrder + 1 : 1;
+                if ($parentId) {
+                    $maxChildOrder = ManualBook::where('parent_id', $parentId)
+                        ->whereHas('menuSystems', function ($q) use ($menuSystem) {
+                            $q->where('menu_systems.id', $menuSystem->id);
+                        })->max('order');
+                    $order = $maxChildOrder ? $maxChildOrder + 1 : 1;
+                } else {
+                    $maxOrder = \DB::table('menu_has_manual_books')
+                        ->where('menu_system_id', $menuSystem->id)
+                        ->max('order');
+                    $order = $maxOrder ? $maxOrder + 1 : 1;
+                }
             }
         }
 
@@ -267,15 +317,20 @@ class ManualBookController extends Controller
         if ($manualBook) {
             $oldStatus = $manualBook->status;
 
-            // Catat pengedit ke updated_by tanpa menimpa pembuat awal (user_id)
-            $manualBook->update([
+            $updateData = [
                 'updated_by' => $userId,
                 'title' => trim($request->title),
                 'order' => $order,
                 'description' => $request->description,
                 'content' => $content,
                 'status' => $request->status,
-            ]);
+            ];
+            if ($request->has('parent_id')) {
+                $updateData['parent_id'] = $parentId;
+            }
+
+            // Catat pengedit ke updated_by tanpa menimpa pembuat awal (user_id)
+            $manualBook->update($updateData);
 
             // Sinkronkan juga nomor urutan khusus di modul ini pada tabel pivot
             \DB::table('menu_has_manual_books')
@@ -304,10 +359,11 @@ class ManualBookController extends Controller
             );
 
         } else {
-            // Pembuatan sub menu baru
+            // Pembuatan sub menu baru (bisa root sub menu atau nested child sub menu)
             $manualBook = ManualBook::create([
                 'user_id' => $userId,
                 'updated_by' => $userId,
+                'parent_id' => $parentId,
                 'title' => trim($request->title),
                 'order' => $order,
                 'description' => $request->description,
@@ -316,11 +372,12 @@ class ManualBookController extends Controller
             ]);
             $menuSystem->manualBooks()->attach($manualBook->id, ['order' => $order]);
 
+            $typeLabel = $parentId ? 'Sub-sub menu' : 'Sub menu';
             $statusText = $request->status === 'published' ? 'Terbit' : 'Draft';
             ArticleAndManualBooksLog::record(
                 $manualBook,
                 'CREATED',
-                "Sub menu panduan \"{$manualBook->title}\" berhasil dibuat ({$statusText}) oleh {$actorName}.",
+                "{$typeLabel} panduan \"{$manualBook->title}\" berhasil dibuat ({$statusText}) oleh {$actorName}.",
                 $userId
             );
         }
@@ -330,9 +387,10 @@ class ManualBookController extends Controller
         $manualBook->setRelation('pivot', (object) ['order' => $order]);
         $chapterData = $this->formatChapterItem($manualBook, $order - 1);
 
+        $typeLabel = $manualBook->parent_id ? 'Sub-Sub Menu' : 'Sub Menu';
         $message = $request->status === 'published'
-            ? 'Sub Menu "' . $manualBook->title . '" berhasil disimpan dan dipublikasikan!'
-            : 'Draft Sub Menu "' . $manualBook->title . '" berhasil disimpan!';
+            ? $typeLabel . ' "' . $manualBook->title . '" berhasil disimpan dan dipublikasikan!'
+            : 'Draft ' . $typeLabel . ' "' . $manualBook->title . '" berhasil disimpan!';
 
         return response()->json([
             'success' => true,
@@ -353,15 +411,28 @@ class ManualBookController extends Controller
 
         $menuSystemId = $request->input('menu_system_id');
         if ($menuSystemId) {
+            // Jika memiliki sub-sub menu (anak), lepas juga relasi anak dari modul spesifik ini
+            $childIds = ManualBook::where('parent_id', $manualBook->id)->pluck('id');
+            if ($childIds->isNotEmpty()) {
+                $menuSystem = MenuSystem::find($menuSystemId);
+                if ($menuSystem) {
+                    $menuSystem->manualBooks()->detach($childIds);
+                }
+            }
+
             // Lepas hanya dari modul menu_system spesifik ini
             $manualBook->menuSystems()->detach($menuSystemId);
 
-            // Jika panduan ini sudah tidak tertaut di modul manapun, baru hapus permanen
+            // Jika panduan ini sudah tidak tertaut di modul manapun, baru hapus permanen (cascade on delete menghapus anak otomatis)
             if ($manualBook->menuSystems()->count() === 0) {
                 $manualBook->delete();
             }
         } else {
             // Lepas relasi pivot dan hapus
+            $childIds = ManualBook::where('parent_id', $manualBook->id)->pluck('id');
+            if ($childIds->isNotEmpty()) {
+                \DB::table('menu_has_manual_books')->whereIn('manual_book_id', $childIds)->delete();
+            }
             $manualBook->menuSystems()->detach();
             $manualBook->delete();
         }
@@ -699,6 +770,8 @@ class ManualBookController extends Controller
                         ->where('menu_system_id', $request->menu_system_id)
                         ->where('manual_book_id', $id)
                         ->update(['order' => $order]);
+
+                    ManualBook::where('id', $id)->update(['order' => $order]);
                 }
             }
         });

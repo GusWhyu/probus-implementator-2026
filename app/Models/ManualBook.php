@@ -12,6 +12,7 @@ class ManualBook extends Model
     protected $table = 'manual_books';
 
     protected $fillable = [
+        'parent_id',
         'user_id',
         'updated_by',
         'title',
@@ -20,6 +21,24 @@ class ManualBook extends Model
         'content',
         'status', // 'draft' | 'published'
     ];
+
+    /**
+     * Relasi ke Parent Sub Menu (jika ini adalah sub-sub menu)
+     */
+    public function parent()
+    {
+        return $this->belongsTo(ManualBook::class, 'parent_id');
+    }
+
+    /**
+     * Relasi ke Anak Sub Menu (Sub-Sub Menu bertingkat)
+     */
+    public function children()
+    {
+        return $this->hasMany(ManualBook::class, 'parent_id')
+            ->orderBy('order', 'asc')
+            ->orderBy('id', 'asc');
+    }
 
     /**
      * Relasi ke User pembuat panduan (Created By)
