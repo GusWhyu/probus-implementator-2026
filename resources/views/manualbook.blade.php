@@ -373,6 +373,12 @@
                     }
                 },
 
+                // Pembersih judul anak agar tidak ada nomor berulang (misal "32. Inport Sale" -> "Inport Sale")
+                cleanChildTitle(title) {
+                    if (!title) return '';
+                    return title.replace(/^\d+[\.\s\-_]+/, '').trim() || title;
+                },
+
                 // Alias untuk kompatibilitas
                 selectChapter(id) {
                     this.selectSubMenu(this.activeModuleId, id);
@@ -526,6 +532,9 @@
                     const formData = new FormData();
                     formData.append('word_file', file);
                     formData.append('menu_system_id', this.currentModule.menu_system_id);
+                    if (this.activeParentSubMenuId) {
+                        formData.append('parent_id', this.activeParentSubMenuId);
+                    }
                     formData.append('_token', '{{ csrf_token() }}');
 
                     if (typeof Swal !== 'undefined') {
@@ -555,11 +564,31 @@
                         .then(data => {
                             if (typeof Swal !== 'undefined') Swal.close();
 
-                            // Masukkan sub menu baru hasil import Word
+                            // Cek apakah konteks impor saat ini adalah sub-sub menu (anak)
+                            const isChild = !!this.activeParentSubMenuId;
+
                             this.activeSubMenuId = 'new';
                             this.isNewSubMenu = true;
-                            this.subMenuOrder = data.order || 1;
-                            this.subMenuTitle = data.title || file.name.replace(/\.docx$/i, '');
+
+                            if (isChild) {
+                                const mod = this.currentModule;
+                                const subList = (mod && (mod.sub_menus || mod.chapters)) || [];
+                                const parent = subList.find(s => String(s.id) === String(this.activeParentSubMenuId));
+                                let nextChildOrder = 1;
+                                if (parent && parent.children && parent.children.length > 0) {
+                                    const maxOrder = Math.max(...parent.children.map(c => parseInt(c.order) || 0));
+                                    nextChildOrder = (maxOrder > 0 ? maxOrder : parent.children.length) + 1;
+                                }
+
+                                // Prioritaskan urutan anak yang sekuensial (1, 2, 3...)
+                                this.subMenuOrder = (data.order && data.order <= nextChildOrder) ? data.order : nextChildOrder;
+                                // Judul sub-sub menu bersih dari nomor prefix (misal: "32. Inport Sale" -> "Inport Sale")
+                                this.subMenuTitle = (data.title || file.name.replace(/\.docx$/i, '')).replace(/^\d+[\.\s\-_]+/, '').trim();
+                            } else {
+                                this.subMenuOrder = data.order || 1;
+                                this.subMenuTitle = data.title || file.name.replace(/\.docx$/i, '');
+                            }
+
                             this.subMenuDescription = 'Dokumen panduan diimpor dari file Word: ' + file.name;
                             this.subMenuStatus = 'draft';
 
@@ -567,12 +596,17 @@
                             const htmlContent = data.content || data.html || '';
                             this.setCanvasContent(htmlContent);
 
+                            const badgeDisplay = isChild && this.currentParentSubMenu
+                                ? `#${this.currentParentSubMenu.order}.${this.subMenuOrder}`
+                                : `#${this.subMenuOrder}`;
+                            const labelSub = isChild ? 'Nomor Sub-Sub Menu' : 'Nomor Sub Menu';
+
                             if (typeof Swal !== 'undefined') {
                                 Swal.fire({
                                     icon: 'success',
                                     title: 'Word Berhasil Diimpor!',
-                                    html: `Berhasil membaca <strong>${data.title}</strong>!<br>` +
-                                        `<span class="text-xs text-slate-500 dark:text-slate-400">Nomor Sub Menu: <strong>#${data.order}</strong> • Gambar diekstrak: <strong>${data.image_count || 0} berkas</strong>.</span><br><br>` +
+                                    html: `Berhasil membaca <strong>${this.subMenuTitle}</strong>!<br>` +
+                                        `<span class="text-xs text-slate-500 dark:text-slate-400">${labelSub}: <strong>${badgeDisplay}</strong> • Gambar diekstrak: <strong>${data.image_count || 0} berkas</strong>.</span><br><br>` +
                                         `<span class="text-xs text-blue-600 dark:text-blue-400 font-semibold">Teks dan gambar telah otomatis dimasukkan ke editor. Silakan periksa isi dan klik tombol "Simpan Sub Menu" di bawah.</span>`,
                                     confirmButtonColor: '#2563eb',
                                     confirmButtonText: 'Periksa & Lanjutkan'
@@ -604,7 +638,11 @@
                         return;
                     }
 
-                    const title = (this.subMenuTitle || '').trim();
+                    let title = (this.subMenuTitle || '').trim();
+                    if (this.activeParentSubMenuId) {
+                        // Pastikan judul sub-sub menu bersih dari angka prefix redundant (misal "32. Inport" -> "Inport")
+                        title = this.cleanChildTitle(title);
+                    }
                     if (!title) {
                         if (typeof Swal !== 'undefined') {
                             Swal.fire({
@@ -1863,7 +1901,7 @@
                                                                 ? 'text-indigo-100'
                                                                 : 'text-indigo-600 dark:text-indigo-400'"
                                                             x-text="'#' + sub.order + '.' + child.order"></span>
-                                                        <span class="text-xs truncate font-medium" x-text="child.title"></span>
+                                                        <span class="text-xs truncate font-medium" x-text="cleanChildTitle(child.title)"></span>
                                                     </div>
 
                                                     <div class="flex items-center gap-1 shrink-0">
@@ -2090,7 +2128,7 @@
                                     : 'bg-blue-100 dark:bg-blue-950/70 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800/60'"
                                 x-text="activeParentSubMenuId && currentParentSubMenu ? ('#' + currentParentSubMenu.order + '.' + subMenuOrder) : ('#' + subMenuOrder)"></span>
                             <h2 class="text-lg sm:text-xl font-black text-slate-800 dark:text-slate-100 tracking-tight leading-snug break-words flex-1"
-                                x-text="isNewSubMenu ? (activeParentSubMenuId && currentParentSubMenu ? 'Tambah Sub-Sub Menu Baru' : 'Tambah Sub Menu Baru') : (subMenuTitle || 'Sub Menu Panduan')">
+                                x-text="isNewSubMenu ? (activeParentSubMenuId && currentParentSubMenu ? 'Tambah Sub-Sub Menu Baru' : 'Tambah Sub Menu Baru') : (activeParentSubMenuId ? cleanChildTitle(subMenuTitle) : (subMenuTitle || 'Sub Menu Panduan'))">
                             </h2>
                         </div>
 

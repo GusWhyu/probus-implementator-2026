@@ -286,7 +286,20 @@ class ManualBookController extends Controller
         }
 
         $order = $request->order ? (int) $request->order : null;
-        if (!$order) {
+        if ($parentId) {
+            $maxChildOrder = ManualBook::where('parent_id', $parentId)
+                ->whereHas('menuSystems', function ($q) use ($menuSystem) {
+                    $q->where('menu_systems.id', $menuSystem->id);
+                })->max('order');
+            if (!$maxChildOrder) {
+                $maxChildOrder = ManualBook::where('parent_id', $parentId)->max('order') ?? 0;
+            }
+            $maxAllowed = (int) $maxChildOrder + 1;
+            // Jika order tidak dikirim atau nilainya meloncat jauh (misal nilai warisan 32 padahal baru 1 anak)
+            if (!$order || (!$manualBook && $order > $maxAllowed)) {
+                $order = $maxAllowed;
+            }
+        } elseif (!$order) {
             if ($manualBook) {
                 $existingPivot = \DB::table('menu_has_manual_books')
                     ->where('menu_system_id', $menuSystem->id)
@@ -294,19 +307,17 @@ class ManualBookController extends Controller
                     ->first();
                 $order = ($existingPivot && $existingPivot->order) ? (int) $existingPivot->order : ($manualBook->order ?: 1);
             } else {
-                if ($parentId) {
-                    $maxChildOrder = ManualBook::where('parent_id', $parentId)
-                        ->whereHas('menuSystems', function ($q) use ($menuSystem) {
-                            $q->where('menu_systems.id', $menuSystem->id);
-                        })->max('order');
-                    $order = $maxChildOrder ? $maxChildOrder + 1 : 1;
-                } else {
-                    $maxOrder = \DB::table('menu_has_manual_books')
-                        ->where('menu_system_id', $menuSystem->id)
-                        ->max('order');
-                    $order = $maxOrder ? $maxOrder + 1 : 1;
-                }
+                $maxOrder = \DB::table('menu_has_manual_books')
+                    ->where('menu_system_id', $menuSystem->id)
+                    ->max('order');
+                $order = $maxOrder ? $maxOrder + 1 : 1;
             }
+        }
+
+        // Sanitasi judul: jika ini sub-sub menu, bersihkan nomor prefix redundant (misal "32. Inport" -> "Inport")
+        $sanitizedTitle = trim($request->title);
+        if ($parentId) {
+            $sanitizedTitle = trim(preg_replace('/^\d+[\.\s\-_]+/', '', $sanitizedTitle)) ?: $sanitizedTitle;
         }
 
         $content = $request->content;
@@ -319,7 +330,7 @@ class ManualBookController extends Controller
 
             $updateData = [
                 'updated_by' => $userId,
-                'title' => trim($request->title),
+                'title' => $sanitizedTitle,
                 'order' => $order,
                 'description' => $request->description,
                 'content' => $content,
@@ -364,7 +375,7 @@ class ManualBookController extends Controller
                 'user_id' => $userId,
                 'updated_by' => $userId,
                 'parent_id' => $parentId,
-                'title' => trim($request->title),
+                'title' => $sanitizedTitle,
                 'order' => $order,
                 'description' => $request->description,
                 'content' => $content,
@@ -451,6 +462,7 @@ class ManualBookController extends Controller
     {
         $request->validate([
             'menu_system_id' => 'required|exists:menu_systems,id',
+            'parent_id' => 'nullable',
             'word_file' => 'required|file|max:25600', // maksimal 25 MB
         ]);
 
@@ -464,14 +476,60 @@ class ManualBookController extends Controller
         }
 
         $rawName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+        $parentId = ($request->filled('parent_id') && is_numeric($request->parent_id)) ? (int) $request->parent_id : null;
+        $menuSystemId = (int) $request->menu_system_id;
 
-        // Bersihkan nama & deteksi nomor urutan jika ada (misal: "12.Balance Sheet" -> order: 12, title: "12. Balance Sheet")
-        $order = 1;
-        $title = $rawName;
-        if (preg_match('/^(\d+)[\.\s_-]*(.*)$/', $rawName, $m)) {
-            $order = (int) $m[1];
-            $cleanTitle = trim($m[2]);
-            $title = $order . '. ' . ($cleanTitle ? $cleanTitle : $rawName);
+        // Bersihkan nama & deteksi nomor urutan jika ada
+        // Mendukung format:
+        // 1) "1.1 Title", "01.02 Title", "1.1. Title" -> format sub-sub menu bertingkat
+        // 2) "32. Inport Sale Database", "01 - Sales" -> format nomor tunggal dokumen
+        // 3) "Export Online" -> tanpa nomor
+        $cleanTitle = $rawName;
+        $detectedSubOrder = null;
+        $detectedSingleOrder = null;
+
+        if (preg_match('/^\d+\.(\d+)[\.\s_-]*(.*)$/', $rawName, $mSub)) {
+            $detectedSubOrder = (int) $mSub[1];
+            $cleanTitle = trim($mSub[2]);
+        } elseif (preg_match('/^(\d+)[\.\s_-]*(.*)$/', $rawName, $mSingle)) {
+            $detectedSingleOrder = (int) $mSingle[1];
+            $cleanTitle = trim($mSingle[2]);
+        }
+
+        if (empty($cleanTitle)) {
+            $cleanTitle = $rawName;
+        }
+
+        if ($parentId) {
+            // Ini adalah SUB-SUB MENU (fitur anak di bawah sub menu induk):
+            // Urutan penomoran anak harus sekuensial di dalam induk (1, 2, 3...)
+            // sehingga tampil sebagai 1.1, 1.2, 1.3... bukan nomor global file (misal 1.32)
+            if ($detectedSubOrder !== null && $detectedSubOrder > 0) {
+                $order = $detectedSubOrder;
+            } else {
+                $maxChildOrder = ManualBook::where('parent_id', $parentId)
+                    ->whereHas('menuSystems', function ($q) use ($menuSystemId) {
+                        $q->where('menu_systems.id', $menuSystemId);
+                    })->max('order');
+                if (!$maxChildOrder) {
+                    $maxChildOrder = ManualBook::where('parent_id', $parentId)->max('order') ?? 0;
+                }
+                $order = (int) $maxChildOrder + 1;
+            }
+
+            // Judul sub-sub menu murni teks fitur tanpa angka prefix file lama (misal "Inport Sale Database")
+            $title = $cleanTitle;
+        } else {
+            // Ini adalah SUB MENU LEVEL 1 (Top Level Modul):
+            if ($detectedSingleOrder !== null && $detectedSingleOrder > 0) {
+                $order = $detectedSingleOrder;
+            } else {
+                $maxOrder = \DB::table('menu_has_manual_books')
+                    ->where('menu_system_id', $menuSystemId)
+                    ->max('order') ?? 0;
+                $order = (int) $maxOrder + 1;
+            }
+            $title = $order . '. ' . $cleanTitle;
         }
 
         if (mb_strlen($title) > 100) {
