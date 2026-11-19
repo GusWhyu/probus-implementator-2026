@@ -1885,7 +1885,7 @@
 
                                         {{-- Sub-Sub Menu Bertingkat (Anak / Level 2) --}}
                                         <div x-show="expandedSubMenus[sub.id]"
-                                            class="ml-3.5 pl-2.5 border-l-2 border-indigo-200/70 dark:border-indigo-900/40 my-1 space-y-0.5">
+                                            class="ml-6 pl-2.5 border-l-2 border-indigo-200 dark:border-indigo-800/80 my-1 space-y-0.5">
                                             <template x-for="(child, cIdx) in (sub.children || [])" :key="child.id">
                                                 <div @click="selectSubMenu(mod.id, child.id, sub.id)"
                                                     :class="[
@@ -1895,7 +1895,10 @@
                                                      ]"
                                                     class="px-2 py-1.5 rounded-lg transition-all duration-150 cursor-pointer flex items-center justify-between gap-1.5 group/child select-none">
                                                     <div class="flex items-center gap-1.5 min-w-0">
-                                                        <i class="fa-solid fa-turn-up rotate-90 text-[8px] opacity-40 shrink-0"></i>
+                                                        <i class="fa-solid fa-turn-up rotate-90 text-[8.5px] shrink-0"
+                                                            :class="String(activeModuleId) === String(mod.id) && String(activeSubMenuId) === String(child.id) && !isNewSubMenu
+                                                                ? 'text-indigo-200 opacity-90'
+                                                                : 'text-indigo-400 dark:text-indigo-500 opacity-70'"></i>
                                                         <span class="text-[10px] font-bold font-mono shrink-0"
                                                             :class="String(activeModuleId) === String(mod.id) && String(activeSubMenuId) === String(child.id) && !isNewSubMenu
                                                                 ? 'text-indigo-100'
@@ -1949,7 +1952,7 @@
                                             <template x-if="String(activeModuleId) === String(mod.id) && isNewSubMenu && String(activeParentSubMenuId) === String(sub.id)">
                                                 <div class="px-2 py-1.5 rounded-lg bg-indigo-600 text-white font-medium shadow-xs flex items-center justify-between gap-1.5 border border-indigo-500 ring-2 ring-indigo-400/40 select-none">
                                                     <div class="flex items-center gap-1.5 min-w-0">
-                                                        <i class="fa-solid fa-turn-up rotate-90 text-[8px] opacity-60 shrink-0"></i>
+                                                        <i class="fa-solid fa-turn-up rotate-90 text-[8.5px] opacity-80 text-indigo-200 shrink-0"></i>
                                                         <span class="text-[10px] font-bold font-mono text-indigo-100 shrink-0"
                                                             x-text="'#' + sub.order + '.' + subMenuOrder"></span>
                                                         <span class="text-[11.5px] truncate italic"
